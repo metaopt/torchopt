@@ -180,3 +180,6 @@ python setup.py build_from_source
 - [ ] Support general implicit differentiation with functional programing.
 - [ ] Support more optimizers such as AdamW, RMSPROP
 - [ ] CPU-acclerated optimizer
+
+## The Team
+TorchOpt is a work by Jie Ren, Xidong Feng, Bo Liu, [Luo Mai](https://luomai.github.io/) and [Yaodong Yang](https://www.yangyaodong.com/).
