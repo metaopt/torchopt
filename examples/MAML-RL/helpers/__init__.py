@@ -1,3 +1,5 @@
+# This file is modified from:
+# https://github.com/tristandeleu/pytorch-maml-rl
 from gym.envs.registration import register
 
 register(
