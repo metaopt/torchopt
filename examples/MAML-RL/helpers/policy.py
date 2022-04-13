@@ -27,4 +27,4 @@ class CategoricalMLPPolicy(nn.Module):
         embedding = self.torso(inputs)
         logits = self.policy_head(embedding)
         values = self.value_head(embedding)
-        return Categorical(logits=logits), values
+        return logits, values
