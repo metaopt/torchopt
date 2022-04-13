@@ -36,6 +36,7 @@ class MetaOptimizer(object):
             `MetaOptimizer(chain(sgd(moment_requires_grad=True))) is equavalent to `MetaSGD`.
         """
         self.impl = impl
+        self.optim_state = None
 
     def step(self, loss: torch.Tensor, params: List[torch.Tensor]):
         """Compute the gradients of the loss to the network parameters and update network parameters.
@@ -47,10 +48,13 @@ class MetaOptimizer(object):
         Args:
           loss (torch.Tensor): the loss that is used to compute the gradients to the network parameters.
         """
+        if self.optim_state is None:
+            self.optim_state = self.impl.init(params)
+
         # step parameter only
         grad = torch.autograd.grad(
             loss, params, create_graph=True, allow_unused=True)
-        updates, state = self.impl.update(grad, EmptyState(), False)
+        updates, self.optim_state = self.impl.update(grad, self.optim_state, False)
         new_params = TorchOpt.apply_updates(
             params, updates, inplace=False)
         return new_params
