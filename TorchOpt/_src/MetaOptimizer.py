@@ -26,7 +26,7 @@ from TorchOpt._src.pytypes import ScalarOrSchedule
 class MetaOptimizer(object):
     """A high-level optimizer base class for meta learning."""
 
-    def __init__(self, net: nn.Module, impl: base.GradientTransformation):
+    def __init__(self, impl: base.GradientTransformation):
         """
         Args:
           net (nn.Module): a network whose parameters should be optimized.
@@ -38,9 +38,8 @@ class MetaOptimizer(object):
         self.impl = impl
         self.param_containers_groups = []
         self.state_groups = []
-        self.add_param_group(net)
 
-    def step(self, loss: torch.Tensor):
+    def step(self, loss: torch.Tensor, params: List[torch.Tensor]):
         """Compute the gradients of the loss to the network parameters and update network parameters.
 
         Graph of the derivative will be constructed, allowing to compute higher order derivative products.
@@ -64,27 +63,6 @@ class MetaOptimizer(object):
             unflatten_new_params = containers_tree.unflatten(new_params)
             for (container, unflatten_param) in zip(param_containers, unflatten_new_params):
                 container.update(unflatten_param)
-
-    def add_param_group(self, net):
-        from .utils import _extract_container
-        net_container = _extract_container(net, with_buffer=False)
-        flatten_param, _ = jax.tree_util.tree_flatten(net_container)
-        flatten_param = tuple(flatten_param)
-        optim_state = self.impl.init(flatten_param)
-        self.state_groups.append(optim_state)
-        self.param_containers_groups.append(net_container)
-
-    def state_dict(self):
-        """Extract the references of the optimizer states.
-
-        Note that the states are references, so any in-place operations will
-        change the states inside `MetaOptimizer` at the same time.
-        """
-        out_groups = tuple(group for group in self.state_groups)
-        return out_groups
-
-    def load_state_dict(self, state_dict):
-        self.state_groups = list(group for group in state_dict)
 
 
 class MetaSGD(MetaOptimizer):
