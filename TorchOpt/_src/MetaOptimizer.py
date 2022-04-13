@@ -56,7 +56,7 @@ class MetaOptimizer(object):
             loss, params, create_graph=True, allow_unused=True)
         updates, self.optim_state = self.impl.update(grad, self.optim_state, False)
         new_params = TorchOpt.apply_updates(
-            params, updates, inplace=False)
+            list(params), list(updates), inplace=False)
         return new_params
 
 

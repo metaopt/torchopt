@@ -157,15 +157,18 @@ def main(args):
 
         # policy_state_dict = TorchOpt.extract_state_dict(policy)
         # optim_state_dict = TorchOpt.extract_state_dict(inner_opt)
+        param_orig = [p.detach().clone().requires_grad_() for p in params]
+        _params = list(params)
         for idx in range(TASK_NUM):
 
             for _ in range(inner_iters):
-                pre_trajs = sample_traj(env, tasks[idx], fpolicy, params)
-                inner_loss = a2c_loss(pre_trajs, fpolicy, params, value_coef=0.5)
-                params = inner_opt.step(inner_loss, params)
-            post_trajs = sample_traj(env, tasks[idx], fpolicy, params)
-            outer_loss = a2c_loss(post_trajs, fpolicy, params, value_coef=0.5)
+                pre_trajs = sample_traj(env, tasks[idx], fpolicy, _params)
+                inner_loss = a2c_loss(pre_trajs, fpolicy, _params, value_coef=0.5)
+                _params = inner_opt.step(inner_loss, _params)
+            post_trajs = sample_traj(env, tasks[idx], fpolicy, _params)
+            outer_loss = a2c_loss(post_trajs, fpolicy, _params, value_coef=0.5)
             outer_loss.backward()
+            _params = [p.detach().clone().requires_grad_() for p in param_orig]
             # TorchOpt.recover_state_dict(policy, policy_state_dict)
             # TorchOpt.recover_state_dict(inner_opt, optim_state_dict)
 
