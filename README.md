@@ -20,10 +20,11 @@ The README is organized as follows:
 - [Visualization](#visualization)
 - [Installation](#installation)
 - [Future Plan](#future-plan)
+- [The Team](#the-team)
 
 
 ## TorchOpt as Functional Optimizer
-The desgin of TorchOpt follows the philosophy of functional programming. Aligned with [functorch](https://github.com/pytorch/functorch), users can conduct functional style programing with models, optimizers and training in PyTorch. We use the Adam optimizer as an example in the following illustration. You can also check out the tutorial notebook [Functional Optimizer](https://github.com/metaopt/TorchOpt/blob/main/tutorials/1.%20Functional%20Optimizer.ipynb) for more details.
+The desgin of TorchOpt follows the philosophy of functional programming. Aligned with [functorch](https://github.com/pytorch/functorch), users can conduct functional style programing with models, optimizers and training in PyTorch. We use the Adam optimizer as an example in the following illustration. You can also check out the tutorial notebook [Functional Optimizer](./tutorials/1_Functional_Optimizer.ipynb) for more details.
 ### Optax-Like API
 For those users who prefer fully functional programing, we offer Optax-Like API by passing gradients and optimizers states to the optimizer function. We design base class `TorchOpt.Optimizer` that has the same interface as `torch.optim.Optimizer`. Here is an example coupled with functorch:
 ```python
@@ -90,10 +91,10 @@ We hope meta-learning researchers could control the network parameters or optimi
 
 ### Meta-Learning API
 <!-- Meta-Learning algorithms often use *inner loop* to update network parameters and compute an *outer loss* then back-propagate the *outer loss*. So the optimizer used in the *inner loop* should be differentiable. Thanks to the functional design, we can easily realize this requirement. -->
-- We design a base class `TorchOpt.MetaOptimizer` for managing network updates in Meta-Learning. The constructor of `MetaOptimizer` takes as input the network rather than network parameters. `MetaOptimizer` exposed interface `step(loss)` takes as input the loss for step the network parameter. Refer to the tutorial notebook [Meta Optimizer](https://github.com/metaopt/TorchOpt/blob/main/tutorials/2.%20Meta%20Optimizer.ipynb) for more details.
-- We offer `TorchOpt.chain` which can apply a list of chainable update transformations. Combined with `MetaOptimizer`, it can help you conduct gradient transformation such as gradient clip before the Meta optimizer steps. Refer to the tutorial notebook [Meta Optimizer](https://github.com/metaopt/TorchOpt/blob/main/tutorials/2.%20Meta%20Optimizer.ipynb) for more details.
+- We design a base class `TorchOpt.MetaOptimizer` for managing network updates in Meta-Learning. The constructor of `MetaOptimizer` takes as input the network rather than network parameters. `MetaOptimizer` exposed interface `step(loss)` takes as input the loss for step the network parameter. Refer to the tutorial notebook [Meta Optimizer](./tutorials/2_Meta_Optimizer.ipynb) for more details.
+- We offer `TorchOpt.chain` which can apply a list of chainable update transformations. Combined with `MetaOptimizer`, it can help you conduct gradient transformation such as gradient clip before the Meta optimizer steps. Refer to the tutorial notebook [Meta Optimizer](./tutorials/2_Meta_Optimizer.ipynb) for more details.
 - We observe that different Meta-Learning algorithms vary in inner-loop parameter recovery. TorchOpt provides basic functions for users to extract or recover network parameters and optimizer states anytime anywhere they want.
-- Some algorithms such as [MGRL](https://proceedings.neurips.cc/paper/2018/file/2715518c875999308842e3455eda2fe3-Paper.pdf) initialize the inner-loop parameters inherited from previous inner-loop process when conducting a new bi-level process. TorchOpt also provides a finer function `stop_gradient` for manipulating the gradient graph, which is helpful for this kind of algortihms. Refer to the notebook [Stop Gradient](https://github.com/metaopt/TorchOpt/blob/main/tutorials/4.%20Stop%20Gradient.ipynb) for more details.
+- Some algorithms such as [MGRL](https://proceedings.neurips.cc/paper/2018/file/2715518c875999308842e3455eda2fe3-Paper.pdf) initialize the inner-loop parameters inherited from previous inner-loop process when conducting a new bi-level process. TorchOpt also provides a finer function `stop_gradient` for manipulating the gradient graph, which is helpful for this kind of algortihms. Refer to the notebook [Stop Gradient](./tutorials/4_Stop_Gradient.ipynb) for more details.
 
 We give an example of [MAML](https://arxiv.org/abs/1703.03400) with inner-loop Adam optimizer to illustrate TorchOpt APIs:
 
@@ -154,7 +155,7 @@ Here we evaluate the performance using the maml-omniglot code with the inner-loo
 Notably, the operator fusion not only increases performance but also help simplify the computation graph, which will be discussed in the next section.
 
 ## Visualization
-Complex gradient flow in meta-learning brings in a great challenge for managing the gradient flow and verifying the correctness of it. TorchOpt provides a visualization tool that draw variable (e.g. network parameters or meta parameters) names on the gradient graph for better analyzing. The visualization tool is modified from [torchviz](https://github.com/szagoruyko/pytorchviz). We provide an example using the [visualization code](https://github.com/metaopt/TorchOpt/blob/main/examples/visualize.py). Also refer to the notebook [Visualization](https://github.com/metaopt/TorchOpt/blob/main/tutorials/3.%20Visualization.ipynb) for more details.
+Complex gradient flow in meta-learning brings in a great challenge for managing the gradient flow and verifying the correctness of it. TorchOpt provides a visualization tool that draw variable (e.g. network parameters or meta parameters) names on the gradient graph for better analyzing. The visualization tool is modified from [torchviz](https://github.com/szagoruyko/pytorchviz). We provide an example using the [visualization code](./examples/visualize.py). Also refer to the notebook [Visualization](./tutorials/3_Visualization.ipynb) for more details.
 
 The figure below show the visulization result. Compared with torchviz, TorchOpt fuses the operations within the Adam together (orange) to reduce the complexity and provide simpler visualization.
 
