@@ -316,3 +316,88 @@ def trace(
         return updates, TraceState(trace=new_trace)
 
     return base.GradientTransformation(init_fn, update_fn)
+
+
+class ScaleByRmsState(NamedTuple):
+  """State for exponential root mean-squared (RMS)-normalized updates."""
+  nu: base.Updates
+
+
+def scale_by_rms(
+    decay: float = 0.9,
+    eps: float = 1e-8,
+    initial_scale: float = 0.
+) -> base.GradientTransformation:
+  """Rescale updates by the root of the exp. moving avg of the square.
+
+  References:
+    [Hinton](www.cs.toronto.edu/~tijmen/csc321/slides/lecture_slides_lec6.pdf)
+
+  Args:
+    decay: decay rate for the exponentially weighted average of squared grads.
+    eps: term added to the denominator to improve numerical stability.
+    initial_scale: initial value for second moment
+
+  Returns:
+    An (init_fn, update_fn) tuple.
+  """
+
+  def init_fn(params):
+    nu = jax.tree_map(lambda n: torch.full_like(n, initial_scale), params)  # second moment
+    return ScaleByRmsState(nu=nu)
+
+  def update_fn(updates, state, params=None, inplace=True):
+    del params
+    nu = _update_moment_per_elem_norm(updates, state.nu, decay, 2, inplace)
+    if inplace:
+      def f(g, n): return g.mul_(torch.rsqrt_(n.add_(eps)))
+    else:
+      def f(g, n): return g.mul(torch.rsqrt(n.add(eps))),
+    updates = jax.tree_map(f, updates, nu)
+    return updates, ScaleByRmsState(nu=nu)
+
+  return base.GradientTransformation(init_fn, update_fn)
+
+
+class ScaleByRStdDevState(NamedTuple):
+  """State for centered exponential moving average of squares of updates."""
+  mu: base.Updates
+  nu: base.Updates
+
+
+def scale_by_stddev(
+    decay: float = 0.9,
+    eps: float = 1e-8,
+    initial_scale: float = 0.
+) -> base.GradientTransformation:
+  """Rescale updates by the root of the centered exp. moving average of squares.
+
+  References:
+    [Hinton](www.cs.toronto.edu/~tijmen/csc321/slides/lecture_slides_lec6.pdf)
+
+  Args:
+    decay: decay rate for the exponentially weighted average of squared grads.
+    eps: term added to the denominator to improve numerical stability.
+    initial_scale: initial value for second moment
+
+  Returns:
+    An (init_fn, update_fn) tuple.
+  """
+
+  def init_fn(params):
+    mu = jax.tree_map(torch.zeros_like, params)  # First moment
+    nu = jax.tree_map(lambda n: torch.full_like(n, initial_scale), params)  # second moment
+    return ScaleByRStdDevState(mu=mu, nu=nu)
+
+  def update_fn(updates, state, params=None, inplace=True):
+    del params
+    mu = _update_moment(updates, state.mu, decay, 1, inplace)
+    nu = _update_moment_per_elem_norm(updates, state.nu, decay, 2, inplace)
+    if inplace:
+      def f(g, m, n): return g.mul_(torch.rsqrt_(n.sub_(m ** 2).add_(eps)))
+    else:
+      def f(g, m, n): return g.mul(torch.rsqrt(n.sub(m ** 2).add(eps)))
+    updates = jax.tree_map(f, updates, mu, nu)
+    return updates, ScaleByRStdDevState(mu=mu, nu=nu)
+
+  return base.GradientTransformation(init_fn, update_fn)

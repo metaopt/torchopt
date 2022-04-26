@@ -17,7 +17,7 @@ import torch
 import jax
 from TorchOpt._src.pytypes import ScalarOrSchedule
 from TorchOpt._src.update import apply_updates
-from TorchOpt._src.alias import adam, sgd
+from TorchOpt._src.alias import adam, sgd, rmsprop
 
 
 class Optimizer(object):
@@ -145,3 +145,29 @@ class Adam(Optimizer):
                                       eps_root=eps_root,
                                       moment_requires_grad=False,
                                       use_accelerated_op=use_accelerated_op))
+
+
+class RMSprop(Optimizer):
+    """A canonical Stochastic Gradient Descent optimiser."""
+
+    def __init__(self,
+                 params,
+                 lr: ScalarOrSchedule,
+                 decay: float = 0.9,
+                 eps: float = 1e-8,
+                 initial_scale: float = 0.,
+                 centered: bool = False,
+                 momentum: float = None,
+                 nesterov: bool = False):
+        """
+        Args:
+          params (iterable): an iterable of `torch.Tensor`s. Specifies what Tensors should be optimized.
+          args: other arguments see `alias.sgd`.
+        """
+        super().__init__(params, rmsprop(lr=lr,
+                                         decay=decay,
+                                         eps=eps,
+                                         initial_scale=initial_scale,
+                                         centered=centered,
+                                         momentum=momentum,
+                                         nesterov=nesterov))
