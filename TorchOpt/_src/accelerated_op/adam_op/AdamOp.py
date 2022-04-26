@@ -94,8 +94,9 @@ class AdamOp(object):
     def __call__(self, mu, nu, updates, count):
         if updates is None:
             return mu, nu, None
-        current_device = torch.cuda.current_device()
-        torch.cuda.set_device(updates.device)
+        if updates.is_cuda:
+            current_device = torch.cuda.current_device()
+            torch.cuda.set_device(updates.device)
         if self.inplace:
             new_updates, new_mu, new_nu = adam_op.forward_(updates, mu, nu, self.b1,
                                                            self.b2, self.eps, self.eps_root, count)
@@ -106,5 +107,6 @@ class AdamOp(object):
                 new_mu,
                 new_nu,
                 (self.b1, self.b2, self.eps, self.eps_root, count))
-        torch.cuda.set_device(current_device)
+        if updates.is_cuda:
+            torch.cuda.set_device(current_device)
         return new_mu, new_nu, new_updates
