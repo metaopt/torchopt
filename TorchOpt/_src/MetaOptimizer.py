@@ -18,7 +18,7 @@ from torch import nn
 import jax
 
 import TorchOpt
-from TorchOpt._src.alias import sgd, adam
+from TorchOpt._src.alias import sgd, adam, rmsprop
 from TorchOpt._src import base
 from TorchOpt._src.pytypes import ScalarOrSchedule
 
@@ -137,3 +137,30 @@ class MetaAdam(MetaOptimizer):
                               moment_requires_grad=moment_requires_grad,
                               use_accelerated_op=use_accelerated_op)
                          )
+
+
+class MetaRMSprop(MetaOptimizer):
+    """The classic RMSprop optimiser."""
+
+    def __init__(self,
+                 net,
+                 lr: ScalarOrSchedule,
+                 decay: float = 0.9,
+                 eps: float = 1e-8,
+                 initial_scale: float = 0.,
+                 centered: bool = False,
+                 momentum: float = None,
+                 nesterov: bool = False):
+        """
+        Args:
+          net (nn.Module): a network whose parameters should be optimized.
+          args: other arguments see `alias.adam`, here we set `moment_requires_grad=True`
+            to make tensors like momentum be differentiable.
+        """
+        super().__init__(net, rmsprop(lr=lr,
+                                      decay=decay,
+                                      eps=eps,
+                                      initial_scale=initial_scale,
+                                      centered=centered,
+                                      momentum=momentum,
+                                      nesterov=nesterov))

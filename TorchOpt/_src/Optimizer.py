@@ -148,7 +148,7 @@ class Adam(Optimizer):
 
 
 class RMSprop(Optimizer):
-    """A canonical Stochastic Gradient Descent optimiser."""
+    """An RMSprop optimiser."""
 
     def __init__(self,
                  params,
