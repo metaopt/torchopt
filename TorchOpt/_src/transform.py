@@ -350,7 +350,7 @@ def scale_by_rms(
     del params
     nu = _update_moment_per_elem_norm(updates, state.nu, decay, 2, inplace)
     if inplace:
-      def f(g, n): return g.mul_(torch.rsqrt_(n.add_(eps)))
+      def f(g, n): return g.mul_(torch.rsqrt(n.add(eps)))
     else:
       def f(g, n): return g.mul(torch.rsqrt(n.add(eps)))
     # """The followings are pytorch style"""
@@ -399,7 +399,7 @@ def scale_by_stddev(
     mu = _update_moment(updates, state.mu, decay, 1, inplace)
     nu = _update_moment_per_elem_norm(updates, state.nu, decay, 2, inplace)
     if inplace:
-      def f(g, m, n): return g.mul_(torch.rsqrt_(n.sub_(m ** 2).add_(eps)))
+      def f(g, m, n): return g.mul_(torch.rsqrt(n.sub(m ** 2).add(eps)))
     else:
       def f(g, m, n): return g.mul(torch.rsqrt(n.sub(m ** 2).add(eps)))
     # """The followings are pytorch style"""
