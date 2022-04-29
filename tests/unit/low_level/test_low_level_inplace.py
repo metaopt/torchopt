@@ -193,12 +193,12 @@ class LowLevelInplace(unittest.TestCase):
         with torch.no_grad():
             for p, p_ref in zip(params, self.model_ref.parameters()):
                 mse = F.mse_loss(p, p_ref)
-                self.assertAlmostEqual(float(mse), 0, delta=6)  # Optax and pytorch have different implementation
+                self.assertAlmostEqual(float(mse), 0, delta=1e-4)  # Optax and pytorch have different implementation
             for b, b_ref in zip(buffers, self.model_ref.buffers()):
                 b = b.float() if not b.is_floating_point() else b
                 b_ref = b_ref.float() if not b_ref.is_floating_point() else b_ref
                 mse = F.mse_loss(b, b_ref)
-                self.assertAlmostEqual(float(mse), 0, delta=6)
+                self.assertAlmostEqual(float(mse), 0)
 
 
 if __name__ == '__main__':
