@@ -147,8 +147,8 @@ class Adam(Optimizer):
                                       use_accelerated_op=use_accelerated_op))
 
 
-class RMSprop(Optimizer):
-    """An RMSprop optimiser."""
+class RMSProp(Optimizer):
+    """An RMSProp optimiser."""
 
     def __init__(self,
                  params,

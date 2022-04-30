@@ -18,8 +18,8 @@ from ._src import clip
 from ._src import visual
 from ._src import hook
 from ._src import schedule
-from ._src.MetaOptimizer import MetaOptimizer, MetaSGD, MetaAdam, MetaRMSprop
-from ._src.Optimizer import Optimizer, SGD, Adam, RMSprop
+from ._src.MetaOptimizer import MetaOptimizer, MetaSGD, MetaAdam, MetaRMSProp
+from ._src.Optimizer import Optimizer, SGD, Adam, RMSProp
 from ._src.update import apply_updates
 from ._src.alias import sgd, adam, rmsprop
 from ._src.utils import stop_gradient, extract_state_dict, recover_state_dict

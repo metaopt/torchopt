@@ -20,7 +20,7 @@ import torch
 from torch.utils import data
 from torch.nn import functional as F
 from torchvision import models
-from TorchOpt import SGD, Adam, RMSprop
+from TorchOpt import SGD, Adam, RMSProp
 
 
 class HighLevelInplace(unittest.TestCase):
@@ -152,7 +152,7 @@ class HighLevelInplace(unittest.TestCase):
                 self.assertAlmostEqual(float(mse), 0)
 
     def test_rmsprop(self) -> None:
-        optim = RMSprop(self.model.parameters(), self.lr, decay=0.99)   # pytorch uses 0.99 as the default value
+        optim = RMSProp(self.model.parameters(), self.lr, decay=0.99)   # pytorch uses 0.99 as the default value
         optim_ref = torch.optim.RMSprop(self.model_ref.parameters(), self.lr)
         for xs, ys in self.loader:
             pred = self.model(xs)

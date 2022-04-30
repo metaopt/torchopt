@@ -139,8 +139,8 @@ class MetaAdam(MetaOptimizer):
                          )
 
 
-class MetaRMSprop(MetaOptimizer):
-    """The classic RMSprop optimiser."""
+class MetaRMSProp(MetaOptimizer):
+    """The classic RMSProp optimiser."""
 
     def __init__(self,
                  net,
