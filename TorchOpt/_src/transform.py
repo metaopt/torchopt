@@ -404,7 +404,7 @@ def scale_by_stddev(
       def f(g, m, n): return g.mul(torch.rsqrt(n.sub(m ** 2).add(eps)))
     # """The followings are pytorch style"""
     # if inplace:
-    #   def f(g, m, n): return g.div_(torch.sqrt_(n.sub_(m ** 2)).add_(eps))
+    #   def f(g, m, n): return g.div_(torch.sqrt_(n.sub_(m ** 2)).add(eps))
     # else:
     #   def f(g, m, n): return g.div(torch.sqrt(n.sub(m ** 2)).add(eps))
     updates = jax.tree_map(f, updates, mu, nu)
