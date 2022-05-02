@@ -13,12 +13,12 @@
 # limitations under the License.
 # ==============================================================================
 
-import jax
+from typing import Dict, List, NamedTuple, Union
 
+import jax
 import torch
 from torch import nn
 
-from typing import List, NamedTuple, Union, Dict
 from TorchOpt._src.MetaOptimizer import MetaOptimizer
 
 
@@ -64,7 +64,12 @@ def stop_gradient(target):
     jax.tree_map(f, true_target)
 
 
-def extract_state_dict(mod, copy=False, *, with_buffer=True, enable_visual=False, visual_prefix=''):
+def extract_state_dict(mod,
+                       copy=False,
+                       *,
+                       with_buffer=True,
+                       enable_visual=False,
+                       visual_prefix=''):
     """Extract target state.
 
   Since a tensor use `grad_fn` to connect itself with the previous computation
@@ -110,8 +115,7 @@ def extract_state_dict(mod, copy=False, *, with_buffer=True, enable_visual=False
 
         def _update(term):
             if len(term) != 0:
-                params.append(
-                    {k: get_v(v) for k, v in term.items()})
+                params.append({k: get_v(v) for k, v in term.items()})
 
         _update(mod._parameters)
         if with_buffer:
@@ -122,7 +126,8 @@ def extract_state_dict(mod, copy=False, *, with_buffer=True, enable_visual=False
             _update(module._parameters)
             if with_buffer:
                 _update(module._buffers)
-        return _ModuleState(params=tuple(params), visual_contents=visual_contents)
+        return _ModuleState(params=tuple(params),
+                            visual_contents=visual_contents)
     elif isinstance(mod, MetaOptimizer):
         state = mod.state_dict()
         if copy:
@@ -133,6 +138,7 @@ def extract_state_dict(mod, copy=False, *, with_buffer=True, enable_visual=False
                     return v
                 requires_grad = v.requires_grad
                 return v.clone().detach_().requires_grad_(requires_grad)
+
             flatten_state = jax.tree_map(get_v, flatten_state)
             return state_tree.unflatten(flatten_state)
         else:

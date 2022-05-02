@@ -13,15 +13,12 @@
 # limitations under the License.
 # ==============================================================================
 
-from ._src import combine
-from ._src import clip
-from ._src import visual
-from ._src import hook
-from ._src import schedule
-from ._src.MetaOptimizer import MetaOptimizer, MetaSGD, MetaAdam, MetaRMSProp
-from ._src.Optimizer import Optimizer, SGD, Adam, RMSProp
+from ._src import (accelerated_op_available, clip, combine, hook, schedule,
+                   visual)
+from ._src.alias import adam, rmsprop, sgd
+from ._src.MetaOptimizer import MetaAdam, MetaOptimizer, MetaRMSProp, MetaSGD
+from ._src.Optimizer import SGD, Adam, Optimizer, RMSProp
 from ._src.update import apply_updates
-from ._src.alias import sgd, adam, rmsprop
-from ._src.utils import stop_gradient, extract_state_dict, recover_state_dict
-from ._src import accelerated_op_available
+from ._src.utils import extract_state_dict, recover_state_dict, stop_gradient
+
 __version__ = "0.4.1"

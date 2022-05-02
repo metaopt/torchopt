@@ -28,7 +28,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 This example shows how to use higher to do Model Agnostic Meta Learning (MAML)
 for few-shot Omniglot classification.
@@ -40,19 +39,21 @@ Our MAML++ fork and experiments are available at:
 https://github.com/bamos/HowToTrainYourMAMLPytorch
 """
 
-from support.omniglot_loaders import OmniglotNShot
-import TorchOpt
-import torch.optim as optim
-import torch.nn.functional as F
-from torch import nn
-import torch
-import matplotlib.pyplot as plt
 import argparse
 import time
 
-import pandas as pd
-import numpy as np
 import matplotlib as mpl
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import torch
+import torch.nn.functional as F
+import torch.optim as optim
+from support.omniglot_loaders import OmniglotNShot
+from torch import nn
+
+import TorchOpt
+
 mpl.use('Agg')
 plt.style.use('bmh')
 
@@ -60,15 +61,18 @@ plt.style.use('bmh')
 def main():
     argparser = argparse.ArgumentParser()
     argparser.add_argument('--n_way', type=int, help='n way', default=5)
-    argparser.add_argument(
-        '--k_spt', type=int, help='k shot for support set', default=5)
-    argparser.add_argument(
-        '--k_qry', type=int, help='k shot for query set', default=15)
-    argparser.add_argument(
-        '--task_num',
-        type=int,
-        help='meta batch size, namely task num',
-        default=32)
+    argparser.add_argument('--k_spt',
+                           type=int,
+                           help='k shot for support set',
+                           default=5)
+    argparser.add_argument('--k_qry',
+                           type=int,
+                           help='k shot for query set',
+                           default=15)
+    argparser.add_argument('--task_num',
+                           type=int,
+                           help='meta batch size, namely task num',
+                           default=32)
     argparser.add_argument('--seed', type=int, help='random seed', default=1)
     args = argparser.parse_args()
 
@@ -96,21 +100,16 @@ def main():
     # Before higher, models could *not* be created like this
     # and the parameters needed to be manually updated and copied
     # for the updates.
-    net = nn.Sequential(
-        nn.Conv2d(1, 64, 3),
-        nn.BatchNorm2d(64, momentum=1., affine=True),
-        nn.ReLU(inplace=False),
-        nn.MaxPool2d(2, 2),
-        nn.Conv2d(64, 64, 3),
-        nn.BatchNorm2d(64, momentum=1., affine=True),
-        nn.ReLU(inplace=False),
-        nn.MaxPool2d(2, 2),
-        nn.Conv2d(64, 64, 3),
-        nn.BatchNorm2d(64, momentum=1., affine=True),
-        nn.ReLU(inplace=False),
-        nn.MaxPool2d(2, 2),
-        nn.Flatten(),
-        nn.Linear(64, args.n_way)).to(device)
+    net = nn.Sequential(nn.Conv2d(1, 64, 3),
+                        nn.BatchNorm2d(64, momentum=1., affine=True),
+                        nn.ReLU(inplace=False), nn.MaxPool2d(2, 2),
+                        nn.Conv2d(64, 64, 3),
+                        nn.BatchNorm2d(64, momentum=1., affine=True),
+                        nn.ReLU(inplace=False), nn.MaxPool2d(2, 2),
+                        nn.Conv2d(64, 64, 3),
+                        nn.BatchNorm2d(64, momentum=1., affine=True),
+                        nn.ReLU(inplace=False), nn.MaxPool2d(2, 2),
+                        nn.Flatten(), nn.Linear(64, args.n_way)).to(device)
 
     # We will use Adam to (meta-)optimize the initial parameters
     # to be adapted.
@@ -166,8 +165,8 @@ def train(db, net, meta_opt, epoch, log):
             qry_logits = net(x_qry[i])
             qry_loss = F.cross_entropy(qry_logits, y_qry[i])
             qry_losses.append(qry_loss.detach())
-            qry_acc = (qry_logits.argmax(
-                dim=1) == y_qry[i]).sum().item() / querysz
+            qry_acc = (qry_logits.argmax(dim=1)
+                       == y_qry[i]).sum().item() / querysz
             qry_accs.append(qry_acc)
 
             # Update the model's meta-parameters to optimize the query
@@ -233,11 +232,9 @@ def test(db, net, epoch, log):
 
             # The query loss and acc induced by these parameters.
             qry_logits = net(x_qry[i]).detach()
-            qry_loss = F.cross_entropy(
-                qry_logits, y_qry[i], reduction='none')
+            qry_loss = F.cross_entropy(qry_logits, y_qry[i], reduction='none')
             qry_losses.append(qry_loss.detach())
-            qry_accs.append(
-                (qry_logits.argmax(dim=1) == y_qry[i]).detach())
+            qry_accs.append((qry_logits.argmax(dim=1) == y_qry[i]).detach())
 
             TorchOpt.recover_state_dict(net, net_state_dict)
             TorchOpt.recover_state_dict(inner_opt, optim_state_dict)

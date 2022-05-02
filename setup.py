@@ -1,7 +1,8 @@
 import os
-import sys
 import pathlib
-from setuptools import setup, find_packages
+import sys
+
+from setuptools import find_packages, setup
 from setuptools.command.build_ext import build_ext
 from torch.utils import cpp_extension
 
@@ -22,8 +23,8 @@ class MyBuild(build_ext):
             files = os.listdir(op_path)
             for file in files:
                 if file.split('.')[-1] == 'so':
-                    copy_file(os.path.join(op_path, file), os.path.join(
-                        cwd, 'TorchOpt', '_lib'))
+                    copy_file(os.path.join(op_path, file),
+                              os.path.join(cwd, 'TorchOpt', '_lib'))
 
     def build_cmake(self):
         cwd = pathlib.Path().absolute()
@@ -52,10 +53,7 @@ class MyBuild(build_ext):
             "-DCMAKE_BUILD_TYPE=" + config
         ]
 
-        build_args = [
-            "--config", config,
-            "--", "-j4"
-        ]
+        build_args = ["--config", config, "--", "-j4"]
 
         os.chdir(build_temp)
         self.spawn(["cmake", f"{str(cwd)}"] + cmake_args)
@@ -74,10 +72,12 @@ class download_shared():
         op_urls = []
         if sys.version_info >= (3, 8) and sys.version_info < (3, 9):
             op_urls.append(
-                "https://torchopt.oss-cn-beijing.aliyuncs.com/torch1_11/adam_op.cpython-38-x86_64-linux-gnu.so")
+                "https://torchopt.oss-cn-beijing.aliyuncs.com/torch1_11/adam_op.cpython-38-x86_64-linux-gnu.so"
+            )
         elif sys.version_info >= (3, 9) and sys.version_info < (3, 10):
             op_urls.append(
-                "https://torchopt.oss-cn-beijing.aliyuncs.com/torch1_11/adam_op.cpython-39-x86_64-linux-gnu.so")
+                "https://torchopt.oss-cn-beijing.aliyuncs.com/torch1_11/adam_op.cpython-39-x86_64-linux-gnu.so"
+            )
 
         if len(op_urls) == 0:
             import warnings
@@ -99,7 +99,7 @@ if 'build_from_source' not in sys.argv:
 setup(
     name="TorchOpt",
     version="0.4.1",
-    author="Jie Ren",
+    author="TorchOpt Contributors",
     author_email="jieren9806@gmail.com",
     description="A Jax-style optimizer.",
     license="Apache License Version 2.0",

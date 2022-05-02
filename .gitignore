@@ -6,3 +6,10 @@ TorchOpt/**/*.so
 TorchOpt.egg-info
 dist
 **/.ipynb_checkpoints/*
+
+# Sphinx documentation
+docs/_build/
+
+
+# mkdocs documentation
+/site
