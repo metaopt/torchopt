@@ -17,12 +17,12 @@ import argparse
 from typing import NamedTuple
 
 import gym
+import numpy as np
 import torch
 import torch.optim as optim
-import numpy as np
+from helpers.policy import CategoricalMLPPolicy
 
 import TorchOpt
-from helpers.policy import CategoricalMLPPolicy
 
 TASK_NUM = 40
 TRAJ_NUM = 20
@@ -48,19 +48,12 @@ class Traj(NamedTuple):
 
 def sample_traj(env, task, policy):
     env.reset_task(task)
-    obs_buf = np.zeros(
-        shape=(TRAJ_LEN, TRAJ_NUM, STATE_DIM),
-        dtype=np.float32)
-    next_obs_buf = np.zeros(
-        shape=(TRAJ_LEN, TRAJ_NUM, STATE_DIM),
-        dtype=np.float32)
-    acs_buf = np.zeros(
-        shape=(TRAJ_LEN, TRAJ_NUM),
-        dtype=np.int8)
-    rews_buf = np.zeros(shape=(TRAJ_LEN, TRAJ_NUM),
-                        dtype=np.float32)
-    gammas_buf = np.zeros(shape=(TRAJ_LEN, TRAJ_NUM),
-                          dtype=np.float32)
+    obs_buf = np.zeros(shape=(TRAJ_LEN, TRAJ_NUM, STATE_DIM), dtype=np.float32)
+    next_obs_buf = np.zeros(shape=(TRAJ_LEN, TRAJ_NUM, STATE_DIM),
+                            dtype=np.float32)
+    acs_buf = np.zeros(shape=(TRAJ_LEN, TRAJ_NUM), dtype=np.int8)
+    rews_buf = np.zeros(shape=(TRAJ_LEN, TRAJ_NUM), dtype=np.float32)
+    gammas_buf = np.zeros(shape=(TRAJ_LEN, TRAJ_NUM), dtype=np.float32)
     with torch.no_grad():
         for batch in range(TRAJ_NUM):
             ob = env.reset()
@@ -77,7 +70,11 @@ def sample_traj(env, task, policy):
                 rews_buf[step][batch] = rew
                 gammas_buf[step][batch] = done * GAMMA
                 ob = next_ob
-    return Traj(obs=obs_buf, acs=acs_buf, next_obs=next_obs_buf, rews=rews_buf, gammas=gammas_buf)
+    return Traj(obs=obs_buf,
+                acs=acs_buf,
+                next_obs=next_obs_buf,
+                rews=rews_buf,
+                gammas=gammas_buf)
 
 
 def a2c_loss(traj, policy, value_coef):
@@ -106,8 +103,12 @@ def evaluate(env, seed, task_num, policy):
     pre_reward_ls = []
     post_reward_ls = []
     inner_opt = TorchOpt.MetaSGD(policy, lr=0.5)
-    env = gym.make('TabularMDP-v0',
-                   **dict(num_states=STATE_DIM, num_actions=ACTION_DIM, max_episode_steps=TRAJ_LEN, seed=args.seed))
+    env = gym.make(
+        'TabularMDP-v0',
+        **dict(num_states=STATE_DIM,
+               num_actions=ACTION_DIM,
+               max_episode_steps=TRAJ_LEN,
+               seed=args.seed))
     tasks = env.sample_tasks(num_tasks=task_num)
     policy_state_dict = TorchOpt.extract_state_dict(policy)
     optim_state_dict = TorchOpt.extract_state_dict(inner_opt)
@@ -133,11 +134,14 @@ def main(args):
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed_all(args.seed)
     # Env
-    env = gym.make('TabularMDP-v0',
-                   **dict(num_states=STATE_DIM, num_actions=ACTION_DIM, max_episode_steps=TRAJ_LEN, seed=args.seed))
+    env = gym.make(
+        'TabularMDP-v0',
+        **dict(num_states=STATE_DIM,
+               num_actions=ACTION_DIM,
+               max_episode_steps=TRAJ_LEN,
+               seed=args.seed))
     # Policy
-    policy = CategoricalMLPPolicy(input_size=STATE_DIM,
-                                  output_size=ACTION_DIM)
+    policy = CategoricalMLPPolicy(input_size=STATE_DIM, output_size=ACTION_DIM)
     inner_opt = TorchOpt.MetaSGD(policy, lr=0.5)
     outer_opt = optim.Adam(policy.parameters(), lr=1e-3)
     train_pre_reward = []
@@ -177,7 +181,7 @@ def main(args):
         train_post_reward.append(sum(train_post_reward_ls) / TASK_NUM)
         test_pre_reward.append(sum(test_pre_reward_ls) / TASK_NUM)
         test_post_reward.append(sum(test_post_reward_ls) / TASK_NUM)
-        
+
         print('Train_iters', i)
         print("train_pre_reward", sum(train_pre_reward_ls) / TASK_NUM)
         print("train_post_reward", sum(train_post_reward_ls) / TASK_NUM)
@@ -186,8 +190,9 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Reinforcement learning with '
-                                                 'Model-Agnostic Meta-Learning (MAML) - Train')
+    parser = argparse.ArgumentParser(
+        description='Reinforcement learning with '
+        'Model-Agnostic Meta-Learning (MAML) - Train')
     parser.add_argument('--seed',
                         type=int,
                         default=1,

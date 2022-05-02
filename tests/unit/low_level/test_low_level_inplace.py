@@ -13,16 +13,17 @@
 # limitations under the License.
 # ==============================================================================
 
+import copy
 import unittest
 
-import copy
-import torch
-from torch.utils import data
-from torch.nn import functional as F
-from torchvision import models
 import functorch
-from TorchOpt import sgd, adam, rmsprop
+import torch
+from torch.nn import functional as F
+from torch.utils import data
+from torchvision import models
+
 import TorchOpt
+from TorchOpt import adam, rmsprop, sgd
 
 
 class LowLevelInplace(unittest.TestCase):
@@ -34,8 +35,8 @@ class LowLevelInplace(unittest.TestCase):
         cls.model_backup = copy.deepcopy(cls.model)
 
         cls.batch_size = 2
-        cls.dataset = data.TensorDataset(torch.randn(
-            2, 3, 224, 224), torch.randint(0, 1000, (2,)))
+        cls.dataset = data.TensorDataset(torch.randn(2, 3, 224, 224),
+                                         torch.randint(0, 1000, (2, )))
         cls.loader = data.DataLoader(cls.dataset, cls.batch_size, False)
 
         cls.lr = 1e-3
@@ -72,7 +73,8 @@ class LowLevelInplace(unittest.TestCase):
                 self.assertAlmostEqual(float(mse), 0)
             for b, b_ref in zip(buffers, self.model_ref.buffers()):
                 b = b.float() if not b.is_floating_point() else b
-                b_ref = b_ref.float() if not b_ref.is_floating_point() else b_ref
+                b_ref = b_ref.float(
+                ) if not b_ref.is_floating_point() else b_ref
                 mse = F.mse_loss(b, b_ref)
                 self.assertAlmostEqual(float(mse), 0)
 
@@ -101,7 +103,8 @@ class LowLevelInplace(unittest.TestCase):
                 self.assertAlmostEqual(float(mse), 0)
             for b, b_ref in zip(buffers, self.model_ref.buffers()):
                 b = b.float() if not b.is_floating_point() else b
-                b_ref = b_ref.float() if not b_ref.is_floating_point() else b_ref
+                b_ref = b_ref.float(
+                ) if not b_ref.is_floating_point() else b_ref
                 mse = F.mse_loss(b, b_ref)
                 self.assertAlmostEqual(float(mse), 0)
 
@@ -134,7 +137,8 @@ class LowLevelInplace(unittest.TestCase):
                 self.assertAlmostEqual(float(mse), 0)
             for b, b_ref in zip(buffers, self.model_ref.buffers()):
                 b = b.float() if not b.is_floating_point() else b
-                b_ref = b_ref.float() if not b_ref.is_floating_point() else b_ref
+                b_ref = b_ref.float(
+                ) if not b_ref.is_floating_point() else b_ref
                 mse = F.mse_loss(b, b_ref)
                 self.assertAlmostEqual(float(mse), 0)
 
@@ -167,14 +171,16 @@ class LowLevelInplace(unittest.TestCase):
                 self.assertAlmostEqual(float(mse), 0)
             for b, b_ref in zip(buffers, self.model_ref.buffers()):
                 b = b.float() if not b.is_floating_point() else b
-                b_ref = b_ref.float() if not b_ref.is_floating_point() else b_ref
+                b_ref = b_ref.float(
+                ) if not b_ref.is_floating_point() else b_ref
                 mse = F.mse_loss(b, b_ref)
                 self.assertAlmostEqual(float(mse), 0)
 
     def test_rmsprop(self) -> None:
         fun, params, buffers = functorch.make_functional_with_buffers(
             self.model)
-        optim = rmsprop(self.lr, decay=0.99)    # pytorch uses 0.99 as the default value
+        optim = rmsprop(self.lr,
+                        decay=0.99)  # pytorch uses 0.99 as the default value
         optim_state = optim.init(params)
         optim_ref = torch.optim.RMSprop(self.model_ref.parameters(), self.lr)
         for xs, ys in self.loader:
@@ -193,10 +199,13 @@ class LowLevelInplace(unittest.TestCase):
         with torch.no_grad():
             for p, p_ref in zip(params, self.model_ref.parameters()):
                 mse = F.mse_loss(p, p_ref)
-                self.assertAlmostEqual(float(mse), 0, delta=1e-4)  # Optax and pytorch have different implementation
+                self.assertAlmostEqual(
+                    float(mse), 0, delta=1e-4
+                )  # Optax and pytorch have different implementation
             for b, b_ref in zip(buffers, self.model_ref.buffers()):
                 b = b.float() if not b.is_floating_point() else b
-                b_ref = b_ref.float() if not b_ref.is_floating_point() else b_ref
+                b_ref = b_ref.float(
+                ) if not b_ref.is_floating_point() else b_ref
                 mse = F.mse_loss(b, b_ref)
                 self.assertAlmostEqual(float(mse), 0)
 

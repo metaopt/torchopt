@@ -13,16 +13,16 @@
 # limitations under the License.
 # ==============================================================================
 
-import torch
 import jax
+import torch
+
+from TorchOpt._src.alias import adam, rmsprop, sgd
 from TorchOpt._src.pytypes import ScalarOrSchedule
 from TorchOpt._src.update import apply_updates
-from TorchOpt._src.alias import adam, sgd, rmsprop
 
 
 class Optimizer(object):
     """A high-level base class that has the similar with `torch.optim.Optimier`"""
-
     def __init__(self, params, impl):
         """
         Args:
@@ -52,10 +52,12 @@ class Optimizer(object):
         """
         for group in self.param_groups:
             if set_to_none:
+
                 def f(p):
                     p.grad = None
                     return None
             else:
+
                 def f(p):
                     if p.grad is None:
                         return None
@@ -65,6 +67,7 @@ class Optimizer(object):
                         p.grad.requires_grad_(False)
                     p.grad.zero_()
                     return None
+
             jax.tree_map(f, group)
 
     def state_dict(self):
@@ -88,7 +91,10 @@ class Optimizer(object):
                 loss = closure()
 
         for param, state in zip(self.param_groups, self.state_groups):
-            def f(p): return p.grad
+
+            def f(p):
+                return p.grad
+
             grad = jax.tree_map(f, param)
             updates, _ = self.impl.update(grad, state)
             apply_updates(param, updates)
@@ -105,7 +111,6 @@ class Optimizer(object):
 
 class SGD(Optimizer):
     """The classic Adam optimiser."""
-
     def __init__(self,
                  params,
                  lr: ScalarOrSchedule,
@@ -116,15 +121,16 @@ class SGD(Optimizer):
           params (iterable): an iterable of `torch.Tensor`s. Specifies what Tensors should be optimized.
           args: other arguments see `alias.adam`.
         """
-        super().__init__(params, sgd(lr=lr,
-                                     momentum=momentum,
-                                     nesterov=nesterov,
-                                     moment_requires_grad=False))
+        super().__init__(
+            params,
+            sgd(lr=lr,
+                momentum=momentum,
+                nesterov=nesterov,
+                moment_requires_grad=False))
 
 
 class Adam(Optimizer):
     """A canonical Stochastic Gradient Descent optimiser."""
-
     def __init__(self,
                  params,
                  lr: ScalarOrSchedule,
@@ -138,18 +144,19 @@ class Adam(Optimizer):
           params (iterable): an iterable of `torch.Tensor`s. Specifies what Tensors should be optimized.
           args: other arguments see `alias.sgd`.
         """
-        super().__init__(params, adam(lr=lr,
-                                      b1=b1,
-                                      b2=b2,
-                                      eps=eps,
-                                      eps_root=eps_root,
-                                      moment_requires_grad=False,
-                                      use_accelerated_op=use_accelerated_op))
+        super().__init__(
+            params,
+            adam(lr=lr,
+                 b1=b1,
+                 b2=b2,
+                 eps=eps,
+                 eps_root=eps_root,
+                 moment_requires_grad=False,
+                 use_accelerated_op=use_accelerated_op))
 
 
 class RMSProp(Optimizer):
     """An RMSProp optimiser."""
-
     def __init__(self,
                  params,
                  lr: ScalarOrSchedule,
@@ -164,10 +171,12 @@ class RMSProp(Optimizer):
           params (iterable): an iterable of `torch.Tensor`s. Specifies what Tensors should be optimized.
           args: other arguments see `alias.sgd`.
         """
-        super().__init__(params, rmsprop(lr=lr,
-                                         decay=decay,
-                                         eps=eps,
-                                         initial_scale=initial_scale,
-                                         centered=centered,
-                                         momentum=momentum,
-                                         nesterov=nesterov))
+        super().__init__(
+            params,
+            rmsprop(lr=lr,
+                    decay=decay,
+                    eps=eps,
+                    initial_scale=initial_scale,
+                    centered=centered,
+                    momentum=momentum,
+                    nesterov=nesterov))

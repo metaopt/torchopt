@@ -16,12 +16,13 @@
 # https://github.com/szagoruyko/pytorchviz/blob/master/torchviz/dot.py
 # ==============================================================================
 
+import warnings
 from collections import namedtuple
 from distutils.version import LooseVersion
 from typing import Dict, Generator
-from graphviz import Digraph
+
 import torch
-import warnings
+from graphviz import Digraph
 
 Node = namedtuple('Node', ('name', 'inputs', 'attr', 'op'))
 
@@ -52,14 +53,20 @@ def get_fn_name(fn, show_attrs, max_attr_chars):
     col2width = min(max(len(str(v)) for v in attrs.values()), max_attr_chars)
     sep = "-" * max(col1width + col2width + 2, len(name))
     attrstr = '%-' + str(col1width) + 's: %' + str(col2width) + 's'
-    def truncate(s): return s[:col2width - 3] + \
-        "..." if len(s) > col2width else s
+
+    def truncate(s):        return s[:col2width - 3] + \
+"..." if len(s) > col2width else s
+
     params = '\n'.join(attrstr % (k, truncate(str(v)))
                        for (k, v) in attrs.items())
     return name + '\n' + sep + '\n' + params
 
 
-def make_dot(var, params=None, show_attrs=False, show_saved=False, max_attr_chars=50):
+def make_dot(var,
+             params=None,
+             show_attrs=False,
+             show_saved=False,
+             max_attr_chars=50):
     """ Produces Graphviz representation of PyTorch autograd graph.
 
     If a node represents a backward function, it is gray. Otherwise, the node
@@ -129,7 +136,8 @@ def make_dot(var, params=None, show_attrs=False, show_saved=False, max_attr_char
 
     def get_var_name_with_flag(var):
         if var in param_map:
-            return '%s\n %s' % (param_map[var][0], size_to_str(param_map[var][1].size()))
+            return '%s\n %s' % (param_map[var][0],
+                                size_to_str(param_map[var][1].size()))
         else:
             return None
 
@@ -148,15 +156,17 @@ def make_dot(var, params=None, show_attrs=False, show_saved=False, max_attr_char
                 attr = attr[len(SAVED_PREFIX):]
                 if torch.is_tensor(val):
                     dot.edge(str(id(fn)), str(id(val)), dir="none")
-                    dot.node(str(id(val)), get_var_name(
-                        val, attr), fillcolor='orange')
+                    dot.node(str(id(val)),
+                             get_var_name(val, attr),
+                             fillcolor='orange')
                 if isinstance(val, tuple):
                     for i, t in enumerate(val):
                         if torch.is_tensor(t):
                             name = attr + '[%s]' % str(i)
                             dot.edge(str(id(fn)), str(id(t)), dir="none")
-                            dot.node(str(id(t)), get_var_name(
-                                t, name), fillcolor='orange')
+                            dot.node(str(id(t)),
+                                     get_var_name(t, name),
+                                     fillcolor='orange')
 
         if hasattr(fn, 'variable'):
             # if grad_accumulator, add the node for `.variable`

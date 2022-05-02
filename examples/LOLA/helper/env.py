@@ -1,14 +1,9 @@
 # This file is modified from:
 # https://github.com/alexis-jacq/LOLA_DiCE
 
-
 import gym
 import numpy as np
-
 from gym.spaces import Discrete, Tuple
-
-import gym
-import numpy as np
 
 
 class OneHot(gym.Space):
@@ -36,7 +31,8 @@ class OneHot(gym.Space):
 
     def __eq__(self, other):
         return self.n == other.n
-    
+
+
 class IPD(gym.Env):
     """
     A two-agent vectorized environment.
@@ -50,15 +46,13 @@ class IPD(gym.Env):
     def __init__(self, max_steps, batch_size=1):
         self.max_steps = max_steps
         self.batch_size = batch_size
-        self.payout_mat = np.array([[-2,0],[-3,-1]])
-        self.states = np.array([[1,2],[3,4]])
+        self.payout_mat = np.array([[-2, 0], [-3, -1]])
+        self.states = np.array([[1, 2], [3, 4]])
 
-        self.action_space = Tuple([
-            Discrete(self.NUM_ACTIONS) for _ in range(self.NUM_AGENTS)
-        ])
-        self.observation_space = Tuple([
-            OneHot(self.NUM_STATES) for _ in range(self.NUM_AGENTS)
-        ])
+        self.action_space = Tuple(
+            [Discrete(self.NUM_ACTIONS) for _ in range(self.NUM_AGENTS)])
+        self.observation_space = Tuple(
+            [OneHot(self.NUM_STATES) for _ in range(self.NUM_AGENTS)])
         self.available_actions = [
             np.ones((batch_size, self.NUM_ACTIONS), dtype=int)
             for _ in range(self.NUM_AGENTS)

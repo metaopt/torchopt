@@ -13,16 +13,17 @@
 # limitations under the License.
 # ==============================================================================
 
+import copy
 import unittest
 
-import copy
 import torch
-from torch.utils import data
 from torch.nn import functional as F
 from torch.nn.utils import clip_grad_norm_
+from torch.utils import data
 from torchvision import models
-from TorchOpt import Optimizer, sgd
+
 import TorchOpt
+from TorchOpt import Optimizer, sgd
 
 
 class HighLevelInplace(unittest.TestCase):
@@ -34,8 +35,8 @@ class HighLevelInplace(unittest.TestCase):
         cls.model_ref = copy.deepcopy(cls.model)
 
         cls.batch_size = 2
-        cls.dataset = data.TensorDataset(torch.randn(
-            2, 3, 224, 224), torch.randint(0, 1000, (2,)))
+        cls.dataset = data.TensorDataset(torch.randn(2, 3, 224, 224),
+                                         torch.randint(0, 1000, (2, )))
         cls.loader = data.DataLoader(cls.dataset, cls.batch_size, False)
 
         cls.lr = 1e0
@@ -49,8 +50,7 @@ class HighLevelInplace(unittest.TestCase):
     def test_sgd(self) -> None:
         chain = TorchOpt.combine.chain(
             TorchOpt.clip.clip_grad_norm(max_norm=self.max_norm),
-            sgd(lr=self.lr)
-        )
+            sgd(lr=self.lr))
         optim = Optimizer(self.model.parameters(), chain)
         optim_ref = torch.optim.SGD(self.model_ref.parameters(), self.lr)
         for xs, ys in self.loader:
@@ -68,12 +68,15 @@ class HighLevelInplace(unittest.TestCase):
             optim_ref.step()
 
         with torch.no_grad():
-            for p, p_ref in zip(self.model.parameters(), self.model_ref.parameters()):
+            for p, p_ref in zip(self.model.parameters(),
+                                self.model_ref.parameters()):
                 mse = F.mse_loss(p, p_ref)
                 self.assertAlmostEqual(float(mse), 0)
-            for b, b_ref in zip(self.model.buffers(), self.model_ref.buffers()):
+            for b, b_ref in zip(self.model.buffers(),
+                                self.model_ref.buffers()):
                 b = b.float() if not b.is_floating_point() else b
-                b_ref = b_ref.float() if not b_ref.is_floating_point() else b_ref
+                b_ref = b_ref.float(
+                ) if not b_ref.is_floating_point() else b_ref
                 mse = F.mse_loss(b, b_ref)
                 self.assertAlmostEqual(float(mse), 0)
 
