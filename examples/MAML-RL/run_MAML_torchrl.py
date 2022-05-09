@@ -37,7 +37,7 @@ def a2c_loss(traj, policy, value_coef):
     policy(traj)
     log_probs = traj.get("action_log_prob")
     action_loss = -(advantage.detach() * log_probs).mean()
-    value_loss = advantage.pow(2).mean()
+    value_loss = traj.get("value_target").pow(2).mean()
     assert action_loss.requires_grad
     assert value_loss.requires_grad
 
