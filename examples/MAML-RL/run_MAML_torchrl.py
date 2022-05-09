@@ -38,7 +38,7 @@ def a2c_loss(traj, policy, value_coef):
     # advs = lambda_returns - torch.squeeze(values, -1)
     advantage = traj.get("advantage")
     value_target = traj.get("value_target")
-    dist = policy.get_dist(traj)
+    dist, *_ = policy.get_dist(traj)
     traj.set("action_log_prob", dist.log_prob(traj.get("action")))
     log_probs = traj.get("action_log_prob")
     action_loss = -(advantage.detach() * log_probs.view_as(advantage)).mean()
