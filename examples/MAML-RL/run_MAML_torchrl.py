@@ -4,6 +4,7 @@ import tqdm
 import torch
 import torch.optim as optim
 from torchrl.envs import GymEnv, ParallelEnv
+from torchrl.envs.utils import set_exploration_mode
 from torchrl.modules import ProbabilisticTDModule, OneHotCategorical
 from torchrl.objectives import GAE
 
@@ -37,9 +38,10 @@ def a2c_loss(traj, policy, value_coef):
     # advs = lambda_returns - torch.squeeze(values, -1)
     advantage = traj.get("advantage")
     value_target = traj.get("value_target")
-    policy(traj)
+    dist = policy.get_dist(traj)
+    traj.set("action_log_prob", dist.log_prob(traj.get("action")))
     log_probs = traj.get("action_log_prob")
-    action_loss = -(advantage.detach() * log_probs).mean()
+    action_loss = -(advantage.detach() * log_probs.view_as(advantage)).mean()
     value_loss = value_target.pow(2).mean()
     assert action_loss.requires_grad
     assert value_loss.requires_grad
@@ -60,10 +62,12 @@ def evaluate(env, dummy_env, seed, task_num, policy):
     for idx in range(task_num):
         env.reset_task(tasks[idx])
         for _ in range(inner_iters):
-            pre_traj_td = env.rollout(policy, n_steps=TRAJ_LEN)
+            with set_exploration_mode("random"), torch.no_grad():
+                pre_traj_td = env.rollout(policy, n_steps=TRAJ_LEN)
             inner_loss = a2c_loss(pre_traj_td, policy, value_coef=0.5)
             inner_opt.step(inner_loss)
-        post_traj_td = env.rollout(policy, n_steps=TRAJ_LEN)
+        with set_exploration_mode("random"), torch.no_grad():
+            post_traj_td = env.rollout(policy, n_steps=TRAJ_LEN)
 
         # Logging
 
@@ -93,8 +97,9 @@ def main(args):
         env = lambda_env()
     env.reset()
     # Policy
+    obs_key = list(env.observation_spec.keys())[0]
     policy_module = CategoricalMLPPolicy(
-        env.observation_spec.shape[-1],
+        env.observation_spec[obs_key].shape[-1],
         env.action_spec.shape[-1]
     )
     policy = ProbabilisticTDModule(
@@ -129,11 +134,13 @@ def main(args):
         for idx in range(TASK_NUM):
             env.reset_task(tasks[idx])
             for k in range(inner_iters):
-                pre_traj_td = env.rollout(policy=policy, n_steps=TRAJ_LEN, auto_reset=True)
+                with set_exploration_mode("random"), torch.no_grad():
+                    pre_traj_td = env.rollout(policy=policy, n_steps=TRAJ_LEN, auto_reset=True)
                 inner_loss = a2c_loss(pre_traj_td, policy, value_coef=0.5)
                 inner_opt.step(inner_loss)
 
-            post_traj_td = env.rollout(policy=policy, n_steps=TRAJ_LEN)
+            with set_exploration_mode("random"), torch.no_grad():
+                post_traj_td = env.rollout(policy=policy, n_steps=TRAJ_LEN)
             outer_loss = a2c_loss(post_traj_td, policy, value_coef=0.5)
             outer_loss.backward()
 
