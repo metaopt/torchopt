@@ -36,10 +36,11 @@ def a2c_loss(traj, policy, value_coef):
     # log_probs = pi.log_prob(torch.from_numpy(traj.acs))
     # advs = lambda_returns - torch.squeeze(values, -1)
     advantage = traj.get("advantage")
+    value_target = traj.get("value_target")
     policy(traj)
     log_probs = traj.get("action_log_prob")
     action_loss = -(advantage.detach() * log_probs).mean()
-    value_loss = advantage.pow(2).mean()
+    value_loss = value_target.pow(2).mean()
     assert action_loss.requires_grad
     assert value_loss.requires_grad
 
