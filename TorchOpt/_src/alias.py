@@ -31,33 +31,34 @@
 # ==============================================================================
 
 from typing import Optional
+
 import jax
 
-from TorchOpt._src import base
-from TorchOpt._src import combine
-from TorchOpt._src import transform
+from TorchOpt._src import base, combine, transform
 from TorchOpt._src.pytypes import ScalarOrSchedule
 
 
 def _scale_by_lr(lr: ScalarOrSchedule, flip_sign=True):
     m = -1 if flip_sign else 1
     if callable(lr):
+
         def schedule_wrapper(count):
-            def f(scaled_lr): return m * scaled_lr
+            def f(scaled_lr):
+                return m * scaled_lr
+
             return jax.tree_map(f, lr(count))
+
         return transform.scale_by_schedule(schedule_wrapper)
     return transform.scale(m * lr)
 
 
-def adam(
-        lr: ScalarOrSchedule,
-        b1: float = 0.9,
-        b2: float = 0.999,
-        eps: float = 1e-8,
-        eps_root: float = 0.0,
-        moment_requires_grad: bool = False,
-        use_accelerated_op: bool = False
-) -> base.GradientTransformation:
+def adam(lr: ScalarOrSchedule,
+         b1: float = 0.9,
+         b2: float = 0.999,
+         eps: float = 1e-8,
+         eps_root: float = 0.0,
+         moment_requires_grad: bool = False,
+         use_accelerated_op: bool = False) -> base.GradientTransformation:
     """The classic Adam optimiser.
 
   Adam is an SGD variant with learning rate adaptation. The `lr`
@@ -85,17 +86,20 @@ def adam(
   """
     adam_inst = transform.scale_by_accelerated_adam if use_accelerated_op else transform.scale_by_adam
     return combine.chain(
-        adam_inst(b1=b1, b2=b2, eps=eps, eps_root=eps_root,
+        adam_inst(b1=b1,
+                  b2=b2,
+                  eps=eps,
+                  eps_root=eps_root,
                   moment_requires_grad=moment_requires_grad),
         _scale_by_lr(lr),
     )
 
 
 def sgd(
-        lr: ScalarOrSchedule,
-        momentum: Optional[float] = None,
-        nesterov: bool = False,
-        moment_requires_grad: bool = False,
+    lr: ScalarOrSchedule,
+    momentum: Optional[float] = None,
+    nesterov: bool = False,
+    moment_requires_grad: bool = False,
 ) -> base.GradientTransformation:
     """A canonical Stochastic Gradient Descent optimiser.
 
@@ -118,24 +122,21 @@ def sgd(
     A `GradientTransformation`.
   """
     return combine.chain(
-        (transform.trace(decay=momentum, nesterov=nesterov,
+        (transform.trace(decay=momentum,
+                         nesterov=nesterov,
                          moment_requires_grad=moment_requires_grad)
-         if momentum is not None else base.identity()),
-        _scale_by_lr(lr)
-    )
+         if momentum is not None else base.identity()), _scale_by_lr(lr))
 
 
-def rmsprop(
-    lr: ScalarOrSchedule,
-    decay: float = 0.9,
-    eps: float = 1e-8,
-    initial_scale: float = 0.,
-    centered: bool = False,
-    momentum: Optional[float] = None,
-    nesterov: bool = False
-) -> base.GradientTransformation:
-  # pylint: disable=line-too-long
-  """A flexible RMSProp optimiser.
+def rmsprop(lr: ScalarOrSchedule,
+            decay: float = 0.9,
+            eps: float = 1e-8,
+            initial_scale: float = 0.,
+            centered: bool = False,
+            momentum: Optional[float] = None,
+            nesterov: bool = False) -> base.GradientTransformation:
+    # pylint: disable=line-too-long
+    """A flexible RMSProp optimiser.
   RMSProp is an SGD variant with learning rate adaptation. The `learning_rate`
   used for each weight is scaled by a suitable estimate of the magnitude of the
   gradients on previous steps. Several variants of RMSProp can be found
@@ -159,13 +160,18 @@ def rmsprop(
   Returns:
     the corresponding `GradientTransformation`.
   """
-  # pylint: enable=line-too-long
-  if centered:
+    # pylint: enable=line-too-long
+    if centered:
+        return combine.chain(
+            transform.scale_by_stddev(decay=decay,
+                                      eps=eps,
+                                      initial_scale=initial_scale),
+            _scale_by_lr(lr),
+            (transform.trace(decay=momentum, nesterov=nesterov)
+             if momentum is not None else base.identity()))
     return combine.chain(
-        transform.scale_by_stddev(decay=decay, eps=eps, initial_scale=initial_scale),
-        _scale_by_lr(lr),
-        (transform.trace(decay=momentum, nesterov=nesterov) if momentum is not None else base.identity()))
-  return combine.chain(transform.scale_by_rms(decay=decay, eps=eps, initial_scale=initial_scale),
-                       _scale_by_lr(lr),
-                       (transform.trace(decay=momentum, nesterov=nesterov) if momentum is not None else base.identity())
-                       )
+        transform.scale_by_rms(decay=decay,
+                               eps=eps,
+                               initial_scale=initial_scale), _scale_by_lr(lr),
+        (transform.trace(decay=momentum, nesterov=nesterov)
+         if momentum is not None else base.identity()))

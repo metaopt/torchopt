@@ -1,9 +1,10 @@
 # This file is modified from:
 # https://github.com/alexis-jacq/LOLA_DiCE
 
-import torch
 import numpy as np
+import torch
 from torch.distributions import Bernoulli
+
 
 # evaluate the policy
 def step(ipd, theta1, theta2, values1, values2, args):
@@ -14,15 +15,17 @@ def step(ipd, theta1, theta2, values1, values2, args):
     for t in range(args.len_rollout):
         a1, lp1, v1 = act(s1, theta1, values1)
         a2, lp2, v2 = act(s2, theta2, values2)
-        (s1, s2), (r1, r2),_,_ = ipd.step((a1, a2))
+        (s1, s2), (r1, r2), _, _ = ipd.step((a1, a2))
         # cumulate scores
-        score1 += np.mean(r1)/float(args.len_rollout)
-        score2 += np.mean(r2)/float(args.len_rollout)
+        score1 += np.mean(r1) / float(args.len_rollout)
+        score2 += np.mean(r2) / float(args.len_rollout)
     return (score1, score2)
+
 
 # dice operator
 def magic_box(x):
     return torch.exp(x - x.detach())
+
 
 # replay buffer
 class Memory():
@@ -46,7 +49,9 @@ class Memory():
         rewards = torch.stack(self.rewards, dim=1)
 
         # apply discount:
-        cum_discount = torch.cumprod(self.args.gamma * torch.ones(*rewards.size()), dim=1)/self.args.gamma
+        cum_discount = torch.cumprod(
+            self.args.gamma * torch.ones(*rewards.size()),
+            dim=1) / self.args.gamma
         discounted_rewards = rewards * cum_discount
         discounted_values = values * cum_discount
 
@@ -57,27 +62,33 @@ class Memory():
         stochastic_nodes = self_logprobs + other_logprobs
 
         # dice objective:
-        dice_objective = torch.mean(torch.sum(magic_box(dependencies) * discounted_rewards, dim=1))
+        dice_objective = torch.mean(
+            torch.sum(magic_box(dependencies) * discounted_rewards, dim=1))
 
         if use_baseline:
             # variance_reduction:
-            baseline_term = torch.mean(torch.sum((1 - magic_box(stochastic_nodes)) * discounted_values, dim=1))
+            baseline_term = torch.mean(
+                torch.sum(
+                    (1 - magic_box(stochastic_nodes)) * discounted_values,
+                    dim=1))
             dice_objective = dice_objective + baseline_term
 
-        return -dice_objective # want to minimize -objective
+        return -dice_objective  # want to minimize -objective
 
     def value_loss(self):
         values = torch.stack(self.values, dim=1)
         rewards = torch.stack(self.rewards, dim=1)
         return torch.mean((rewards - values)**2)
 
+
 def act(batch_states, theta, values):
     batch_states = torch.from_numpy(batch_states).long()
     probs = torch.sigmoid(theta)[batch_states]
-    m = Bernoulli(1-probs)
+    m = Bernoulli(1 - probs)
     actions = m.sample()
     log_probs_actions = m.log_prob(actions)
     return actions.numpy().astype(int), log_probs_actions, values[batch_states]
+
 
 def sample(ipd, policy, value, args):
     theta1, theta2 = policy
@@ -88,7 +99,7 @@ def sample(ipd, policy, value, args):
     for t in range(args.len_rollout):
         a1, lp1, v1 = act(s1, theta1, value1)
         a2, lp2, v2 = act(s2, theta2, value2)
-        (s1, s2), (r1, r2),_,_ = ipd.step((a1, a2))
+        (s1, s2), (r1, r2), _, _ = ipd.step((a1, a2))
         memory_agent1.add(lp1, lp2, v1, torch.from_numpy(r1).float())
         memory_agent2.add(lp2, lp1, v2, torch.from_numpy(r2).float())
     return memory_agent1, memory_agent2

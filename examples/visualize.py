@@ -1,8 +1,9 @@
 import torch
+import torchviz
 from torch import nn
 from torch.nn import functional as F
+
 import TorchOpt
-import torchviz
 
 
 class Net(nn.Module):
@@ -41,20 +42,22 @@ def draw_TorchOpt():
     pred = net(xs, meta_param)
     loss = F.mse_loss(pred, torch.ones_like(pred))
     # set enable_visual
-    net_state_0 = TorchOpt.extract_state_dict(
-        net, enable_visual=True, visual_prefix='step0.')
+    net_state_0 = TorchOpt.extract_state_dict(net,
+                                              enable_visual=True,
+                                              visual_prefix='step0.')
     optimizer.step(loss)
     # set enable_visual
-    net_state_1 = TorchOpt.extract_state_dict(
-        net, enable_visual=True, visual_prefix='step1.')
+    net_state_1 = TorchOpt.extract_state_dict(net,
+                                              enable_visual=True,
+                                              visual_prefix='step1.')
 
     pred = net(xs, meta_param)
     loss = F.mse_loss(pred, torch.ones_like(pred))
     # draw computation graph
-    TorchOpt.visual.make_dot(loss,
-                             [net_state_0, net_state_1, {
-                                 meta_param: "meta_param"}]
-                             ).render("TorchOpt_graph", format="svg")
+    TorchOpt.visual.make_dot(
+        loss, [net_state_0, net_state_1, {
+            meta_param: "meta_param"
+        }]).render("TorchOpt_graph", format="svg")
 
 
 if __name__ == '__main__':

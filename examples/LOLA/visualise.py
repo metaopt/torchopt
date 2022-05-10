@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
-import seaborn as sns
 import numpy as np
+import seaborn as sns
+
 
 def plot(file):
     data = np.load('result.npy', allow_pickle=True).tolist()
@@ -12,7 +13,8 @@ def plot(file):
     plt.xlabel('Iteartions', fontsize=20)
     plt.ylabel('Joint score', fontsize=20)
     plt.savefig('./result.png')
-    
+
+
 # plot progress:
-if __name__=="__main__":
+if __name__ == "__main__":
     plot('result.npy')

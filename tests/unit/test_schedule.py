@@ -35,8 +35,7 @@ class TestSchedule(unittest.TestCase):
             init_value=self.init_value,
             end_value=self.end_value,
             transition_steps=self.transition_steps,
-            transition_begin=self.transition_begin
-        )
+            transition_begin=self.transition_begin)
         for i in range(self.transition_begin, self.transition_steps):
             lr = schedule(i)
             lr_gt = self.init_value - self.gap_value * \

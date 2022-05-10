@@ -13,16 +13,17 @@
 // limitations under the License.
 // ==============================================================================
 
+#include "adam_op/adam_op.h"
+
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-#include "adam_op/adam_op.h"
 #include "adam_op/adam_op_impl.cuh"
 #include "adam_op/adam_op_impl.h"
 
 namespace TorchOpt {
-TensorArray<3> adamForwardInplace(torch::Tensor &updates, torch::Tensor &mu,
-                                  torch::Tensor &nu, const float b1,
+TensorArray<3> adamForwardInplace(torch::Tensor& updates, torch::Tensor& mu,
+                                  torch::Tensor& nu, const float b1,
                                   const float b2, const float eps,
                                   const float eps_root, const int count) {
   if (updates.device().is_cuda()) {
@@ -34,8 +35,8 @@ TensorArray<3> adamForwardInplace(torch::Tensor &updates, torch::Tensor &mu,
     throw std::runtime_error("Not implemented");
   }
 };
-torch::Tensor adamForwardMu(const torch::Tensor &updates,
-                            const torch::Tensor &mu, const float b1) {
+torch::Tensor adamForwardMu(const torch::Tensor& updates,
+                            const torch::Tensor& mu, const float b1) {
   if (updates.device().is_cuda()) {
     return adamForwardMuCUDA(updates, mu, b1);
   } else if (updates.device().is_cpu()) {
@@ -45,8 +46,8 @@ torch::Tensor adamForwardMu(const torch::Tensor &updates,
   }
 };
 
-torch::Tensor adamForwardNu(const torch::Tensor &updates,
-                            const torch::Tensor &nu, const float b2) {
+torch::Tensor adamForwardNu(const torch::Tensor& updates,
+                            const torch::Tensor& nu, const float b2) {
   if (updates.device().is_cuda()) {
     return adamForwardNuCUDA(updates, nu, b2);
   } else if (updates.device().is_cpu()) {
@@ -56,8 +57,8 @@ torch::Tensor adamForwardNu(const torch::Tensor &updates,
   }
 };
 
-torch::Tensor adamForwardUpdates(const torch::Tensor &new_mu,
-                                 const torch::Tensor &new_nu, const float b1,
+torch::Tensor adamForwardUpdates(const torch::Tensor& new_mu,
+                                 const torch::Tensor& new_nu, const float b1,
                                  const float b2, const float eps,
                                  const float eps_root, const int count) {
   if (new_mu.device().is_cuda()) {
@@ -69,9 +70,9 @@ torch::Tensor adamForwardUpdates(const torch::Tensor &new_mu,
   }
 };
 
-TensorArray<2> adamBackwardMu(const torch::Tensor &dmu,
-                              const torch::Tensor &updates,
-                              const torch::Tensor &mu, const float b1) {
+TensorArray<2> adamBackwardMu(const torch::Tensor& dmu,
+                              const torch::Tensor& updates,
+                              const torch::Tensor& mu, const float b1) {
   if (dmu.device().is_cuda()) {
     return adamBackwardMuCUDA(dmu, updates, mu, b1);
   } else if (dmu.device().is_cpu()) {
@@ -81,9 +82,9 @@ TensorArray<2> adamBackwardMu(const torch::Tensor &dmu,
   }
 };
 
-TensorArray<2> adamBackwardNu(const torch::Tensor &dnu,
-                              const torch::Tensor &updates,
-                              const torch::Tensor &nu, const float b2) {
+TensorArray<2> adamBackwardNu(const torch::Tensor& dnu,
+                              const torch::Tensor& updates,
+                              const torch::Tensor& nu, const float b2) {
   if (dnu.device().is_cuda()) {
     return adamBackwardNuCUDA(dnu, updates, nu, b2);
   } else if (dnu.device().is_cpu()) {
@@ -93,10 +94,10 @@ TensorArray<2> adamBackwardNu(const torch::Tensor &dnu,
   }
 };
 
-TensorArray<2> adamBackwardUpdates(const torch::Tensor &dupdates,
-                                   const torch::Tensor &updates,
-                                   const torch::Tensor &new_mu,
-                                   const torch::Tensor &new_nu, const float b1,
+TensorArray<2> adamBackwardUpdates(const torch::Tensor& dupdates,
+                                   const torch::Tensor& updates,
+                                   const torch::Tensor& new_mu,
+                                   const torch::Tensor& new_nu, const float b1,
                                    const float b2, const int count) {
   if (dupdates.device().is_cuda()) {
     return adamBackwardUpdatesCUDA(dupdates, updates, new_mu, new_nu, b1, b2,

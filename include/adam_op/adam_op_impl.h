@@ -21,34 +21,34 @@
 #include "common.h"
 
 namespace TorchOpt {
-TensorArray<3> adamForwardInplaceCPU(torch::Tensor &updates, torch::Tensor &mu,
-                                     torch::Tensor &nu, const float b1,
+TensorArray<3> adamForwardInplaceCPU(torch::Tensor& updates, torch::Tensor& mu,
+                                     torch::Tensor& nu, const float b1,
                                      const float b2, const float eps,
                                      const float eps_root, const int count);
 
-torch::Tensor adamForwardMuCPU(const torch::Tensor &updates,
-                               const torch::Tensor &mu, const float b1);
+torch::Tensor adamForwardMuCPU(const torch::Tensor& updates,
+                               const torch::Tensor& mu, const float b1);
 
-torch::Tensor adamForwardNuCPU(const torch::Tensor &updates,
-                               const torch::Tensor &nu, const float b2);
+torch::Tensor adamForwardNuCPU(const torch::Tensor& updates,
+                               const torch::Tensor& nu, const float b2);
 
-torch::Tensor adamForwardUpdatesCPU(const torch::Tensor &new_mu,
-                                    const torch::Tensor &new_nu, const float b1,
+torch::Tensor adamForwardUpdatesCPU(const torch::Tensor& new_mu,
+                                    const torch::Tensor& new_nu, const float b1,
                                     const float b2, const float eps,
                                     const float eps_root, const int count);
 
-TensorArray<2> adamBackwardMuCPU(const torch::Tensor &dmu,
-                                 const torch::Tensor &updates,
-                                 const torch::Tensor &mu, const float b1);
+TensorArray<2> adamBackwardMuCPU(const torch::Tensor& dmu,
+                                 const torch::Tensor& updates,
+                                 const torch::Tensor& mu, const float b1);
 
-TensorArray<2> adamBackwardNuCPU(const torch::Tensor &dnu,
-                                 const torch::Tensor &updates,
-                                 const torch::Tensor &nu, const float b2);
+TensorArray<2> adamBackwardNuCPU(const torch::Tensor& dnu,
+                                 const torch::Tensor& updates,
+                                 const torch::Tensor& nu, const float b2);
 
-TensorArray<2> adamBackwardUpdatesCPU(const torch::Tensor &dupdates,
-                                      const torch::Tensor &updates,
-                                      const torch::Tensor &new_mu,
-                                      const torch::Tensor &new_nu,
+TensorArray<2> adamBackwardUpdatesCPU(const torch::Tensor& dupdates,
+                                      const torch::Tensor& updates,
+                                      const torch::Tensor& new_mu,
+                                      const torch::Tensor& new_nu,
                                       const float b1, const float b2,
                                       const int count);
 }  // namespace TorchOpt

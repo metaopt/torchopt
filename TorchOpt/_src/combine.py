@@ -33,9 +33,7 @@
 from TorchOpt._src import base
 
 
-def chain(
-        *args: base.GradientTransformation
-) -> base.GradientTransformation:
+def chain(*args: base.GradientTransformation) -> base.GradientTransformation:
     """Applies a list of chainable update transformations.
 
   Given a sequence of chainable transforms, `chain` returns an `init_fn`
@@ -57,8 +55,9 @@ def chain(
 
     def update_fn(updates, state, inplace=True):
         if len(update_fns) != len(state):
-            raise ValueError('The number of updates and states has to be the same in '
-                             'chain! Make sure you have called init first!')
+            raise ValueError(
+                'The number of updates and states has to be the same in '
+                'chain! Make sure you have called init first!')
         new_state = []
         for s, fn in zip(state, update_fns):
             updates, new_s = fn(updates, s, inplace)

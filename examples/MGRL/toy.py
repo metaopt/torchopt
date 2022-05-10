@@ -16,6 +16,7 @@
 import torch
 from torch import nn
 from torch.nn import functional as F
+
 import TorchOpt
 
 
@@ -33,8 +34,8 @@ def test_gamma():
         def rollout(trajectory, gamma):
             out = [trajectory[-1]]
             for i in reversed(range(9)):
-                out.append(trajectory[i] + gamma[i] *
-                           out[-1].clone().detach_())
+                out.append(trajectory[i] +
+                           gamma[i] * out[-1].clone().detach_())
             out.reverse()
             return torch.hstack(out).view(10, 1)
 

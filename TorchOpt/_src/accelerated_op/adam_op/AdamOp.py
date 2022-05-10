@@ -14,7 +14,9 @@
 # ==============================================================================
 
 from typing import Any
+
 import torch
+
 from TorchOpt._lib import adam_op
 
 
@@ -69,8 +71,8 @@ class AdamOp(object):
         @staticmethod
         def forward(ctx, *args):
             new_mu, new_nu, (b1, b2, eps, eps_root, count) = args
-            new_updates = adam_op.forwardUpdates(
-                new_mu, new_nu, b1, b2, eps, eps_root, count)
+            new_updates = adam_op.forwardUpdates(new_mu, new_nu, b1, b2, eps,
+                                                 eps_root, count)
             ctx.save_for_backward(new_updates, new_mu, new_nu)
             ctx.others = (b1, b2, eps, eps_root, count)
             return new_updates
@@ -80,8 +82,8 @@ class AdamOp(object):
             dupdates = args[0]
             updates, new_mu, new_nu = ctx.saved_tensors
             b1, b2, eps, eps_root, count = ctx.others
-            result = adam_op.backwardUpdates(
-                dupdates, updates, new_mu, new_nu, b1, b2, count)
+            result = adam_op.backwardUpdates(dupdates, updates, new_mu, new_nu,
+                                             b1, b2, count)
             return result[0], result[1], None
 
     def __init__(self, b1=0.9, b2=0.999, eps=1e-8, eps_root=0., inplace=True):
@@ -98,14 +100,14 @@ class AdamOp(object):
             current_device = torch.cuda.current_device()
             torch.cuda.set_device(updates.device)
         if self.inplace:
-            new_updates, new_mu, new_nu = adam_op.forward_(updates, mu, nu, self.b1,
-                                                           self.b2, self.eps, self.eps_root, count)
+            new_updates, new_mu, new_nu = adam_op.forward_(
+                updates, mu, nu, self.b1, self.b2, self.eps, self.eps_root,
+                count)
         else:
             new_mu = self.MuOp.apply(updates, mu, self.b1)
             new_nu = self.NuOp.apply(updates, nu, self.b2)
             new_updates = self.UpdatesOp.apply(
-                new_mu,
-                new_nu,
+                new_mu, new_nu,
                 (self.b1, self.b2, self.eps, self.eps_root, count))
         if updates.is_cuda:
             torch.cuda.set_device(current_device)

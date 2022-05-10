@@ -13,19 +13,18 @@
 # limitations under the License.
 # ==============================================================================
 
+import jax
 import torch
 from torch import nn
-import jax
 
 import TorchOpt
-from TorchOpt._src.alias import sgd, adam, rmsprop
 from TorchOpt._src import base
+from TorchOpt._src.alias import adam, rmsprop, sgd
 from TorchOpt._src.pytypes import ScalarOrSchedule
 
 
 class MetaOptimizer(object):
     """A high-level optimizer base class for meta learning."""
-
     def __init__(self, net: nn.Module, impl: base.GradientTransformation):
         """
         Args:
@@ -51,18 +50,23 @@ class MetaOptimizer(object):
           loss (torch.Tensor): the loss that is used to compute the gradients to the network parameters.
         """
         # step parameter only
-        for idx, (state, param_containers) in enumerate(zip(self.state_groups, self.param_containers_groups)):
+        for idx, (state, param_containers) in enumerate(
+                zip(self.state_groups, self.param_containers_groups)):
             flatten_params, containers_tree = jax.tree_util.tree_flatten(
                 param_containers)
             flatten_params = tuple(flatten_params)
-            grad = torch.autograd.grad(
-                loss, flatten_params, create_graph=True, allow_unused=True)
+            grad = torch.autograd.grad(loss,
+                                       flatten_params,
+                                       create_graph=True,
+                                       allow_unused=True)
             updates, state = self.impl.update(grad, state, False)
             self.state_groups[idx] = state
-            new_params = TorchOpt.apply_updates(
-                flatten_params, updates, inplace=False)
+            new_params = TorchOpt.apply_updates(flatten_params,
+                                                updates,
+                                                inplace=False)
             unflatten_new_params = containers_tree.unflatten(new_params)
-            for (container, unflatten_param) in zip(param_containers, unflatten_new_params):
+            for (container, unflatten_param) in zip(param_containers,
+                                                    unflatten_new_params):
                 container.update(unflatten_param)
 
     def add_param_group(self, net):
@@ -89,7 +93,6 @@ class MetaOptimizer(object):
 
 class MetaSGD(MetaOptimizer):
     """A canonical Stochastic Gradient Descent optimiser."""
-
     def __init__(self,
                  net,
                  lr: ScalarOrSchedule,
@@ -102,17 +105,16 @@ class MetaSGD(MetaOptimizer):
           args: other arguments see `alias.sgd`, here we set `moment_requires_grad=True`
             to make tensors like momentum be differentiable.
         """
-        super().__init__(net,
-                         sgd(lr=lr,
-                             momentum=momentum,
-                             nesterov=nesterov,
-                             moment_requires_grad=moment_requires_grad)
-                         )
+        super().__init__(
+            net,
+            sgd(lr=lr,
+                momentum=momentum,
+                nesterov=nesterov,
+                moment_requires_grad=moment_requires_grad))
 
 
 class MetaAdam(MetaOptimizer):
     """The classic Adam optimiser."""
-
     def __init__(self,
                  net,
                  lr: ScalarOrSchedule,
@@ -128,20 +130,19 @@ class MetaAdam(MetaOptimizer):
           args: other arguments see `alias.adam`, here we set `moment_requires_grad=True`
             to make tensors like momentum be differentiable.
         """
-        super().__init__(net,
-                         adam(lr=lr,
-                              b1=b1,
-                              b2=b2,
-                              eps=eps,
-                              eps_root=eps_root,
-                              moment_requires_grad=moment_requires_grad,
-                              use_accelerated_op=use_accelerated_op)
-                         )
+        super().__init__(
+            net,
+            adam(lr=lr,
+                 b1=b1,
+                 b2=b2,
+                 eps=eps,
+                 eps_root=eps_root,
+                 moment_requires_grad=moment_requires_grad,
+                 use_accelerated_op=use_accelerated_op))
 
 
 class MetaRMSProp(MetaOptimizer):
     """The classic RMSProp optimiser."""
-
     def __init__(self,
                  net,
                  lr: ScalarOrSchedule,
@@ -157,10 +158,12 @@ class MetaRMSProp(MetaOptimizer):
           args: other arguments see `alias.adam`, here we set `moment_requires_grad=True`
             to make tensors like momentum be differentiable.
         """
-        super().__init__(net, rmsprop(lr=lr,
-                                      decay=decay,
-                                      eps=eps,
-                                      initial_scale=initial_scale,
-                                      centered=centered,
-                                      momentum=momentum,
-                                      nesterov=nesterov))
+        super().__init__(
+            net,
+            rmsprop(lr=lr,
+                    decay=decay,
+                    eps=eps,
+                    initial_scale=initial_scale,
+                    centered=centered,
+                    momentum=momentum,
+                    nesterov=nesterov))
