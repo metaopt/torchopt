@@ -69,7 +69,7 @@ def evaluate(env, dummy_env, seed, task_num, actor_critic, policy, value):
             inner_loss = a2c_loss(pre_traj_td, policy, value, value_coef=0.5)
             inner_opt.step(inner_loss)
         with set_exploration_mode("random"), torch.no_grad():
-            post_traj_td = env.rollout(policy, value, n_steps=TRAJ_LEN)
+            post_traj_td = env.rollout(policy, n_steps=TRAJ_LEN)
 
         # Logging
 
