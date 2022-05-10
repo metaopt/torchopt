@@ -65,14 +65,13 @@ def evaluate(env, dummy_env, seed, task_num, actor_critic, policy, value):
         env.reset_task(tasks[idx])
         for _ in range(inner_iters):
             with set_exploration_mode("random"), torch.no_grad():
-                pre_traj_td = env.rollout(policy, n_steps=TRAJ_LEN)
-            inner_loss = a2c_loss(pre_traj_td.to(device), policy, value, value_coef=0.5)
+                pre_traj_td = env.rollout(policy, n_steps=TRAJ_LEN).to(device)
+            inner_loss = a2c_loss(pre_traj_td, policy, value, value_coef=0.5)
             inner_opt.step(inner_loss)
         with set_exploration_mode("random"), torch.no_grad():
-            post_traj_td = env.rollout(policy, n_steps=TRAJ_LEN)
+            post_traj_td = env.rollout(policy, n_steps=TRAJ_LEN).to(device)
 
         # Logging
-
         pre_reward_ls.append(torch.sum(pre_traj_td.get("reward"),dim=1).mean().item())
         post_reward_ls.append(torch.sum(post_traj_td.get("reward"),dim=1).mean().item())
 
@@ -132,13 +131,13 @@ def main(args):
             env.reset_task(tasks[idx])
             for k in range(inner_iters):
                 with set_exploration_mode("random"), torch.no_grad():
-                    pre_traj_td = env.rollout(policy=policy, n_steps=TRAJ_LEN, auto_reset=True)
-                inner_loss = a2c_loss(pre_traj_td.to(device), policy, value, value_coef=0.5)
+                    pre_traj_td = env.rollout(policy=policy, n_steps=TRAJ_LEN, auto_reset=True).to(device)
+                inner_loss = a2c_loss(pre_traj_td, policy, value, value_coef=0.5)
                 inner_opt.step(inner_loss)
 
             with set_exploration_mode("random"), torch.no_grad():
-                post_traj_td = env.rollout(policy=policy, n_steps=TRAJ_LEN)
-            outer_loss = a2c_loss(post_traj_td.to(device), policy, value, value_coef=0.5)
+                post_traj_td = env.rollout(policy=policy, n_steps=TRAJ_LEN).to(device)
+            outer_loss = a2c_loss(post_traj_td, policy, value, value_coef=0.5)
             outer_loss.backward()
 
             TorchOpt.recover_state_dict(actor_critic, policy_state_dict)
