@@ -31,7 +31,7 @@ class CategoricalSubNet(nn.Module):
 
     def forward(self, embedding, params=None):
         logits = self.policy_head(embedding)
-        return logits
+        return logits.logsumexp(-1)
 
 class ValueSubNet(nn.Module):
     def __init__(self,
