@@ -9,7 +9,7 @@ from torchrl.modules import ProbabilisticTDModule, OneHotCategorical
 from torchrl.objectives import GAE
 
 import TorchOpt
-from helpers.policy import CategoricalMLPPolicy
+from helpers.policy import ActorCritic
 import numpy as np
 
 
@@ -29,13 +29,13 @@ outer_iters = 500
 inner_iters = 1
 
 
-def a2c_loss(traj, policy, value_coef):
+def a2c_loss(traj, policy, value, value_coef):
     dist, *_ = policy.get_dist(traj)
     traj.set("action_log_prob", dist.log_prob(traj.get("action")))
     log_probs = traj.get("action_log_prob")
 
     # Work backwards to compute `G_{T-1}`, ..., `G_0`.
-    gae = GAE(GAMMA, LAMBDA, policy, gradient_mode=True)
+    gae = GAE(GAMMA, LAMBDA, value, gradient_mode=True)
     traj = gae(traj)
     # pi, values = policy(torch.from_numpy(traj.obs))
     # log_probs = pi.log_prob(torch.from_numpy(traj.acs))
@@ -47,11 +47,11 @@ def a2c_loss(traj, policy, value_coef):
     assert action_loss.requires_grad
     assert value_loss.requires_grad
 
-    a2c_loss = action_loss + value_coef * value_loss
-    return a2c_loss
+    loss = action_loss + value_coef * value_loss
+    return loss
 
 
-def evaluate(env, dummy_env, seed, task_num, policy):
+def evaluate(env, dummy_env, seed, task_num, policy, value):
     pre_reward_ls = []
     post_reward_ls = []
     inner_opt = TorchOpt.MetaSGD(policy, lr=0.5)
@@ -65,10 +65,10 @@ def evaluate(env, dummy_env, seed, task_num, policy):
         for _ in range(inner_iters):
             with set_exploration_mode("random"), torch.no_grad():
                 pre_traj_td = env.rollout(policy, n_steps=TRAJ_LEN)
-            inner_loss = a2c_loss(pre_traj_td, policy, value_coef=0.5)
+            inner_loss = a2c_loss(pre_traj_td, policy, value, value_coef=0.5)
             inner_opt.step(inner_loss)
         with set_exploration_mode("random"), torch.no_grad():
-            post_traj_td = env.rollout(policy, n_steps=TRAJ_LEN)
+            post_traj_td = env.rollout(policy, value, n_steps=TRAJ_LEN)
 
         # Logging
 
@@ -99,22 +99,15 @@ def main(args):
     env.reset()
     # Policy
     obs_key = list(env.observation_spec.keys())[0]
-    policy_module = CategoricalMLPPolicy(
+    actor_critic = ActorCritic(
         env.observation_spec[obs_key].shape[-1],
         env.action_spec.shape[-1]
     )
-    policy = ProbabilisticTDModule(
-        module=policy_module,
-        spec=env.action_spec,
-        distribution_class=OneHotCategorical,
-        return_log_prob=True,
-        in_keys=["observation"],
-        out_keys=["action", "state_value"],
-        default_interaction_mode="random",
-    )
+    policy = actor_critic.get_policy_operator()
+    value = actor_critic.get_value_operator()
 
-    inner_opt = TorchOpt.MetaSGD(policy_module, lr=0.5)
-    outer_opt = optim.Adam(policy.parameters(), lr=1e-3)
+    inner_opt = TorchOpt.MetaSGD(actor_critic, lr=0.5)
+    outer_opt = optim.Adam(actor_critic.parameters(), lr=1e-3)
     train_pre_reward = []
     train_post_reward = []
     test_pre_reward = []
@@ -137,12 +130,12 @@ def main(args):
             for k in range(inner_iters):
                 with set_exploration_mode("random"), torch.no_grad():
                     pre_traj_td = env.rollout(policy=policy, n_steps=TRAJ_LEN, auto_reset=True)
-                inner_loss = a2c_loss(pre_traj_td, policy, value_coef=0.5)
+                inner_loss = a2c_loss(pre_traj_td, policy, value, value_coef=0.5)
                 inner_opt.step(inner_loss)
 
             with set_exploration_mode("random"), torch.no_grad():
                 post_traj_td = env.rollout(policy=policy, n_steps=TRAJ_LEN)
-            outer_loss = a2c_loss(post_traj_td, policy, value_coef=0.5)
+            outer_loss = a2c_loss(post_traj_td, policy, value, value_coef=0.5)
             outer_loss.backward()
 
             TorchOpt.recover_state_dict(policy, policy_state_dict)
@@ -159,7 +152,7 @@ def main(args):
         outer_opt.step()
 
         test_pre_reward_ls, test_post_reward_ls = evaluate(env, dummy_env, args.seed,
-                                                           TASK_NUM, policy)
+                                                           TASK_NUM, policy, value)
 
         train_pre_reward.append(sum(train_pre_reward_ls) / TASK_NUM)
         train_post_reward.append(sum(train_post_reward_ls) / TASK_NUM)
