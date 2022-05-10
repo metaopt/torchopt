@@ -22,7 +22,7 @@ import torch.optim as optim
 import numpy as np
 
 import TorchOpt
-from helpers.policy import CategoricalMLPPolicy
+from helpers.policy_old import CategoricalMLPPolicy
 
 TASK_NUM = 40
 TRAJ_NUM = 20
@@ -97,7 +97,6 @@ def a2c_loss(traj, policy, value_coef):
     advs = lambda_returns - torch.squeeze(values, -1)
     action_loss = -(advs.detach() * log_probs).mean()
     value_loss = advs.pow(2).mean()
-
     a2c_loss = action_loss + value_coef * value_loss
     return a2c_loss
 
@@ -183,6 +182,10 @@ def main(args):
         print("train_post_reward", sum(train_post_reward_ls) / TASK_NUM)
         print("test_pre_reward", sum(test_pre_reward_ls) / TASK_NUM)
         print("test_post_reward", sum(test_post_reward_ls) / TASK_NUM)
+        np.save("train_pre_reward_{}.npy".format(args.seed), np.array(train_pre_reward))
+        np.save("train_post_reward_{}.npy".format(args.seed), np.array(train_post_reward))
+        np.save("test_pre_reward_{}.npy".format(args.seed), np.array(test_pre_reward))
+        np.save("test_post_reward_{}.npy".format(args.seed), np.array(test_post_reward))
 
 
 if __name__ == "__main__":
