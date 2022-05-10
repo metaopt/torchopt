@@ -26,7 +26,7 @@ class CategoricalSubNet(nn.Module):
                  input_size,
                  output_size,
                  ):
-        super(CategoricalSubNet, self).__init__()
+        super().__init__()
         self.policy_head = nn.Linear(32, output_size)
 
     def forward(self, embedding, params=None):
@@ -38,7 +38,7 @@ class ValueSubNet(nn.Module):
                  input_size,
                  output_size,
                  ):
-        super(CategoricalSubNet, self).__init__()
+        super().__init__()
         self.value_head = nn.Linear(32, 1)
 
     def forward(self, embedding, params=None):
