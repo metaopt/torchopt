@@ -49,11 +49,13 @@ class ActorCritic(ActorValueOperator):
     def __init__(self, input_size, output_size):
         super().__init__(
             TDModule(
+                spec=None,
                 module=Backbone(input_size, output_size),
                 in_keys=["observation"],
                 out_keys=["hidden"],
             ),
             ProbabilisticActor(
+                spec=None,
                 module=CategoricalSubNet(input_size, output_size),
                 distribution_class=OneHotCategorical,
                 return_log_prob=False,
