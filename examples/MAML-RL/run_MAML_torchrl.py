@@ -125,7 +125,6 @@ def main(args):
         train_post_reward_ls = []
 
         outer_opt.zero_grad()
-        # print('\n\n\nZERO\n\n\n')
         policy_state_dict = TorchOpt.extract_state_dict(actor_critic)
         optim_state_dict = TorchOpt.extract_state_dict(inner_opt)
         for idx in range(TASK_NUM):
@@ -134,9 +133,6 @@ def main(args):
             for k in range(inner_iters):
                 with set_exploration_mode("random"), torch.no_grad():
                     pre_traj_td = env.rollout(policy=policy, n_steps=TRAJ_LEN, auto_reset=True)
-                for k, item in pre_traj_td.items():
-                    if item.requires_grad:
-                        raise RuntimeError
                 inner_loss = a2c_loss(pre_traj_td.to(device), policy, value, value_coef=0.5)
                 inner_opt.step(inner_loss)
 
@@ -146,10 +142,6 @@ def main(args):
             outer_loss.backward()
 
             TorchOpt.recover_state_dict(actor_critic, policy_state_dict)
-            s1 = set(actor_critic.parameters())
-            s2 = set(policy.parameters()).union( set(value.parameters()) )
-            assert len(s1.intersection(s2)) == len(s1)
-            assert len(s1.difference(s2)) == 0
             TorchOpt.recover_state_dict(inner_opt, optim_state_dict)
 
             # Logging
