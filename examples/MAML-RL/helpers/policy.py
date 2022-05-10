@@ -4,7 +4,7 @@
 import torch
 import torch.nn as nn
 from torch.distributions import Categorical
-from torchrl.modules import ActorValueOperator, ValueOperator, ProbabilisticActor, OneHotCategorical
+from torchrl.modules import ActorValueOperator, ValueOperator, ProbabilisticActor, OneHotCategorical, TDModule
 
 class Backbone(nn.Module):
     def __init__(self,
