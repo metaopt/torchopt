@@ -1,7 +1,3 @@
-jax
-jaxlib
+jax[cpu]
 graphviz
 torch
-typing
-typing_extensions
-gym==0.15.3

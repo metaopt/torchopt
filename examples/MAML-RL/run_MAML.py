@@ -22,7 +22,7 @@ import torch.optim as optim
 import numpy as np
 
 import TorchOpt
-from helpers.policy import CategoricalMLPPolicy
+from helpers.policy_old import CategoricalMLPPolicy
 
 TASK_NUM = 40
 TRAJ_NUM = 20
@@ -97,9 +97,6 @@ def a2c_loss(traj, policy, value_coef):
     advs = lambda_returns - torch.squeeze(values, -1)
     action_loss = -(advs.detach() * log_probs).mean()
     value_loss = advs.pow(2).mean()
-    print(action_loss)
-    print(value_loss)
-    time.sleep(100)
     a2c_loss = action_loss + value_coef * value_loss
     return a2c_loss
 
