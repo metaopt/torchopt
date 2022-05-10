@@ -31,21 +31,19 @@ inner_iters = 1
 
 def a2c_loss(traj, policy, value, value_coef):
     dist, *_ = policy.get_dist(traj)
-    traj.set("action_log_prob", dist.log_prob(traj.get("action")))
-    log_probs = traj.get("action_log_prob")
+    action = traj.get("action")
+    log_probs = dist.log_prob(action)
 
     # Work backwards to compute `G_{T-1}`, ..., `G_0`.
     gae = GAE(GAMMA, LAMBDA, value, gradient_mode=True)
     traj = gae(traj)
-    # pi, values = policy(torch.from_numpy(traj.obs))
-    # log_probs = pi.log_prob(torch.from_numpy(traj.acs))
-    # advs = lambda_returns - torch.squeeze(values, -1)
     advantage = traj.get("advantage")
     value_target = traj.get("value_target")
     action_loss = -(advantage * log_probs.view_as(advantage)).mean()
     value_loss = value_target.pow(2).mean()
     assert action_loss.requires_grad
     assert not advantage.requires_grad
+    assert not action.requires_grad
     assert value_loss.requires_grad
 
     loss = action_loss + value_coef * value_loss
@@ -55,7 +53,7 @@ def a2c_loss(traj, policy, value, value_coef):
 def evaluate(env, dummy_env, seed, task_num, actor_critic, policy, value):
     pre_reward_ls = []
     post_reward_ls = []
-    inner_opt = TorchOpt.MetaSGD(actor_critic, lr=0.5)
+    inner_opt = TorchOpt.MetaSGD(actor_critic, lr=0.05)
 
     tasks = dummy_env.sample_tasks(num_tasks=task_num)
 
@@ -107,7 +105,7 @@ def main(args):
     policy = actor_critic.get_policy_operator()
     value = actor_critic.get_value_operator()
 
-    inner_opt = TorchOpt.MetaSGD(actor_critic, lr=0.5)
+    inner_opt = TorchOpt.MetaSGD(actor_critic, lr=0.05)
     outer_opt = optim.Adam(actor_critic.parameters(), lr=1e-3)
     train_pre_reward = []
     train_post_reward = []
@@ -131,7 +129,15 @@ def main(args):
             for k in range(inner_iters):
                 with set_exploration_mode("random"), torch.no_grad():
                     pre_traj_td = env.rollout(policy=policy, n_steps=TRAJ_LEN, auto_reset=True)
+                for k, item in pre_traj_td.items():
+                    # print(k, item.requires_grad)
+                    if item.requires_grad:
+                        raise RuntimeError
+                # print("\n\n")
                 inner_loss = a2c_loss(pre_traj_td, policy, value, value_coef=0.5)
+                # for k, item in pre_traj_td.items():
+                #     print(k, item.requires_grad)
+                # print("\n\n")
                 inner_opt.step(inner_loss)
 
             with set_exploration_mode("random"), torch.no_grad():

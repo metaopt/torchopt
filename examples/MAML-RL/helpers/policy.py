@@ -15,7 +15,6 @@ class Backbone(nn.Module):
         self.torso = nn.Sequential(nn.Linear(input_size, 32), nn.ReLU(),
                                nn.Linear(32, 32), nn.ReLU(),
                                )
-        self.policy_head = nn.Linear(32, output_size)
 
     def forward(self, inputs, params=None):
         embedding = self.torso(inputs)
@@ -31,7 +30,7 @@ class CategoricalSubNet(nn.Module):
 
     def forward(self, embedding, params=None):
         logits = self.policy_head(embedding)
-        return logits.log_softmax(-1)
+        return logits
 
 class ValueSubNet(nn.Module):
     def __init__(self,
