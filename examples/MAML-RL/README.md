@@ -6,7 +6,7 @@ Code on Tabular MDP example in paper *Model-Agnostic Meta-Learning* [[MAML](http
 Specify the seed to train.
 ```bash
 ### Run MAML
-python MAML_toy.py --seed 1
+python run_MAML.py --seed 1
 ```
 
 # Results
