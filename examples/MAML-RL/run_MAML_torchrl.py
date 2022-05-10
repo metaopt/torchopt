@@ -42,19 +42,20 @@ def a2c_loss(traj, policy, value, value_coef):
     # advs = lambda_returns - torch.squeeze(values, -1)
     advantage = traj.get("advantage")
     value_target = traj.get("value_target")
-    action_loss = -(advantage.detach() * log_probs.view_as(advantage)).mean()
+    action_loss = -(advantage * log_probs.view_as(advantage)).mean()
     value_loss = value_target.pow(2).mean()
     assert action_loss.requires_grad
+    assert not advantage.requires_grad
     assert value_loss.requires_grad
 
     loss = action_loss + value_coef * value_loss
     return loss
 
 
-def evaluate(env, dummy_env, seed, task_num, policy, value):
+def evaluate(env, dummy_env, seed, task_num, actor_critic, policy, value):
     pre_reward_ls = []
     post_reward_ls = []
-    inner_opt = TorchOpt.MetaSGD(policy, lr=0.5)
+    inner_opt = TorchOpt.MetaSGD(actor_critic, lr=0.5)
 
     tasks = dummy_env.sample_tasks(num_tasks=task_num)
 
@@ -123,7 +124,7 @@ def main(args):
 
         outer_opt.zero_grad()
 
-        policy_state_dict = TorchOpt.extract_state_dict(policy)
+        policy_state_dict = TorchOpt.extract_state_dict(actor_critic)
         optim_state_dict = TorchOpt.extract_state_dict(inner_opt)
         for idx in range(TASK_NUM):
             env.reset_task(tasks[idx])
@@ -138,7 +139,7 @@ def main(args):
             outer_loss = a2c_loss(post_traj_td, policy, value, value_coef=0.5)
             outer_loss.backward()
 
-            TorchOpt.recover_state_dict(policy, policy_state_dict)
+            TorchOpt.recover_state_dict(actor_critic, policy_state_dict)
             TorchOpt.recover_state_dict(inner_opt, optim_state_dict)
 
             # Logging
@@ -152,7 +153,8 @@ def main(args):
         outer_opt.step()
 
         test_pre_reward_ls, test_post_reward_ls = evaluate(env, dummy_env, args.seed,
-                                                           TASK_NUM, policy, value)
+                                                           TASK_NUM, actor_critic,
+                                                           policy, value)
 
         train_pre_reward.append(sum(train_pre_reward_ls) / TASK_NUM)
         train_post_reward.append(sum(train_post_reward_ls) / TASK_NUM)
