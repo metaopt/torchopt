@@ -99,7 +99,7 @@ if 'build_from_source' not in sys.argv:
 setup(
     name="TorchOpt",
     version="0.4.1",
-    author="Jie Ren",
+    author="TorchOpt Contributors",
     author_email="jieren9806@gmail.com",
     description="A Jax-style optimizer.",
     license="Apache License Version 2.0",
