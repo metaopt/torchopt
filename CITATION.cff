@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+title: TorchOpt
+message: 'If you use this software, please cite it as below.'
+type: software
+authors:
+  - given-names: Jie
+    family-names: Ren
+    email: jieren9806@gmail.com
+    affiliation: University of Edinburgh
+  - given-names: Xidong
+    family-names: Feng
+    email: xidong.feng.20@ucl.ac.uk
+    affiliation: University College London
+  - given-names: Bo
+    family-names: Liu
+    email: benjaminliu.eecs@gmail.com
+    affiliation: Peking University
+    orcid: 'https://orcid.org/0000-0001-5426-515X'
+  - given-names: Luo
+    family-names: Mai
+    email: luo.mai@ed.ac.uk
+    affiliation: University of Edinburgh
+  - given-names: Yaodong
+    family-names: Yang
+    affiliation: Peking University
+    email: yaodong.yang@pku.edu.cn
