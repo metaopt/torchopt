@@ -183,4 +183,19 @@ python setup.py build_from_source
 - [ ] CPU-acclerated optimizer
 
 ## The Team
-TorchOpt is a work by Jie Ren, Xidong Feng, Bo Liu, [Luo Mai](https://luomai.github.io/) and [Yaodong Yang](https://www.yangyaodong.com/).
+TorchOpt is a work by Jie Ren, Xidong Feng, [Bo Liu](https://github.com/Benjamin-eecs/), [Luo Mai](https://luomai.github.io/) and [Yaodong Yang](https://www.yangyaodong.com/).
+
+## Citing TorchOpt
+
+If you find TorchOpt useful, please cite it in your publications.
+
+```
+@software{TorchOpt,
+  author = {Jie Ren and Xidong Feng and Bo Liu and Luo Mai and Yaodong Yang},
+  title = {TorchOpt},
+  year = {2022},
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  howpublished = {\url{https://github.com/metaopt/TorchOpt}},
+}
+```
