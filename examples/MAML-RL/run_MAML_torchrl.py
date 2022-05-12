@@ -35,7 +35,8 @@ def a2c_loss(traj, policy, value, value_coef):
     log_probs = dist.log_prob(action)
 
     # Work backwards to compute `G_{T-1}`, ..., `G_0`.
-    tderror = TDEstimate(GAMMA, value, gradient_mode=True)
+    # tderror = TDEstimate(GAMMA, value, gradient_mode=True)
+    tderror = GAE(GAMMA, LAMBDA, value, gradient_mode=True)
     traj = tderror(traj)
     advantage = traj.get("advantage")
     value_target = traj.get("value_target")
