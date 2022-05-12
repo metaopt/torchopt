@@ -39,7 +39,7 @@ def a2c_loss(traj, policy, value, value_coef):
     tderror = GAE(GAMMA, LAMBDA, value, gradient_mode=True)
     traj = tderror(traj)
     advantage = traj.get("advantage")
-    value_target = traj.get("value_target")
+    value_target = traj.get("value_error")
     action_loss = -(advantage * log_probs.view_as(advantage)).mean()
     value_loss = value_target.pow(2).mean()
     assert action_loss.requires_grad
