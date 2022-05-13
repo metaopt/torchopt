@@ -106,9 +106,9 @@ def main(args):
         seed=args.seed,
     )
     if args.parallel:
-        env = ParallelEnv(NUM_ENVS, lambda_env)
+        env = ParallelEnv(NUM_ENVS, lambda_env, selected_keys=["state", "next_state", "reward", "action", "done"])
     else:
-        env = SerialEnv(NUM_ENVS, lambda_env)
+        env = SerialEnv(NUM_ENVS, lambda_env, selected_keys=["state", "next_state", "reward", "action", "done"])
     env.reset()
     # Policy
     obs_key = list(env.observation_spec.keys())[0]
