@@ -144,7 +144,8 @@ def main(args):
     test_pre_reward = []
     test_post_reward = []
 
-    for i in range(outer_iters):
+    pbar = tqdm.tqdm(range(outer_iters))
+    for i in pbar:
         tasks = env.sample_tasks(num_tasks=TASK_NUM)
         train_pre_reward_ls = []
         train_post_reward_ls = []
