@@ -21,6 +21,7 @@ import torch
 import torch.optim as optim
 import numpy as np
 
+import tqdm
 import TorchOpt
 from helpers.policy_old import CategoricalMLPPolicy
 
@@ -178,11 +179,10 @@ def main(args):
         test_pre_reward.append(sum(test_pre_reward_ls) / TASK_NUM)
         test_post_reward.append(sum(test_post_reward_ls) / TASK_NUM)
         
-        print('Train_iters', i)
-        print("train_pre_reward", sum(train_pre_reward_ls) / TASK_NUM)
-        print("train_post_reward", sum(train_post_reward_ls) / TASK_NUM)
-        print("test_pre_reward", sum(test_pre_reward_ls) / TASK_NUM)
-        print("test_post_reward", sum(test_post_reward_ls) / TASK_NUM)
+        pbar.set_description(f"train_pre_reward: {sum(train_pre_reward_ls) / TASK_NUM}, "
+                             f"train_post_reward: {sum(train_post_reward_ls) / TASK_NUM}, "
+                             f"test_pre_reward: {sum(test_pre_reward_ls) / TASK_NUM}, "
+                             f"test_post_reward: {sum(test_post_reward_ls) / TASK_NUM}")
         np.save("train_pre_reward_{}.npy".format(args.seed), np.array(train_pre_reward))
         np.save("train_post_reward_{}.npy".format(args.seed), np.array(train_post_reward))
         np.save("test_pre_reward_{}.npy".format(args.seed), np.array(test_pre_reward))
