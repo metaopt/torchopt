@@ -6,7 +6,7 @@ import torch.optim as optim
 from torchrl.envs import GymEnv, ParallelEnv
 from torchrl.envs.utils import set_exploration_mode
 from torchrl.modules import ProbabilisticTDModule, OneHotCategorical
-from torchrl.objectives import GAE, TDEstimate
+from torchrl.objectives import GAE, TDLambdaEstimate, TDEstimate
 
 import TorchOpt
 from helpers.policy import ActorCritic
@@ -36,12 +36,13 @@ def a2c_loss(traj, policy, value, value_coef):
 
     # Work backwards to compute `G_{T-1}`, ..., `G_0`.
     # tderror = TDEstimate(GAMMA, value, gradient_mode=True)
-    tderror = GAE(GAMMA, LAMBDA, value, gradient_mode=True)
+    tderror = TDLambdaEstimate(GAMMA, LAMBDA, value, gradient_mode=True)
+    # tderror = GAE(GAMMA, LAMBDA, value, gradient_mode=True)
     traj = tderror(traj)
     advantage = traj.get("advantage")
-    value_target = traj.get("value_error")
+    value_error = traj.get("value_error")
     action_loss = -(advantage * log_probs.view_as(advantage)).mean()
-    value_loss = value_target.pow(2).mean()
+    value_loss = value_error.pow(2).mean()
     assert action_loss.requires_grad
     assert not advantage.requires_grad
     assert not action.requires_grad
