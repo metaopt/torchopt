@@ -3,7 +3,7 @@ import argparse
 import tqdm
 import torch
 import torch.optim as optim
-from torchrl.envs import GymEnv, ParallelEnv
+from torchrl.envs import GymEnv, ParallelEnv, SerialEnv
 from torchrl.envs.utils import set_exploration_mode
 from torchrl.modules import ProbabilisticTDModule, OneHotCategorical
 from torchrl.objectives.returns.functional import vec_td_lambda_advantage_estimate
@@ -108,7 +108,7 @@ def main(args):
     if args.parallel:
         env = ParallelEnv(NUM_ENVS, lambda_env)
     else:
-        env = lambda_env()
+        env = SerialEnv(NUM_ENVS, lambda_env)
     env.reset()
     # Policy
     obs_key = list(env.observation_spec.keys())[0]
