@@ -6,7 +6,8 @@ import torch.optim as optim
 from torchrl.envs import GymEnv, ParallelEnv
 from torchrl.envs.utils import set_exploration_mode
 from torchrl.modules import ProbabilisticTDModule, OneHotCategorical
-from torchrl.objectives import GAE, TDLambdaEstimate, TDEstimate
+from torchrl.objectives.returns.functional import vec_td_lambda_advantage_estimate
+from torchrl.envs.utils import step_tensordict
 
 import TorchOpt
 from helpers.policy import ActorCritic
@@ -29,20 +30,29 @@ outer_iters = 500
 inner_iters = 1
 
 
-def a2c_loss(traj, policy, value, value_coef):
-    dist, *_ = policy.get_dist(traj)
+def a2c_loss(traj, policy_module, value_module, value_coef):
+    dist, *_ = policy_module.get_dist(traj)
     action = traj.get("action")
     log_probs = dist.log_prob(action)
+    value_module.module[-1](traj)  # will read the "hidden" key and return a state value
+    value = traj.get("state_value")
+
+    reward = traj.get("reward")
+    done = traj.get("done")
+    next_traj = step_tensordict(traj)
+    next_value = value_module(next_traj).get("state_value")
 
     # Work backwards to compute `G_{T-1}`, ..., `G_0`.
-    # tderror = TDEstimate(GAMMA, value, gradient_mode=True)
-    tderror = TDLambdaEstimate(GAMMA, LAMBDA, value, gradient_mode=True)
-    # tderror = GAE(GAMMA, LAMBDA, value, gradient_mode=True)
-    traj = tderror(traj)
-    advantage = traj.get("advantage")
-    value_error = traj.get("value_error")
+    # tderror = TDEstimate(GAMMA, value_module, gradient_mode=True)
+    # tderror = TDLambdaEstimate(GAMMA, LAMBDA, value_module, gradient_mode=True)
+    with torch.no_grad():
+        advantage = vec_td_lambda_advantage_estimate(
+            GAMMA, LAMBDA, value, next_value, reward, done
+        )
+    value_error = value - (advantage + value).detach()
     action_loss = -(advantage * log_probs.view_as(advantage)).mean()
     value_loss = value_error.pow(2).mean()
+
     assert action_loss.requires_grad
     assert not advantage.requires_grad
     assert not action.requires_grad
@@ -102,15 +112,15 @@ def main(args):
     env.reset()
     # Policy
     obs_key = list(env.observation_spec.keys())[0]
-    actor_critic = ActorCritic(
+    actor_critic_module = ActorCritic(
         env.observation_spec[obs_key].shape[-1],
         env.action_spec.shape[-1]
     ).to(device)
-    policy = actor_critic.get_policy_operator()
-    value = actor_critic.get_value_operator()
+    policy_module = actor_critic_module.get_policy_operator()
+    value_module = actor_critic_module.get_value_operator()
 
-    inner_opt = TorchOpt.MetaSGD(actor_critic, lr=0.5)
-    outer_opt = optim.Adam(actor_critic.parameters(), lr=1e-3)
+    inner_opt = TorchOpt.MetaSGD(actor_critic_module, lr=0.5)
+    outer_opt = optim.Adam(actor_critic_module.parameters(), lr=1e-3)
     train_pre_reward = []
     train_post_reward = []
     test_pre_reward = []
@@ -126,23 +136,23 @@ def main(args):
         train_post_reward_ls = []
 
         outer_opt.zero_grad()
-        policy_state_dict = TorchOpt.extract_state_dict(actor_critic)
+        policy_state_dict = TorchOpt.extract_state_dict(actor_critic_module)
         optim_state_dict = TorchOpt.extract_state_dict(inner_opt)
         for idx in range(TASK_NUM):
             # print("idx: ", idx)
             env.reset_task(tasks[idx])
             for k in range(inner_iters):
                 with set_exploration_mode("random"), torch.no_grad():
-                    pre_traj_td = env.rollout(policy=policy, n_steps=TRAJ_LEN, auto_reset=True).to(device)
-                inner_loss = a2c_loss(pre_traj_td, policy, value, value_coef=0.5)
+                    pre_traj_td = env.rollout(policy=policy_module, n_steps=TRAJ_LEN, auto_reset=True).to(device)
+                inner_loss = a2c_loss(pre_traj_td, policy_module, value_module, value_coef=0.5)
                 inner_opt.step(inner_loss)
 
             with set_exploration_mode("random"), torch.no_grad():
-                post_traj_td = env.rollout(policy=policy, n_steps=TRAJ_LEN).to(device)
-            outer_loss = a2c_loss(post_traj_td, policy, value, value_coef=0.5)
+                post_traj_td = env.rollout(policy=policy_module, n_steps=TRAJ_LEN).to(device)
+            outer_loss = a2c_loss(post_traj_td, policy_module, value_module, value_coef=0.5)
             outer_loss.backward()
 
-            TorchOpt.recover_state_dict(actor_critic, policy_state_dict)
+            TorchOpt.recover_state_dict(actor_critic_module, policy_state_dict)
             TorchOpt.recover_state_dict(inner_opt, optim_state_dict)
 
             # Logging
@@ -152,8 +162,8 @@ def main(args):
         outer_opt.step()
 
         test_pre_reward_ls, test_post_reward_ls = evaluate(env, dummy_env, args.seed,
-                                                           TASK_NUM, actor_critic,
-                                                           policy, value)
+                                                           TASK_NUM, actor_critic_module,
+                                                           policy_module, value_module)
 
         train_pre_reward.append(sum(train_pre_reward_ls) / TASK_NUM)
         train_post_reward.append(sum(train_post_reward_ls) / TASK_NUM)
