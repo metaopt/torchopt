@@ -9,6 +9,8 @@ from torchrl.modules import ProbabilisticTDModule, OneHotCategorical
 from torchrl.objectives.returns.functional import vec_td_lambda_advantage_estimate
 from torchrl.envs.utils import step_tensordict
 
+from torchrl import timeit
+
 import TorchOpt
 from helpers.policy import ActorCritic
 import numpy as np
@@ -76,11 +78,11 @@ def evaluate(env, dummy_env, seed, task_num, actor_critic, policy, value):
     for idx in range(task_num):
         env.reset_task(tasks[idx])
         for _ in range(inner_iters):
-            with set_exploration_mode("random"), torch.no_grad():
+            with set_exploration_mode("random"), torch.no_grad(), timeit("rollout_eval"):
                 pre_traj_td = env.rollout(policy, n_steps=TRAJ_LEN).to(device)
             inner_loss = a2c_loss(pre_traj_td, policy, value, value_coef=0.5)
             inner_opt.step(inner_loss)
-        with set_exploration_mode("random"), torch.no_grad():
+        with set_exploration_mode("random"), torch.no_grad(), timeit("rollout_eval"):
             post_traj_td = env.rollout(policy, n_steps=TRAJ_LEN).to(device)
 
         # Logging
@@ -142,12 +144,12 @@ def main(args):
             # print("idx: ", idx)
             env.reset_task(tasks[idx])
             for k in range(inner_iters):
-                with set_exploration_mode("random"), torch.no_grad():
+                with set_exploration_mode("random"), torch.no_grad(), timeit("rollout"):
                     pre_traj_td = env.rollout(policy=policy_module, n_steps=TRAJ_LEN, auto_reset=True).to(device)
                 inner_loss = a2c_loss(pre_traj_td, policy_module, value_module, value_coef=0.5)
                 inner_opt.step(inner_loss)
 
-            with set_exploration_mode("random"), torch.no_grad():
+            with set_exploration_mode("random"), torch.no_grad(), timeit("rollout"):
                 post_traj_td = env.rollout(policy=policy_module, n_steps=TRAJ_LEN).to(device)
             outer_loss = a2c_loss(post_traj_td, policy_module, value_module, value_coef=0.5)
             outer_loss.backward()
@@ -174,6 +176,8 @@ def main(args):
                              f"test_pre_reward: {test_pre_reward[-1]: 4.4f}, "
                              f"test_post_reward: {test_post_reward[-1]: 4.4f}, "
                              )
+        timeit.print()
+
         np.save("train_pre_reward_{}.npy".format(args.seed), np.array(train_pre_reward))
         np.save("train_post_reward_{}.npy".format(args.seed), np.array(train_post_reward))
         np.save("test_pre_reward_{}.npy".format(args.seed), np.array(test_pre_reward))

@@ -24,6 +24,7 @@ import numpy as np
 import tqdm
 import TorchOpt
 from helpers.policy_old import CategoricalMLPPolicy
+from torchrl import timeit
 
 TASK_NUM = 40
 TRAJ_NUM = 20
@@ -113,11 +114,13 @@ def evaluate(env, seed, task_num, policy):
     optim_state_dict = TorchOpt.extract_state_dict(inner_opt)
     for idx in range(task_num):
         for _ in range(inner_iters):
-            pre_trajs = sample_traj(env, tasks[idx], policy)
+            with timeit("rollout_eval"):
+                pre_trajs = sample_traj(env, tasks[idx], policy)
 
             inner_loss = a2c_loss(pre_trajs, policy, value_coef=0.5)
             inner_opt.step(inner_loss)
-        post_trajs = sample_traj(env, tasks[idx], policy)
+        with timeit("rollout_eval"):
+            post_trajs = sample_traj(env, tasks[idx], policy)
 
         # Logging
         pre_reward_ls.append(np.sum(pre_trajs.rews, axis=0).mean())
@@ -129,6 +132,7 @@ def evaluate(env, seed, task_num, policy):
 
 
 def main(args):
+
     # init training
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed_all(args.seed)
@@ -158,10 +162,12 @@ def main(args):
         for idx in range(TASK_NUM):
 
             for _ in range(inner_iters):
-                pre_trajs = sample_traj(env, tasks[idx], policy)
+                with timeit("rollout"):
+                    pre_trajs = sample_traj(env, tasks[idx], policy)
                 inner_loss = a2c_loss(pre_trajs, policy, value_coef=0.5)
                 inner_opt.step(inner_loss)
-            post_trajs = sample_traj(env, tasks[idx], policy)
+            with timeit("rollout"):
+                post_trajs = sample_traj(env, tasks[idx], policy)
             outer_loss = a2c_loss(post_trajs, policy, value_coef=0.5)
             outer_loss.backward()
             TorchOpt.recover_state_dict(policy, policy_state_dict)
@@ -183,6 +189,8 @@ def main(args):
                              f"train_post_reward: {sum(train_post_reward_ls) / TASK_NUM}, "
                              f"test_pre_reward: {sum(test_pre_reward_ls) / TASK_NUM}, "
                              f"test_post_reward: {sum(test_post_reward_ls) / TASK_NUM}")
+        timeit.print()
+
         np.save("train_pre_reward_{}.npy".format(args.seed), np.array(train_pre_reward))
         np.save("train_post_reward_{}.npy".format(args.seed), np.array(train_post_reward))
         np.save("test_pre_reward_{}.npy".format(args.seed), np.array(test_pre_reward))
