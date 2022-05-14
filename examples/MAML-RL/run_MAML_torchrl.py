@@ -42,17 +42,16 @@ def a2c_loss(traj, policy_module, value_module, value_coef):
     reward = traj.get("reward")
     done = traj.get("done")
     next_traj = step_tensordict(traj)
-    next_value = value_module(next_traj).get("state_value")
+    next_value = value_module(next_traj).get("state_value").detach()
 
     # Work backwards to compute `G_{T-1}`, ..., `G_0`.
     # tderror = TDEstimate(GAMMA, value_module, gradient_mode=True)
     # tderror = TDLambdaEstimate(GAMMA, LAMBDA, value_module, gradient_mode=True)
-    with torch.no_grad():
-        advantage = vec_td_lambda_advantage_estimate(
-            GAMMA, LAMBDA, value, next_value, reward, done
-        )
-    value_error = value - (advantage + value).detach()
-    action_loss = -(advantage * log_probs.view_as(advantage)).mean()
+    advantage = vec_td_lambda_advantage_estimate(
+        GAMMA, LAMBDA, value, next_value, reward, done
+    )
+    action_loss = -(advantage.detach() * log_probs.view_as(advantage)).mean()
+    value_error = advantage
     value_loss = value_error.pow(2).mean()
 
     assert action_loss.requires_grad
