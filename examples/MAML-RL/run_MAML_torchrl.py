@@ -36,6 +36,8 @@ def a2c_loss(traj, policy_module, value_module, value_coef):
     dist, *_ = policy_module.get_dist(traj)
     action = traj.get("action")
     log_probs = dist.log_prob(action)
+
+    traj = traj.exclude("state_value")
     value_module.module[-1](traj)  # will read the "hidden" key and return a state value
     value = traj.get("state_value")
 
@@ -55,7 +57,7 @@ def a2c_loss(traj, policy_module, value_module, value_coef):
     value_loss = value_error.pow(2).mean()
 
     assert action_loss.requires_grad
-    assert not advantage.requires_grad
+    assert advantage.requires_grad
     assert not action.requires_grad
     assert value_loss.requires_grad
 
