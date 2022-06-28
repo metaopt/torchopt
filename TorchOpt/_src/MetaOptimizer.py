@@ -17,10 +17,10 @@ import jax
 import torch
 from torch import nn
 
-import TorchOpt
 from TorchOpt._src import base
 from TorchOpt._src.alias import adam, rmsprop, sgd
 from TorchOpt._src.pytypes import ScalarOrSchedule
+from TorchOpt._src.update import apply_updates
 
 
 class MetaOptimizer(object):
@@ -61,9 +61,7 @@ class MetaOptimizer(object):
                                        allow_unused=True)
             updates, state = self.impl.update(grad, state, False)
             self.state_groups[idx] = state
-            new_params = TorchOpt.apply_updates(flatten_params,
-                                                updates,
-                                                inplace=False)
+            new_params = apply_updates(flatten_params, updates, inplace=False)
             unflatten_new_params = containers_tree.unflatten(new_params)
             for (container, unflatten_param) in zip(param_containers,
                                                     unflatten_new_params):

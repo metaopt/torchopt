@@ -16,7 +16,7 @@
 import jax
 import torch
 
-from .base import EmptyState, GradientTransformation
+from TorchOpt._src.base import EmptyState, GradientTransformation
 
 
 def zero_nan_hook(g: torch.Tensor) -> torch.Tensor:
