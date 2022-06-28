@@ -1,6 +1,6 @@
-name: Lint
+name: Test
 
-on: [push, pull_request]
+on: [pull_request]
 
 jobs:
   lint:
@@ -18,9 +18,9 @@ jobs:
     - name: Upgrade pip
       run: |
         python -m pip install --upgrade pip
-    - name: Install dependencies
-      run: |
-        python -m pip install -e . --upgrade
+    # - name: Install dependencies
+    #   run: |
+    #     python -m pip install -e . --upgrade
     - name: Test with pytest
       run: |
         make pytest

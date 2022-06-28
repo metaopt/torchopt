@@ -1,6 +1,6 @@
 name: Lint
 
-on: [push, pull_request]
+on: [pull_request]
 
 jobs:
   lint:
@@ -33,6 +33,6 @@ jobs:
     - name: docstyle
       run: |
         make docstyle
-    - name: spelling
-      run: |
-        make spelling
+    # - name: spelling
+    #   run: |
+    #     make spelling
