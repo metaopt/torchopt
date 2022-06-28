@@ -12,31 +12,49 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
+import torch
 
 
-def forward_(updates, mu, nu, lr, b1, b2, eps, eps_root, count):
-    ...
+def forward_(
+  updates: torch.Tensor, mu: torch.Tensor, nu: torch.Tensor, b1: float,
+  b2: float, eps: float, eps_root: float, count: int
+) -> torch.Tensor:
+  ...
 
 
-def forwardMu(updates, mu, b1):
-    ...
+def forwardMu(
+  updates: torch.Tensor, mu: torch.Tensor, b1: float
+) -> torch.Tensor:
+  ...
 
 
-def forwardNu(updates, nu, b2):
-    ...
+def forwardNu(
+  updates: torch.Tensor, nu: torch.Tensor, b2: float
+) -> torch.Tensor:
+  ...
 
 
-def forwardUpdates(new_mu, new_nu, lr, b1, b2, eps, eps_root, count):
-    ...
+def forwardUpdates(
+  new_mu: torch.Tensor, new_nu: torch.Tensor, b1: float, b2: float, eps: float,
+  eps_root: float, count: int
+) -> torch.Tensor:
+  ...
 
 
-def backwardMu(dmu, updates, mu, b1):
-    ...
+def backwardMu(
+  dmu: torch.Tensor, updates: torch.Tensor, mu: torch.Tensor, b1: float
+) -> torch.Tensor:
+  ...
 
 
-def backwardNu(dnu, updates, nu, b2):
-    ...
+def backwardNu(
+  dnu: torch.Tensor, updates: torch.Tensor, nu: torch.Tensor, b2: float
+) -> torch.Tensor:
+  ...
 
 
-def backwardUpdates(dupdates, updates, new_mu, new_nu, lr, b1, b2, count):
-    ...
+def backwardUpdates(
+  dupdates: torch.Tensor, updates: torch.Tensor, new_mu: torch.Tensor,
+  new_nu: torch.Tensor, b1: float, b2: float, count: int
+) -> torch.Tensor:
+  ...

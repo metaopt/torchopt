@@ -37,12 +37,14 @@ from absl import logging
 from TorchOpt._src import base, pytypes
 
 
-def polynomial_schedule(init_value: pytypes.Scalar,
-                        end_value: pytypes.Scalar,
-                        power: pytypes.Scalar,
-                        transition_steps: int,
-                        transition_begin: int = 0) -> base.Schedule:
-    """Constructs a schedule with polynomial transition from init to end value.
+def polynomial_schedule(
+  init_value: pytypes.Scalar,
+  end_value: pytypes.Scalar,
+  power: pytypes.Scalar,
+  transition_steps: int,
+  transition_begin: int = 0
+) -> base.Schedule:
+  """Constructs a schedule with polynomial transition from init to end value.
     Args:
       init_value: initial value for the scalar to be annealed.
       end_value: end value of the scalar to be annealed.
@@ -57,38 +59,43 @@ def polynomial_schedule(init_value: pytypes.Scalar,
     Returns:
       schedule: A function that maps step counts to values.
     """
-    if transition_steps <= 0:
-        logging.info(
-            'A polynomial schedule was set with a non-positive `transition_steps` '
-            'value; this results in a constant schedule with value `init_value`.'
-        )
-        return lambda count: init_value
+  if transition_steps <= 0:
+    logging.info(
+      'A polynomial schedule was set with a non-positive `transition_steps` '
+      'value; this results in a constant schedule with value `init_value`.'
+    )
+    return lambda count: init_value
 
-    if transition_begin < 0:
-        logging.info(
-            'An exponential schedule was set with a negative `transition_begin` '
-            'value; this will result in `transition_begin` falling back to `0`.'
-        )
-        transition_begin = 0
+  if transition_begin < 0:
+    logging.info(
+      'An exponential schedule was set with a negative `transition_begin` '
+      'value; this will result in `transition_begin` falling back to `0`.'
+    )
+    transition_begin = 0
 
-    def schedule(count):
-        def impl(count):
-            count = np.clip(count - transition_begin, 0, transition_steps)
-            frac = 1 - count / transition_steps
-            return (init_value - end_value) * (frac**power) + end_value
+  def schedule(count):
 
-        return jax.tree_map(impl, count)
+    def impl(count):
+      count = np.clip(count - transition_begin, 0, transition_steps)
+      frac = 1 - count / transition_steps
+      return (init_value - end_value) * (frac**power) + end_value
 
-    return schedule
+    return jax.tree_map(impl, count)
+
+  return schedule
 
 
 # Alias polynomial schedule to linear schedule for convenience.
-def linear_schedule(init_value: pytypes.Scalar,
-                    end_value: pytypes.Scalar,
-                    transition_steps: int,
-                    transition_begin: int = 0) -> base.Schedule:
-    return polynomial_schedule(init_value=init_value,
-                               end_value=end_value,
-                               power=1,
-                               transition_steps=transition_steps,
-                               transition_begin=transition_begin)
+def linear_schedule(
+  init_value: pytypes.Scalar,
+  end_value: pytypes.Scalar,
+  transition_steps: int,
+  transition_begin: int = 0
+) -> base.Schedule:
+  return polynomial_schedule(
+    init_value=init_value,
+    end_value=end_value,
+    power=1,
+    transition_steps=transition_steps,
+    transition_begin=transition_begin
+  )

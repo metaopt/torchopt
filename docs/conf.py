@@ -20,10 +20,10 @@ import sphinx_rtd_theme
 
 
 def get_version() -> str:
-    # https://packaging.python.org/guides/single-sourcing-package-version/
-    with open(os.path.join("..", "TorchOpt", "__init__.py"), "r") as f:
-        init = f.read().split()
-    return init[init.index("__version__") + 2][1:-1]
+  # https://packaging.python.org/guides/single-sourcing-package-version/
+  with open(os.path.join("..", "TorchOpt", "__init__.py"), "r") as f:
+    init = f.read().split()
+  return init[init.index("__version__") + 2][1:-1]
 
 
 # -- Project information -----------------------------------------------------
@@ -41,7 +41,7 @@ release = get_version()
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    "sphinx.ext.autodoc",
+  "sphinx.ext.autodoc",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -74,8 +74,8 @@ html_logo = "_static/images/logod-05.png"
 
 
 def setup(app):
-    app.add_js_file("js/copybutton.js")
-    app.add_css_file("css/style.css")
+  app.add_js_file("js/copybutton.js")
+  app.add_css_file("css/style.css")
 
 
 # -- Extension configuration -------------------------------------------------
