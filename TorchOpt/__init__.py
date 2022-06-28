@@ -13,13 +13,15 @@
 # limitations under the License.
 # ==============================================================================
 
-from TorchOpt._src import (accelerated_op_available, clip, combine, hook, schedule,
-                   visual)
+from TorchOpt._src import (accelerated_op_available, clip, combine, hook,
+                           schedule, visual)
 from TorchOpt._src.alias import adam, rmsprop, sgd
+from TorchOpt._src.MetaOptimizer import (MetaAdam, MetaOptimizer, MetaRMSProp,
+                                         MetaSGD)
 from TorchOpt._src.Optimizer import SGD, Adam, Optimizer, RMSProp
-from TorchOpt._src.MetaOptimizer import MetaAdam, MetaOptimizer, MetaRMSProp, MetaSGD
 from TorchOpt._src.update import apply_updates
-from TorchOpt._src.utils import extract_state_dict, recover_state_dict, stop_gradient
+from TorchOpt._src.utils import (extract_state_dict, recover_state_dict,
+                                 stop_gradient)
 
 __version__ = "0.4.1"
 
