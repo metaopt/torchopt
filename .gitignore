@@ -31,9 +31,6 @@ coverage.xml
 cover/
 
 # Building and releasing library:
-*.egg-info
-*.pyc
-*.so
 build/
 dist/
 venv/
