@@ -4,7 +4,7 @@ PROJECT_NAME = TorchOpt
 PROJECT_PATH=${PROJECT_NAME}/
 PROJECT_FOLDER = $(PROJECT_NAME) examples include src tests
 PYTHON_FILES = $(shell find . -type f -name "*.py")
-CPP_FILES    = $(shell find . -type f -name "*.h" -o -name "*.cpp")
+CPP_FILES    = $(shell find . -type f -name "*.h" -o -name "*.cpp" -o -name "*.cuh" -o -name "*.cu")
 COMMIT_HASH  = $(shell git log -1 --format=%h)
 COPYRIGHT    = "MetaOPT Team. All Rights Reserved."
 PATH           := $(HOME)/go/bin:$(PATH)
