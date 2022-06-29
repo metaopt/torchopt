@@ -36,6 +36,7 @@ import torch.nn as nn
 
 
 class LeNet5(nn.Module):
+
     def __init__(self, args):
         super(LeNet5, self).__init__()
         self.model = nn.Sequential(nn.Conv2d(1, 16, 5), nn.ReLU(),

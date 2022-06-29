@@ -42,6 +42,7 @@ ScaleState = base.EmptyState
 
 
 def inc_count(updates, count: List[int]) -> List[int]:
+
     def f(c, g):
         return c + 1 if g is not None else c
 
@@ -57,6 +58,7 @@ def scale(step_size: float) -> base.GradientTransformation:
   Returns:
     An (init_fn, update_fn) tuple.
   """
+
     def init_fn(params):
         del params
         return ScaleState()
@@ -92,6 +94,7 @@ def scale_by_schedule(step_size_fn: Schedule) -> base.GradientTransformation:
   Returns:
     An (init_fn, update_fn) tuple.
   """
+
     def init_fn(params):
         return ScaleByScheduleState(count=tuple(0 for _ in range(len(params))))
 
@@ -192,6 +195,7 @@ def scale_by_adam(
   Returns:
     An (init_fn, update_fn) tuple.
   """
+
     def init_fn(params):
         mu = jax.tree_map(  # First moment
             lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad),
@@ -304,6 +308,7 @@ def trace(
   Returns:
     An (init_fn, update_fn) tuple.
   """
+
     def init_fn(params):
         if decay == 0.:
             return TraceState(trace=())
@@ -374,6 +379,7 @@ def scale_by_rms(decay: float = 0.9,
   Returns:
     An (init_fn, update_fn) tuple.
   """
+
     def init_fn(params):
         nu = jax.tree_map(lambda n: torch.full_like(n, initial_scale),
                           params)  # second moment
@@ -424,6 +430,7 @@ def scale_by_stddev(decay: float = 0.9,
   Returns:
     An (init_fn, update_fn) tuple.
   """
+
     def init_fn(params):
         mu = jax.tree_map(torch.zeros_like, params)  # First moment
         nu = jax.tree_map(lambda n: torch.full_like(n, initial_scale),

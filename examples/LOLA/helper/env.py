@@ -25,6 +25,7 @@ class OneHot(gym.Space):
     """
     One-hot space. Used as the observation space.
     """
+
     def __init__(self, n):
         self.n = n
 

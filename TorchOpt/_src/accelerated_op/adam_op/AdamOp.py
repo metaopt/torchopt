@@ -21,7 +21,9 @@ from TorchOpt._lib import adam_op
 
 
 class AdamOp(object):
+
     class MuOp(torch.autograd.Function):
+
         @staticmethod
         def jvp(ctx: Any, *grad_inputs: Any) -> Any:
             pass
@@ -43,6 +45,7 @@ class AdamOp(object):
             return result[0], result[1], None
 
     class NuOp(torch.autograd.Function):
+
         @staticmethod
         def jvp(ctx: Any, *grad_inputs: Any) -> Any:
             pass
@@ -64,6 +67,7 @@ class AdamOp(object):
             return result[0], result[1], None
 
     class UpdatesOp(torch.autograd.Function):
+
         @staticmethod
         def jvp(ctx: Any, *grad_inputs: Any) -> Any:
             pass

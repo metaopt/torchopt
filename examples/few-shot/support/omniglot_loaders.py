@@ -46,6 +46,7 @@ class Omniglot(data.Dataset):
     - target_transform: how to transform the target
     - download: need to download the dataset
     '''
+
     def __init__(self,
                  root,
                  transform=None,
@@ -140,6 +141,7 @@ def index_classes(items):
 
 
 class OmniglotNShot:
+
     def __init__(self,
                  root,
                  batchsz,

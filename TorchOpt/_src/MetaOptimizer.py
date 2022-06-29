@@ -25,6 +25,7 @@ from TorchOpt._src.update import apply_updates
 
 class MetaOptimizer(object):
     """A high-level optimizer base class for meta learning."""
+
     def __init__(self, net: nn.Module, impl: base.GradientTransformation):
         """
         Args:
@@ -91,6 +92,7 @@ class MetaOptimizer(object):
 
 class MetaSGD(MetaOptimizer):
     """A canonical Stochastic Gradient Descent optimiser."""
+
     def __init__(self,
                  net,
                  lr: ScalarOrSchedule,
@@ -113,6 +115,7 @@ class MetaSGD(MetaOptimizer):
 
 class MetaAdam(MetaOptimizer):
     """The classic Adam optimiser."""
+
     def __init__(self,
                  net,
                  lr: ScalarOrSchedule,
@@ -141,6 +144,7 @@ class MetaAdam(MetaOptimizer):
 
 class MetaRMSProp(MetaOptimizer):
     """The classic RMSProp optimiser."""
+
     def __init__(self,
                  net,
                  lr: ScalarOrSchedule,

@@ -23,6 +23,7 @@ from TorchOpt._src.update import apply_updates
 
 class Optimizer(object):
     """A high-level base class that has the similar with `torch.optim.Optimier`"""
+
     def __init__(self, params, impl):
         """
         Args:
@@ -111,6 +112,7 @@ class Optimizer(object):
 
 class SGD(Optimizer):
     """The classic Adam optimiser."""
+
     def __init__(self,
                  params,
                  lr: ScalarOrSchedule,
@@ -131,6 +133,7 @@ class SGD(Optimizer):
 
 class Adam(Optimizer):
     """A canonical Stochastic Gradient Descent optimiser."""
+
     def __init__(self,
                  params,
                  lr: ScalarOrSchedule,
@@ -157,6 +160,7 @@ class Adam(Optimizer):
 
 class RMSProp(Optimizer):
     """An RMSProp optimiser."""
+
     def __init__(self,
                  params,
                  lr: ScalarOrSchedule,

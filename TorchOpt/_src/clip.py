@@ -35,6 +35,7 @@ def clip_grad_norm(
     Returns:
       An (init_fn, update_fn) tuple.
     """
+
     def init_fn(params):
         del params
         return ClipState()

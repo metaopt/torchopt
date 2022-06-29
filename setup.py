@@ -8,6 +8,7 @@ from torch.utils import cpp_extension
 
 
 class MyBuild(build_ext):
+
     def run(self):
         self.build_cmake()
 
@@ -64,6 +65,7 @@ class MyBuild(build_ext):
 
 
 class download_shared():
+
     def __init__(self):
         import urllib
         dir_path = os.path.dirname(os.path.realpath(__file__))

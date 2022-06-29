@@ -55,6 +55,7 @@ class TransformInitFn(typing_extensions.Protocol):
   arbitrary structured initial `state` for the gradient transformation. This
   may hold statistics of the past updates or any other non static information.
   """
+
     def __call__(self, params: Params) -> OptState:
         """The `init` function.
 
@@ -76,6 +77,7 @@ class TransformUpdateFn(typing_extensions.Protocol):
   optional, it must however be provided when using transformations that require
   access to the current values of the parameters.
   """
+
     def __call__(self,
                  updates: Updates,
                  state: OptState,
@@ -132,6 +134,7 @@ def identity() -> GradientTransformation:
   Returns:
     An (init_fn, update_fn) tuple.
   """
+
     def init_fn(_):
         return EmptyState()
 

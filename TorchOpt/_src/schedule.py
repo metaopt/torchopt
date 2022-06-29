@@ -72,6 +72,7 @@ def polynomial_schedule(init_value: pytypes.Scalar,
         transition_begin = 0
 
     def schedule(count):
+
         def impl(count):
             count = np.clip(count - transition_begin, 0, transition_steps)
             frac = 1 - count / transition_steps

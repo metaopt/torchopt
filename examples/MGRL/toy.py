@@ -21,7 +21,9 @@ import TorchOpt
 
 
 def test_gamma():
+
     class Rollout:
+
         @staticmethod
         def get():
             out = torch.empty(5, 2)
@@ -40,6 +42,7 @@ def test_gamma():
             return torch.hstack(out).view(10, 1)
 
     class ValueNetwork(nn.Module):
+
         def __init__(self):
             super().__init__()
             self.fc = nn.Linear(10, 1)

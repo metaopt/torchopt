@@ -31,10 +31,12 @@ def register_hook(hook) -> GradientTransformation:
   Returns:
     An (init_fn, update_fn) tuple.
   """
+
     def init_fn(_):
         return EmptyState()
 
     def update_fn(updates, state, inplace=False):
+
         def f(g):
             return g.register_hook(hook) if g is not None else None
 

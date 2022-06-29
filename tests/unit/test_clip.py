@@ -27,6 +27,7 @@ from TorchOpt import Optimizer, sgd
 
 
 class HighLevelInplace(unittest.TestCase):
+
     @classmethod
     def setUpClass(cls):
         torch.manual_seed(0)

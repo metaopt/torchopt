@@ -44,6 +44,7 @@ def magic_box(x):
 
 # replay buffer
 class Memory():
+
     def __init__(self, args):
         self.self_logprobs = []
         self.other_logprobs = []

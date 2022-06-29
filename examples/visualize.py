@@ -22,6 +22,7 @@ import TorchOpt
 
 
 class Net(nn.Module):
+
     def __init__(self, dim):
         super().__init__()
         self.fc = nn.Linear(dim, 1)

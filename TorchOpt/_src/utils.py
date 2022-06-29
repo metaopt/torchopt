@@ -46,6 +46,7 @@ def stop_gradient(target):
       will return a detached copy of the target. The in-place operation is fast
       and memory efficient but may raise back-propagation error.
   """
+
     def f(obj):
         if isinstance(obj, torch.Tensor):
             requires_grad = obj.requires_grad

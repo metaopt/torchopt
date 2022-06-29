@@ -19,6 +19,7 @@ import TorchOpt
 
 
 class TestSchedule(unittest.TestCase):
+
     @classmethod
     def setUpClass(cls):
         cls.init_value = 1.

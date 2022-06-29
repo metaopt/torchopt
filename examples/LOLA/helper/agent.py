@@ -23,6 +23,7 @@ import TorchOpt
 
 
 class theta_model(nn.Module):
+
     def __init__(self, theta):
         super().__init__()
         self.theta = nn.Parameter(
@@ -30,6 +31,7 @@ class theta_model(nn.Module):
 
 
 class Agent():
+
     def __init__(self, args):
 
         self.args = args

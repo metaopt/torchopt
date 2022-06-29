@@ -43,6 +43,7 @@ def _scale_by_lr(lr: ScalarOrSchedule, flip_sign=True):
     if callable(lr):
 
         def schedule_wrapper(count):
+
             def f(scaled_lr):
                 return m * scaled_lr
 

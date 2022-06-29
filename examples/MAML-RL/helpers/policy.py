@@ -26,6 +26,7 @@ class CategoricalMLPPolicy(nn.Module):
     `Categorical` distribution output. This policy network can be used on tasks 
     with discrete action spaces (eg. `TabularMDPEnv`). 
     """
+
     def __init__(
         self,
         input_size,
