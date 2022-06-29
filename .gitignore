@@ -30,7 +30,3 @@ coverage.xml
 .pytest_cache/
 cover/
 
-# Building and releasing library:
-build/
-dist/
-venv/
