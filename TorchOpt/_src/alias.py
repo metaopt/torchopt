@@ -35,10 +35,10 @@ from typing import Optional
 import jax
 
 from TorchOpt._src import base, combine, transform
-from TorchOpt._src.pytypes import ScalarOrSchedule 
+from TorchOpt._src.pytypes import ScalarOrSchedule
 
 
-def _scale_by_lr(lr: ScalarOrSchedule, flip_sign=True): 
+def _scale_by_lr(lr: ScalarOrSchedule, flip_sign=True):
   m = -1 if flip_sign else 1
   if callable(lr):
 
@@ -47,7 +47,7 @@ def _scale_by_lr(lr: ScalarOrSchedule, flip_sign=True):
       def f(scaled_lr):
         return m * scaled_lr
 
-      return jax.tree_map(f, lr(count)) # type: ignore
+      return jax.tree_map(f, lr(count))  # type: ignore
 
     return transform.scale_by_schedule(schedule_wrapper)
   return transform.scale(m * lr)

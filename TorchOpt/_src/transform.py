@@ -81,7 +81,7 @@ def scale(step_size: float) -> base.GradientTransformation:
 
 class ScaleByScheduleState(NamedTuple):
   """Maintains count for scale scheduling."""
-  count: Tuple[int, ...] # type: ignore
+  count: Tuple[int, ...]  # type: ignore
 
 
 def scale_by_schedule(step_size_fn: Schedule) -> base.GradientTransformation:
@@ -111,7 +111,6 @@ def scale_by_schedule(step_size_fn: Schedule) -> base.GradientTransformation:
     return updates, ScaleByScheduleState(count=inc_count(updates, state.count))
 
   return base.GradientTransformation(init_fn, update_fn)
-
 
 
 def _update_moment(updates, moments, decay, order, inplace=True):
@@ -153,7 +152,7 @@ def _update_moment_per_elem_norm(updates, moments, decay, order, inplace=True):
 
 class ScaleByAdamState(NamedTuple):
   """State for the Adam algorithm."""
-  count: Tuple[int, ...] # type: ignore
+  count: Tuple[int, ...]  # type: ignore
   mu: base.Updates
   nu: base.Updates
 
@@ -467,4 +466,4 @@ def scale_by_stddev(
     updates = jax.tree_map(f, updates, mu, nu)
     return updates, ScaleByRStdDevState(mu=mu, nu=nu)
 
-  return base.GradientTransformation(init_fn, update_fn) 
+  return base.GradientTransformation(init_fn, update_fn)
