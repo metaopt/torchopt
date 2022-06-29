@@ -15,6 +15,7 @@ docs/_build/
 /site
 
 
+<<<<<<< HEAD
 # # Unit test / coverage reports
 # htmlcov/
 # .tox/
@@ -34,3 +35,19 @@ docs/_build/
 # build/
 # dist/
 # venv/
+=======
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+>>>>>>> parent of eb3a95b... feat(all): update gitignore
