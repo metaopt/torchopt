@@ -29,3 +29,11 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
+
+# Building and releasing library:
+*.egg-info
+*.pyc
+*.so
+build/
+dist/
+venv/
