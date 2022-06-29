@@ -20,11 +20,11 @@ from TorchOpt._src.base import EmptyState, GradientTransformation
 
 
 def zero_nan_hook(g: torch.Tensor) -> torch.Tensor:
-    return torch.where(torch.isnan(g), torch.zeros_like(g), g)
+  return torch.where(torch.isnan(g), torch.zeros_like(g), g)
 
 
 def register_hook(hook) -> GradientTransformation:
-    """Stateless identity transformation that leaves input gradients untouched.
+  """Stateless identity transformation that leaves input gradients untouched.
 
   This function passes through the *gradient updates* unchanged.
 
@@ -32,15 +32,15 @@ def register_hook(hook) -> GradientTransformation:
     An (init_fn, update_fn) tuple.
   """
 
-    def init_fn(_):
-        return EmptyState()
+  def init_fn(_):
+    return EmptyState()
 
-    def update_fn(updates, state, inplace=False):
+  def update_fn(updates, state, inplace=False):
 
-        def f(g):
-            return g.register_hook(hook) if g is not None else None
+    def f(g):
+      return g.register_hook(hook) if g is not None else None
 
-        jax.tree_map(f, updates)
-        return updates, state
+    jax.tree_map(f, updates)
+    return updates, state
 
-    return GradientTransformation(init_fn, update_fn)
+  return GradientTransformation(init_fn, update_fn)
