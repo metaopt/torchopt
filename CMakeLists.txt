@@ -106,7 +106,7 @@ if(NOT DEFINED TORCH_INCLUDE_PATH)
     message("-- Auto detecting PyTorch include directory...")
     system(
         STRIP OUTPUT_VARIABLE TORCH_INCLUDE_PATH
-        COMMAND "${PYTHON_EXECUTABLE}" -c "print(__import__('torch.utils.cpp_extension', fromlist=[None]).include_paths()[0])"
+        COMMAND "${PYTHON_EXECUTABLE}" -c "print('\\\;'.join(__import__('torch.utils.cpp_extension', fromlist=[None]).include_paths()))"
     )
 endif()
 
@@ -121,7 +121,7 @@ if(NOT DEFINED TORCH_LIBRARY_PATH)
     message("-- Auto detecting PyTorch library directory...")
     system(
         STRIP OUTPUT_VARIABLE TORCH_LIBRARY_PATH
-        COMMAND "${PYTHON_EXECUTABLE}" -c "print(__import__('torch.utils.cpp_extension', fromlist=[None]).library_paths()[0])"
+        COMMAND "${PYTHON_EXECUTABLE}" -c "print('\\\;'.join(__import__('torch.utils.cpp_extension', fromlist=[None]).library_paths()))"
     )
 endif()
 
