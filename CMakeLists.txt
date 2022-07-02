@@ -76,12 +76,12 @@ endif()
 
 system(
     STRIP OUTPUT_VARIABLE PYTHON_EXECUTABLE
-    COMMAND which "${PYTHON_EXECUTABLE}"
+    COMMAND bash -c "type -P '${PYTHON_EXECUTABLE}'"
 )
 
 system(
     STRIP OUTPUT_VARIABLE PYTHON_VERSION
-    COMMAND "${PYTHON_EXECUTABLE}" --version
+    COMMAND "${PYTHON_EXECUTABLE}" -c "print(__import__('platform').python_version())"
 )
 
 message("-- Use Python version: ${PYTHON_VERSION}")
@@ -140,6 +140,7 @@ message("-- Detected Torch libraries: \"${TORCH_LIBRARIES}\"")
 
 add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
 
+set(PYBIND11_PYTHON_VERSION "${PYTHON_VERSION}")
 add_subdirectory("third_party/pybind11")
 include_directories(include)
 

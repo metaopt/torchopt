@@ -29,28 +29,21 @@ class MyBuild(build_ext):
     def build_cmake(self):
         cwd = pathlib.Path().absolute()
 
-        build_temp = f"{pathlib.Path(self.build_temp)}"
+        build_temp = str(pathlib.Path(self.build_temp))
         os.makedirs(build_temp, exist_ok=True)
 
         config = "Debug" if self.debug else "Release"
 
-        PYTHON_INCLUDE_DIR = ""
-        for path in self.include_dirs:
-            PYTHON_INCLUDE_DIR += path + ';'
-
-        TORCH_INCLUDE_PATH = ""
-        for path in cpp_extension.include_paths():
-            TORCH_INCLUDE_PATH += path + ';'
-
-        TORCH_LIBRARY_PATH = ""
-        for path in cpp_extension.library_paths():
-            TORCH_LIBRARY_PATH += path + ';'
+        PYTHON_INCLUDE_DIR = ";".join(self.include_dirs)
+        TORCH_INCLUDE_PATH = ";".join(cpp_extension.include_paths())
+        TORCH_LIBRARY_PATH = ";".join(cpp_extension.library_paths())
 
         cmake_args = [
-            "-DPYTHON_INCLUDE_DIR=" + PYTHON_INCLUDE_DIR,
-            "-DTORCH_INCLUDE_PATH=" + TORCH_INCLUDE_PATH,
-            "-DTORCH_LIBRARY_PATH=" + TORCH_LIBRARY_PATH,
-            "-DCMAKE_BUILD_TYPE=" + config
+            f"-DCMAKE_BUILD_TYPE={config}",
+            f"-DPYTHON_EXECUTABLE={sys.executable}",
+            f"-DPYTHON_INCLUDE_DIR={PYTHON_INCLUDE_DIR}",
+            f"-DTORCH_INCLUDE_PATH={TORCH_INCLUDE_PATH}",
+            f"-DTORCH_LIBRARY_PATH={TORCH_LIBRARY_PATH}",
         ]
 
         build_args = ["--config", config, "--", "-j4"]
