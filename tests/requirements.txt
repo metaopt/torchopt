@@ -1,0 +1,3 @@
+jax[cpu]
+graphviz
+torch

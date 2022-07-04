@@ -45,18 +45,19 @@ Schedule = Callable[[pytypes.Numeric], pytypes.Numeric]
 
 
 class EmptyState(NamedTuple):
-    """An empty state for the simplest stateless transformations."""
+  """An empty state for the simplest stateless transformations."""
 
 
 class TransformInitFn(typing_extensions.Protocol):
-    """A callable type for the `init` step of a `GradientTransformation`.
+  """A callable type for the `init` step of a `GradientTransformation`.
 
   The `init` step takes a tree of `params` and uses these to construct an
   arbitrary structured initial `state` for the gradient transformation. This
   may hold statistics of the past updates or any other non static information.
   """
-    def __call__(self, params: Params) -> OptState:
-        """The `init` function.
+
+  def __call__(self, params: Params) -> OptState:
+    """The `init` function.
 
     Args:
       params: The initial value of the parameters.
@@ -64,11 +65,11 @@ class TransformInitFn(typing_extensions.Protocol):
     Returns:
       The initial state of the gradient transformation.
     """
-        ...
+    ...
 
 
 class TransformUpdateFn(typing_extensions.Protocol):
-    """A callable type for the `update` step of a `GradientTransformation`.
+  """A callable type for the `update` step of a `GradientTransformation`.
 
   The `update` step takes a tree of candidate parameter `updates` (e.g. their
   gradient with respect to some loss), an arbitrary structured `state`, and the
@@ -76,11 +77,12 @@ class TransformUpdateFn(typing_extensions.Protocol):
   optional, it must however be provided when using transformations that require
   access to the current values of the parameters.
   """
-    def __call__(self,
-                 updates: Updates,
-                 state: OptState,
-                 inplace: bool = True) -> Tuple[Updates, OptState]:
-        """The `update` function.
+
+  def __call__(self,
+               updates: Updates,
+               state: OptState,
+               inplace: bool = True) -> Tuple[Updates, OptState]:
+    """The `update` function.
 
     Args:
       updates: A tree of candidate updates.
@@ -90,11 +92,11 @@ class TransformUpdateFn(typing_extensions.Protocol):
     Returns:
       The transformed updates, and the updated state.
     """
-        ...
+    ...
 
 
 class GradientTransformation(NamedTuple):
-    """A pair of pure functions implementing a gradient transformation.
+  """A pair of pure functions implementing a gradient transformation.
 
   TorchOpt optimizers are all implemented as _gradient transformations_ like
   Optax. A gradient transformation is defined to be a pair of pure functions,
@@ -120,22 +122,23 @@ class GradientTransformation(NamedTuple):
       If the inplace flag is true, the output results are the same instance as
       the input.
   """
-    init: TransformInitFn
-    update: TransformUpdateFn
+  init: TransformInitFn
+  update: TransformUpdateFn
 
 
 def identity() -> GradientTransformation:
-    """Stateless identity transformation that leaves input gradients untouched.
+  """Stateless identity transformation that leaves input gradients untouched.
 
   This function passes through the *gradient updates* unchanged.
 
   Returns:
     An (init_fn, update_fn) tuple.
   """
-    def init_fn(_):
-        return EmptyState()
 
-    def update_fn(updates, state, inplace=False):
-        return updates, state
+  def init_fn(_):
+    return EmptyState()
 
-    return GradientTransformation(init_fn, update_fn)
+  def update_fn(updates, state, inplace=False):
+    return updates, state
+
+  return GradientTransformation(init_fn, update_fn)

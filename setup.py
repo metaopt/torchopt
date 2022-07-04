@@ -93,7 +93,7 @@ setup(
     name="TorchOpt",
     version="0.4.1",
     author="TorchOpt Contributors",
-    author_email="jieren9806@gmail.com",
+    author_email="jieren9806@gmail.com, xidong.feng.20@ucl.ac.uk, benjaminliu.eecs@gmail.com",
     description="A Jax-style optimizer.",
     license="Apache License Version 2.0",
     keywords="meta learning",

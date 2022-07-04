@@ -13,4 +13,4 @@
 # limitations under the License.
 # ==============================================================================
 
-from .accelerated_op import accelerated_op_available
+from TorchOpt._src.accelerated_op import accelerated_op_available

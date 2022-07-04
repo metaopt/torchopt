@@ -36,42 +36,46 @@ import torch.nn as nn
 
 
 class LeNet5(nn.Module):
-    def __init__(self, args):
-        super(LeNet5, self).__init__()
-        self.model = nn.Sequential(nn.Conv2d(1, 16, 5), nn.ReLU(),
-                                   nn.MaxPool2d(2), nn.Conv2d(16, 32, 5),
-                                   nn.ReLU(), nn.MaxPool2d(2), nn.Flatten(),
-                                   nn.Linear(512, 128), nn.ReLU(),
-                                   nn.Linear(128, 1), nn.Sigmoid())
-        self.args = args
-        self.meta_weights = torch.zeros(self.args.batch_size,
-                                        requires_grad=True).to(
-                                            self.args.device)
-        self.criterion = nn.BCELoss()
 
-    def forward(self, x):
-        return self.model(x).squeeze(dim=-1)
+  def __init__(self, args):
+    super(LeNet5, self).__init__()
+    self.model = nn.Sequential(
+      nn.Conv2d(1, 16, 5), nn.ReLU(), nn.MaxPool2d(2), nn.Conv2d(16, 32, 5),
+      nn.ReLU(), nn.MaxPool2d(2), nn.Flatten(), nn.Linear(512, 128), nn.ReLU(),
+      nn.Linear(128, 1), nn.Sigmoid()
+    )
+    self.args = args
+    self.meta_weights = torch.zeros(
+      self.args.batch_size, requires_grad=True
+    ).to(self.args.device)
+    self.criterion = nn.BCELoss()
 
-    def reset_meta(self, size):
-        self.meta_weights = torch.zeros(size, requires_grad=True).to(
-            self.args.device)
+  def forward(self, x):
+    return self.model(x).squeeze(dim=-1)
 
-    def normalise(self):
-        self.meta_weights = self.meta_weights.detach()
-        weights_sum = torch.sum(self.meta_weights)
-        weights_sum = weights_sum + 1 if weights_sum == 0 else weights_sum
-        self.meta_weights /= weights_sum
+  def reset_meta(self, size):
+    self.meta_weights = torch.zeros(
+      size, requires_grad=True
+    ).to(self.args.device)
 
-    def inner_loss(self, train_x, train_y):
-        result = self.forward(train_x)
+  def normalise(self):
+    self.meta_weights = self.meta_weights.detach()
+    weights_sum = torch.sum(self.meta_weights)
+    weights_sum = weights_sum + 1 if weights_sum == 0 else weights_sum
+    self.meta_weights /= weights_sum
 
-        # manually implement bce_loss to make the loss differentiable w.r.t self.meta_weights
-        loss = -(train_y * torch.log(result + 1e-10) +
-                 (1 - train_y) * torch.log(1 - result + 1e-10))
-        weighted_loss = torch.sum(self.meta_weights * loss)
-        return weighted_loss
+  def inner_loss(self, train_x, train_y):
+    result = self.forward(train_x)
 
-    def outer_loss(self, valid_x, valid_y):
-        result = self.forward(valid_x)
-        loss = self.criterion(result, valid_y)
-        return loss
+    # manually implement bce_loss to make the loss differentiable w.r.t self.meta_weights
+    loss = -(
+      train_y * torch.log(result + 1e-10) +
+      (1 - train_y) * torch.log(1 - result + 1e-10)
+    )
+    weighted_loss = torch.sum(self.meta_weights * loss)
+    return weighted_loss
+
+  def outer_loss(self, valid_x, valid_y):
+    result = self.forward(valid_x)
+    loss = self.criterion(result, valid_y)
+    return loss

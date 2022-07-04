@@ -17,16 +17,16 @@ from TorchOpt._src.accelerated_op.adam_op import AdamOp
 
 
 def accelerated_op_available(devices=None):
-    import torch
-    op = AdamOp()
-    if devices is None:
-        devices = [torch.device("cuda"), torch.device("cpu")]
-    elif isinstance(devices, torch.device):
-        devices = [devices]
-    try:
-        for device in devices:
-            updates = torch.tensor(1., device=device)
-            op(updates, updates, updates, 1)
-        return True
-    except:
-        return False
+  import torch
+  op = AdamOp()
+  if devices is None:
+    devices = [torch.device("cuda"), torch.device("cpu")]
+  elif isinstance(devices, torch.device):
+    devices = [devices]
+  try:
+    for device in devices:
+      updates = torch.tensor(1., device=device)
+      op(updates, updates, updates, 1)
+    return True
+  except:
+    return False
