@@ -35,8 +35,8 @@ from typing import List, NamedTuple, Tuple, Union
 import jax
 import torch
 
-from TorchOpt._src import base
-from TorchOpt._src.pytypes import ScalarOrSchedule, Schedule
+from torchopt._src import base
+from torchopt._src.typing import ScalarOrSchedule, Schedule
 
 ScaleState = base.EmptyState
 

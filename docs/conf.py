@@ -21,7 +21,7 @@ import sphinx_rtd_theme
 
 def get_version() -> str:
   # https://packaging.python.org/guides/single-sourcing-package-version/
-  with open(os.path.join("..", "TorchOpt", "__init__.py"), "r") as f:
+  with open(os.path.join("..", "torchopt", "__init__.py"), "r") as f:
     init = f.read().split()
   return init[init.index("__version__") + 2][1:-1]
 

@@ -19,7 +19,7 @@ import jax
 import torch
 from torch import nn
 
-from TorchOpt._src.MetaOptimizer import MetaOptimizer
+from torchopt._src.MetaOptimizer import MetaOptimizer
 
 
 class _ModuleState(NamedTuple):
@@ -41,8 +41,8 @@ def stop_gradient(target):
 
   Args:
     target: the target that to be detached from the computation graph, it coule
-      be a `nn.Module`, `TorchOpt.MetaOptimizer`, state of the
-      `TorchOpt.MetaOptimizer`, or just a plain list of tensors.
+      be a `nn.Module`, `torchopt.MetaOptimizer`, state of the
+      `torchopt.MetaOptimizer`, or just a plain list of tensors.
     inplace: if True, the target will be detached in-place. if False, this function
       will return a detached copy of the target. The in-place operation is fast
       and memory efficient but may raise back-propagation error.
@@ -80,12 +80,12 @@ def extract_state_dict(
   will affect the target that the state is extracted from.
 
   Args:
-    mod: it coule be a `nn.Module` or `TorchOpt.MetaOptimizer`.
+    mod: it coule be a `nn.Module` or `torchopt.MetaOptimizer`.
     with_buffer: extract buffer together with parameters, this argument is only
       used if the input target is `nn.Module`.
     enable_visual: add additional annoations, which could be used in computation
       graph visualization. Currently, this flag only has effect on `nn.Module` but
-      we will support `TorchOpt.MetaOptimizer` later.
+      we will support `torchopt.MetaOptimizer` later.
     visual_prefix: prefix for the visualization annoations.
 
   Returns:

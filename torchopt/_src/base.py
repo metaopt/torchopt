@@ -34,14 +34,14 @@ from typing import Callable, NamedTuple, Tuple
 
 import typing_extensions
 
-from TorchOpt._src import pytypes
+from torchopt._src import typing
 
-OptState = pytypes.TensorTree  # States are arbitrary nests of `torch.Tensor`.
+OptState = typing.TensorTree  # States are arbitrary nests of `torch.Tensor`.
 # Parameters are arbitrary nests of `torch.Tensor`.
-Params = pytypes.TensorTree
+Params = typing.TensorTree
 Updates = Params  # Gradient updates are of the same type as parameters.
 
-Schedule = Callable[[pytypes.Numeric], pytypes.Numeric]
+Schedule = Callable[[typing.Numeric], typing.Numeric]
 
 
 class EmptyState(NamedTuple):
@@ -105,7 +105,7 @@ class GradientTransformation(NamedTuple):
 
   Since gradient transformations do not contain any internal state, all stateful
   optimizer properties (such as the current step count when using optimizer
-  scheduels, or momemtum values) are passed through gradient transformations by
+  schedules, or momentum values) are passed through gradient transformations by
   using the optimizer _state_ pytree. Each time a gradient transformation is
   applied, the state is computed and returned, ready to be passed to the next
   call to the gradient transformation.

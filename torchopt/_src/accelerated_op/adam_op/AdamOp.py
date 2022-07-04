@@ -17,7 +17,7 @@ from typing import Any
 
 import torch
 
-from TorchOpt._lib import adam_op
+from torchopt._lib import adam_op
 
 
 class AdamOp(object):

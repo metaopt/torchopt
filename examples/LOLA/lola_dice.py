@@ -28,7 +28,7 @@ from helper.env import IPD
 from helper.utils import sample, step
 from torch.distributions import Bernoulli
 
-import TorchOpt
+import torchopt
 
 
 def main(args):

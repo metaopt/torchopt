@@ -15,7 +15,7 @@
 
 import unittest
 
-import TorchOpt
+import torchopt
 
 
 class TestSchedule(unittest.TestCase):
@@ -32,7 +32,7 @@ class TestSchedule(unittest.TestCase):
     pass
 
   def test_linear(self) -> None:
-    schedule = TorchOpt.schedule.linear_schedule(
+    schedule = torchopt.schedule.linear_schedule(
       init_value=self.init_value,
       end_value=self.end_value,
       transition_steps=self.transition_steps,

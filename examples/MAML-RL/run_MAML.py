@@ -22,7 +22,7 @@ import torch
 import torch.optim as optim
 from helpers.policy import CategoricalMLPPolicy
 
-import TorchOpt
+import torchopt
 
 TASK_NUM = 40
 TRAJ_NUM = 20
@@ -105,7 +105,7 @@ def a2c_loss(traj, policy, value_coef):
 def evaluate(env, seed, task_num, policy):
   pre_reward_ls = []
   post_reward_ls = []
-  inner_opt = TorchOpt.MetaSGD(policy, lr=0.5)
+  inner_opt = torchopt.MetaSGD(policy, lr=0.5)
   env = gym.make(
     'TabularMDP-v0',
     **dict(
@@ -116,8 +116,8 @@ def evaluate(env, seed, task_num, policy):
     )
   )
   tasks = env.sample_tasks(num_tasks=task_num)
-  policy_state_dict = TorchOpt.extract_state_dict(policy)
-  optim_state_dict = TorchOpt.extract_state_dict(inner_opt)
+  policy_state_dict = torchopt.extract_state_dict(policy)
+  optim_state_dict = torchopt.extract_state_dict(inner_opt)
   for idx in range(task_num):
     for _ in range(inner_iters):
       pre_trajs = sample_traj(env, tasks[idx], policy)
@@ -130,8 +130,8 @@ def evaluate(env, seed, task_num, policy):
     pre_reward_ls.append(np.sum(pre_trajs.rews, axis=0).mean())
     post_reward_ls.append(np.sum(post_trajs.rews, axis=0).mean())
 
-    TorchOpt.recover_state_dict(policy, policy_state_dict)
-    TorchOpt.recover_state_dict(inner_opt, optim_state_dict)
+    torchopt.recover_state_dict(policy, policy_state_dict)
+    torchopt.recover_state_dict(inner_opt, optim_state_dict)
   return pre_reward_ls, post_reward_ls
 
 
@@ -151,7 +151,7 @@ def main(args):
   )
   # Policy
   policy = CategoricalMLPPolicy(input_size=STATE_DIM, output_size=ACTION_DIM)
-  inner_opt = TorchOpt.MetaSGD(policy, lr=0.5)
+  inner_opt = torchopt.MetaSGD(policy, lr=0.5)
   outer_opt = optim.Adam(policy.parameters(), lr=1e-3)
   train_pre_reward = []
   train_post_reward = []
@@ -165,8 +165,8 @@ def main(args):
 
     outer_opt.zero_grad()
 
-    policy_state_dict = TorchOpt.extract_state_dict(policy)
-    optim_state_dict = TorchOpt.extract_state_dict(inner_opt)
+    policy_state_dict = torchopt.extract_state_dict(policy)
+    optim_state_dict = torchopt.extract_state_dict(inner_opt)
     for idx in range(TASK_NUM):
 
       for _ in range(inner_iters):
@@ -176,8 +176,8 @@ def main(args):
       post_trajs = sample_traj(env, tasks[idx], policy)
       outer_loss = a2c_loss(post_trajs, policy, value_coef=0.5)
       outer_loss.backward()
-      TorchOpt.recover_state_dict(policy, policy_state_dict)
-      TorchOpt.recover_state_dict(inner_opt, optim_state_dict)
+      torchopt.recover_state_dict(policy, policy_state_dict)
+      torchopt.recover_state_dict(inner_opt, optim_state_dict)
       # Logging
       train_pre_reward_ls.append(np.sum(pre_trajs.rews, axis=0).mean())
       train_post_reward_ls.append(np.sum(post_trajs.rews, axis=0).mean())

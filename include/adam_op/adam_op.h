@@ -20,7 +20,7 @@
 
 #include "adam_op/common.h"
 
-namespace TorchOpt {
+namespace torchopt {
 TensorArray<3> adamForwardInplace(const torch::Tensor& updates,
                                   const torch::Tensor& mu,
                                   const torch::Tensor& nu, const float b1,
@@ -51,4 +51,4 @@ TensorArray<2> adamBackwardUpdates(const torch::Tensor& dupdates,
                                    const torch::Tensor& new_mu,
                                    const torch::Tensor& new_nu, const float b1,
                                    const float b2, const int count);
-}  // namespace TorchOpt
+}  // namespace torchopt

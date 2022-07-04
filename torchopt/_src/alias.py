@@ -34,8 +34,8 @@ from typing import Optional
 
 import jax
 
-from TorchOpt._src import base, combine, transform
-from TorchOpt._src.pytypes import ScalarOrSchedule
+from torchopt._src import base, combine, transform
+from torchopt._src.typing import ScalarOrSchedule
 
 
 def _scale_by_lr(lr: ScalarOrSchedule, flip_sign=True):

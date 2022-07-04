@@ -19,7 +19,7 @@
 import torch
 import torch.nn as nn
 
-import TorchOpt
+import torchopt
 
 
 class theta_model(nn.Module):
@@ -46,7 +46,7 @@ class Agent():
 
   def set_virtual(self):
     self.virtual_theta = theta_model(self.theta)
-    self.virtual_optimiser = TorchOpt.MetaSGD(
+    self.virtual_optimiser = torchopt.MetaSGD(
       self.virtual_theta, lr=self.args.lr_in
     )
 

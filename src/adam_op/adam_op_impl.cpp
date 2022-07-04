@@ -22,7 +22,7 @@
 
 #include "include/utils.h"
 
-namespace TorchOpt {
+namespace torchopt {
 using std::size_t;
 namespace {
 template <typename scalar_t, typename other_t>
@@ -307,4 +307,4 @@ TensorArray<2> adamBackwardUpdatesCPU(const torch::Tensor& dupdates,
       }));
   return TensorArray<2>{std::move(dmu_out), std::move(dnu_out)};
 }
-}  // namespace TorchOpt
+}  // namespace torchopt

@@ -30,7 +30,7 @@
 # limitations under the License.
 # ==============================================================================
 
-from TorchOpt._src import base
+from torchopt._src import base
 
 
 def chain(*args: base.GradientTransformation) -> base.GradientTransformation:

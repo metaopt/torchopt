@@ -101,7 +101,7 @@ def make_dot(
   param_map = {}
 
   if params is not None:
-    from TorchOpt.utils import _ModuleState
+    from torchopt.utils import _ModuleState
     if isinstance(params, _ModuleState):
       param_map.update(params.visual_contents)
     elif isinstance(params, Dict):

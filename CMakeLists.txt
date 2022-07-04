@@ -14,7 +14,7 @@
 # ==============================================================================
 
 cmake_minimum_required(VERSION 3.1)
-project(TorchOpt LANGUAGES CXX CUDA)
+project(torchopt LANGUAGES CXX CUDA)
 
 find_package(CUDA REQUIRED)
 

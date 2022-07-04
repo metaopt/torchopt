@@ -52,7 +52,7 @@ import torch.optim as optim
 from support.omniglot_loaders import OmniglotNShot
 from torch import nn
 
-import TorchOpt
+import torchopt
 
 mpl.use('Agg')
 plt.style.use('bmh')
@@ -123,7 +123,7 @@ def main():
 def train(db, net, meta_opt, epoch, log):
   net.train()
   n_train_iter = db.x_train.shape[0] // db.batchsz
-  inner_opt = TorchOpt.MetaSGD(net, lr=1e-1)
+  inner_opt = torchopt.MetaSGD(net, lr=1e-1)
 
   for batch_idx in range(n_train_iter):
     start_time = time.time()
@@ -144,8 +144,8 @@ def train(db, net, meta_opt, epoch, log):
     qry_accs = []
     meta_opt.zero_grad()
 
-    net_state_dict = TorchOpt.extract_state_dict(net)
-    optim_state_dict = TorchOpt.extract_state_dict(inner_opt)
+    net_state_dict = torchopt.extract_state_dict(net)
+    optim_state_dict = torchopt.extract_state_dict(inner_opt)
     for i in range(task_num):
       # Optimize the likelihood of the support set by taking
       # gradient steps w.r.t. the model's parameters.
@@ -171,8 +171,8 @@ def train(db, net, meta_opt, epoch, log):
       # This unrolls through the gradient steps.
       qry_loss.backward()
 
-      TorchOpt.recover_state_dict(net, net_state_dict)
-      TorchOpt.recover_state_dict(inner_opt, optim_state_dict)
+      torchopt.recover_state_dict(net, net_state_dict)
+      torchopt.recover_state_dict(inner_opt, optim_state_dict)
 
     meta_opt.step()
     qry_losses = sum(qry_losses) / task_num
@@ -203,7 +203,7 @@ def test(db, net, epoch, log):
   # adapting this code for research.
   net.train()
   n_test_iter = db.x_test.shape[0] // db.batchsz
-  inner_opt = TorchOpt.MetaSGD(net, lr=1e-1)
+  inner_opt = torchopt.MetaSGD(net, lr=1e-1)
 
   qry_losses = []
   qry_accs = []
@@ -218,8 +218,8 @@ def test(db, net, epoch, log):
     # doesn't have to be duplicated between `train` and `test`?
     n_inner_iter = 5
 
-    net_state_dict = TorchOpt.extract_state_dict(net)
-    optim_state_dict = TorchOpt.extract_state_dict(inner_opt)
+    net_state_dict = torchopt.extract_state_dict(net)
+    optim_state_dict = torchopt.extract_state_dict(inner_opt)
     for i in range(task_num):
       # Optimize the likelihood of the support set by taking
       # gradient steps w.r.t. the model's parameters.
@@ -235,8 +235,8 @@ def test(db, net, epoch, log):
       qry_losses.append(qry_loss.detach())
       qry_accs.append((qry_logits.argmax(dim=1) == y_qry[i]).detach())
 
-      TorchOpt.recover_state_dict(net, net_state_dict)
-      TorchOpt.recover_state_dict(inner_opt, optim_state_dict)
+      torchopt.recover_state_dict(net, net_state_dict)
+      torchopt.recover_state_dict(inner_opt, optim_state_dict)
 
   qry_losses = torch.cat(qry_losses).mean().item()
   qry_accs = 100. * torch.cat(qry_accs).float().mean().item()

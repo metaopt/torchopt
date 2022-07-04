@@ -20,7 +20,7 @@ import jax
 import torch
 from torch._six import inf
 
-from TorchOpt._src import base
+from torchopt._src import base
 
 ClipState = base.EmptyState
 

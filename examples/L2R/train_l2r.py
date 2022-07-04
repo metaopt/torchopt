@@ -42,7 +42,7 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from torchvision.datasets import MNIST
 
-import TorchOpt
+import torchopt
 
 
 def run_baseline(args, mnist_train, mnist_test):
@@ -164,7 +164,7 @@ def run_L2R(args, mnist_train, mnist_test):
     test_set, batch_size=args.batch_size, shuffle=True, num_workers=1
   )
   model = LeNet5(args).to(args.device)
-  model_optimiser = TorchOpt.MetaSGD(model, lr=args.lr)
+  model_optimiser = torchopt.MetaSGD(model, lr=args.lr)
   real_model_optimiser = torch.optim.Adam(model.parameters(), lr=args.lr)
 
   step = 0
@@ -189,8 +189,8 @@ def run_L2R(args, mnist_train, mnist_test):
       # reset meta-parameter weights
       model.reset_meta(size=train_x.size(0))
 
-      net_state_dict = TorchOpt.extract_state_dict(model)
-      optim_state_dict = TorchOpt.extract_state_dict(model_optimiser)
+      net_state_dict = torchopt.extract_state_dict(model)
+      optim_state_dict = torchopt.extract_state_dict(model_optimiser)
 
       for _ in range(1):
         inner_loss = model.inner_loss(train_x, train_label)
@@ -208,8 +208,8 @@ def run_L2R(args, mnist_train, mnist_test):
       writer.add_scalar('validation_loss', outer_loss.item(), step)
 
       # reset the model and model optimiser
-      TorchOpt.recover_state_dict(model, net_state_dict)
-      TorchOpt.recover_state_dict(model_optimiser, optim_state_dict)
+      torchopt.recover_state_dict(model, net_state_dict)
+      torchopt.recover_state_dict(model_optimiser, optim_state_dict)
 
       # reuse inner_adapt to conduct real update based on learned meta weights
       inner_loss = model.inner_loss(train_x, train_label)

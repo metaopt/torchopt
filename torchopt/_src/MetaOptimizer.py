@@ -18,10 +18,10 @@ import jax
 import torch
 from torch import nn
 
-from TorchOpt._src import base
-from TorchOpt._src.alias import adam, rmsprop, sgd
-from TorchOpt._src.pytypes import ScalarOrSchedule
-from TorchOpt._src.update import apply_updates
+from torchopt._src import base
+from torchopt._src.alias import adam, rmsprop, sgd
+from torchopt._src.typing import ScalarOrSchedule
+from torchopt._src.update import apply_updates
 
 
 class MetaOptimizer(object):
@@ -31,9 +31,9 @@ class MetaOptimizer(object):
     """
         Args:
           net (nn.Module): a network whose parameters should be optimized.
-          impl (base.GradientTransformation): a low level optimizer function, it could be a 
-            optimizer function provided by `alias.py` or a customerized `chain` provided by 
-            `combine.py`. Note that use `MetaOptimizer(sgd(moment_requires_grad=True))` or 
+          impl (base.GradientTransformation): a low level optimizer function, it could be a
+            optimizer function provided by `alias.py` or a customerized `chain` provided by
+            `combine.py`. Note that use `MetaOptimizer(sgd(moment_requires_grad=True))` or
             `MetaOptimizer(chain(sgd(moment_requires_grad=True))) is equavalent to `MetaSGD`.
         """
     self.impl = impl
@@ -72,7 +72,7 @@ class MetaOptimizer(object):
         container.update(unflatten_param)
 
   def add_param_group(self, net):
-    from TorchOpt.utils import _extract_container
+    from torchopt.utils import _extract_container
     net_container = _extract_container(net, with_buffer=False)
     flatten_param, _ = jax.tree_util.tree_flatten(net_container)
     flatten_param = tuple(flatten_param)

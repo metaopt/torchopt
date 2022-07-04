@@ -17,7 +17,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
-import TorchOpt
+import torchopt
 
 
 def test_gamma():
@@ -53,10 +53,10 @@ def test_gamma():
   inner_iters = 1
   outer_iters = 10000
   net = ValueNetwork()
-  inner_optimizer = TorchOpt.MetaSGD(net, lr=5e-1)
+  inner_optimizer = torchopt.MetaSGD(net, lr=5e-1)
   gamma = torch.zeros(9, requires_grad=True)
-  meta_optimizer = TorchOpt.SGD([gamma], lr=5e-1)
-  net_state = TorchOpt.extract_state_dict(net)
+  meta_optimizer = torchopt.SGD([gamma], lr=5e-1)
+  net_state = torchopt.extract_state_dict(net)
   for i in range(outer_iters):
     for j in range(inner_iters):
       trajectory, state = Rollout.get()
@@ -74,7 +74,7 @@ def test_gamma():
     meta_optimizer.zero_grad()
     loss.backward()
     meta_optimizer.step()
-    TorchOpt.recover_state_dict(net, net_state)
+    torchopt.recover_state_dict(net, net_state)
     if i % 100 == 0:
       with torch.no_grad():
         print(f"epoch {i} | gamma: {torch.sigmoid(gamma)}")

@@ -17,10 +17,10 @@ from typing import Iterable, Union
 import jax
 import torch
 
-from TorchOpt._src import base
-from TorchOpt._src.alias import adam, rmsprop, sgd
-from TorchOpt._src.pytypes import ScalarOrSchedule
-from TorchOpt._src.update import apply_updates
+from torchopt._src import base
+from torchopt._src.alias import adam, rmsprop, sgd
+from torchopt._src.typing import ScalarOrSchedule
+from torchopt._src.update import apply_updates
 
 
 class Optimizer(object):
@@ -31,9 +31,9 @@ class Optimizer(object):
 
     Args:
       params (iterable): an iterable of `torch.Tensor`s. Specifies what Tensors should be optimized.
-      impl (base.GradientTransformation): a low level optimizer function, it could be 
-        a optimizer function provided by `alias.py` or a customerized `chain` provided by 
-        `combine.py`. Note that use `MetaOptimizer(sgd())` or `MetaOptimizer(chain(sgd())) 
+      impl (base.GradientTransformation): a low level optimizer function, it could be
+        a optimizer function provided by `alias.py` or a customerized `chain` provided by
+        `combine.py`. Note that use `MetaOptimizer(sgd())` or `MetaOptimizer(chain(sgd()))
         is equavalent to `SGD`.
     """
     if not isinstance(params, list):

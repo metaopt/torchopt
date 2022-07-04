@@ -13,4 +13,4 @@
 # limitations under the License.
 # ==============================================================================
 
-from TorchOpt._src.accelerated_op.adam_op.AdamOp import AdamOp
+from torchopt._src.accelerated_op.adam_op.AdamOp import AdamOp

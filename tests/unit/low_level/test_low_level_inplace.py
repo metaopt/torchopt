@@ -22,8 +22,8 @@ from torch.nn import functional as F
 from torch.utils import data
 from torchvision import models
 
-import TorchOpt
-from TorchOpt import adam, rmsprop, sgd
+import torchopt
+from torchopt import adam, rmsprop, sgd
 
 
 class LowLevelInplace(unittest.TestCase):
@@ -62,7 +62,7 @@ class LowLevelInplace(unittest.TestCase):
 
       grad = torch.autograd.grad(loss, params)
       updates, optim_state = optim.update(grad, optim_state)
-      params = TorchOpt.apply_updates(params, updates)
+      params = torchopt.apply_updates(params, updates)
 
       optim_ref.zero_grad()
       loss_ref.backward()
@@ -91,7 +91,7 @@ class LowLevelInplace(unittest.TestCase):
 
       grad = torch.autograd.grad(loss, params)
       updates, optim_state = optim.update(grad, optim_state)
-      params = TorchOpt.apply_updates(params, updates)
+      params = torchopt.apply_updates(params, updates)
 
       optim_ref.zero_grad()
       loss_ref.backward()
@@ -123,7 +123,7 @@ class LowLevelInplace(unittest.TestCase):
 
       grad = torch.autograd.grad(loss, params)
       updates, optim_state = optim.update(grad, optim_state)
-      params = TorchOpt.apply_updates(params, updates)
+      params = torchopt.apply_updates(params, updates)
 
       optim_ref.zero_grad()
       loss_ref.backward()
@@ -155,7 +155,7 @@ class LowLevelInplace(unittest.TestCase):
 
       grad = torch.autograd.grad(loss, params)
       updates, optim_state = optim.update(grad, optim_state)
-      params = TorchOpt.apply_updates(params, updates)
+      params = torchopt.apply_updates(params, updates)
 
       optim_ref.zero_grad()
       loss_ref.backward()
@@ -185,7 +185,7 @@ class LowLevelInplace(unittest.TestCase):
 
       grad = torch.autograd.grad(loss, params)
       updates, optim_state = optim.update(grad, optim_state)
-      params = TorchOpt.apply_updates(params, updates)
+      params = torchopt.apply_updates(params, updates)
 
       optim_ref.zero_grad()
       loss_ref.backward()

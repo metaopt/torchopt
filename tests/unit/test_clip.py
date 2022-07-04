@@ -22,8 +22,8 @@ from torch.nn.utils import clip_grad_norm_
 from torch.utils import data
 from torchvision import models
 
-import TorchOpt
-from TorchOpt import Optimizer, sgd
+import torchopt
+from torchopt import Optimizer, sgd
 
 
 class HighLevelInplace(unittest.TestCase):
@@ -50,8 +50,8 @@ class HighLevelInplace(unittest.TestCase):
     self.model_ref = copy.deepcopy(self.model_backup)
 
   def test_sgd(self) -> None:
-    chain = TorchOpt.combine.chain(
-      TorchOpt.clip.clip_grad_norm(max_norm=self.max_norm), sgd(lr=self.lr)
+    chain = torchopt.combine.chain(
+      torchopt.clip.clip_grad_norm(max_norm=self.max_norm), sgd(lr=self.lr)
     )
     optim = Optimizer(self.model.parameters(), chain)
     optim_ref = torch.optim.SGD(self.model_ref.parameters(), self.lr)

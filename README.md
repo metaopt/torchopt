@@ -4,7 +4,7 @@
 </div>
 
 **TorchOpt** is a high-performance optimizer library built upon [PyTorch](https://pytorch.org/) for easy implementation of functional optimization and gradient-based meta-learning. It consists of two main features:
-- TorchOpt provides functional optimizer which enables [JAX-like](https://github.com/google/jax) composable functional optimizer for PyTorch. With TorchOpt, one can easily conduct neural network optimization in PyTorch with functional style optimizer, similar to  [Optax](https://github.com/deepmind/optax) in JAX. 
+- TorchOpt provides functional optimizer which enables [JAX-like](https://github.com/google/jax) composable functional optimizer for PyTorch. With TorchOpt, one can easily conduct neural network optimization in PyTorch with functional style optimizer, similar to  [Optax](https://github.com/deepmind/optax) in JAX.
 - With the desgin of functional programing, TorchOpt provides efficient, flexible, and easy-to-implement differentiable optimizer for gradient-based meta-learning research. It largely reduces the efforts required to implement sophisticated meta-learning algorithms.
 
 --------------------------------------------------------------------------------
@@ -21,19 +21,20 @@ The README is organized as follows:
 - [Installation](#installation)
 - [Future Plan](#future-plan)
 - [The Team](#the-team)
+- [Citing TorchOpt](#citing-torchopt)
 
 
 ## TorchOpt as Functional Optimizer
 The desgin of TorchOpt follows the philosophy of functional programming. Aligned with [functorch](https://github.com/pytorch/functorch), users can conduct functional style programing with models, optimizers and training in PyTorch. We use the Adam optimizer as an example in the following illustration. You can also check out the tutorial notebook [Functional Optimizer](./tutorials/1_Functional_Optimizer.ipynb) for more details.
 ### Optax-Like API
-For those users who prefer fully functional programing, we offer Optax-Like API by passing gradients and optimizers states to the optimizer function. We design base class `TorchOpt.Optimizer` that has the same interface as `torch.optim.Optimizer`. Here is an example coupled with functorch:
+For those users who prefer fully functional programing, we offer Optax-Like API by passing gradients and optimizers states to the optimizer function. We design base class `torchopt.Optimizer` that has the same interface as `torch.optim.Optimizer`. Here is an example coupled with functorch:
 ```python
 import torch
 from torch import nn
 from torch import data
 from nn import functional as F
 import functorch
-import TorchOpt
+import torchopt
 
 class Net(nn.Module):...
 
@@ -41,15 +42,15 @@ class Loader(data.DataLoader):...
 
 net = Net() # init
 loader = Loader()
-optimizer = TorchOpt.adam()
+optimizer = torchopt.adam()
 func, params = functorch.make_functional(net)  # use functorch extract network parameters
 opt_state = optimizer.init(params)  # init optimizer
 xs, ys = next(loader)  # get data
 pred = func(params, xs)  # forward
-loss = F.cross_entropy(pred, ys)  # compute loss 
+loss = F.cross_entropy(pred, ys)  # compute loss
 grad = torch.autograd.grad(loss, params)  # compute gradients
 updates, opt_state = optimizer.update(grad, opt_state)  # get updates
-params = TorchOpt.apply_updates(params, updates)  # update network parameters
+params = torchopt.apply_updates(params, updates)  # update network parameters
 ```
 ### PyTorch-Like API
 We also offer origin PyTorch APIs (e.g. `zero_grad()` or `step()`) by warpping our Optax-Like API for traditional PyTorch user:
@@ -57,7 +58,7 @@ We also offer origin PyTorch APIs (e.g. `zero_grad()` or `step()`) by warpping o
 ```python
 net = Net()  # init
 loader = Loader()
-optimizer = TorchOpt.Adam(net.parameters())
+optimizer = torchopt.Adam(net.parameters())
 xs, ys = next(loader)  # get data
 pred = net(xs)  # forward
 loss = F.cross_entropy(pred, ys)  # compute loss
@@ -71,15 +72,15 @@ On top of the same optimization function as `torch.optim`, an important benefit 
 # get updates
 updates, opt_state = optimizer.update(grad, opt_state, inplace=False)
 # update network parameters
-params = TorchOpt.apply_updates(params, updates, inplace=False)
+params = torchopt.apply_updates(params, updates, inplace=False)
 ```
 ## TorchOpt as Differentiable Optimizer for Meta-Learning
-Meta-Learning has gained enormous attention in both Supervised Learning and Reinforcement Learning. Meta-Learning algorithms often contain a bi-level optimisation process with *inner loop* updating the network parameters and *outer loop* updating meta parameters. The figure below illustrates the basic formulation for meta-optimization in Meta-Learning. The main feature is that the gradients of *outer loss* will back-propagate through all `inner.step` operations. 
+Meta-Learning has gained enormous attention in both Supervised Learning and Reinforcement Learning. Meta-Learning algorithms often contain a bi-level optimisation process with *inner loop* updating the network parameters and *outer loop* updating meta parameters. The figure below illustrates the basic formulation for meta-optimization in Meta-Learning. The main feature is that the gradients of *outer loss* will back-propagate through all `inner.step` operations.
 <div align="center">
 <img src=/image/TorchOpt.png width=85% />
 </div>
 
-Since network parameters become a node of computation graph, a flexible Meta-Learning library should enable users manually control the gradient graph connection which means that users should have access to the network parameters and optimizer states for manually detaching or connecting the computation graph. In PyTorch designing, the network parameters or optimizer states are members of network (a.k.a. `nn.Module`) or optimizer (a.k.a. `optim.Optimizer`), this design significantly introducing difficulty for user control network parameters or optimizer states. Previous differentiable optimizer Repo [higher](https://github.com/facebookresearch/higher), [learn2learn](https://github.com/learnables/learn2learn) follows the PyTorch designing which leads to inflexible API. 
+Since network parameters become a node of computation graph, a flexible Meta-Learning library should enable users manually control the gradient graph connection which means that users should have access to the network parameters and optimizer states for manually detaching or connecting the computation graph. In PyTorch designing, the network parameters or optimizer states are members of network (a.k.a. `nn.Module`) or optimizer (a.k.a. `optim.Optimizer`), this design significantly introducing difficulty for user control network parameters or optimizer states. Previous differentiable optimizer Repo [higher](https://github.com/facebookresearch/higher), [learn2learn](https://github.com/learnables/learn2learn) follows the PyTorch designing which leads to inflexible API.
 
 In contrast to them, TorchOpt realizes differentiable optimizer with functional programing, where Meta-Learning researchers could control the network parameters or optimizer states as normal variables (a.k.a. `torch.Tensor`). This functional optimizer design of TorchOpt is beneficial for implementing complex gradient flow Meta-Learning algorithms and allow us to improve computational efficiency by using techniques like operator fusion.
 
@@ -91,8 +92,8 @@ We hope meta-learning researchers could control the network parameters or optimi
 
 ### Meta-Learning API
 <!-- Meta-Learning algorithms often use *inner loop* to update network parameters and compute an *outer loss* then back-propagate the *outer loss*. So the optimizer used in the *inner loop* should be differentiable. Thanks to the functional design, we can easily realize this requirement. -->
-- We design a base class `TorchOpt.MetaOptimizer` for managing network updates in Meta-Learning. The constructor of `MetaOptimizer` takes as input the network rather than network parameters. `MetaOptimizer` exposed interface `step(loss)` takes as input the loss for step the network parameter. Refer to the tutorial notebook [Meta Optimizer](./tutorials/2_Meta_Optimizer.ipynb) for more details.
-- We offer `TorchOpt.chain` which can apply a list of chainable update transformations. Combined with `MetaOptimizer`, it can help you conduct gradient transformation such as gradient clip before the Meta optimizer steps. Refer to the tutorial notebook [Meta Optimizer](./tutorials/2_Meta_Optimizer.ipynb) for more details.
+- We design a base class `torchopt.MetaOptimizer` for managing network updates in Meta-Learning. The constructor of `MetaOptimizer` takes as input the network rather than network parameters. `MetaOptimizer` exposed interface `step(loss)` takes as input the loss for step the network parameter. Refer to the tutorial notebook [Meta Optimizer](./tutorials/2_Meta_Optimizer.ipynb) for more details.
+- We offer `torchopt.chain` which can apply a list of chainable update transformations. Combined with `MetaOptimizer`, it can help you conduct gradient transformation such as gradient clip before the Meta optimizer steps. Refer to the tutorial notebook [Meta Optimizer](./tutorials/2_Meta_Optimizer.ipynb) for more details.
 - We observe that different Meta-Learning algorithms vary in inner-loop parameter recovery. TorchOpt provides basic functions for users to extract or recover network parameters and optimizer states anytime anywhere they want.
 - Some algorithms such as [MGRL](https://proceedings.neurips.cc/paper/2018/file/2715518c875999308842e3455eda2fe3-Paper.pdf) initialize the inner-loop parameters inherited from previous inner-loop process when conducting a new bi-level process. TorchOpt also provides a finer function `stop_gradient` for manipulating the gradient graph, which is helpful for this kind of algortihms. Refer to the notebook [Stop Gradient](./tutorials/4_Stop_Gradient.ipynb) for more details.
 
@@ -101,40 +102,40 @@ We give an example of [MAML](https://arxiv.org/abs/1703.03400) with inner-loop A
 ```python
 net = Net() # init
 # the constructor `MetaOptimizer` takes as input the network
-inner_optim = TorchOpt.MetaAdam(net)
-outer_optim = TorchOpt.Adam(net.parameters())
+inner_optim = torchopt.MetaAdam(net)
+outer_optim = torchopt.Adam(net.parameters())
 
 for train_iter in range(train_iters):
     outer_loss = 0
     for task in range(tasks):
         loader = Loader(tasks)
-        
+
         # store states at the inital points
-        net_state = TorchOpt.extract_state_dict(net) # extract state
-        optim_state = TorchOpt.extract_state_dict(inner_optim)
+        net_state = torchopt.extract_state_dict(net) # extract state
+        optim_state = torchopt.extract_state_dict(inner_optim)
         for inner_iter in range(inner_iters):
             # compute inner loss and perform inner update
             xs, ys = next(loader)
             pred = net(xs)
-            inner_loss = F.cross_entropy(pred, ys)  
+            inner_loss = F.cross_entropy(pred, ys)
             inner_optim.step(inner_loss)
         # compute outer loss and back-propagate
-        xs, ys = next(loader) 
+        xs, ys = next(loader)
         pred = net(xs)
         outer_loss += F.cross_entropy(pred, ys)
-        
+
         # recover network and optimizer states at the inital point for the next task
-        TorchOpt.recover_state_dict(inner_optim, optim_state)
-        TorchOpt.recover_state_dict(net, net_state)
-    
+        torchopt.recover_state_dict(inner_optim, optim_state)
+        torchopt.recover_state_dict(net, net_state)
+
     outer_loss /= len(tasks) # task average
     outer_optim.zero_grad()
     outer_loss.backward()
     outer_optim.step()
 
     # stop gradient if necessary
-    TorchOpt.stop_gradient(net)
-    TorchOpt.stop_gradient(inner_optim)
+    torchopt.stop_gradient(net)
+    torchopt.stop_gradient(inner_optim)
 ```
 ## Examples
 In *examples/*, we offer serveral examples of functional optimizer and 5 light-weight meta-learning examples with TorchOpt. The meta-learning examples covers 2 Supervised Learning and 3 Reinforcement Learning algorithms.
@@ -168,13 +169,13 @@ Requirements
   - (Optional) For visualizing computation graphs
     - [Graphviz](https://graphviz.org/download/) (for Linux users use `apt/yum install graphviz` or `conda install -c anaconda python-graphviz`)
 ```bash
-pip install TorchOpt
+pip install torchopt
 ```
 
 You can also build shared libraries from source, use:
 ```bash
-git clone git@github.com:metaopt/TorchOpt.git
-cd TorchOpt
+git clone git@github.com:metaopt/torchopt.git
+cd torchopt
 python setup.py build_from_source
 ```
 ## Future Plan
@@ -196,6 +197,6 @@ If you find TorchOpt useful, please cite it in your publications.
   year = {2022},
   publisher = {GitHub},
   journal = {GitHub repository},
-  howpublished = {\url{https://github.com/metaopt/TorchOpt}},
+  howpublished = {\url{https://github.com/metaopt/torchopt}},
 }
 ```

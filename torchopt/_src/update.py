@@ -32,7 +32,7 @@
 
 import jax
 
-from TorchOpt._src import base
+from torchopt._src import base
 
 
 def apply_updates(

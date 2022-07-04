@@ -21,7 +21,7 @@
 #include "adam_op/adam_op_impl.cuh"
 #include "adam_op/adam_op_impl.h"
 
-namespace TorchOpt {
+namespace torchopt {
 TensorArray<3> adamForwardInplace(const torch::Tensor& updates,
                                   const torch::Tensor& mu,
                                   const torch::Tensor& nu, const float b1,
@@ -110,14 +110,14 @@ TensorArray<2> adamBackwardUpdates(const torch::Tensor& dupdates,
     throw std::runtime_error("Not implemented");
   }
 }
-}  // namespace TorchOpt
+}  // namespace torchopt
 
 PYBIND11_MODULE(adam_op, m) {
-  m.def("forward_", &TorchOpt::adamForwardInplace);
-  m.def("forwardMu", &TorchOpt::adamForwardMu);
-  m.def("forwardNu", &TorchOpt::adamForwardNu);
-  m.def("forwardUpdates", &TorchOpt::adamForwardUpdates);
-  m.def("backwardMu", &TorchOpt::adamBackwardMu);
-  m.def("backwardNu", &TorchOpt::adamBackwardNu);
-  m.def("backwardUpdates", &TorchOpt::adamBackwardUpdates);
+  m.def("forward_", &torchopt::adamForwardInplace);
+  m.def("forwardMu", &torchopt::adamForwardMu);
+  m.def("forwardNu", &torchopt::adamForwardNu);
+  m.def("forwardUpdates", &torchopt::adamForwardUpdates);
+  m.def("backwardMu", &torchopt::adamBackwardMu);
+  m.def("backwardNu", &torchopt::adamBackwardNu);
+  m.def("backwardUpdates", &torchopt::adamBackwardUpdates);
 }

@@ -21,7 +21,7 @@ from torch.nn import functional as F
 from torch.utils import data
 from torchvision import models
 
-from TorchOpt import SGD, Adam, RMSProp
+from torchopt import SGD, Adam, RMSProp
 
 
 class HighLevelInplace(unittest.TestCase):

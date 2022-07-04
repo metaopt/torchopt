@@ -1,6 +1,6 @@
 print-%  : ; @echo $* = $($*)
 SHELL          = /bin/bash
-PROJECT_NAME   = TorchOpt
+PROJECT_NAME   = torchopt
 PROJECT_PATH   = ${PROJECT_NAME}/
 PROJECT_FOLDER = $(PROJECT_NAME) examples include src tests
 PYTHON_FILES   = $(shell find . -type f -name "*.py")
@@ -103,4 +103,3 @@ format: py-format-install clang-format-install
 	yapf -ir $(PYTHON_FILES)
 	clang-format-11 -style=file -i $(CPP_FILES)
 	addlicense -c $(COPYRIGHT) -l apache -y 2022 $(PROJECT_FOLDER)
-
