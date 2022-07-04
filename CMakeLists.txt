@@ -76,12 +76,12 @@ endif()
 
 system(
     STRIP OUTPUT_VARIABLE PYTHON_EXECUTABLE
-    COMMAND which "${PYTHON_EXECUTABLE}"
+    COMMAND bash -c "type -P '${PYTHON_EXECUTABLE}'"
 )
 
 system(
     STRIP OUTPUT_VARIABLE PYTHON_VERSION
-    COMMAND "${PYTHON_EXECUTABLE}" --version
+    COMMAND "${PYTHON_EXECUTABLE}" -c "print(__import__('platform').python_version())"
 )
 
 message("-- Use Python version: ${PYTHON_VERSION}")
@@ -106,7 +106,7 @@ if(NOT DEFINED TORCH_INCLUDE_PATH)
     message("-- Auto detecting PyTorch include directory...")
     system(
         STRIP OUTPUT_VARIABLE TORCH_INCLUDE_PATH
-        COMMAND "${PYTHON_EXECUTABLE}" -c "print(__import__('torch.utils.cpp_extension', fromlist=[None]).include_paths()[0])"
+        COMMAND "${PYTHON_EXECUTABLE}" -c "print('\\\;'.join(__import__('torch.utils.cpp_extension', fromlist=[None]).include_paths()))"
     )
 endif()
 
@@ -121,7 +121,7 @@ if(NOT DEFINED TORCH_LIBRARY_PATH)
     message("-- Auto detecting PyTorch library directory...")
     system(
         STRIP OUTPUT_VARIABLE TORCH_LIBRARY_PATH
-        COMMAND "${PYTHON_EXECUTABLE}" -c "print(__import__('torch.utils.cpp_extension', fromlist=[None]).library_paths()[0])"
+        COMMAND "${PYTHON_EXECUTABLE}" -c "print('\\\;'.join(__import__('torch.utils.cpp_extension', fromlist=[None]).library_paths()))"
     )
 endif()
 
@@ -140,6 +140,7 @@ message("-- Detected Torch libraries: \"${TORCH_LIBRARIES}\"")
 
 add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
 
+set(PYBIND11_PYTHON_VERSION "${PYTHON_VERSION}")
 add_subdirectory("third_party/pybind11")
 include_directories(include)
 
