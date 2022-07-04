@@ -13,4 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 
-from torchopt._src.accelerated_op.adam_op.adam_op import AdamOp
+from torchopt._src.optimizer.meta.base import MetaOptimizer
+from torchopt._src.optimizer.meta.adam import MetaAdam
+from torchopt._src.optimizer.meta.rmsprop import MetaRMSProp
+from torchopt._src.optimizer.meta.sgd import MetaSGD

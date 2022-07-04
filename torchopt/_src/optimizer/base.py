@@ -12,28 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-from typing import Iterable, Union
+
+from typing import Iterable
 
 import jax
 import torch
 
-from torchopt._src import base
-from torchopt._src.alias import adam, rmsprop, sgd
-from torchopt._src.typing import ScalarOrSchedule
+from torchopt._src.base import GradientTransformation
 from torchopt._src.update import apply_updates
 
 
 class Optimizer(object):
     """A high-level base class that has the similar with `torch.optim.Optimizer`."""
 
-    def __init__(self, params: Iterable, impl: base.GradientTransformation):
+    def __init__(self, params: Iterable, impl: GradientTransformation):
         """The `init` function.
 
         Args:
             params (iterable):
                 An iterable of `torch.Tensor`s. Specifies what Tensors should be
                 optimized.
-            impl (base.GradientTransformation):
+            impl (GradientTransformation):
                 A low level optimizer function, it could be a optimizer function
                 provided by `alias.py` or a customized `chain` provided by
                 `combine.py`.
@@ -126,109 +125,3 @@ class Optimizer(object):
         self.param_groups.append(params)
         self.param_tree_groups.append(tree)
         self.state_groups.append(self.impl.init(params))
-
-
-class SGD(Optimizer):
-    """The classic Adam optimizer."""
-
-    def __init__(
-        self,
-        params,
-        lr: ScalarOrSchedule,
-        momentum: Union[float, None] = None,
-        nesterov: bool = False
-    ):
-        """The `init` function.
-
-        Args:
-            params (iterable):
-                An iterable of `torch.Tensor`s. Specifies what Tensors should be
-                optimized.
-            args:
-                Other arguments see `alias.adam`.
-        """
-
-        super().__init__(
-            params,
-            sgd(
-                lr=lr,
-                momentum=momentum,
-                nesterov=nesterov,
-                moment_requires_grad=False
-            )
-        )
-
-
-class Adam(Optimizer):
-    """A canonical Stochastic Gradient Descent optimizer."""
-
-    def __init__(
-        self,
-        params,
-        lr: ScalarOrSchedule,
-        b1: float = 0.9,
-        b2: float = 0.999,
-        eps: float = 1e-8,
-        eps_root: float = 0.0,
-        use_accelerated_op: bool = False
-    ):
-        """The `init` function.
-
-        Args:
-            params (iterable):
-                An iterable of `torch.Tensor`s. Specifies what Tensors should be
-                optimized.
-            args:
-                Other arguments see `alias.sgd`.
-        """
-
-        super().__init__(
-            params,
-            adam(
-                lr=lr,
-                b1=b1,
-                b2=b2,
-                eps=eps,
-                eps_root=eps_root,
-                moment_requires_grad=False,
-                use_accelerated_op=use_accelerated_op
-            )
-        )
-
-
-class RMSProp(Optimizer):
-    """An RMSProp optimiser."""
-
-    def __init__(
-        self,
-        params,
-        lr: ScalarOrSchedule,
-        decay: float = 0.9,
-        eps: float = 1e-8,
-        initial_scale: float = 0.,
-        centered: bool = False,
-        momentum: Union[float, None] = None,
-        nesterov: bool = False
-    ):
-        """The `init` function.
-
-        Args:
-            params (iterable):
-                An iterable of `torch.Tensor`s. Specifies what Tensors should be
-                optimized.
-            args:
-                Other arguments see `alias.sgd`.
-        """
-
-        super().__init__(
-            params,
-            rmsprop(
-                lr=lr,
-                decay=decay,
-                eps=eps,
-                initial_scale=initial_scale,
-                centered=centered,
-                momentum=momentum,
-                nesterov=nesterov
-            )
-        )

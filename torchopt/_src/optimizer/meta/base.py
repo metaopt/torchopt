@@ -12,27 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-from typing import Union
 
 import jax
 import torch
 from torch import nn
 
-from torchopt._src import base
-from torchopt._src.alias import adam, rmsprop, sgd
-from torchopt._src.typing import ScalarOrSchedule
+from torchopt._src.base import GradientTransformation
 from torchopt._src.update import apply_updates
 
 
 class MetaOptimizer(object):
     """A high-level optimizer base class for meta learning."""
 
-    def __init__(self, net: nn.Module, impl: base.GradientTransformation):
+    def __init__(self, net: nn.Module, impl: GradientTransformation):
         """
         Args:
             net (nn.Module):
                 A network whose parameters should be optimized.
-            impl (base.GradientTransformation):
+            impl (GradientTransformation):
                 A low level optimizer function, it could be a optimizer function
                 provided by `alias.py` or a customerized `chain` provided by
                 `combine.py`.
@@ -100,111 +97,3 @@ class MetaOptimizer(object):
 
     def load_state_dict(self, state_dict):
         self.state_groups = list(group for group in state_dict)
-
-
-class MetaSGD(MetaOptimizer):
-    """A canonical Stochastic Gradient Descent optimizer."""
-
-    def __init__(
-        self,
-        net: nn.Module,
-        lr: ScalarOrSchedule,
-        momentum: Union[float, None] = None,
-        nesterov: bool = False,
-        moment_requires_grad: bool = True
-    ):
-        """The `init` function.
-
-        Args:
-            net (nn.Module):
-                A network whose parameters should be optimized.
-            args:
-                Other arguments see `alias.sgd`, here we set `moment_requires_grad=True`
-                to make tensors like momentum be differentiable.
-        """
-
-        super().__init__(
-            net,
-            sgd(
-                lr=lr,
-                momentum=momentum,
-                nesterov=nesterov,
-                moment_requires_grad=moment_requires_grad
-            )
-        )
-
-
-class MetaAdam(MetaOptimizer):
-    """The classic Adam optimizer."""
-
-    def __init__(
-        self,
-        net,
-        lr: ScalarOrSchedule,
-        b1: float = 0.9,
-        b2: float = 0.999,
-        eps: float = 1e-8,
-        eps_root: float = 0.0,
-        moment_requires_grad: bool = True,
-        use_accelerated_op: bool = False
-    ):
-        """The `init` function.
-
-        Args:
-            net (nn.Module):
-                A network whose parameters should be optimized.
-            args:
-                Other arguments see `alias.adam`, here we set `moment_requires_grad=True`
-                to make tensors like momentum be differentiable.
-        """
-
-        super().__init__(
-            net,
-            adam(
-                lr=lr,
-                b1=b1,
-                b2=b2,
-                eps=eps,
-                eps_root=eps_root,
-                moment_requires_grad=moment_requires_grad,
-                use_accelerated_op=use_accelerated_op
-            )
-        )
-
-
-class MetaRMSProp(MetaOptimizer):
-    """The classic RMSProp optimizer."""
-
-    def __init__(
-        self,
-        net,
-        lr: ScalarOrSchedule,
-        decay: float = 0.9,
-        eps: float = 1e-8,
-        initial_scale: float = 0.,
-        centered: bool = False,
-        momentum: Union[float, None] = None,
-        nesterov: bool = False
-    ):
-        """The `init` function.
-
-        Args:
-            net (nn.Module):
-                A network whose parameters should be optimized.
-            args:
-                Other arguments see `alias.adam`, here we set `moment_requires_grad=True`
-                to make tensors like momentum be differentiable.
-        """
-
-        super().__init__(
-            net,
-            rmsprop(
-                lr=lr,
-                decay=decay,
-                eps=eps,
-                initial_scale=initial_scale,
-                centered=centered,
-                momentum=momentum,
-                nesterov=nesterov
-            )
-        )
