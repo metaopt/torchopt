@@ -18,7 +18,7 @@
 
 #include <array>
 
-namespace TorchOpt {
+namespace torchopt {
 template <size_t _Nm>
 using TensorArray = std::array<torch::Tensor, _Nm>;
 }

@@ -1,9 +1,9 @@
 print-%  : ; @echo $* = $($*)
 SHELL          = /bin/bash
-PROJECT_NAME   = TorchOpt
+PROJECT_NAME   = torchopt
 PROJECT_PATH   = ${PROJECT_NAME}/
 PROJECT_FOLDER = $(PROJECT_NAME) examples include src tests
-PYTHON_FILES   = $(shell find . -type f -name "*.py")
+PYTHON_FILES   = $(shell find examples torchopt tests -type f -name "*.py" -o -name "*.pyi")
 CPP_FILES      = $(shell find . -type f -name "*.h" -o -name "*.cpp" -o -name "*.cuh" -o -name "*.cu")
 COMMIT_HASH    = $(shell git log -1 --format=%h)
 COPYRIGHT      = "MetaOPT Team. All Rights Reserved."
@@ -66,7 +66,8 @@ flake8: flake8-install
 	flake8 $(PYTHON_FILES) --count --select=E9,F63,F7,F82,E225,E251 --show-source --statistics
 
 py-format: py-format-install
-	isort --check $(PYTHON_FILES) && yapf -ir $(PYTHON_FILES)
+	isort --project torchopt --check $(PYTHON_FILES) && \
+	yapf --in-place --recursive $(PYTHON_FILES)
 
 mypy: mypy-install
 	mypy $(PROJECT_NAME)
@@ -103,4 +104,3 @@ format: py-format-install clang-format-install
 	yapf -ir $(PYTHON_FILES)
 	clang-format-11 -style=file -i $(CPP_FILES)
 	addlicense -c $(COPYRIGHT) -l apache -y 2022 $(PROJECT_FOLDER)
-

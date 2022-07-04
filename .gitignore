@@ -2,8 +2,8 @@
 .idea
 build
 __pycache__
-TorchOpt/**/*.so
-TorchOpt.egg-info
+torchopt/**/*.so
+torchopt.egg-info
 dist
 **/.ipynb_checkpoints/*
 

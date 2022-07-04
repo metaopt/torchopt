@@ -18,9 +18,9 @@
 #include <vector>
 
 #include "adam_op/adam_op_impl.cuh"
-#include "include/utils.h"
+#include "utils.h"
 
-namespace TorchOpt {
+namespace torchopt {
 
 namespace {
 template <typename scalar_t, typename other_t>
@@ -330,4 +330,4 @@ TensorArray<2> adamBackwardUpdatesCUDA(const torch::Tensor &dupdates,
       }));
   return TensorArray<2>{std::move(dmu_out), std::move(dnu_out)};
 }
-}  // namespace TorchOpt
+}  // namespace torchopt

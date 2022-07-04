@@ -3,7 +3,7 @@
 CPU_PARENT=ubuntu:18.04
 GPU_PARENT=nvidia/cuda:10.1-cudnn7-runtime-ubuntu18.04
 
-TAG=metaopt/TorchOpt
+TAG=metaopt/torchopt
 VERSION=$(shell git log -1 --format=%h)
 
 if [[ ${USE_GPU} == "True" ]]; then
