@@ -95,20 +95,11 @@ def main():
     # and the parameters needed to be manually updated and copied
     # for the updates.
     net = nn.Sequential(
-        nn.Conv2d(1, 64, 3),
-        nn.BatchNorm2d(64, momentum=1., affine=True),
-        nn.ReLU(inplace=False),
-        nn.MaxPool2d(2, 2),
-        nn.Conv2d(64, 64, 3),
-        nn.BatchNorm2d(64, momentum=1., affine=True),
-        nn.ReLU(inplace=False),
-        nn.MaxPool2d(2, 2),
-        nn.Conv2d(64, 64, 3),
-        nn.BatchNorm2d(64, momentum=1., affine=True),
-        nn.ReLU(inplace=False),
-        nn.MaxPool2d(2, 2),
-        nn.Flatten(),
-        nn.Linear(64, args.n_way)
+        nn.Conv2d(1, 64, 3), nn.BatchNorm2d(64, momentum=1., affine=True), nn.ReLU(inplace=False),
+        nn.MaxPool2d(2, 2), nn.Conv2d(64, 64, 3), nn.BatchNorm2d(64, momentum=1., affine=True),
+        nn.ReLU(inplace=False), nn.MaxPool2d(2, 2), nn.Conv2d(64, 64, 3),
+        nn.BatchNorm2d(64, momentum=1., affine=True), nn.ReLU(inplace=False), nn.MaxPool2d(2, 2),
+        nn.Flatten(), nn.Linear(64, args.n_way)
     ).to(device)
 
     # We will use Adam to (meta-)optimize the initial parameters

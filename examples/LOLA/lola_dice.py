@@ -58,8 +58,7 @@ def main(args):
 
         # update agent 1
         memory1, memory2 = sample(
-            ipd, [agent1.theta, agent2.virtual_theta.theta], [agent1.values, agent2.values],
-            args
+            ipd, [agent1.theta, agent2.virtual_theta.theta], [agent1.values, agent2.values], args
         )
         outer_loss = memory1.dice_objective(use_baseline=args.use_baseline)
         agent1.theta_optimizer.zero_grad()
@@ -72,8 +71,7 @@ def main(args):
 
         # update agent 2
         memory1, memory2 = sample(
-            ipd, [agent1.virtual_theta.theta, agent2.theta], [agent1.values, agent2.values],
-            args
+            ipd, [agent1.virtual_theta.theta, agent2.theta], [agent1.values, agent2.values], args
         )
         outer_loss = memory2.dice_objective(use_baseline=args.use_baseline)
         agent2.theta_optimizer.zero_grad()

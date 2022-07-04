@@ -110,14 +110,12 @@ def get_imbalance_dataset(
     y_test_subset = y_test_subset[idx].astype(np.float32)
 
     x_train_subset, y_train_subset, x_val_subset, y_val_subset, x_test_subset, y_test_subset = (
-        torch.tensor(x_train_subset), torch.tensor(y_train_subset),
-        torch.tensor(x_val_subset), torch.tensor(y_val_subset),
-        torch.tensor(x_test_subset), torch.tensor(y_test_subset)
+        torch.tensor(x_train_subset), torch.tensor(y_train_subset), torch.tensor(x_val_subset),
+        torch.tensor(y_val_subset), torch.tensor(x_test_subset), torch.tensor(y_test_subset)
     )
 
     train_set, val_set, test_set = (
-        TensorDataset(x_train_subset, y_train_subset),
-        TensorDataset(x_val_subset, y_val_subset),
+        TensorDataset(x_train_subset, y_train_subset), TensorDataset(x_val_subset, y_val_subset),
         TensorDataset(x_test_subset, y_test_subset)
     )
 

@@ -157,11 +157,9 @@ class OmniglotNShot:
                 download=True,
                 transform=transforms.Compose(
                     [
-                        lambda x: Image.open(x).convert('L'),
-                        lambda x: x.resize((imgsz, imgsz)),
+                        lambda x: Image.open(x).convert('L'), lambda x: x.resize((imgsz, imgsz)),
                         lambda x: np.reshape(x, (imgsz, imgsz, 1)),
-                        lambda x: np.transpose(x, [2, 0, 1]),
-                        lambda x: x / 255.
+                        lambda x: np.transpose(x, [2, 0, 1]), lambda x: x / 255.
                     ]
                 ),
             )
@@ -291,8 +289,7 @@ class OmniglotNShot:
             y_qrys = np.array(y_qrys, dtype=np.int).reshape(self.batchsz, querysz)
 
             x_spts, y_spts, x_qrys, y_qrys = [
-                torch.from_numpy(z).to(self.device)
-                for z in [x_spts, y_spts, x_qrys, y_qrys]
+                torch.from_numpy(z).to(self.device) for z in [x_spts, y_spts, x_qrys, y_qrys]
             ]
 
             data_cache.append([x_spts, y_spts, x_qrys, y_qrys])

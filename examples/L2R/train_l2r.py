@@ -148,9 +148,7 @@ def run_L2R(args, mnist_train, mnist_test):
                 valid = iter(valid_loader)
                 valid_x, valid_label = valid.next()
             train_x, train_label, valid_x, valid_label = (
-                train_x.to(args.device),
-                train_label.to(args.device),
-                valid_x.to(args.device),
+                train_x.to(args.device), train_label.to(args.device), valid_x.to(args.device),
                 valid_label.to(args.device)
             )
 

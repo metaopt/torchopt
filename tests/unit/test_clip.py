@@ -48,8 +48,7 @@ class HighLevelInplace(unittest.TestCase):
 
     def test_sgd(self) -> None:
         chain = torchopt.combine.chain(
-            torchopt.clip.clip_grad_norm(max_norm=self.max_norm),
-            torchopt.sgd(lr=self.lr)
+            torchopt.clip.clip_grad_norm(max_norm=self.max_norm), torchopt.sgd(lr=self.lr)
         )
         optim = torchopt.Optimizer(self.model.parameters(), chain)
         optim_ref = torch.optim.SGD(self.model_ref.parameters(), self.lr)

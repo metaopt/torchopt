@@ -66,10 +66,9 @@ def draw_torchopt():
     pred = net(xs, meta_param)
     loss = F.mse_loss(pred, torch.ones_like(pred))
     # draw computation graph
-    torchopt.visual.make_dot(
-        loss,
-        [net_state_0, net_state_1, {meta_param: "meta_param"}]
-    ).render(
+    torchopt.visual.make_dot(loss, [net_state_0, net_state_1, {
+        meta_param: "meta_param"
+    }]).render(
         "torchopt_graph", format="svg"
     )
 
