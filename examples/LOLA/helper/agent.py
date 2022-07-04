@@ -46,9 +46,7 @@ class Agent():
 
     def set_virtual(self):
         self.virtual_theta = theta_model(self.theta)
-        self.virtual_optimiser = torchopt.MetaSGD(
-            self.virtual_theta, lr=self.args.lr_in
-        )
+        self.virtual_optimiser = torchopt.MetaSGD(self.virtual_theta, lr=self.args.lr_in)
 
     def value_update(self, loss):
         self.value_optimizer.zero_grad()

@@ -55,18 +55,13 @@ def clip_grad_norm(
         with torch.no_grad():
             if norm_type == inf:
                 norms = [p.abs().max().to(device) for p in available_updates]
-                total_norm = norms[0] if len(norms) == 1 else torch.max(
-                    torch.stack(norms)
-                )
+                total_norm = norms[0] if len(norms) == 1 else torch.max(torch.stack(norms))
             else:
                 total_norm = torch.norm(
-                    torch.stack(
-                        [torch.norm(p, norm_type).to(device) for p in available_updates]
-                    ), norm_type
+                    torch.stack([torch.norm(p, norm_type).to(device) for p in available_updates]),
+                    norm_type
                 )
-            if error_if_nonfinite and torch.logical_or(
-                total_norm.isnan(), total_norm.isinf()
-            ):
+            if error_if_nonfinite and torch.logical_or(total_norm.isnan(), total_norm.isinf()):
                 raise RuntimeError(
                     f'The total norm of order {norm_type} for gradients from '
                     '`parameters` is non-finite, so it cannot be clipped. To disable '

@@ -28,7 +28,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 This example shows how to use higher to do Model Agnostic Meta Learning (MAML)
 for few-shot Omniglot classification.
@@ -63,17 +62,10 @@ plt.style.use('bmh')
 def main():
     argparser = argparse.ArgumentParser()
     argparser.add_argument('--n_way', type=int, help='n way', default=5)
+    argparser.add_argument('--k_spt', type=int, help='k shot for support set', default=5)
+    argparser.add_argument('--k_qry', type=int, help='k shot for query set', default=15)
     argparser.add_argument(
-        '--k_spt', type=int, help='k shot for support set', default=5
-    )
-    argparser.add_argument(
-        '--k_qry', type=int, help='k shot for query set', default=15
-    )
-    argparser.add_argument(
-        '--task_num',
-        type=int,
-        help='meta batch size, namely task num',
-        default=32
+        '--task_num', type=int, help='meta batch size, namely task num', default=32
     )
     argparser.add_argument('--seed', type=int, help='random seed', default=1)
     args = argparser.parse_args()
@@ -103,12 +95,20 @@ def main():
     # and the parameters needed to be manually updated and copied
     # for the updates.
     net = nn.Sequential(
-        nn.Conv2d(1, 64, 3), nn.BatchNorm2d(64, momentum=1., affine=True),
-        nn.ReLU(inplace=False), nn.MaxPool2d(2, 2), nn.Conv2d(64, 64, 3),
-        nn.BatchNorm2d(64, momentum=1., affine=True), nn.ReLU(inplace=False),
-        nn.MaxPool2d(2, 2), nn.Conv2d(64, 64, 3),
-        nn.BatchNorm2d(64, momentum=1., affine=True), nn.ReLU(inplace=False),
-        nn.MaxPool2d(2, 2), nn.Flatten(), nn.Linear(64, args.n_way)
+        nn.Conv2d(1, 64, 3),
+        nn.BatchNorm2d(64, momentum=1., affine=True),
+        nn.ReLU(inplace=False),
+        nn.MaxPool2d(2, 2),
+        nn.Conv2d(64, 64, 3),
+        nn.BatchNorm2d(64, momentum=1., affine=True),
+        nn.ReLU(inplace=False),
+        nn.MaxPool2d(2, 2),
+        nn.Conv2d(64, 64, 3),
+        nn.BatchNorm2d(64, momentum=1., affine=True),
+        nn.ReLU(inplace=False),
+        nn.MaxPool2d(2, 2),
+        nn.Flatten(),
+        nn.Linear(64, args.n_way)
     ).to(device)
 
     # We will use Adam to (meta-)optimize the initial parameters
@@ -242,9 +242,7 @@ def test(db, net, epoch, log):
 
     qry_losses = torch.cat(qry_losses).mean().item()
     qry_accs = 100. * torch.cat(qry_accs).float().mean().item()
-    print(
-        f'[Epoch {epoch+1:.2f}] Test Loss: {qry_losses:.2f} | Acc: {qry_accs:.2f}'
-    )
+    print(f'[Epoch {epoch+1:.2f}] Test Loss: {qry_losses:.2f} | Acc: {qry_accs:.2f}')
     log.append(
         {
             'epoch': epoch + 1,

@@ -67,9 +67,7 @@ def stop_gradient(target):
     jax.tree_map(f, true_target)
 
 
-def extract_state_dict(
-    mod, copy=False, *, with_buffer=True, enable_visual=False, visual_prefix=''
-):
+def extract_state_dict(mod, copy=False, *, with_buffer=True, enable_visual=False, visual_prefix=''):
     """Extract target state.
 
     Since a tensor use `grad_fn` to connect itself with the previous computation

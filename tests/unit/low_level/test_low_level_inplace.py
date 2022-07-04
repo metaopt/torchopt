@@ -35,9 +35,7 @@ class LowLevelInplace(unittest.TestCase):
         cls.model_backup = copy.deepcopy(cls.model)
 
         cls.batch_size = 2
-        cls.dataset = data.TensorDataset(
-            torch.randn(2, 3, 224, 224), torch.randint(0, 1000, (2,))
-        )
+        cls.dataset = data.TensorDataset(torch.randn(2, 3, 224, 224), torch.randint(0, 1000, (2,)))
         cls.loader = data.DataLoader(cls.dataset, cls.batch_size, False)
 
         cls.lr = 1e-3
@@ -171,9 +169,7 @@ class LowLevelInplace(unittest.TestCase):
 
     def test_rmsprop(self) -> None:
         fun, params, buffers = functorch.make_functional_with_buffers(self.model)
-        optim = torchopt.rmsprop(
-            self.lr, decay=0.99
-        )  # pytorch uses 0.99 as the default value
+        optim = torchopt.rmsprop(self.lr, decay=0.99)  # pytorch uses 0.99 as the default value
         optim_state = optim.init(params)
         optim_ref = torch.optim.RMSprop(self.model_ref.parameters(), self.lr)
         for xs, ys in self.loader:

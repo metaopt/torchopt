@@ -75,9 +75,7 @@ class AdamOp(object):
         @staticmethod
         def forward(ctx: Any, *args: Any, **kwargs: Any) -> Any:
             new_mu, new_nu, (b1, b2, eps, eps_root, count) = args
-            new_updates = adam_op.forwardUpdates(
-                new_mu, new_nu, b1, b2, eps, eps_root, count
-            )
+            new_updates = adam_op.forwardUpdates(new_mu, new_nu, b1, b2, eps, eps_root, count)
             ctx.save_for_backward(new_updates, new_mu, new_nu)
             ctx.others = (b1, b2, eps, eps_root, count)
             return new_updates
@@ -87,9 +85,7 @@ class AdamOp(object):
             dupdates = args[0]
             updates, new_mu, new_nu = ctx.saved_tensors
             b1, b2, eps, eps_root, count = ctx.others
-            result = adam_op.backwardUpdates(
-                dupdates, updates, new_mu, new_nu, b1, b2, count
-            )
+            result = adam_op.backwardUpdates(dupdates, updates, new_mu, new_nu, b1, b2, count)
             return result[0], result[1], None
 
     def __init__(self, b1=0.9, b2=0.999, eps=1e-8, eps_root=0., inplace=True):

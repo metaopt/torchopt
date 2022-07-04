@@ -50,9 +50,7 @@ class Traj(NamedTuple):
 def sample_traj(env, task, policy):
     env.reset_task(task)
     obs_buf = np.zeros(shape=(TRAJ_LEN, TRAJ_NUM, STATE_DIM), dtype=np.float32)
-    next_obs_buf = np.zeros(
-        shape=(TRAJ_LEN, TRAJ_NUM, STATE_DIM), dtype=np.float32
-    )
+    next_obs_buf = np.zeros(shape=(TRAJ_LEN, TRAJ_NUM, STATE_DIM), dtype=np.float32)
     acs_buf = np.zeros(shape=(TRAJ_LEN, TRAJ_NUM), dtype=np.int8)
     rews_buf = np.zeros(shape=(TRAJ_LEN, TRAJ_NUM), dtype=np.float32)
     gammas_buf = np.zeros(shape=(TRAJ_LEN, TRAJ_NUM), dtype=np.float32)
@@ -72,13 +70,7 @@ def sample_traj(env, task, policy):
                 rews_buf[step][batch] = rew
                 gammas_buf[step][batch] = done * GAMMA
                 ob = next_ob
-    return Traj(
-        obs=obs_buf,
-        acs=acs_buf,
-        next_obs=next_obs_buf,
-        rews=rews_buf,
-        gammas=gammas_buf
-    )
+    return Traj(obs=obs_buf, acs=acs_buf, next_obs=next_obs_buf, rews=rews_buf, gammas=gammas_buf)
 
 
 def a2c_loss(traj, policy, value_coef):
@@ -184,9 +176,7 @@ def main(args):
             train_post_reward_ls.append(np.sum(post_trajs.rews, axis=0).mean())
         outer_opt.step()
 
-        test_pre_reward_ls, test_post_reward_ls = evaluate(
-            env, args.seed, TASK_NUM, policy
-        )
+        test_pre_reward_ls, test_post_reward_ls = evaluate(env, args.seed, TASK_NUM, policy)
 
         train_pre_reward.append(sum(train_pre_reward_ls) / TASK_NUM)
         train_post_reward.append(sum(train_post_reward_ls) / TASK_NUM)
@@ -205,8 +195,6 @@ if __name__ == "__main__":
         description='Reinforcement learning with '
         'Model-Agnostic Meta-Learning (MAML) - Train'
     )
-    parser.add_argument(
-        '--seed', type=int, default=1, help='random seed (default: 1)'
-    )
+    parser.add_argument('--seed', type=int, default=1, help='random seed (default: 1)')
     args = parser.parse_args()
     main(args)

@@ -78,16 +78,12 @@ class Memory():
         stochastic_nodes = self_logprobs + other_logprobs
 
         # dice objective:
-        dice_objective = torch.mean(
-            torch.sum(magic_box(dependencies) * discounted_rewards, dim=1)
-        )
+        dice_objective = torch.mean(torch.sum(magic_box(dependencies) * discounted_rewards, dim=1))
 
         if use_baseline:
             # variance_reduction:
             baseline_term = torch.mean(
-                torch.sum(
-                    (1 - magic_box(stochastic_nodes)) * discounted_values, dim=1
-                )
+                torch.sum((1 - magic_box(stochastic_nodes)) * discounted_values, dim=1)
             )
             dice_objective = dice_objective + baseline_term
 

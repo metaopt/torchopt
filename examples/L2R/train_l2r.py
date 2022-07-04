@@ -60,22 +60,11 @@ def run_baseline(args, mnist_train, mnist_test):
     args.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     train_set, val_set, test_set = get_imbalance_dataset(
-        mnist_train,
-        mnist_test,
-        pos_ratio=pos_ratio,
-        ntrain=ntrain,
-        nval=nval,
-        ntest=ntest
+        mnist_train, mnist_test, pos_ratio=pos_ratio, ntrain=ntrain, nval=nval, ntest=ntest
     )
-    train_loader = DataLoader(
-        train_set, batch_size=args.batch_size, shuffle=True, num_workers=4
-    )
-    valid_loader = DataLoader(
-        val_set, batch_size=args.batch_size, shuffle=True, num_workers=1
-    )
-    test_loader = DataLoader(
-        test_set, batch_size=args.batch_size, shuffle=True, num_workers=1
-    )
+    train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, num_workers=4)
+    valid_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=True, num_workers=1)
+    test_loader = DataLoader(test_set, batch_size=args.batch_size, shuffle=True, num_workers=1)
     model = LeNet5(args).to(args.device)
 
     model_optimiser = torch.optim.Adam(model.parameters(), lr=args.lr)
@@ -86,8 +75,7 @@ def run_baseline(args, mnist_train, mnist_test):
     for _epoch in range(epoch):
         model.train()
         for idx, (train_x, train_label) in enumerate(train_loader):
-            train_x, train_label = train_x.to(args.device
-                                              ), train_label.to(args.device)
+            train_x, train_label = train_x.to(args.device), train_label.to(args.device)
             outer_loss = model.outer_loss(train_x, train_label)
 
             model_optimiser.zero_grad()
@@ -99,11 +87,7 @@ def run_baseline(args, mnist_train, mnist_test):
 
             if step % 10 == 0 and step > 0:
                 running_train_mean = np.mean(np.array(running_train_loss))
-                print(
-                    "EPOCH: {}, BATCH: {}, LOSS: {}".format(
-                        _epoch, idx, running_train_mean
-                    )
-                )
+                print("EPOCH: {}, BATCH: {}, LOSS: {}".format(_epoch, idx, running_train_mean))
                 writer.add_scalar('running_train_loss', running_train_mean, step)
                 running_train_loss = []
 
@@ -118,11 +102,7 @@ def run_baseline(args, mnist_train, mnist_test):
         writer.add_scalar('train_acc', train_acc, _epoch)
         writer.add_scalar('test_acc', test_acc, _epoch)
         test_acc_result.append(test_acc)
-        print(
-            "EPOCH: {}, TRAIN_ACC: {}, TEST_ACC: {}".format(
-                _epoch, train_acc, test_acc
-            )
-        )
+        print("EPOCH: {}, TRAIN_ACC: {}, TEST_ACC: {}".format(_epoch, train_acc, test_acc))
     return test_acc_result
 
 
@@ -144,22 +124,11 @@ def run_L2R(args, mnist_train, mnist_test):
     args.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     train_set, val_set, test_set = get_imbalance_dataset(
-        mnist_train,
-        mnist_test,
-        pos_ratio=pos_ratio,
-        ntrain=ntrain,
-        nval=nval,
-        ntest=ntest
+        mnist_train, mnist_test, pos_ratio=pos_ratio, ntrain=ntrain, nval=nval, ntest=ntest
     )
-    train_loader = DataLoader(
-        train_set, batch_size=args.batch_size, shuffle=True, num_workers=2
-    )
-    valid_loader = DataLoader(
-        val_set, batch_size=args.batch_size, shuffle=True, num_workers=1
-    )
-    test_loader = DataLoader(
-        test_set, batch_size=args.batch_size, shuffle=True, num_workers=1
-    )
+    train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, num_workers=2)
+    valid_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=True, num_workers=1)
+    test_loader = DataLoader(test_set, batch_size=args.batch_size, shuffle=True, num_workers=1)
     model = LeNet5(args).to(args.device)
     model_optimiser = torchopt.MetaSGD(model, lr=args.lr)
     real_model_optimiser = torch.optim.Adam(model.parameters(), lr=args.lr)
@@ -178,10 +147,12 @@ def run_L2R(args, mnist_train, mnist_test):
             except BaseException:
                 valid = iter(valid_loader)
                 valid_x, valid_label = valid.next()
-            train_x, train_label, valid_x, valid_label = train_x.to(
-                args.device
-            ), train_label.to(args.device), valid_x.to(args.device
-                                                       ), valid_label.to(args.device)
+            train_x, train_label, valid_x, valid_label = (
+                train_x.to(args.device),
+                train_label.to(args.device),
+                valid_x.to(args.device),
+                valid_label.to(args.device)
+            )
 
             # reset meta-parameter weights
             model.reset_meta(size=train_x.size(0))
@@ -223,8 +194,9 @@ def run_L2R(args, mnist_train, mnist_test):
                 running_valid_mean = np.mean(np.array(running_valid_loss))
                 running_train_mean = np.mean(np.array(running_train_loss))
                 print(
-                    "EPOCH: {}, BATCH: {}, WEIGHTED_TRAIN_LOSS: {}, VALID_LOSS: {}"
-                    .format(_epoch, idx, running_train_mean, running_valid_mean)
+                    "EPOCH: {}, BATCH: {}, WEIGHTED_TRAIN_LOSS: {}, VALID_LOSS: {}".format(
+                        _epoch, idx, running_train_mean, running_valid_mean
+                    )
                 )
                 running_valid_loss = []
                 running_train_loss = []
@@ -242,11 +214,7 @@ def run_L2R(args, mnist_train, mnist_test):
         writer.add_scalar('train_acc', train_acc, _epoch)
         writer.add_scalar('test_acc', test_acc, _epoch)
         test_acc_result.append(test_acc)
-        print(
-            "EPOCH: {}, TRAIN_ACC: {}, TEST_ACC: {}".format(
-                _epoch, train_acc, test_acc
-            )
-        )
+        print("EPOCH: {}, TRAIN_ACC: {}, TEST_ACC: {}".format(_epoch, train_acc, test_acc))
     return test_acc_result
 
 

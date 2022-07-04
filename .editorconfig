@@ -10,22 +10,26 @@ indent_size = 4
 trim_trailing_whitespace = true
 insert_final_newline = true
 
-[**.md]
+[*.py]
+indent_size = 4
+src_paths=torchopt,tests,examples
+
+[*.md]
 indent_size = 2
 x-soft-wrap-text = true
 
-[**.rst]
+[*.rst]
 indent_size = 4
 x-soft-wrap-text = true
 
 [Makefile]
 indent_style = tab
 
-[**.cpp]
+[*.cpp]
 indent_size = 2
 
-[**.h]
+[*.h]
 indent_size = 2
 
-[**.cuh?]
+[*.cuh?]
 indent_size = 2

@@ -58,22 +58,17 @@ def draw_torchopt():
     pred = net(xs, meta_param)
     loss = F.mse_loss(pred, torch.ones_like(pred))
     # set enable_visual
-    net_state_0 = torchopt.extract_state_dict(
-        net, enable_visual=True, visual_prefix='step0.'
-    )
+    net_state_0 = torchopt.extract_state_dict(net, enable_visual=True, visual_prefix='step0.')
     optimizer.step(loss)
     # set enable_visual
-    net_state_1 = torchopt.extract_state_dict(
-        net, enable_visual=True, visual_prefix='step1.'
-    )
+    net_state_1 = torchopt.extract_state_dict(net, enable_visual=True, visual_prefix='step1.')
 
     pred = net(xs, meta_param)
     loss = F.mse_loss(pred, torch.ones_like(pred))
     # draw computation graph
     torchopt.visual.make_dot(
-        loss, [net_state_0, net_state_1, {
-            meta_param: "meta_param"
-        }]
+        loss,
+        [net_state_0, net_state_1, {meta_param: "meta_param"}]
     ).render(
         "torchopt_graph", format="svg"
     )

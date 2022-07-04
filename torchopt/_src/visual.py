@@ -57,16 +57,12 @@ def get_fn_name(fn, show_attrs, max_attr_chars):
     def truncate(s):
         return s[:col2width - 3] + "..." if len(s) > col2width else s
 
-    params = '\n'.join(
-        attrstr % (k, truncate(str(v))) for (k, v) in attrs.items()
-    )
+    params = '\n'.join(attrstr % (k, truncate(str(v))) for (k, v) in attrs.items())
     return name + '\n' + sep + '\n' + params
 
 
 # mypy: ignore-errors
-def make_dot(
-    var, params=None, show_attrs=False, show_saved=False, max_attr_chars=50
-):
+def make_dot(var, params=None, show_attrs=False, show_saved=False, max_attr_chars=50):
     """Produces Graphviz representation of PyTorch autograd graph.
 
     If a node represents a backward function, it is gray. Otherwise, the node
@@ -146,9 +142,7 @@ def make_dot(
 
     def get_var_name_with_flag(var):
         if var in param_map:
-            return '%s\n %s' % (
-                param_map[var][0], size_to_str(param_map[var][1].size())
-            )
+            return '%s\n %s' % (param_map[var][0], size_to_str(param_map[var][1].size()))
         else:
             return None
 

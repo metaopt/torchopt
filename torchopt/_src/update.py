@@ -35,11 +35,7 @@ import jax
 from torchopt._src import base
 
 
-def apply_updates(
-    params: base.Params,
-    updates: base.Updates,
-    inplace: bool = True
-) -> base.Params:
+def apply_updates(params: base.Params, updates: base.Updates, inplace: bool = True) -> base.Params:
     """Applies an update to the corresponding parameters.
 
     This is a utility functions that applies an update to a set of parameters,

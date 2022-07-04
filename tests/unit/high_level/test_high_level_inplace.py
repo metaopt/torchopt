@@ -34,9 +34,7 @@ class HighLevelInplace(unittest.TestCase):
         cls.model_backup = copy.deepcopy(cls.model)
 
         cls.batch_size = 2
-        cls.dataset = data.TensorDataset(
-            torch.randn(2, 3, 224, 224), torch.randint(0, 1000, (2,))
-        )
+        cls.dataset = data.TensorDataset(torch.randn(2, 3, 224, 224), torch.randint(0, 1000, (2,)))
         cls.loader = data.DataLoader(cls.dataset, cls.batch_size, False)
 
         cls.lr = 1e-3
@@ -62,9 +60,7 @@ class HighLevelInplace(unittest.TestCase):
             optim_ref.step()
 
         with torch.no_grad():
-            for p, p_ref in zip(
-                self.model.parameters(), self.model_ref.parameters()
-            ):
+            for p, p_ref in zip(self.model.parameters(), self.model_ref.parameters()):
                 mse = F.mse_loss(p, p_ref)
                 self.assertAlmostEqual(float(mse), 0)
             for b, b_ref in zip(self.model.buffers(), self.model_ref.buffers()):
@@ -89,9 +85,7 @@ class HighLevelInplace(unittest.TestCase):
             optim_ref.step()
 
         with torch.no_grad():
-            for p, p_ref in zip(
-                self.model.parameters(), self.model_ref.parameters()
-            ):
+            for p, p_ref in zip(self.model.parameters(), self.model_ref.parameters()):
                 mse = F.mse_loss(p, p_ref)
                 self.assertAlmostEqual(float(mse), 0)
             for b, b_ref in zip(self.model.buffers(), self.model_ref.buffers()):
@@ -120,9 +114,7 @@ class HighLevelInplace(unittest.TestCase):
             optim_ref.step()
 
         with torch.no_grad():
-            for p, p_ref in zip(
-                self.model.parameters(), self.model_ref.parameters()
-            ):
+            for p, p_ref in zip(self.model.parameters(), self.model_ref.parameters()):
                 mse = F.mse_loss(p, p_ref)
                 self.assertAlmostEqual(float(mse), 0)
             for b, b_ref in zip(self.model.buffers(), self.model_ref.buffers()):
@@ -151,9 +143,7 @@ class HighLevelInplace(unittest.TestCase):
             optim_ref.step()
 
         with torch.no_grad():
-            for p, p_ref in zip(
-                self.model.parameters(), self.model_ref.parameters()
-            ):
+            for p, p_ref in zip(self.model.parameters(), self.model_ref.parameters()):
                 mse = F.mse_loss(p, p_ref)
                 self.assertAlmostEqual(float(mse), 0)
             for b, b_ref in zip(self.model.buffers(), self.model_ref.buffers()):
@@ -180,9 +170,7 @@ class HighLevelInplace(unittest.TestCase):
             optim_ref.step()
 
         with torch.no_grad():
-            for p, p_ref in zip(
-                self.model.parameters(), self.model_ref.parameters()
-            ):
+            for p, p_ref in zip(self.model.parameters(), self.model_ref.parameters()):
                 mse = F.mse_loss(p, p_ref)
                 self.assertAlmostEqual(
                     float(mse), 0, delta=1e-4

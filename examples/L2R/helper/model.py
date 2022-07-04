@@ -38,9 +38,16 @@ class LeNet5(nn.Module):
     def __init__(self, args):
         super(LeNet5, self).__init__()
         self.model = nn.Sequential(
-            nn.Conv2d(1, 16, 5), nn.ReLU(), nn.MaxPool2d(2), nn.Conv2d(16, 32, 5),
-            nn.ReLU(), nn.MaxPool2d(2), nn.Flatten(), nn.Linear(512, 128), nn.ReLU(),
-            nn.Linear(128, 1), nn.Sigmoid()
+            nn.Conv2d(1, 16, 5),
+            nn.ReLU(),
+            nn.MaxPool2d(2),
+            nn.Conv2d(16, 32, 5),
+            nn.ReLU(), nn.MaxPool2d(2),
+            nn.Flatten(),
+            nn.Linear(512, 128),
+            nn.ReLU(),
+            nn.Linear(128, 1),
+            nn.Sigmoid()
         )
         self.args = args
         self.meta_weights = torch.zeros(
@@ -52,9 +59,7 @@ class LeNet5(nn.Module):
         return self.model(x).squeeze(dim=-1)
 
     def reset_meta(self, size):
-        self.meta_weights = torch.zeros(
-            size, requires_grad=True
-        ).to(self.args.device)
+        self.meta_weights = torch.zeros(size, requires_grad=True).to(self.args.device)
 
     def normalise(self):
         self.meta_weights = self.meta_weights.detach()
@@ -67,8 +72,7 @@ class LeNet5(nn.Module):
 
         # manually implement bce_loss to make the loss differentiable w.r.t self.meta_weights
         loss = -(
-            train_y * torch.log(result + 1e-10) +
-            (1 - train_y) * torch.log(1 - result + 1e-10)
+            train_y * torch.log(result + 1e-10) + (1 - train_y) * torch.log(1 - result + 1e-10)
         )
         weighted_loss = torch.sum(self.meta_weights * loss)
         return weighted_loss

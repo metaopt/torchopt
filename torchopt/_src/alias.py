@@ -98,11 +98,7 @@ def adam(
     adam_inst = transform.scale_by_accelerated_adam if use_accelerated_op else transform.scale_by_adam
     return combine.chain(
         adam_inst(
-            b1=b1,
-            b2=b2,
-            eps=eps,
-            eps_root=eps_root,
-            moment_requires_grad=moment_requires_grad
+            b1=b1, b2=b2, eps=eps, eps_root=eps_root, moment_requires_grad=moment_requires_grad
         ),
         _scale_by_lr(lr),
     )
@@ -142,9 +138,7 @@ def sgd(
     return combine.chain(
         (
             transform.trace(
-                decay=momentum,
-                nesterov=nesterov,
-                moment_requires_grad=moment_requires_grad
+                decay=momentum, nesterov=nesterov, moment_requires_grad=moment_requires_grad
             ) if momentum is not None else base.identity()
         ), _scale_by_lr(lr)
     )
@@ -196,16 +190,17 @@ def rmsprop(
 
     if centered:
         return combine.chain(
-            transform.scale_by_stddev(
-                decay=decay, eps=eps, initial_scale=initial_scale
-            ), _scale_by_lr(lr), (
+            transform.scale_by_stddev(decay=decay, eps=eps, initial_scale=initial_scale),
+            _scale_by_lr(lr),
+            (
                 transform.trace(decay=momentum, nesterov=nesterov)
                 if momentum is not None else base.identity()
             )
         )
     return combine.chain(
         transform.scale_by_rms(decay=decay, eps=eps, initial_scale=initial_scale),
-        _scale_by_lr(lr), (
+        _scale_by_lr(lr),
+        (
             transform.trace(decay=momentum, nesterov=nesterov)
             if momentum is not None else base.identity()
         )

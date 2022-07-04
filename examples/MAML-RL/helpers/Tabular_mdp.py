@@ -38,9 +38,7 @@ class TabularMDPEnv(gym.Env):
         Learning", 2016 (https://arxiv.org/abs/1611.02779)
     """
 
-    def __init__(
-        self, num_states, num_actions, max_episode_steps, seed, task={}
-    ):
+    def __init__(self, num_states, num_actions, max_episode_steps, seed, task={}):
         super(TabularMDPEnv, self).__init__()
         self.max_episode_steps = max_episode_steps
         self.num_states = num_states
@@ -54,11 +52,7 @@ class TabularMDPEnv(gym.Env):
         self._task = task
         self._transitions = task.get(
             'transitions',
-            np.full(
-                (num_states, num_actions, num_states),
-                1.0 / num_states,
-                dtype=np.float32
-            )
+            np.full((num_states, num_actions, num_states), 1.0 / num_states, dtype=np.float32)
         )
         self._rewards_mean = task.get(
             'rewards_mean', np.zeros((num_states, num_actions), dtype=np.float32)
@@ -74,8 +68,7 @@ class TabularMDPEnv(gym.Env):
 
     def sample_tasks(self, num_tasks):
         transitions = self.np_random.dirichlet(
-            np.ones(self.num_states),
-            size=(num_tasks, self.num_states, self.num_actions)
+            np.ones(self.num_states), size=(num_tasks, self.num_states, self.num_actions)
         )
         rewards_mean = self.np_random.normal(
             1.0, 1.0, size=(num_tasks, self.num_states, self.num_actions)

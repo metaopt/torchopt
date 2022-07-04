@@ -66,15 +66,10 @@ class IPD(gym.Env):
         self.payout_mat = np.array([[-2, 0], [-3, -1]])
         self.states = np.array([[1, 2], [3, 4]])
 
-        self.action_space = Tuple(
-            [Discrete(self.NUM_ACTIONS) for _ in range(self.NUM_AGENTS)]
-        )
-        self.observation_space = Tuple(
-            [OneHot(self.NUM_STATES) for _ in range(self.NUM_AGENTS)]
-        )
+        self.action_space = Tuple([Discrete(self.NUM_ACTIONS) for _ in range(self.NUM_AGENTS)])
+        self.observation_space = Tuple([OneHot(self.NUM_STATES) for _ in range(self.NUM_AGENTS)])
         self.available_actions = [
-            np.ones((batch_size, self.NUM_ACTIONS), dtype=int)
-            for _ in range(self.NUM_AGENTS)
+            np.ones((batch_size, self.NUM_ACTIONS), dtype=int) for _ in range(self.NUM_AGENTS)
         ]
 
         self.step_count = None

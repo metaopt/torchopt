@@ -47,10 +47,7 @@ class Omniglot(data.Dataset):
     training_file = 'training.pt'
     test_file = 'test.pt'
 
-
-    def __init__(
-        self, root, transform=None, target_transform=None, download=False
-    ):
+    def __init__(self, root, transform=None, target_transform=None, download=False):
         self.root = root
         self.transform = transform
         self.target_transform = target_transform
@@ -59,13 +56,9 @@ class Omniglot(data.Dataset):
             if download:
                 self.download()
             else:
-                raise RuntimeError(
-                    'Dataset not found.' + ' You can use download=True to download it'
-                )
+                raise RuntimeError('Dataset not found. You can use download=True to download it')
 
-        self.all_items = find_classes(
-            os.path.join(self.root, self.processed_folder)
-        )
+        self.all_items = find_classes(os.path.join(self.root, self.processed_folder))
         self.idx_classes = index_classes(self.all_items)
 
     def __getitem__(self, index):
@@ -143,9 +136,7 @@ def index_classes(items):
 
 class OmniglotNShot:
 
-    def __init__(
-        self, root, batchsz, n_way, k_shot, k_query, imgsz, rng, device=None
-    ):
+    def __init__(self, root, batchsz, n_way, k_shot, k_query, imgsz, rng, device=None):
         """
         Different from mnistNShot, the
         :param root:
@@ -169,7 +160,8 @@ class OmniglotNShot:
                         lambda x: Image.open(x).convert('L'),
                         lambda x: x.resize((imgsz, imgsz)),
                         lambda x: np.reshape(x, (imgsz, imgsz, 1)),
-                        lambda x: np.transpose(x, [2, 0, 1]), lambda x: x / 255.
+                        lambda x: np.transpose(x, [2, 0, 1]),
+                        lambda x: x / 255.
                     ]
                 ),
             )
@@ -183,14 +175,11 @@ class OmniglotNShot:
                     temp[label] = [img]
 
             self.x = []
-            for label, imgs in temp.items(
-            ):  # labels info deserted , each label contains 20imgs
+            for label, imgs in temp.items():  # labels info deserted , each label contains 20imgs
                 self.x.append(np.array(imgs))
 
             # as different class may have different number of imgs
-            self.x = np.array(self.x).astype(
-                np.float
-            )  # [[20 imgs],..., 1623 classes in total]
+            self.x = np.array(self.x).astype(np.float)  # [[20 imgs],..., 1623 classes in total]
             # each character contains 20 imgs
             print('data shape:', self.x.shape)  # [1623, 20, 84, 84, 1]
             temp = []  # Free memory
@@ -217,15 +206,11 @@ class OmniglotNShot:
 
         # save pointer of current read batch in total cache
         self.indexes = {"train": 0, "test": 0}
-        self.datasets = {
-            "train": self.x_train,
-            "test": self.x_test
-        }  # original data cached
+        self.datasets = {"train": self.x_train, "test": self.x_test}  # original data cached
         print("DB: train", self.x_train.shape, "test", self.x_test.shape)
 
         self.datasets_cache = {
-            "train": self.load_data_cache(self.datasets["train"]
-                                          ),  # current epoch data cached
+            "train": self.load_data_cache(self.datasets["train"]),  # current epoch data cached
             "test": self.load_data_cache(self.datasets["test"])
         }
 
@@ -281,14 +266,13 @@ class OmniglotNShot:
 
                 # shuffle inside a batch
                 perm = self.rng.permutation(self.n_way * self.k_shot)
-                x_spt = np.array(x_spt).reshape(
-                    self.n_way * self.k_shot, 1, self.resize, self.resize
-                )[perm]
-                y_spt = np.array(y_spt).reshape(self.n_way * self.k_shot)[perm]
+                x_spt = np.array(x_spt) \
+                          .reshape(self.n_way * self.k_shot, 1, self.resize, self.resize)[perm]
+                y_spt = np.array(y_spt) \
+                          .reshape(self.n_way * self.k_shot)[perm]
                 perm = self.rng.permutation(self.n_way * self.k_query)
-                x_qry = np.array(x_qry).reshape(
-                    self.n_way * self.k_query, 1, self.resize, self.resize
-                )[perm]
+                x_qry = np.array(x_qry) \
+                          .reshape(self.n_way * self.k_query, 1, self.resize, self.resize)[perm]
                 y_qry = np.array(y_qry).reshape(self.n_way * self.k_query)[perm]
 
                 # append [sptsz, 1, 84, 84] => [b, setsz, 1, 84, 84]
@@ -298,15 +282,13 @@ class OmniglotNShot:
                 y_qrys.append(y_qry)
 
             # [b, setsz, 1, 84, 84]
-            x_spts = np.array(x_spts).astype(
-                np.float32
-            ).reshape(self.batchsz, setsz, 1, self.resize, self.resize)
-            y_spts = np.array(y_spts).astype(np.int).reshape(self.batchsz, setsz)
+            x_spts = np.array(x_spts, dtype=np.float32) \
+                       .reshape(self.batchsz, setsz, 1, self.resize, self.resize)
+            y_spts = np.array(y_spts, dtype=np.int).reshape(self.batchsz, setsz)
             # [b, qrysz, 1, 84, 84]
-            x_qrys = np.array(x_qrys).astype(
-                np.float32
-            ).reshape(self.batchsz, querysz, 1, self.resize, self.resize)
-            y_qrys = np.array(y_qrys).astype(np.int).reshape(self.batchsz, querysz)
+            x_qrys = np.array(x_qrys, dtype=np.float32) \
+                       .reshape(self.batchsz, querysz, 1, self.resize, self.resize)
+            y_qrys = np.array(y_qrys, dtype=np.int).reshape(self.batchsz, querysz)
 
             x_spts, y_spts, x_qrys, y_qrys = [
                 torch.from_numpy(z).to(self.device)
