@@ -12,46 +12,47 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-from typing import Union
+from typing import Iterable, Union
 
 import jax
 import torch
 
+from TorchOpt._src import base
 from TorchOpt._src.alias import adam, rmsprop, sgd
 from TorchOpt._src.pytypes import ScalarOrSchedule
 from TorchOpt._src.update import apply_updates
 
 
 class Optimizer(object):
-  """A high-level base class that has the similar with `torch.optim.Optimier`"""
+  """A high-level base class that has the similar with `torch.optim.Optimier`."""
 
-  def __init__(self, params, impl):
+  def __init__(self, params: Iterable, impl: base.GradientTransformation):
+    """The `init` function.
+
+    Args:
+      params (iterable): an iterable of `torch.Tensor`s. Specifies what Tensors should be optimized.
+      impl (base.GradientTransformation): a low level optimizer function, it could be 
+        a optimizer function provided by `alias.py` or a customerized `chain` provided by 
+        `combine.py`. Note that use `MetaOptimizer(sgd())` or `MetaOptimizer(chain(sgd())) 
+        is equavalent to `SGD`.
     """
-        Args:
-          params (iterable): an iterable of `torch.Tensor`s. Specifies what Tensors should be optimized.
-          impl (base.GradientTransformation): a low level optimizer function, it could be 
-            a optimizer function provided by `alias.py` or a customerized `chain` provided by 
-            `combine.py`. Note that use `MetaOptimizer(sgd())` or `MetaOptimizer(chain(sgd())) 
-            is equavalent to `SGD`.
-
-        """
     if not isinstance(params, list):
       params = list(params)
     self.impl = impl
-    self.param_groups = []
-    self.param_tree_groups = []
-    self.state_groups = []
+    self.param_groups = []  # type: ignore
+    self.param_tree_groups = []  # type: ignore
+    self.state_groups = []  # type: ignore
     self.add_param_group(params)
 
   def zero_grad(self, set_to_none: bool = False):
     """Sets the gradients of all optimized `torch.Tensor`s to zero.
 
-        The behivour is similar to `torch.optim.Optimizer.zero_grad`.
+    The behivour is similar to `torch.optim.Optimizer.zero_grad`.
 
-        Args:
-          set_to_none (bool): instead of setting to zero, set the grads to None.
+    Args:
+      set_to_none (bool): instead of setting to zero, set the grads to None.
 
-        """
+    """
     for group in self.param_groups:
       if set_to_none:
 
@@ -73,20 +74,27 @@ class Optimizer(object):
       jax.tree_map(f, group)
 
   def state_dict(self):
+    """Returns the state of the optimizer."""
     return self.state_groups
 
   def load_state_dict(self, state_dict):
+    """Loads the optimizer state.
+
+    Args:
+        state_dict (dict): optimizer state. Should be an object returned
+            from a call to :meth:`state_dict`.
+    """
     self.state_groups = state_dict
 
   def step(self, closure=None):
     """Performs a single optimization step (parameter update).
 
-        The behivour is similar to `torch.optim.Optimizer.step`.
+    The behivour is similar to `torch.optim.Optimizer.step`.
 
-        Args:
-          closure (callable, optional): A closure that reevaluates the model and returns the loss.
+    Args:
+      closure (callable, optional): A closure that reevaluates the model and returns the loss.
 
-        """
+    """
     loss = None
     if closure is not None:
       with torch.enable_grad():
@@ -121,11 +129,13 @@ class SGD(Optimizer):
     momentum: Union[float, None] = None,
     nesterov: bool = False
   ):
+    """The `init` function.
+
+    Args:
+      params (iterable): an iterable of `torch.Tensor`s. Specifies what Tensors should be optimized.
+      args: other arguments see `alias.adam`.
+
     """
-        Args:
-          params (iterable): an iterable of `torch.Tensor`s. Specifies what Tensors should be optimized.
-          args: other arguments see `alias.adam`.
-        """
     super().__init__(
       params,
       sgd(
@@ -150,11 +160,12 @@ class Adam(Optimizer):
     eps_root: float = 0.0,
     use_accelerated_op: bool = False
   ):
+    """The `init` function.
+
+    Args:
+      params (iterable): an iterable of `torch.Tensor`s. Specifies what Tensors should be optimized.
+      args: other arguments see `alias.sgd`.
     """
-        Args:
-          params (iterable): an iterable of `torch.Tensor`s. Specifies what Tensors should be optimized.
-          args: other arguments see `alias.sgd`.
-        """
     super().__init__(
       params,
       adam(
@@ -183,11 +194,12 @@ class RMSProp(Optimizer):
     momentum: Union[float, None] = None,
     nesterov: bool = False
   ):
+    """The `init` function.
+
+    Args:
+      params (iterable): an iterable of `torch.Tensor`s. Specifies what Tensors should be optimized.
+      args: other arguments see `alias.sgd`.
     """
-        Args:
-          params (iterable): an iterable of `torch.Tensor`s. Specifies what Tensors should be optimized.
-          args: other arguments see `alias.sgd`.
-        """
     super().__init__(
       params,
       rmsprop(

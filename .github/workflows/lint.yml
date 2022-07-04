@@ -36,9 +36,9 @@ jobs:
     - name: mypy
       run: |
         make mypy
-    - name: docstyle
-      run: |
-        make docstyle
+    # - name: docstyle
+    #   run: |
+    #     make docstyle
     # - name: spelling
     #   run: |
     #     make spelling

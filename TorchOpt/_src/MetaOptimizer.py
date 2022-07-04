@@ -45,13 +45,13 @@ class MetaOptimizer(object):
   def step(self, loss: torch.Tensor):
     """Compute the gradients of the loss to the network parameters and update network parameters.
 
-        Graph of the derivative will be constructed, allowing to compute higher order derivative products.
-        We use the differentiable optimizer (pass argument inplace=False) to scale the gradients and update
-        the network parameters without modifying tensors in-place.
+    Graph of the derivative will be constructed, allowing to compute higher order derivative products.
+    We use the differentiable optimizer (pass argument inplace=False) to scale the gradients and update
+    the network parameters without modifying tensors in-place.
 
-        Args:
-          loss (torch.Tensor): the loss that is used to compute the gradients to the network parameters.
-        """
+    Args:
+      loss (torch.Tensor): the loss that is used to compute the gradients to the network parameters.
+    """
     # step parameter only
     for idx, (state, param_containers) in enumerate(
       zip(self.state_groups, self.param_containers_groups)
@@ -83,9 +83,9 @@ class MetaOptimizer(object):
   def state_dict(self):
     """Extract the references of the optimizer states.
 
-        Note that the states are references, so any in-place operations will
-        change the states inside `MetaOptimizer` at the same time.
-        """
+    Note that the states are references, so any in-place operations will
+    change the states inside `MetaOptimizer` at the same time.
+    """
     out_groups = tuple(group for group in self.state_groups)
     return out_groups
 
@@ -98,18 +98,18 @@ class MetaSGD(MetaOptimizer):
 
   def __init__(
     self,
-    net,
+    net: nn.Module,
     lr: ScalarOrSchedule,
     momentum: Union[float, None] = None,
     nesterov: bool = False,
     moment_requires_grad: bool = True
   ):
+    """The `init` function.
+    Args:
+      net (nn.Module): a network whose parameters should be optimized.
+      args: other arguments see `alias.sgd`, here we set `moment_requires_grad=True`
+        to make tensors like momentum be differentiable.
     """
-        Args:
-          net (nn.Module): a network whose parameters should be optimized.
-          args: other arguments see `alias.sgd`, here we set `moment_requires_grad=True`
-            to make tensors like momentum be differentiable.
-        """
     super().__init__(
       net,
       sgd(
@@ -135,12 +135,12 @@ class MetaAdam(MetaOptimizer):
     moment_requires_grad: bool = True,
     use_accelerated_op: bool = False
   ):
+    """The `init` function.
+    Args:
+      net (nn.Module): a network whose parameters should be optimized.
+      args: other arguments see `alias.adam`, here we set `moment_requires_grad=True`
+        to make tensors like momentum be differentiable.
     """
-        Args:
-          net (nn.Module): a network whose parameters should be optimized.
-          args: other arguments see `alias.adam`, here we set `moment_requires_grad=True`
-            to make tensors like momentum be differentiable.
-        """
     super().__init__(
       net,
       adam(
@@ -169,12 +169,12 @@ class MetaRMSProp(MetaOptimizer):
     momentum: Union[float, None] = None,
     nesterov: bool = False
   ):
+    """The `init` function.
+    Args:
+      net (nn.Module): a network whose parameters should be optimized.
+      args: other arguments see `alias.adam`, here we set `moment_requires_grad=True`
+        to make tensors like momentum be differentiable.
     """
-        Args:
-          net (nn.Module): a network whose parameters should be optimized.
-          args: other arguments see `alias.adam`, here we set `moment_requires_grad=True`
-            to make tensors like momentum be differentiable.
-        """
     super().__init__(
       net,
       rmsprop(

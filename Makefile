@@ -96,7 +96,7 @@ spelling: doc-install
 doc-clean:
 	cd docs && make clean
 
-lint: flake8 py-format clang-format cpplint mypy docstyle spelling
+lint: flake8 py-format clang-format cpplint mypy
 
 format: py-format-install clang-format-install
 	isort $(PYTHON_FILES)
