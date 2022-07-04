@@ -14,9 +14,9 @@
 # ==============================================================================
 
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
 import torchviz
-from torch import nn
-from torch.nn import functional as F
 
 import torchopt
 

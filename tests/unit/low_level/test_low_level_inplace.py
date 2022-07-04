@@ -18,12 +18,11 @@ import unittest
 
 import functorch
 import torch
-from torch.nn import functional as F
+import torch.nn.functional as F
 from torch.utils import data
 from torchvision import models
 
 import torchopt
-from torchopt import adam, rmsprop, sgd
 
 
 class LowLevelInplace(unittest.TestCase):
@@ -50,7 +49,7 @@ class LowLevelInplace(unittest.TestCase):
 
     def test_sgd(self) -> None:
         fun, params, buffers = functorch.make_functional_with_buffers(self.model)
-        optim = sgd(self.lr)
+        optim = torchopt.sgd(self.lr)
         optim_state = optim.init(params)
         optim_ref = torch.optim.SGD(self.model_ref.parameters(), self.lr)
 
@@ -80,7 +79,7 @@ class LowLevelInplace(unittest.TestCase):
 
     def test_adam(self) -> None:
         fun, params, buffers = functorch.make_functional_with_buffers(self.model)
-        optim = adam(self.lr)
+        optim = torchopt.adam(self.lr)
         optim_state = optim.init(params)
         optim_ref = torch.optim.Adam(self.model_ref.parameters(), self.lr)
         for xs, ys in self.loader:
@@ -110,7 +109,7 @@ class LowLevelInplace(unittest.TestCase):
         self.model
         self.model_ref
         fun, params, buffers = functorch.make_functional_with_buffers(self.model)
-        optim = adam(self.lr, use_accelerated_op=True)
+        optim = torchopt.adam(self.lr, use_accelerated_op=True)
         optim_state = optim.init(params)
         optim_ref = torch.optim.Adam(self.model_ref.parameters(), self.lr)
         for xs, ys in self.loader:
@@ -142,7 +141,7 @@ class LowLevelInplace(unittest.TestCase):
         self.model.cuda()
         self.model_ref.cuda()
         fun, params, buffers = functorch.make_functional_with_buffers(self.model)
-        optim = adam(self.lr, use_accelerated_op=True)
+        optim = torchopt.adam(self.lr, use_accelerated_op=True)
         optim_state = optim.init(params)
         optim_ref = torch.optim.Adam(self.model_ref.parameters(), self.lr)
         for xs, ys in self.loader:
@@ -172,7 +171,7 @@ class LowLevelInplace(unittest.TestCase):
 
     def test_rmsprop(self) -> None:
         fun, params, buffers = functorch.make_functional_with_buffers(self.model)
-        optim = rmsprop(
+        optim = torchopt.rmsprop(
             self.lr, decay=0.99
         )  # pytorch uses 0.99 as the default value
         optim_state = optim.init(params)

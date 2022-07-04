@@ -29,16 +29,16 @@ The desgin of TorchOpt follows the philosophy of functional programming. Aligned
 ### Optax-Like API
 For those users who prefer fully functional programing, we offer Optax-Like API by passing gradients and optimizers states to the optimizer function. We design base class `torchopt.Optimizer` that has the same interface as `torch.optim.Optimizer`. Here is an example coupled with functorch:
 ```python
-import torch
-from torch import nn
-from torch import data
-from nn import functional as F
 import functorch
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
 import torchopt
+from torch.utils.data import DataLoader
 
-class Net(nn.Module):...
+class Net(nn.Module): ...
 
-class Loader(data.DataLoader):...
+class Loader(DataLoader): ...
 
 net = Net() # init
 loader = Loader()

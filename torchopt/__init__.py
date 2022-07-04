@@ -23,25 +23,10 @@ from torchopt._src import (
     visual,
 )
 from torchopt._src.alias import adam, rmsprop, sgd
-from torchopt._src.optimizer import (
-    Optimizer,
-    SGD,
-    Adam,
-    RMSProp,
-    meta,
-)
-from torchopt._src.optimizer.meta import (
-    MetaOptimizer,
-    MetaSGD,
-    MetaAdam,
-    MetaRMSProp,
-)
+from torchopt._src.optimizer import SGD, Adam, Optimizer, RMSProp, meta
+from torchopt._src.optimizer.meta import MetaAdam, MetaOptimizer, MetaRMSProp, MetaSGD
 from torchopt._src.update import apply_updates
-from torchopt._src.utils import (
-    extract_state_dict,
-    recover_state_dict,
-    stop_gradient,
-)
+from torchopt._src.utils import extract_state_dict, recover_state_dict, stop_gradient
 
 __version__ = "0.4.1"
 

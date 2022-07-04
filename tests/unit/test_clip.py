@@ -17,13 +17,12 @@ import copy
 import unittest
 
 import torch
-from torch.nn import functional as F
+import torch.nn.functional as F
 from torch.nn.utils import clip_grad_norm_
 from torch.utils import data
 from torchvision import models
 
 import torchopt
-from torchopt import Optimizer, sgd
 
 
 class HighLevelInplace(unittest.TestCase):
@@ -51,9 +50,10 @@ class HighLevelInplace(unittest.TestCase):
 
     def test_sgd(self) -> None:
         chain = torchopt.combine.chain(
-            torchopt.clip.clip_grad_norm(max_norm=self.max_norm), sgd(lr=self.lr)
+            torchopt.clip.clip_grad_norm(max_norm=self.max_norm),
+            torchopt.sgd(lr=self.lr)
         )
-        optim = Optimizer(self.model.parameters(), chain)
+        optim = torchopt.Optimizer(self.model.parameters(), chain)
         optim_ref = torch.optim.SGD(self.model_ref.parameters(), self.lr)
         for xs, ys in self.loader:
             pred = self.model(xs)

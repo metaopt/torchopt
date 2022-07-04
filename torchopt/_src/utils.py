@@ -17,9 +17,9 @@ from typing import Dict, List, NamedTuple, Union
 
 import jax
 import torch
-from torch import nn
+import torch.nn as nn
 
-from torchopt._src.MetaOptimizer import MetaOptimizer
+from torchopt._src.optimizer.meta import MetaOptimizer
 
 
 class _ModuleState(NamedTuple):

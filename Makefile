@@ -66,7 +66,7 @@ flake8: flake8-install
 	flake8 $(PYTHON_FILES) --count --select=E9,F63,F7,F82,E225,E251 --show-source --statistics
 
 py-format: py-format-install
-	isort --check $(PYTHON_FILES) && yapf -ir $(PYTHON_FILES)
+	isort --project torchopt --check $(PYTHON_FILES) && yapf -ir $(PYTHON_FILES)
 
 mypy: mypy-install
 	mypy $(PROJECT_NAME)

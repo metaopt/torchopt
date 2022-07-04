@@ -20,9 +20,10 @@ import gym
 import numpy as np
 import torch
 import torch.optim as optim
-from helpers.policy import CategoricalMLPPolicy
 
 import torchopt
+
+from .helpers.policy import CategoricalMLPPolicy
 
 TASK_NUM = 40
 TRAJ_NUM = 20

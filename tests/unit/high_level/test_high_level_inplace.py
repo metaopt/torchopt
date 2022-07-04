@@ -17,11 +17,11 @@ import copy
 import unittest
 
 import torch
-from torch.nn import functional as F
+import torch.nn.functional as F
 from torch.utils import data
 from torchvision import models
 
-from torchopt import SGD, Adam, RMSProp
+import torchopt
 
 
 class HighLevelInplace(unittest.TestCase):
@@ -47,7 +47,7 @@ class HighLevelInplace(unittest.TestCase):
         self.model_ref = copy.deepcopy(self.model_backup)
 
     def test_sgd(self) -> None:
-        optim = SGD(self.model.parameters(), self.lr)
+        optim = torchopt.SGD(self.model.parameters(), self.lr)
         optim_ref = torch.optim.SGD(self.model_ref.parameters(), self.lr)
         for xs, ys in self.loader:
             pred = self.model(xs)
@@ -74,7 +74,7 @@ class HighLevelInplace(unittest.TestCase):
                 self.assertAlmostEqual(float(mse), 0)
 
     def test_adam(self) -> None:
-        optim = Adam(self.model.parameters(), self.lr)
+        optim = torchopt.Adam(self.model.parameters(), self.lr)
         optim_ref = torch.optim.Adam(self.model_ref.parameters(), self.lr)
         for xs, ys in self.loader:
             pred = self.model(xs)
@@ -103,7 +103,7 @@ class HighLevelInplace(unittest.TestCase):
     def test_accelerated_adam_cpu(self) -> None:
         self.model
         self.model_ref
-        optim = Adam(self.model.parameters(), self.lr, use_accelerated_op=True)
+        optim = torchopt.Adam(self.model.parameters(), self.lr, use_accelerated_op=True)
         optim_ref = torch.optim.Adam(self.model_ref.parameters(), self.lr)
         for xs, ys in self.loader:
             xs = xs
@@ -134,7 +134,7 @@ class HighLevelInplace(unittest.TestCase):
     def test_accelerated_adam_cuda(self) -> None:
         self.model.cuda()
         self.model_ref.cuda()
-        optim = Adam(self.model.parameters(), self.lr, use_accelerated_op=True)
+        optim = torchopt.Adam(self.model.parameters(), self.lr, use_accelerated_op=True)
         optim_ref = torch.optim.Adam(self.model_ref.parameters(), self.lr)
         for xs, ys in self.loader:
             xs = xs.cuda()
@@ -163,7 +163,7 @@ class HighLevelInplace(unittest.TestCase):
                 self.assertAlmostEqual(float(mse), 0)
 
     def test_rmsprop(self) -> None:
-        optim = RMSProp(
+        optim = torchopt.RMSProp(
             self.model.parameters(), self.lr, decay=0.99
         )  # pytorch uses 0.99 as the default value
         optim_ref = torch.optim.RMSprop(self.model_ref.parameters(), self.lr)

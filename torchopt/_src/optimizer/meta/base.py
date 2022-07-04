@@ -15,7 +15,7 @@
 
 import jax
 import torch
-from torch import nn
+import torch.nn as nn
 
 from torchopt._src.base import GradientTransformation
 from torchopt._src.update import apply_updates
