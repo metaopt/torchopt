@@ -18,12 +18,11 @@
 
 #include <vector>
 
-#include "adam_op/common.h"
+#include "common.h"
 
 namespace TorchOpt {
-TensorArray<3> adamForwardInplace(const torch::Tensor& updates,
-                                  const torch::Tensor& mu,
-                                  const torch::Tensor& nu, const float b1,
+TensorArray<3> adamForwardInplace(torch::Tensor& updates, torch::Tensor& mu,
+                                  torch::Tensor& nu, const float b1,
                                   const float b2, const float eps,
                                   const float eps_root, const int count);
 

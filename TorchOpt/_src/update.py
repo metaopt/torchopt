@@ -35,12 +35,10 @@ import jax
 from TorchOpt._src import base
 
 
-def apply_updates(
-  params: base.Params,
-  updates: base.Updates,
-  inplace: bool = True
-) -> base.Params:
-  """Applies an update to the corresponding parameters.
+def apply_updates(params: base.Params,
+                  updates: base.Updates,
+                  inplace: bool = True) -> base.Params:
+    """Applies an update to the corresponding parameters.
 
   This is a utility functions that applies an update to a set of parameters, and
   then returns the updated parameters to the caller. As an example, the update
@@ -58,15 +56,15 @@ def apply_updates(
   Returns:
     Updated parameters, with same structure, shape and type as `params`.
   """
-  if inplace:
+    if inplace:
 
-    def f(p, u):
-      if u is not None:
-        p.data.add_(u)
-      return p
-  else:
+        def f(p, u):
+            if u is not None:
+                p.data.add_(u)
+            return p
+    else:
 
-    def f(p, u):
-      return p.add(u) if u is not None else p
+        def f(p, u):
+            return p.add(u) if u is not None else p
 
-  return jax.tree_map(f, params, updates)
+    return jax.tree_map(f, params, updates)

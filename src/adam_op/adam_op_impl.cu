@@ -18,7 +18,7 @@
 #include <vector>
 
 #include "adam_op/adam_op_impl.cuh"
-#include "include/utils.h"
+#include "utils.h"
 
 namespace TorchOpt {
 
@@ -49,9 +49,8 @@ __global__ void adamForwardInplaceCUDAKernel(
 }
 }  // namespace
 
-TensorArray<3> adamForwardInplaceCUDA(const torch::Tensor &updates,
-                                      const torch::Tensor &mu,
-                                      const torch::Tensor &nu, const float b1,
+TensorArray<3> adamForwardInplaceCUDA(torch::Tensor &updates, torch::Tensor &mu,
+                                      torch::Tensor &nu, const float b1,
                                       const float b2, const float eps,
                                       const float eps_root, const int count) {
   using other_t = float;
@@ -104,7 +103,7 @@ torch::Tensor adamForwardMuCUDA(const torch::Tensor &updates,
             mu_out.data_ptr<scalar_t>());
       }));
   return mu_out;
-}
+};
 
 namespace {
 template <typename scalar_t, typename other_t>
@@ -141,7 +140,7 @@ torch::Tensor adamForwardNuCUDA(const torch::Tensor &updates,
             nu_out.data_ptr<scalar_t>());
       }));
   return nu_out;
-}
+};
 
 namespace {
 template <typename scalar_t, typename other_t>
@@ -189,7 +188,7 @@ torch::Tensor adamForwardUpdatesCUDA(const torch::Tensor &new_mu,
             updates_out.data_ptr<scalar_t>());
       }));
   return updates_out;
-}
+};
 
 namespace {
 template <typename scalar_t, typename other_t>
@@ -227,7 +226,7 @@ TensorArray<2> adamBackwardMuCUDA(const torch::Tensor &dmu,
             dmu_out.data_ptr<scalar_t>());
       }));
   return TensorArray<2>{std::move(dupdates_out), std::move(dmu_out)};
-}
+};
 
 namespace {
 template <typename scalar_t, typename other_t>
@@ -267,7 +266,7 @@ TensorArray<2> adamBackwardNuCUDA(const torch::Tensor &dnu,
             dupdates_out.data_ptr<scalar_t>(), dnu_out.data_ptr<scalar_t>());
       }));
   return TensorArray<2>{std::move(dupdates_out), std::move(dnu_out)};
-}
+};
 
 namespace {
 template <typename scalar_t, typename other_t>
@@ -329,5 +328,5 @@ TensorArray<2> adamBackwardUpdatesCUDA(const torch::Tensor &dupdates,
             n, dmu_out.data_ptr<scalar_t>(), dnu_out.data_ptr<scalar_t>());
       }));
   return TensorArray<2>{std::move(dmu_out), std::move(dnu_out)};
-}
+};
 }  // namespace TorchOpt

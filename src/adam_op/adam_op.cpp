@@ -22,9 +22,8 @@
 #include "adam_op/adam_op_impl.h"
 
 namespace TorchOpt {
-TensorArray<3> adamForwardInplace(const torch::Tensor& updates,
-                                  const torch::Tensor& mu,
-                                  const torch::Tensor& nu, const float b1,
+TensorArray<3> adamForwardInplace(torch::Tensor& updates, torch::Tensor& mu,
+                                  torch::Tensor& nu, const float b1,
                                   const float b2, const float eps,
                                   const float eps_root, const int count) {
   if (updates.device().is_cuda()) {
@@ -35,7 +34,7 @@ TensorArray<3> adamForwardInplace(const torch::Tensor& updates,
   } else {
     throw std::runtime_error("Not implemented");
   }
-}
+};
 torch::Tensor adamForwardMu(const torch::Tensor& updates,
                             const torch::Tensor& mu, const float b1) {
   if (updates.device().is_cuda()) {
@@ -45,7 +44,7 @@ torch::Tensor adamForwardMu(const torch::Tensor& updates,
   } else {
     throw std::runtime_error("Not implemented");
   }
-}
+};
 
 torch::Tensor adamForwardNu(const torch::Tensor& updates,
                             const torch::Tensor& nu, const float b2) {
@@ -56,7 +55,7 @@ torch::Tensor adamForwardNu(const torch::Tensor& updates,
   } else {
     throw std::runtime_error("Not implemented");
   }
-}
+};
 
 torch::Tensor adamForwardUpdates(const torch::Tensor& new_mu,
                                  const torch::Tensor& new_nu, const float b1,
@@ -69,7 +68,7 @@ torch::Tensor adamForwardUpdates(const torch::Tensor& new_mu,
   } else {
     throw std::runtime_error("Not implemented");
   }
-}
+};
 
 TensorArray<2> adamBackwardMu(const torch::Tensor& dmu,
                               const torch::Tensor& updates,
@@ -81,7 +80,7 @@ TensorArray<2> adamBackwardMu(const torch::Tensor& dmu,
   } else {
     throw std::runtime_error("Not implemented");
   }
-}
+};
 
 TensorArray<2> adamBackwardNu(const torch::Tensor& dnu,
                               const torch::Tensor& updates,
@@ -93,7 +92,7 @@ TensorArray<2> adamBackwardNu(const torch::Tensor& dnu,
   } else {
     throw std::runtime_error("Not implemented");
   }
-}
+};
 
 TensorArray<2> adamBackwardUpdates(const torch::Tensor& dupdates,
                                    const torch::Tensor& updates,
@@ -109,7 +108,7 @@ TensorArray<2> adamBackwardUpdates(const torch::Tensor& dupdates,
   } else {
     throw std::runtime_error("Not implemented");
   }
-}
+};
 }  // namespace TorchOpt
 
 PYBIND11_MODULE(adam_op, m) {

@@ -39,173 +39,163 @@ inner_iters = 1
 
 
 class Traj(NamedTuple):
-  obs: np.ndarray
-  acs: np.ndarray
-  next_obs: np.ndarray
-  rews: np.ndarray
-  gammas: np.ndarray
+    obs: np.ndarray
+    acs: np.ndarray
+    next_obs: np.ndarray
+    rews: np.ndarray
+    gammas: np.ndarray
 
 
 def sample_traj(env, task, policy):
-  env.reset_task(task)
-  obs_buf = np.zeros(shape=(TRAJ_LEN, TRAJ_NUM, STATE_DIM), dtype=np.float32)
-  next_obs_buf = np.zeros(
-    shape=(TRAJ_LEN, TRAJ_NUM, STATE_DIM), dtype=np.float32
-  )
-  acs_buf = np.zeros(shape=(TRAJ_LEN, TRAJ_NUM), dtype=np.int8)
-  rews_buf = np.zeros(shape=(TRAJ_LEN, TRAJ_NUM), dtype=np.float32)
-  gammas_buf = np.zeros(shape=(TRAJ_LEN, TRAJ_NUM), dtype=np.float32)
-  with torch.no_grad():
-    for batch in range(TRAJ_NUM):
-      ob = env.reset()
-      for step in range(TRAJ_LEN):
-        ob_tensor = torch.from_numpy(ob)
-        pi, _ = policy(ob_tensor)
-        ac_tensor = pi.sample()
-        ac = ac_tensor.cpu().numpy()
-        next_ob, rew, done, info = env.step(ac)
+    env.reset_task(task)
+    obs_buf = np.zeros(shape=(TRAJ_LEN, TRAJ_NUM, STATE_DIM), dtype=np.float32)
+    next_obs_buf = np.zeros(shape=(TRAJ_LEN, TRAJ_NUM, STATE_DIM),
+                            dtype=np.float32)
+    acs_buf = np.zeros(shape=(TRAJ_LEN, TRAJ_NUM), dtype=np.int8)
+    rews_buf = np.zeros(shape=(TRAJ_LEN, TRAJ_NUM), dtype=np.float32)
+    gammas_buf = np.zeros(shape=(TRAJ_LEN, TRAJ_NUM), dtype=np.float32)
+    with torch.no_grad():
+        for batch in range(TRAJ_NUM):
+            ob = env.reset()
+            for step in range(TRAJ_LEN):
+                ob_tensor = torch.from_numpy(ob)
+                pi, _ = policy(ob_tensor)
+                ac_tensor = pi.sample()
+                ac = ac_tensor.cpu().numpy()
+                next_ob, rew, done, info = env.step(ac)
 
-        obs_buf[step][batch] = ob
-        next_obs_buf[step][batch] = next_ob
-        acs_buf[step][batch] = ac
-        rews_buf[step][batch] = rew
-        gammas_buf[step][batch] = done * GAMMA
-        ob = next_ob
-  return Traj(
-    obs=obs_buf,
-    acs=acs_buf,
-    next_obs=next_obs_buf,
-    rews=rews_buf,
-    gammas=gammas_buf
-  )
+                obs_buf[step][batch] = ob
+                next_obs_buf[step][batch] = next_ob
+                acs_buf[step][batch] = ac
+                rews_buf[step][batch] = rew
+                gammas_buf[step][batch] = done * GAMMA
+                ob = next_ob
+    return Traj(obs=obs_buf,
+                acs=acs_buf,
+                next_obs=next_obs_buf,
+                rews=rews_buf,
+                gammas=gammas_buf)
 
 
 def a2c_loss(traj, policy, value_coef):
-  lambdas = np.ones_like(traj.gammas) * LAMBDA
-  _, next_values = policy(torch.from_numpy(traj.next_obs))
-  next_values = torch.squeeze(next_values, -1).detach().numpy()
-  # Work backwards to compute `G_{T-1}`, ..., `G_0`.
-  returns = []
-  g = next_values[-1, :]
-  for i in reversed(range(next_values.shape[0])):
-    g = traj.rews[i, :] + traj.gammas[i, :] * \
-        ((1 - lambdas[i, :]) * next_values[i, :] + lambdas[i, :] * g)
-    returns.insert(0, g)
-  lambda_returns = torch.from_numpy(np.array(returns))
-  pi, values = policy(torch.from_numpy(traj.obs))
-  log_probs = pi.log_prob(torch.from_numpy(traj.acs))
-  advs = lambda_returns - torch.squeeze(values, -1)
-  action_loss = -(advs.detach() * log_probs).mean()
-  value_loss = advs.pow(2).mean()
+    lambdas = np.ones_like(traj.gammas) * LAMBDA
+    _, next_values = policy(torch.from_numpy(traj.next_obs))
+    next_values = torch.squeeze(next_values, -1).detach().numpy()
+    # Work backwards to compute `G_{T-1}`, ..., `G_0`.
+    returns = []
+    g = next_values[-1, :]
+    for i in reversed(range(next_values.shape[0])):
+        g = traj.rews[i, :] + traj.gammas[i, :] * \
+            ((1 - lambdas[i, :]) * next_values[i, :] + lambdas[i, :] * g)
+        returns.insert(0, g)
+    lambda_returns = torch.from_numpy(np.array(returns))
+    pi, values = policy(torch.from_numpy(traj.obs))
+    log_probs = pi.log_prob(torch.from_numpy(traj.acs))
+    advs = lambda_returns - torch.squeeze(values, -1)
+    action_loss = -(advs.detach() * log_probs).mean()
+    value_loss = advs.pow(2).mean()
 
-  a2c_loss = action_loss + value_coef * value_loss
-  return a2c_loss
+    a2c_loss = action_loss + value_coef * value_loss
+    return a2c_loss
 
 
 def evaluate(env, seed, task_num, policy):
-  pre_reward_ls = []
-  post_reward_ls = []
-  inner_opt = TorchOpt.MetaSGD(policy, lr=0.5)
-  env = gym.make(
-    'TabularMDP-v0',
-    **dict(
-      num_states=STATE_DIM,
-      num_actions=ACTION_DIM,
-      max_episode_steps=TRAJ_LEN,
-      seed=args.seed
-    )
-  )
-  tasks = env.sample_tasks(num_tasks=task_num)
-  policy_state_dict = TorchOpt.extract_state_dict(policy)
-  optim_state_dict = TorchOpt.extract_state_dict(inner_opt)
-  for idx in range(task_num):
-    for _ in range(inner_iters):
-      pre_trajs = sample_traj(env, tasks[idx], policy)
+    pre_reward_ls = []
+    post_reward_ls = []
+    inner_opt = TorchOpt.MetaSGD(policy, lr=0.5)
+    env = gym.make(
+        'TabularMDP-v0',
+        **dict(num_states=STATE_DIM,
+               num_actions=ACTION_DIM,
+               max_episode_steps=TRAJ_LEN,
+               seed=args.seed))
+    tasks = env.sample_tasks(num_tasks=task_num)
+    policy_state_dict = TorchOpt.extract_state_dict(policy)
+    optim_state_dict = TorchOpt.extract_state_dict(inner_opt)
+    for idx in range(task_num):
+        for _ in range(inner_iters):
+            pre_trajs = sample_traj(env, tasks[idx], policy)
 
-      inner_loss = a2c_loss(pre_trajs, policy, value_coef=0.5)
-      inner_opt.step(inner_loss)
-    post_trajs = sample_traj(env, tasks[idx], policy)
+            inner_loss = a2c_loss(pre_trajs, policy, value_coef=0.5)
+            inner_opt.step(inner_loss)
+        post_trajs = sample_traj(env, tasks[idx], policy)
 
-    # Logging
-    pre_reward_ls.append(np.sum(pre_trajs.rews, axis=0).mean())
-    post_reward_ls.append(np.sum(post_trajs.rews, axis=0).mean())
+        # Logging
+        pre_reward_ls.append(np.sum(pre_trajs.rews, axis=0).mean())
+        post_reward_ls.append(np.sum(post_trajs.rews, axis=0).mean())
 
-    TorchOpt.recover_state_dict(policy, policy_state_dict)
-    TorchOpt.recover_state_dict(inner_opt, optim_state_dict)
-  return pre_reward_ls, post_reward_ls
+        TorchOpt.recover_state_dict(policy, policy_state_dict)
+        TorchOpt.recover_state_dict(inner_opt, optim_state_dict)
+    return pre_reward_ls, post_reward_ls
 
 
 def main(args):
-  # init training
-  torch.manual_seed(args.seed)
-  torch.cuda.manual_seed_all(args.seed)
-  # Env
-  env = gym.make(
-    'TabularMDP-v0',
-    **dict(
-      num_states=STATE_DIM,
-      num_actions=ACTION_DIM,
-      max_episode_steps=TRAJ_LEN,
-      seed=args.seed
-    )
-  )
-  # Policy
-  policy = CategoricalMLPPolicy(input_size=STATE_DIM, output_size=ACTION_DIM)
-  inner_opt = TorchOpt.MetaSGD(policy, lr=0.5)
-  outer_opt = optim.Adam(policy.parameters(), lr=1e-3)
-  train_pre_reward = []
-  train_post_reward = []
-  test_pre_reward = []
-  test_post_reward = []
+    # init training
+    torch.manual_seed(args.seed)
+    torch.cuda.manual_seed_all(args.seed)
+    # Env
+    env = gym.make(
+        'TabularMDP-v0',
+        **dict(num_states=STATE_DIM,
+               num_actions=ACTION_DIM,
+               max_episode_steps=TRAJ_LEN,
+               seed=args.seed))
+    # Policy
+    policy = CategoricalMLPPolicy(input_size=STATE_DIM, output_size=ACTION_DIM)
+    inner_opt = TorchOpt.MetaSGD(policy, lr=0.5)
+    outer_opt = optim.Adam(policy.parameters(), lr=1e-3)
+    train_pre_reward = []
+    train_post_reward = []
+    test_pre_reward = []
+    test_post_reward = []
 
-  for i in range(outer_iters):
-    tasks = env.sample_tasks(num_tasks=TASK_NUM)
-    train_pre_reward_ls = []
-    train_post_reward_ls = []
+    for i in range(outer_iters):
+        tasks = env.sample_tasks(num_tasks=TASK_NUM)
+        train_pre_reward_ls = []
+        train_post_reward_ls = []
 
-    outer_opt.zero_grad()
+        outer_opt.zero_grad()
 
-    policy_state_dict = TorchOpt.extract_state_dict(policy)
-    optim_state_dict = TorchOpt.extract_state_dict(inner_opt)
-    for idx in range(TASK_NUM):
+        policy_state_dict = TorchOpt.extract_state_dict(policy)
+        optim_state_dict = TorchOpt.extract_state_dict(inner_opt)
+        for idx in range(TASK_NUM):
 
-      for _ in range(inner_iters):
-        pre_trajs = sample_traj(env, tasks[idx], policy)
-        inner_loss = a2c_loss(pre_trajs, policy, value_coef=0.5)
-        inner_opt.step(inner_loss)
-      post_trajs = sample_traj(env, tasks[idx], policy)
-      outer_loss = a2c_loss(post_trajs, policy, value_coef=0.5)
-      outer_loss.backward()
-      TorchOpt.recover_state_dict(policy, policy_state_dict)
-      TorchOpt.recover_state_dict(inner_opt, optim_state_dict)
-      # Logging
-      train_pre_reward_ls.append(np.sum(pre_trajs.rews, axis=0).mean())
-      train_post_reward_ls.append(np.sum(post_trajs.rews, axis=0).mean())
-    outer_opt.step()
+            for _ in range(inner_iters):
+                pre_trajs = sample_traj(env, tasks[idx], policy)
+                inner_loss = a2c_loss(pre_trajs, policy, value_coef=0.5)
+                inner_opt.step(inner_loss)
+            post_trajs = sample_traj(env, tasks[idx], policy)
+            outer_loss = a2c_loss(post_trajs, policy, value_coef=0.5)
+            outer_loss.backward()
+            TorchOpt.recover_state_dict(policy, policy_state_dict)
+            TorchOpt.recover_state_dict(inner_opt, optim_state_dict)
+            # Logging
+            train_pre_reward_ls.append(np.sum(pre_trajs.rews, axis=0).mean())
+            train_post_reward_ls.append(np.sum(post_trajs.rews, axis=0).mean())
+        outer_opt.step()
 
-    test_pre_reward_ls, test_post_reward_ls = evaluate(
-      env, args.seed, TASK_NUM, policy
-    )
+        test_pre_reward_ls, test_post_reward_ls = evaluate(
+            env, args.seed, TASK_NUM, policy)
 
-    train_pre_reward.append(sum(train_pre_reward_ls) / TASK_NUM)
-    train_post_reward.append(sum(train_post_reward_ls) / TASK_NUM)
-    test_pre_reward.append(sum(test_pre_reward_ls) / TASK_NUM)
-    test_post_reward.append(sum(test_post_reward_ls) / TASK_NUM)
+        train_pre_reward.append(sum(train_pre_reward_ls) / TASK_NUM)
+        train_post_reward.append(sum(train_post_reward_ls) / TASK_NUM)
+        test_pre_reward.append(sum(test_pre_reward_ls) / TASK_NUM)
+        test_post_reward.append(sum(test_post_reward_ls) / TASK_NUM)
 
-    print('Train_iters', i)
-    print("train_pre_reward", sum(train_pre_reward_ls) / TASK_NUM)
-    print("train_post_reward", sum(train_post_reward_ls) / TASK_NUM)
-    print("test_pre_reward", sum(test_pre_reward_ls) / TASK_NUM)
-    print("test_post_reward", sum(test_post_reward_ls) / TASK_NUM)
+        print('Train_iters', i)
+        print("train_pre_reward", sum(train_pre_reward_ls) / TASK_NUM)
+        print("train_post_reward", sum(train_post_reward_ls) / TASK_NUM)
+        print("test_pre_reward", sum(test_pre_reward_ls) / TASK_NUM)
+        print("test_post_reward", sum(test_post_reward_ls) / TASK_NUM)
 
 
 if __name__ == "__main__":
-  parser = argparse.ArgumentParser(
-    description='Reinforcement learning with '
-    'Model-Agnostic Meta-Learning (MAML) - Train'
-  )
-  parser.add_argument(
-    '--seed', type=int, default=1, help='random seed (default: 1)'
-  )
-  args = parser.parse_args()
-  main(args)
+    parser = argparse.ArgumentParser(
+        description='Reinforcement learning with '
+        'Model-Agnostic Meta-Learning (MAML) - Train')
+    parser.add_argument('--seed',
+                        type=int,
+                        default=1,
+                        help='random seed (default: 1)')
+    args = parser.parse_args()
+    main(args)
