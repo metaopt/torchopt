@@ -18,9 +18,9 @@
 
 #include <vector>
 
-#include "adam_op/common.h"
+#include "common.h"
 
-namespace TorchOpt {
+namespace torchopt {
 TensorArray<3> adamForwardInplaceCUDA(const torch::Tensor &updates,
                                       const torch::Tensor &mu,
                                       const torch::Tensor &nu, const float b1,
@@ -53,4 +53,4 @@ TensorArray<2> adamBackwardUpdatesCUDA(const torch::Tensor &dupdates,
                                        const torch::Tensor &new_nu,
                                        const float b1, const float b2,
                                        const int count);
-}  // namespace TorchOpt
+}  // namespace torchopt

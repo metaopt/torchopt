@@ -13,16 +13,15 @@
 // limitations under the License.
 // ==============================================================================
 
-#include "adam_op/adam_op_impl.h"
-
 #include <omp.h>
 #include <torch/extension.h>
 
 #include <vector>
 
-#include "include/utils.h"
+#include "adam_op/adam_op_impl.h"
+#include "utils.h"
 
-namespace TorchOpt {
+namespace torchopt {
 using std::size_t;
 namespace {
 template <typename scalar_t, typename other_t>
@@ -307,4 +306,4 @@ TensorArray<2> adamBackwardUpdatesCPU(const torch::Tensor& dupdates,
       }));
   return TensorArray<2>{std::move(dmu_out), std::move(dnu_out)};
 }
-}  // namespace TorchOpt
+}  // namespace torchopt

@@ -20,7 +20,7 @@ Please try to provide a minimal example to reproduce the bug. Error messages and
 Please use the markdown code blocks for both code and stack traces.
 
 ```python
-import metarl
+import torchopt
 ```
 
 ```bash
@@ -43,8 +43,8 @@ Describe the characteristic of your environment:
  * Versions of any other relevant libraries
 
 ```python
-import metarl, numpy, sys
-print(metarl.__version__, numpy.__version__, sys.version, sys.platform)
+import torchopt, numpy, sys
+print(torchopt.__version__, numpy.__version__, sys.version, sys.platform)
 ```
 
 ## Additional context
@@ -58,5 +58,5 @@ If you know or suspect the reason for this bug, paste the code lines and suggest
 ## Checklist
 
 - [ ] I have checked that there is no similar issue in the repo (**required**)
-- [ ] I have read the [documentation](https://metarl.readthedocs.io/) (**required**)
+- [ ] I have read the [documentation](https://torchopt.readthedocs.io/) (**required**)
 - [ ] I have provided a minimal working example to reproduce the bug (**required**)

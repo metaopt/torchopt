@@ -32,41 +32,42 @@
 
 import jax
 
-from TorchOpt._src import base
+from torchopt._src import base
 
 
-def apply_updates(
-  params: base.Params,
-  updates: base.Updates,
-  inplace: bool = True
-) -> base.Params:
-  """Applies an update to the corresponding parameters.
+def apply_updates(params: base.Params, updates: base.Updates, inplace: bool = True) -> base.Params:
+    """Applies an update to the corresponding parameters.
 
-  This is a utility functions that applies an update to a set of parameters, and
-  then returns the updated parameters to the caller. As an example, the update
-  may be a gradient transformed by a sequence of`GradientTransformations`. This
-  function is exposed for convenience, but it just adds updates and parameters;
-  you may also apply updates to parameters manually, using `tree_map`
-  (e.g. if you want to manipulate updates in custom ways before applying them).
+    This is a utility functions that applies an update to a set of parameters,
+    and then returns the updated parameters to the caller. As an example, the
+    update may be a gradient transformed by a sequence of`GradientTransformations`.
+    This function is exposed for convenience, but it just adds updates and parameters;
+    you may also apply updates to parameters manually, using `tree_map` (e.g. if
+    you want to manipulate updates in custom ways before applying them).
 
-  Args:
-    params: a tree of parameters.
-    updates: a tree of updates, the tree structure and the shape of the leaf
-    nodes must match that of `params`.
-    inplace: if True, will update params in a inplace manner.
+    Args:
+        params:
+            A tree of parameters.
+        updates:
+            A tree of updates, the tree structure and the shape of the leaf
+            nodes must match that of `params`.
+        inplace:
+            If true, will update params in a inplace manner.
 
-  Returns:
-    Updated parameters, with same structure, shape and type as `params`.
-  """
-  if inplace:
+    Returns:
+        Updated parameters, with same structure, shape and type as `params`.
+    """
 
-    def f(p, u):
-      if u is not None:
-        p.data.add_(u)
-      return p
-  else:
+    if inplace:
 
-    def f(p, u):
-      return p.add(u) if u is not None else p
+        def f(p, u):
+            if u is not None:
+                p.data.add_(u)
+            return p
 
-  return jax.tree_map(f, params, updates)
+    else:
+
+        def f(p, u):
+            return p.add(u) if u is not None else p
+
+    return jax.tree_map(f, params, updates)
