@@ -17,45 +17,45 @@ import torch
 
 
 def forward_(
-  updates: torch.Tensor, mu: torch.Tensor, nu: torch.Tensor, b1: float,
-  b2: float, eps: float, eps_root: float, count: int
+    updates: torch.Tensor, mu: torch.Tensor, nu: torch.Tensor, b1: float,
+    b2: float, eps: float, eps_root: float, count: int
 ) -> torch.Tensor:
-  ...
+    ...
 
 
 def forwardMu(
-  updates: torch.Tensor, mu: torch.Tensor, b1: float
+    updates: torch.Tensor, mu: torch.Tensor, b1: float
 ) -> torch.Tensor:
-  ...
+    ...
 
 
 def forwardNu(
-  updates: torch.Tensor, nu: torch.Tensor, b2: float
+    updates: torch.Tensor, nu: torch.Tensor, b2: float
 ) -> torch.Tensor:
-  ...
+    ...
 
 
 def forwardUpdates(
-  new_mu: torch.Tensor, new_nu: torch.Tensor, b1: float, b2: float, eps: float,
-  eps_root: float, count: int
+    new_mu: torch.Tensor, new_nu: torch.Tensor, b1: float, b2: float, eps: float,
+    eps_root: float, count: int
 ) -> torch.Tensor:
-  ...
+    ...
 
 
 def backwardMu(
-  dmu: torch.Tensor, updates: torch.Tensor, mu: torch.Tensor, b1: float
+    dmu: torch.Tensor, updates: torch.Tensor, mu: torch.Tensor, b1: float
 ) -> torch.Tensor:
-  ...
+    ...
 
 
 def backwardNu(
-  dnu: torch.Tensor, updates: torch.Tensor, nu: torch.Tensor, b2: float
+    dnu: torch.Tensor, updates: torch.Tensor, nu: torch.Tensor, b2: float
 ) -> torch.Tensor:
-  ...
+    ...
 
 
 def backwardUpdates(
-  dupdates: torch.Tensor, updates: torch.Tensor, new_mu: torch.Tensor,
-  new_nu: torch.Tensor, b1: float, b2: float, count: int
+    dupdates: torch.Tensor, updates: torch.Tensor, new_mu: torch.Tensor,
+    new_nu: torch.Tensor, b1: float, b2: float, count: int
 ) -> torch.Tensor:
-  ...
+    ...

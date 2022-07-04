@@ -47,4 +47,4 @@ pybind11_add_module(adam_op adam_op.cpp adam_op_impl.cpp adam_op_impl.cu)
 target_link_libraries(
     adam_op PRIVATE
     ${TORCH_LIBRARIES}
-    )
+)

@@ -38,64 +38,74 @@ from torchopt._src import base, typing
 
 
 def polynomial_schedule(
-  init_value: typing.Scalar,
-  end_value: typing.Scalar,
-  power: typing.Scalar,
-  transition_steps: int,
-  transition_begin: int = 0
+    init_value: typing.Scalar,
+    end_value: typing.Scalar,
+    power: typing.Scalar,
+    transition_steps: int,
+    transition_begin: int = 0
 ) -> base.Schedule:
-  """Constructs a schedule with polynomial transition from init to end value.
+    """Constructs a schedule with polynomial transition from init to end value.
+
     Args:
-      init_value: initial value for the scalar to be annealed.
-      end_value: end value of the scalar to be annealed.
-      power: the power of the polynomial used to transition from init to end.
-      transition_steps: number of steps over which annealing takes place,
-        the scalar starts changing at `transition_begin` steps and completes
-        the transition by `transition_begin + transition_steps` steps.
-        If `transition_steps <= 0`, then the entire annealing process is disabled
-        and the value is held fixed at `init_value`.
-      transition_begin: must be positive. After how many steps to start annealing
-        (before this many steps the scalar value is held fixed at `init_value`).
+        init_value:
+            Initial value for the scalar to be annealed.
+        end_value:
+            End value of the scalar to be annealed.
+        power:
+            The power of the polynomial used to transition from init to end.
+        transition_steps:
+            Number of steps over which annealing takes place, the scalar starts
+            changing at `transition_begin` steps and completes  the transition
+            by `transition_begin + transition_steps` steps.
+            If `transition_steps <= 0`, then the entire annealing process is
+            disabled and the value is held fixed at `init_value`.
+        transition_begin:
+            Must be positive. After how many steps to start annealing (before
+            this many steps the scalar value is held fixed at `init_value`).
+
     Returns:
-      schedule: A function that maps step counts to values.
+        schedule:
+            A function that maps step counts to values.
     """
-  if transition_steps <= 0:
-    logging.info(
-      'A polynomial schedule was set with a non-positive `transition_steps` '
-      'value; this results in a constant schedule with value `init_value`.'
-    )
-    return lambda count: init_value
 
-  if transition_begin < 0:
-    logging.info(
-      'An exponential schedule was set with a negative `transition_begin` '
-      'value; this will result in `transition_begin` falling back to `0`.'
-    )
-    transition_begin = 0
+    if transition_steps <= 0:
+        logging.info(
+            'A polynomial schedule was set with a non-positive `transition_steps` '
+            'value; this results in a constant schedule with value `init_value`.'
+        )
+        return lambda count: init_value
 
-  def schedule(count):
+    if transition_begin < 0:
+        logging.info(
+            'An exponential schedule was set with a negative `transition_begin` '
+            'value; this will result in `transition_begin` falling back to `0`.'
+        )
+        transition_begin = 0
 
-    def impl(count):
-      count = np.clip(count - transition_begin, 0, transition_steps)
-      frac = 1 - count / transition_steps
-      return (init_value - end_value) * (frac**power) + end_value
+    def schedule(count):
 
-    return jax.tree_map(impl, count)
+        def impl(count):
+            count = np.clip(count - transition_begin, 0, transition_steps)
+            frac = 1 - count / transition_steps
+            return (init_value - end_value) * (frac**power) + end_value
 
-  return schedule
+        return jax.tree_map(impl, count)
+
+    return schedule
 
 
 # Alias polynomial schedule to linear schedule for convenience.
 def linear_schedule(
-  init_value: typing.Scalar,
-  end_value: typing.Scalar,
-  transition_steps: int,
-  transition_begin: int = 0
+    init_value: typing.Scalar,
+    end_value: typing.Scalar,
+    transition_steps: int,
+    transition_begin: int = 0
 ) -> base.Schedule:
-  return polynomial_schedule(
-    init_value=init_value,
-    end_value=end_value,
-    power=1,
-    transition_steps=transition_steps,
-    transition_begin=transition_begin
-  )
+
+    return polynomial_schedule(
+        init_value=init_value,
+        end_value=end_value,
+        power=1,
+        transition_steps=transition_steps,
+        transition_begin=transition_begin
+    )

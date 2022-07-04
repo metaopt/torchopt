@@ -20,30 +20,30 @@ import torchopt
 
 class TestSchedule(unittest.TestCase):
 
-  @classmethod
-  def setUpClass(cls):
-    cls.init_value = 1.
-    cls.end_value = 0.
-    cls.gap_value = cls.init_value - cls.end_value
-    cls.transition_steps = 10
-    cls.transition_begin = 1
+    @classmethod
+    def setUpClass(cls):
+        cls.init_value = 1.
+        cls.end_value = 0.
+        cls.gap_value = cls.init_value - cls.end_value
+        cls.transition_steps = 10
+        cls.transition_begin = 1
 
-  def setUp(self) -> None:
-    pass
+    def setUp(self) -> None:
+        pass
 
-  def test_linear(self) -> None:
-    schedule = torchopt.schedule.linear_schedule(
-      init_value=self.init_value,
-      end_value=self.end_value,
-      transition_steps=self.transition_steps,
-      transition_begin=self.transition_begin
-    )
-    for i in range(self.transition_begin, self.transition_steps):
-      lr = schedule(i)
-      lr_gt = self.init_value - self.gap_value * \
-          (i - self.transition_begin) / self.transition_steps
-      self.assertEqual(lr, lr_gt)
+    def test_linear(self) -> None:
+        schedule = torchopt.schedule.linear_schedule(
+            init_value=self.init_value,
+            end_value=self.end_value,
+            transition_steps=self.transition_steps,
+            transition_begin=self.transition_begin
+        )
+        for i in range(self.transition_begin, self.transition_steps):
+            lr = schedule(i)
+            lr_gt = self.init_value - self.gap_value * \
+                (i - self.transition_begin) / self.transition_steps
+            self.assertEqual(lr, lr_gt)
 
 
 if __name__ == '__main__':
-  unittest.main()
+    unittest.main()
