@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
+"""TorchOpt: a high-performance optimizer library built upon PyTorch."""
 
 from TorchOpt._src import (
   accelerated_op_available,
