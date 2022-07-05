@@ -87,8 +87,8 @@ class AdamOp(object):
             b1, b2, eps, eps_root, count = ctx.others
             result = adam_op.backwardUpdates(dupdates, updates, new_mu, new_nu, b1, b2, count)
             return result[0], result[1], None
-
-    def __init__(self, b1=0.9, b2=0.999, eps=1e-8, eps_root=0., inplace=True):
+    
+    def __init__(self, b1=0.9, b2=0.999, eps=1e-8, eps_root=0., inplace=True): 
         self.b1 = b1
         self.b2 = b2
         self.eps = eps

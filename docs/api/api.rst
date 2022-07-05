@@ -625,22 +625,3 @@ scale_gradient
 
 .. autofunction:: scale_gradient
 
-
-🚧 Experimental
-===============
-
-.. currentmodule:: torchopt.experimental
-
-.. autosummary::
-
-    split_real_and_imaginary
-    SplitRealAndImaginaryState
-
-
-Complex-Valued Optimization
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autofunction::  split_real_and_imaginary
-
-.. autoclass::  SplitRealAndImaginaryState
-   :members:
