@@ -2,3 +2,4 @@ torch==1.11
 jax[cpu]
 numpy
 graphviz
+typing-extensions

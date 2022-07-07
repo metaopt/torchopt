@@ -112,6 +112,7 @@ setup(
         'jax[cpu]',
         'numpy',
         'graphviz',
+        'typing-extensions',
     ],
     python_requires='>=3.7'
 )
