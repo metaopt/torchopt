@@ -14,6 +14,9 @@ insert_final_newline = true
 indent_size = 4
 src_paths=torchopt,tests,examples
 
+[*.{yaml,yml}]
+indent_size = 2
+
 [*.md]
 indent_size = 2
 x-soft-wrap-text = true
@@ -25,11 +28,5 @@ x-soft-wrap-text = true
 [Makefile]
 indent_style = tab
 
-[*.cpp]
-indent_size = 2
-
-[*.h]
-indent_size = 2
-
-[*.cuh?]
+[*.{cpp,h,cu,cuh}]
 indent_size = 2

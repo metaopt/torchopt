@@ -8,27 +8,46 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python
-      uses: actions/setup-python@v1
-      with:
-        python-version: '3.x'
-    - name: Check consistency between the package version and release tag
-      run: |
-        RELEASE_VER=${GITHUB_REF#refs/*/}
-        PACKAGE_VER="v`python setup.py --version`"
-        if [ $RELEASE_VER != $PACKAGE_VER ]
-        then
-          echo "package ver. ($PACKAGE_VER) != release ver. ($RELEASE_VER)"; exit 1
-        fi
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install setuptools wheel twine
-    - name: Build and publish
-      env:
-        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-      run: |
-        python setup.py sdist bdist_wheel
-        twine upload dist/*
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+
+      - name: Check consistency between the package version and release tag
+        run: |
+          RELEASE_VER="${GITHUB_REF#refs/*/}"
+          PACKAGE_VER="v$(python setup.py --version)"
+          if [[ "${RELEASE_VER}" != "${PACKAGE_VER}" ]]; then
+            echo "package ver. (${PACKAGE_VER}) != release ver. (${RELEASE_VER})"
+            exit 1
+          fi
+
+      - name: Setup CUDA Toolkit
+        uses: Jimver/cuda-toolkit@v0.2.7
+        id: cuda-toolkit
+        with:
+          cuda: "11.7.0"
+          method: network
+          sub-packages: '["nvcc"]'
+      - run: |
+          echo "Installed CUDA version is: ${{steps.cuda-toolkit.outputs.cuda}}"
+          echo "CUDA install location: ${{steps.cuda-toolkit.outputs.CUDA_PATH}}"
+          nvcc -V
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel build twine
+
+      - name: Build and publish
+        env:
+          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+        run: |
+          python setup.py sdist bdist_wheel
+          twine upload dist/*

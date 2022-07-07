@@ -1,4 +1,5 @@
+torch==1.11
 jax[cpu]
 numpy
 graphviz
-torch
+pytest

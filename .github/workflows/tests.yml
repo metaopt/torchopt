@@ -1,9 +1,11 @@
-name: Lint
+name: Tests
 
-on: [push, pull_request]
+on:
+  release:
+    types: [created]
 
 jobs:
-  lint:
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: Cancel previous run
@@ -38,30 +40,14 @@ jobs:
         run: |
           python -m pip install --upgrade pip setuptools
 
+      - name: Install dependencies
+        run: |
+          python -m pip install -r tests/requirements.txt
+
       - name: Install TorchOpt
         run: |
           python -m pip install -e .
 
-      - name: flake8
+      - name: Test with pytest
         run: |
-          make flake8
-
-      - name: isort and yapf
-        run: |
-          make py-format
-
-      - name: addlicense
-        run: |
-          make addlicense
-
-      - name: mypy
-        run: |
-          make mypy
-
-    # - name: docstyle
-    #   run: |
-    #     make docstyle
-
-    # - name: spelling
-    #   run: |
-    #     make spelling
+          make pytest
