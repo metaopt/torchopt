@@ -27,14 +27,12 @@ class CMakeExtension(Extension):
 
 class cmake_build_ext(build_ext):
     def copy(self, extdir):
-        from distutils.file_util import copy_file
-
         for op_path in pathlib.Path(extdir).iterdir():
             if not op_path.is_dir():
                 continue
             for file in op_path.iterdir():
                 if str(file).rpartition('.')[-1] == 'so':
-                    copy_file(file, HERE / 'torchopt' / '_lib')
+                    shutil.copy(file, HERE / 'torchopt' / '_lib')
 
     def build_extensions(self):
         import pybind11
