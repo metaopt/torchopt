@@ -217,7 +217,7 @@ pip3 install torchopt
 You can also build shared libraries from source, use:
 
 ```bash
-git clone git@github.com:metaopt/torchopt.git
+git clone https://github.com/metaopt/torchopt.git
 cd torchopt
 pip3 install .
 ```

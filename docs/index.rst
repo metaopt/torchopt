@@ -24,7 +24,7 @@ You can also build shared libraries from source, use:
 
 .. code-block:: bash
 
-    git clone git@github.com:metaopt/torchopt.git
+    git clone https://github.com/metaopt/torchopt.git
     cd torchopt
     python setup.py build_from_source
 
