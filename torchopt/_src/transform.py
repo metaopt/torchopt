@@ -38,6 +38,7 @@ import torch
 from torchopt._src import base
 from torchopt._src.typing import ScalarOrSchedule, Schedule
 
+
 ScaleState = base.EmptyState
 
 

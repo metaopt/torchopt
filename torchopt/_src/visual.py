@@ -24,6 +24,7 @@ import torch
 from graphviz import Digraph
 from pkg_resources import parse_version
 
+
 Node = namedtuple('Node', ('name', 'inputs', 'attr', 'op'))
 
 # Saved attrs for grad_fn (incl. saved variables) begin with `._saved_*`

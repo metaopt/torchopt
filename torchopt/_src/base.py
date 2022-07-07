@@ -36,6 +36,7 @@ import typing_extensions
 
 from torchopt._src import typing
 
+
 OptState = typing.TensorTree  # States are arbitrary nests of `torch.Tensor`.
 # Parameters are arbitrary nests of `torch.Tensor`.
 Params = typing.TensorTree

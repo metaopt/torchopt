@@ -17,6 +17,7 @@ from typing import Any, Callable, Iterable, Mapping, Union
 
 from torch import Tensor
 
+
 Scalar = Union[float, int]
 Numeric = Union[Tensor, Scalar]
 
