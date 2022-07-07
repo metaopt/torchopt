@@ -1,10 +1,17 @@
 import os
 import pathlib
-import sys
 import shutil
+import sys
 
-from setuptools import find_packages, setup, Extension
-from setuptools.command.build_ext import build_ext
+from setuptools import find_packages, setup
+
+
+try:
+    from pybind11.setup_helpers import Pybind11Extension as Extension
+    from pybind11.setup_helpers import build_ext
+except ImportError:
+    from setuptools import Extension
+    from setuptools.command.build_ext import build_ext
 
 HERE = pathlib.Path(__file__).absolute().parent
 
@@ -13,9 +20,9 @@ import version  # noqa
 
 
 class CMakeExtension(Extension):
-    def __init__(self, name, cmake_lists_dir='.', **kwargs):
-        Extension.__init__(self, name, sources=[], **kwargs)
-        self.cmake_lists_dir = os.path.abspath(cmake_lists_dir)
+    def __init__(self, name, source_dir='.', **kwargs):
+        super().__init__(name, sources=[], **kwargs)
+        self.source_dir = os.path.abspath(source_dir)
 
 
 class cmake_build_ext(build_ext):
@@ -30,6 +37,7 @@ class cmake_build_ext(build_ext):
                     copy_file(file, HERE / 'torchopt' / '_lib')
 
     def build_extensions(self):
+        import pybind11
         from torch.utils import cpp_extension
 
         cmake = shutil.which('cmake')
@@ -54,16 +62,23 @@ class cmake_build_ext(build_ext):
                 f'-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{config.upper()}={extdir}',
                 f'-DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_{config.upper()}={self.build_temp}',
                 f'-DPYTHON_EXECUTABLE={sys.executable}',
+                f'-DPYBIND11_CMAKE_DIR={pybind11.get_cmake_dir()}',
                 f'-DPYTHON_INCLUDE_DIR={PYTHON_INCLUDE_DIR}',
                 f'-DTORCH_INCLUDE_PATH={TORCH_INCLUDE_PATH}',
                 f'-DTORCH_LIBRARY_PATH={TORCH_LIBRARY_PATH}',
             ]
 
-            build_args = ['--config', config, '--', '-j4']
+            build_args = ['--config', config]
+
+            if (
+                'CMAKE_BUILD_PARALLEL_LEVEL' not in os.environ
+                and hasattr(self, 'parallel') and self.parallel
+            ):
+                build_args.append(f'-j{self.parallel}')
 
             try:
                 os.chdir(build_temp)
-                self.spawn(['cmake', ext.cmake_lists_dir] + cmake_args)
+                self.spawn(['cmake', ext.source_dir] + cmake_args)
                 if not self.dry_run:
                     self.spawn(['cmake', '--build', '.'] + build_args)
                 self.copy(extdir)
@@ -85,11 +100,12 @@ setup(
     include_package_data=True,
     cmdclass={'build_ext': cmake_build_ext},
     ext_modules=[
-        CMakeExtension('torchopt._lib.adam_op', cmake_lists_dir=HERE)
+        CMakeExtension('torchopt._lib.adam_op', source_dir=HERE)
     ],
     setup_requires=[  # for `torch.utils.cpp_extension`
         'torch==1.11',
         'numpy',
+        'pybind11',
     ],
     install_requires=[
         'torch==1.11',

@@ -13,7 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.4)
 project(torchopt LANGUAGES CXX CUDA)
 
 find_package(CUDA REQUIRED)
@@ -28,7 +28,7 @@ find_package(CUDA REQUIRED)
 SET(CMAKE_CUDA_ARCHITECTURES 53;60;61;70;75;80;86)
 
 if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release)
+    set(CMAKE_BUILD_TYPE Release)
 endif()
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -49,7 +49,7 @@ function(system)
                           "${multiValueArgs}"
                           "${ARGN}")
 
-    if (NOT DEFINED SYSTEM_WORKING_DIRECTORY)
+    if(NOT DEFINED SYSTEM_WORKING_DIRECTORY)
         set(SYSTEM_WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}")
     endif()
 
@@ -65,12 +65,13 @@ function(system)
     endif()
 
     set("${SYSTEM_OUTPUT_VARIABLE}" "${STDOUT}" PARENT_SCOPE)
-    if (DEFINED SYSTEM_ERROR_VARIABLE)
+
+    if(DEFINED SYSTEM_ERROR_VARIABLE)
         set("${SYSTEM_ERROR_VARIABLE}" "${STDERR}" PARENT_SCOPE)
     endif()
 endfunction()
 
-if (NOT DEFINED PYTHON_EXECUTABLE)
+if(NOT DEFINED PYTHON_EXECUTABLE)
     set(PYTHON_EXECUTABLE python3)
 endif()
 
@@ -100,6 +101,23 @@ if("${PYTHON_INCLUDE_DIR}" STREQUAL "")
 else()
     message("-- Detected Python include directory: \"${PYTHON_INCLUDE_DIR}\"")
     include_directories(${PYTHON_INCLUDE_DIR})
+endif()
+
+set(PYBIND11_PYTHON_VERSION "${PYTHON_VERSION}")
+
+if(NOT DEFINED PYBIND11_CMAKE_DIR)
+    message("-- Auto detecting pybind11 CMake directory...")
+    system(
+        STRIP OUTPUT_VARIABLE PYBIND11_CMAKE_DIR
+        COMMAND "${PYTHON_EXECUTABLE}" -m pybind11 --cmakedir
+    )
+endif()
+
+if("${PYBIND11_CMAKE_DIR}" STREQUAL "")
+    message(FATAL_ERROR "-- Pybind11 CMake directory not found")
+else()
+    message("-- Detected Pybind11 CMake directory: \"${PYBIND11_CMAKE_DIR}\"")
+    find_package(pybind11 CONFIG PATHS "${PYBIND11_CMAKE_DIR}")
 endif()
 
 if(NOT DEFINED TORCH_INCLUDE_PATH)
@@ -132,16 +150,15 @@ else()
 endif()
 
 unset(TORCH_LIBRARIES)
+
 foreach(VAR_PATH ${TORCH_LIBRARY_PATH})
     file(GLOB TORCH_LIBRARY "${VAR_PATH}/*.so")
     list(APPEND TORCH_LIBRARIES "${TORCH_LIBRARY}")
 endforeach()
+
 message("-- Detected Torch libraries: \"${TORCH_LIBRARIES}\"")
 
 add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
 
-set(PYBIND11_PYTHON_VERSION "${PYTHON_VERSION}")
-add_subdirectory("third_party/pybind11")
 include_directories(include)
-
 add_subdirectory(src)
