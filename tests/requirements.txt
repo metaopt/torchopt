@@ -1,3 +1,4 @@
 jax[cpu]
+numpy
 graphviz
 torch

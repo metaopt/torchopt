@@ -12,24 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
+"""TorchOpt: a high-performance optimizer library built upon PyTorch."""
 
-import torch
-
-from torchopt._src.accelerated_op.adam_op import AdamOp
-
-
-def accelerated_op_available(devices=None):
-    op = AdamOp()
-
-    if devices is None:
-        devices = [torch.device("cuda"), torch.device("cpu")]
-    elif isinstance(devices, torch.device):
-        devices = [devices]
-
-    try:
-        for device in devices:
-            updates = torch.tensor(1., device=device)
-            op(updates, updates, updates, 1)
-        return True
-    except BaseException:
-        return False
+__version__ = "0.4.1"
