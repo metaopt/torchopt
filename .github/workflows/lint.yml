@@ -43,6 +43,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip setuptools
 
+      - name: Install dependencies
+        run: |
+          python -m pip install -r tests/requirements.txt
+
       - name: Install TorchOpt
         run: |
           python -m pip install -e .
