@@ -26,7 +26,7 @@ You can also build shared libraries from source, use:
 
     git clone https://github.com/metaopt/torchopt.git
     cd torchopt
-    python setup.py build_from_source
+    pip3 install .
 
 The Team
 --------
