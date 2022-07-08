@@ -124,7 +124,7 @@ class HighLevelInplace(unittest.TestCase):
                 mse = F.mse_loss(b, b_ref)
                 self.assertAlmostEqual(float(mse), 0)
 
-    @pytest.mark.skipIf(not torch.cuda.is_available(), reason='No CUDA device available.')
+    @pytest.mark.skipif(not torch.cuda.is_available(), reason='No CUDA device available.')
     def test_accelerated_adam_cuda(self) -> None:
         self.model.cuda()
         self.model_ref.cuda()

@@ -1,5 +1,8 @@
 -r ../requirements.txt
 
-pytest
 torchvision
 functorch
+
+pytest
+pytest_cov
+pytest_xdist
