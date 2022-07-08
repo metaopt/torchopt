@@ -1,7 +1,9 @@
--r ../requirements.txt
-
+--extra-index-url https://download.pytorch.org/whl/cu113
+torch==1.11
 torchvision
 functorch
+
+--requirement ../requirements.txt
 
 pytest
 pytest_cov
