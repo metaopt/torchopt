@@ -48,7 +48,7 @@ cpplint-install:
 	$(call check_pip_install,cpplint)
 
 clang-format-install:
-	command -v clang-format-11 || sudo apt-get install -y clang-format-11
+	command -v clang-format || sudo apt-get install -y clang-format
 
 clang-tidy-install:
 	command -v clang-tidy || sudo apt-get install -y clang-tidy
@@ -85,7 +85,7 @@ cpplint: cpplint-install
 	$(PYTHON) -m cpplint $(CXX_FILES)
 
 clang-format: clang-format-install
-	clang-format-11 --style=file -i $(CXX_FILES) -n --Werror
+	clang-format --style=file -i $(CXX_FILES) -n --Werror
 
 # Documentation
 
@@ -111,7 +111,7 @@ lint: flake8 py-format mypy clang-format cpplint addlicense
 format: py-format-install clang-format-install addlicense-install
 	$(PYTHON) -m isort --project torchopt $(PYTHON_FILES)
 	$(PYTHON) -m yapf --in-place --recursive $(PYTHON_FILES)
-	clang-format-11 -style=file -i $(CXX_FILES)
+	clang-format -style=file -i $(CXX_FILES)
 	addlicense -c $(COPYRIGHT) -l apache -y 2022 $(SOURCE_FOLDERS)
 
 clean-py:
