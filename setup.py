@@ -92,7 +92,7 @@ setup(
     description='A Jax-style optimizer for PyTorch.',
     license='Apache License Version 2.0',
     keywords='Meta-Learning, PyTorch, Optimizer',
-    url='https://github.com/metaopt/torchopt',
+    url='https://github.com/metaopt/TorchOpt',
     packages=find_packages(include=['torchopt', 'torchopt.*']),
     package_data={'sharedlib': ['_lib/*.so']},
     include_package_data=True,

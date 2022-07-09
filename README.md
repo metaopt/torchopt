@@ -217,8 +217,8 @@ pip3 install torchopt
 You can also build shared libraries from source, use:
 
 ```bash
-git clone https://github.com/metaopt/torchopt.git
-cd torchopt
+git clone https://github.com/metaopt/TorchOpt.git
+cd TorchOpt
 pip3 install .
 ```
 
@@ -247,6 +247,6 @@ If you find TorchOpt useful, please cite it in your publications.
   year = {2022},
   publisher = {GitHub},
   journal = {GitHub repository},
-  howpublished = {\url{https://github.com/metaopt/torchopt}},
+  howpublished = {\url{https://github.com/metaopt/TorchOpt}},
 }
 ```
