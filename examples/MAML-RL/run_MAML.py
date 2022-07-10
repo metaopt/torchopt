@@ -25,6 +25,7 @@ import torchopt
 
 from .helpers.policy import CategoricalMLPPolicy
 
+
 TASK_NUM = 40
 TRAJ_NUM = 20
 TRAJ_LEN = 10

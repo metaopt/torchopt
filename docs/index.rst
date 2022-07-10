@@ -1,4 +1,4 @@
-:github_url: https://github.com/metaopt/torchopt/tree/main/docs
+:github_url: https://github.com/metaopt/TorchOpt/tree/main/docs
 
 TorchOpt
 --------
@@ -24,9 +24,9 @@ You can also build shared libraries from source, use:
 
 .. code-block:: bash
 
-    git clone git@github.com:metaopt/torchopt.git
-    cd torchopt
-    python setup.py build_from_source
+    git clone https://github.com/metaopt/TorchOpt.git
+    cd TorchOpt
+    pip3 install .
 
 The Team
 --------
@@ -37,7 +37,7 @@ Support
 -------
 
 If you are having issues, please let us know by filing an issue on our
-`issue tracker <https://github.com/metaopt/torchopt/issues>`_.
+`issue tracker <https://github.com/metaopt/TorchOpt/issues>`_.
 
 License
 -------

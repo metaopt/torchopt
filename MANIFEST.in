@@ -1,0 +1,7 @@
+recursive-include torchopt *.pyi
+include LICENSE
+
+# Include source files in sdist
+include CMakeLists.txt
+recursive-include src *
+recursive-include include *
