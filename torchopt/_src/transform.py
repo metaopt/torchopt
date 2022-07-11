@@ -249,7 +249,7 @@ def scale_by_accelerated_adam(
     Returns:
         An (init_fn, update_fn) tuple.
     """
-    from torchopt.accelerated_op import AdamOp
+    from torchopt._src.accelerated_op import AdamOp
 
     def init_fn(params):
         mu = jax.tree_map(  # First moment
