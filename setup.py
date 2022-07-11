@@ -101,16 +101,16 @@ setup(
         CMakeExtension('torchopt._lib.adam_op', source_dir=HERE)
     ],
     setup_requires=[  # for `torch.utils.cpp_extension`
-        'torch==1.11',
+        'torch == 1.12',
         'numpy',
         'pybind11',
     ],
     install_requires=[
-        'torch==1.11',
-        'jax[cpu]',
+        'torch == 1.12',
+        'jax[cpu] >= 0.3',
         'numpy',
         'graphviz',
         'typing-extensions',
     ],
-    python_requires='>=3.7'
+    python_requires='>= 3.7'
 )

@@ -1,5 +1,5 @@
-torch==1.11
-jax[cpu]
+torch == 1.12
+jax[cpu] >= 0.3
 numpy
 graphviz
 typing-extensions
