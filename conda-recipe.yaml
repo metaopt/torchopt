@@ -1,0 +1,69 @@
+# Create virtual environment with command:
+#
+#   conda env create --file conda-recipe.yaml
+#
+
+name: torchopt
+
+channels:
+  - pytorch
+  - defaults
+  - nvidia
+  - conda-forge
+
+dependencies:
+  - python = 3.8
+
+  # Learning
+  - pytorch::pytorch = 1.11
+  - pytorch::torchvision
+  - jax
+  - jaxlib
+  - tensorboard
+  - wandb
+  - pip:
+      - functorch
+
+  # Device select
+  - nvidia::cudatoolkit = 11.3.1
+  - cudnn
+
+  # Build toolkit
+  - cmake >= 3.4
+  - make
+  - cxx-compiler
+  - gxx >= 6.0, < 12.0
+  - nvidia/label/cuda-11.3.1::cuda-minimal-build
+  - pybind11
+
+  # Misc
+  - pip
+  - typing-extensions
+  - numpy
+  - matplotlib-base
+  - seaborn
+  - python-graphviz
+  - pillow
+
+  # Documentation
+  - sphinx
+  - sphinxcontrib-spelling
+  - sphinx-autobuild
+  - sphinx-copybutton
+  - sphinx_rtd_theme
+
+  # Testing
+  - pytest
+  - pytest-cov
+  - pytest-xdist
+  - isort
+  - yapf
+  - mypy
+  - flake8
+  - flake8-bugbear
+  - doc8
+  - pydocstyle
+  - pyenchant
+  - clang-format
+  - clang-tools  # clang-tidy
+  - cpplint

@@ -1,14 +1,16 @@
-name: Lint
+name: Tests
 
 on:
   push:
+    branches:
+      - main
   pull_request:
 
 permissions:
   contents: read
 
 jobs:
-  lint:
+  test:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -53,26 +55,6 @@ jobs:
         run: |
           python -m pip install -e .
 
-      - name: flake8
+      - name: Test with pytest
         run: |
-          make flake8
-
-      - name: isort and yapf
-        run: |
-          make py-format
-
-      - name: addlicense
-        run: |
-          make addlicense
-
-      - name: mypy
-        run: |
-          make mypy
-
-    # - name: docstyle
-    #   run: |
-    #     make docstyle
-
-    # - name: spelling
-    #   run: |
-    #     make spelling
+          make pytest

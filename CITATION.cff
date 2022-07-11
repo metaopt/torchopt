@@ -27,4 +27,4 @@ authors:
 version: 0.4.1
 date-released: "2022-04-09"
 license: Apache-2.0
-repository-code: "https://github.com/metaopt/torchopt"
+repository-code: "https://github.com/metaopt/TorchOpt"

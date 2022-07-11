@@ -30,11 +30,13 @@
 # limitations under the License.
 # ==============================================================================
 
+from abc import abstractmethod
 from typing import Callable, NamedTuple, Tuple
 
-import typing_extensions
+from typing_extensions import Protocol
 
 from torchopt._src import typing
+
 
 OptState = typing.TensorTree  # States are arbitrary nests of `torch.Tensor`.
 # Parameters are arbitrary nests of `torch.Tensor`.
@@ -48,7 +50,7 @@ class EmptyState(NamedTuple):
     """An empty state for the simplest stateless transformations."""
 
 
-class TransformInitFn(typing_extensions.Protocol):
+class TransformInitFn(Protocol):
     """A callable type for the `init` step of a `GradientTransformation`.
 
     The `init` step takes a tree of `params` and uses these to construct an
@@ -56,6 +58,7 @@ class TransformInitFn(typing_extensions.Protocol):
     may hold statistics of the past updates or any other non static information.
     """
 
+    @abstractmethod
     def __call__(self, params: Params) -> OptState:
         """The `init` function.
 
@@ -66,10 +69,9 @@ class TransformInitFn(typing_extensions.Protocol):
         Returns:
             The initial state of the gradient transformation.
         """
-        ...
 
 
-class TransformUpdateFn(typing_extensions.Protocol):
+class TransformUpdateFn(Protocol):
     """A callable type for the `update` step of a `GradientTransformation`.
 
     The `update` step takes a tree of candidate parameter `updates` (e.g. their
@@ -79,6 +81,7 @@ class TransformUpdateFn(typing_extensions.Protocol):
     access to the current values of the parameters.
     """
 
+    @abstractmethod
     def __call__(self,
                  updates: Updates,
                  state: OptState,
@@ -96,7 +99,6 @@ class TransformUpdateFn(typing_extensions.Protocol):
         Returns:
             The transformed updates, and the updated state.
         """
-        ...
 
 
 class GradientTransformation(NamedTuple):

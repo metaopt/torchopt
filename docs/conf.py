@@ -14,16 +14,20 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
-import os
+import pathlib
+import sys
 
 import sphinx_rtd_theme
 
 
+HERE = pathlib.Path(__file__).absolute().parent
+PROJECT_ROOT = HERE.parent
+
+
 def get_version() -> str:
-    # https://packaging.python.org/guides/single-sourcing-package-version/
-    with open(os.path.join("..", "torchopt", "__init__.py"), "r") as f:
-        init = f.read().split()
-    return init[init.index("__version__") + 2][1:-1]
+    sys.path.insert(0, str(PROJECT_ROOT / 'torchopt'))
+    import version  # noqa
+    return version.__version__
 
 
 # -- Project information -----------------------------------------------------

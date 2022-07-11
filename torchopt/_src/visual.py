@@ -18,11 +18,12 @@
 
 import warnings
 from collections import namedtuple
-from distutils.version import LooseVersion
 from typing import Dict, Generator
 
 import torch
 from graphviz import Digraph
+from pkg_resources import parse_version
+
 
 Node = namedtuple('Node', ('name', 'inputs', 'attr', 'op'))
 
@@ -92,12 +93,11 @@ def make_dot(var, params=None, show_attrs=False, show_saved=False, max_attr_char
             to display for any given attribute.
     """
 
-    if LooseVersion(torch.__version__) < LooseVersion("1.9") and \
-            (show_attrs or show_saved):
+    if (parse_version(torch.__version__) < parse_version("1.9") and (show_attrs or show_saved)):
         warnings.warn(
-            "make_dot: showing grad_fn attributes and saved variables"
-            " requires PyTorch version >= 1.9. (This does NOT apply to"
-            " saved tensors saved by custom autograd functions.)"
+            "make_dot: showing grad_fn attributes and saved variables "
+            "requires PyTorch version >= 1.9. (This does NOT apply to "
+            "saved tensors saved by custom autograd functions.)"
         )
 
     param_map = {}
