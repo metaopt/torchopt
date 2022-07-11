@@ -77,11 +77,11 @@ system(
     COMMAND "${PYTHON_EXECUTABLE}" -c "print(__import__('platform').python_version())"
 )
 
-message("-- Use Python version: ${PYTHON_VERSION}")
-message("-- Use Python executable: \"${PYTHON_EXECUTABLE}\"")
+message(STATUS "Use Python version: ${PYTHON_VERSION}")
+message(STATUS "Use Python executable: \"${PYTHON_EXECUTABLE}\"")
 
 if(NOT DEFINED PYTHON_INCLUDE_DIR)
-    message("-- Auto detecting Python include directory...")
+    message(STATUS "Auto detecting Python include directory...")
     system(
         STRIP OUTPUT_VARIABLE PYTHON_INCLUDE_DIR
         COMMAND "${PYTHON_EXECUTABLE}" -c "print(__import__('sysconfig').get_path('include'))"
@@ -89,16 +89,16 @@ if(NOT DEFINED PYTHON_INCLUDE_DIR)
 endif()
 
 if("${PYTHON_INCLUDE_DIR}" STREQUAL "")
-    message(FATAL_ERROR "-- Python include directory not found")
+    message(FATAL_ERROR "Python include directory not found")
 else()
-    message("-- Detected Python include directory: \"${PYTHON_INCLUDE_DIR}\"")
+    message(STATUS "Detected Python include directory: \"${PYTHON_INCLUDE_DIR}\"")
     include_directories(${PYTHON_INCLUDE_DIR})
 endif()
 
 set(PYBIND11_PYTHON_VERSION "${PYTHON_VERSION}")
 
 if(NOT DEFINED PYBIND11_CMAKE_DIR)
-    message("-- Auto detecting pybind11 CMake directory...")
+    message(STATUS "Auto detecting pybind11 CMake directory...")
     system(
         STRIP OUTPUT_VARIABLE PYBIND11_CMAKE_DIR
         COMMAND "${PYTHON_EXECUTABLE}" -m pybind11 --cmakedir
@@ -106,14 +106,14 @@ if(NOT DEFINED PYBIND11_CMAKE_DIR)
 endif()
 
 if("${PYBIND11_CMAKE_DIR}" STREQUAL "")
-    message(FATAL_ERROR "-- Pybind11 CMake directory not found")
+    message(FATAL_ERROR "Pybind11 CMake directory not found")
 else()
-    message("-- Detected Pybind11 CMake directory: \"${PYBIND11_CMAKE_DIR}\"")
+    message(STATUS "Detected Pybind11 CMake directory: \"${PYBIND11_CMAKE_DIR}\"")
     find_package(pybind11 CONFIG PATHS "${PYBIND11_CMAKE_DIR}")
 endif()
 
 if(NOT DEFINED TORCH_INCLUDE_PATH)
-    message("-- Auto detecting PyTorch include directory...")
+    message(STATUS "Auto detecting PyTorch include directory...")
     system(
         STRIP OUTPUT_VARIABLE TORCH_INCLUDE_PATH
         COMMAND "${PYTHON_EXECUTABLE}" -c "print('\\\;'.join(__import__('torch.utils.cpp_extension', fromlist=[None]).include_paths()))"
@@ -121,14 +121,14 @@ if(NOT DEFINED TORCH_INCLUDE_PATH)
 endif()
 
 if("${TORCH_INCLUDE_PATH}" STREQUAL "")
-    message(FATAL_ERROR "-- Torch include directory not found")
+    message(FATAL_ERROR "Torch include directory not found")
 else()
-    message("-- Detected Torch include directory: \"${TORCH_INCLUDE_PATH}\"")
+    message(STATUS "Detected Torch include directory: \"${TORCH_INCLUDE_PATH}\"")
     include_directories(${TORCH_INCLUDE_PATH})
 endif()
 
 if(NOT DEFINED TORCH_LIBRARY_PATH)
-    message("-- Auto detecting PyTorch library directory...")
+    message(STATUS "Auto detecting PyTorch library directory...")
     system(
         STRIP OUTPUT_VARIABLE TORCH_LIBRARY_PATH
         COMMAND "${PYTHON_EXECUTABLE}" -c "print('\\\;'.join(__import__('torch.utils.cpp_extension', fromlist=[None]).library_paths()))"
@@ -136,9 +136,9 @@ if(NOT DEFINED TORCH_LIBRARY_PATH)
 endif()
 
 if("${TORCH_LIBRARY_PATH}" STREQUAL "")
-    message(FATAL_ERROR "-- Torch library directory not found")
+    message(FATAL_ERROR "Torch library directory not found")
 else()
-    message("-- Detected Torch library directory: \"${TORCH_LIBRARY_PATH}\"")
+    message(STATUS "Detected Torch library directory: \"${TORCH_LIBRARY_PATH}\"")
 endif()
 
 unset(TORCH_LIBRARIES)
@@ -148,7 +148,7 @@ foreach(VAR_PATH ${TORCH_LIBRARY_PATH})
     list(APPEND TORCH_LIBRARIES "${TORCH_LIBRARY}")
 endforeach()
 
-message("-- Detected Torch libraries: \"${TORCH_LIBRARIES}\"")
+message(STATUS "Detected Torch libraries: \"${TORCH_LIBRARIES}\"")
 
 add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
 

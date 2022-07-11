@@ -1,6 +1,6 @@
 # Create virtual environment with command:
 #
-#   conda env create --file conda-recipe.yaml
+#   $ CONDA_OVERRIDE_CUDA=11.7 conda env create --file conda-recipe.yaml
 #
 
 name: torchopt
@@ -8,36 +8,40 @@ name: torchopt
 channels:
   - pytorch
   - defaults
+  - nvidia/label/cuda-11.6.2
   - nvidia
   - conda-forge
 
 dependencies:
   - python = 3.8
+  - pip
 
   # Learning
-  - pytorch::pytorch = 1.11
+  - pytorch::pytorch = 1.12
   - pytorch::torchvision
-  - jax
-  - jaxlib
-  - tensorboard
-  - wandb
+  - pytorch::pytorch-mutex = *=*cuda*
   - pip:
       - functorch
+  - jax
+  - jaxlib >= 0.3=*cuda*
+  - optax
+  - tensorboard
+  - wandb
 
   # Device select
-  - nvidia::cudatoolkit = 11.3.1
+  - nvidia::cudatoolkit = 11.6
   - cudnn
 
   # Build toolkit
   - cmake >= 3.4
   - make
   - cxx-compiler
-  - gxx >= 6.0, < 12.0
-  - nvidia/label/cuda-11.3.1::cuda-minimal-build
+  - gxx = 10
+  - nvidia/label/cuda-11.6.2::cuda-nvcc
+  - nvidia/label/cuda-11.6.2::cuda-cudart-dev
   - pybind11
 
   # Misc
-  - pip
   - typing-extensions
   - numpy
   - matplotlib-base

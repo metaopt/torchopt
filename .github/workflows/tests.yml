@@ -35,7 +35,7 @@ jobs:
         uses: Jimver/cuda-toolkit@v0.2.7
         id: cuda-toolkit
         with:
-          cuda: "11.3.1"
+          cuda: "11.6.2"
           method: network
           sub-packages: '["nvcc"]'
       - run: |
