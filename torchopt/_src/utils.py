@@ -39,12 +39,10 @@ def stop_gradient(target):
     Note that the stop_gradient operation is in-place.
 
     Args:
-        target:
-            The target that to be detached from the computation graph, it could
+        target: The target that to be detached from the computation graph, it could
             be a `nn.Module`, `torchopt.MetaOptimizer`, state of the
             `torchopt.MetaOptimizer`, or just a plain list of tensors.
-        inplace:
-            If true, the target will be detached in-place. if false, this function
+        inplace: If true, the target will be detached in-place. if false, this function
             will return a detached copy of the target. The in-place operation is
             fast and memory efficient but may raise back-propagation error.
     """
@@ -79,22 +77,17 @@ def extract_state_dict(mod, copy=False, *, with_buffer=True, enable_visual=False
     will affect the target that the state is extracted from.
 
     Args:
-        mod:
-            It could be a `nn.Module` or `torchopt.MetaOptimizer`.
-        with_buffer:
-            Extract buffer together with parameters, this argument is only used
+        mod: It could be a `nn.Module` or `torchopt.MetaOptimizer`.
+        with_buffer: Extract buffer together with parameters, this argument is only used
             if the input target is `nn.Module`.
-        enable_visual:
-            Add additional annotations, which could be used in computation graph
+        enable_visual: Add additional annotations, which could be used in computation graph
             visualization. Currently, this flag only has effect on `nn.Module` but
             we will support `torchopt.MetaOptimizer` later.
-        visual_prefix:
-            Prefix for the visualization annotations.
+        visual_prefix: Prefix for the visualization annotations.
 
     Returns:
         State extracted of the input object.
     """
-
     if isinstance(mod, nn.Module):
         if enable_visual:
             visual_contents = {}
@@ -181,12 +174,9 @@ def recover_state_dict(mod, state):
     will not be modified.
 
     Args:
-        mod:
-            Target that need to recover.
-        state:
-            The recovering state.
+        mod: Target that need to recover.
+        state: The recovering state.
     """
-
     if isinstance(mod, nn.Module):
         target_container = _extract_container(mod)
         for target, source in zip(target_container, state.params):

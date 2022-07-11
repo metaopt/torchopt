@@ -27,18 +27,14 @@ class Optimizer(object):
 
     def __init__(self, params: Iterable, impl: GradientTransformation):
         """The `init` function.
+        
         Args:
-            params (iterable):
-                An iterable of `torch.Tensor`s. Specifies what Tensors should be
-                optimized.
-            impl (GradientTransformation):
-                A low level optimizer function, it could be a optimizer function
-                provided by `alias.py` or a customized `chain` provided by
-                `combine.py`.
+            params (iterable): An iterable of `torch.Tensor`s. Specifies what Tensors should be optimized.
+            impl (GradientTransformation): A low level optimizer function, it could be a optimizer function
+                provided by `alias.py` or a customized `chain` provided by `combine.py`.
                 Note that use `MetaOptimizer(sgd())` or `MetaOptimizer(chain(sgd()))`
                 is equivalent to `SGD`.
         """
-
         if not isinstance(params, list):
             params = list(params)
         self.impl = impl
@@ -53,10 +49,8 @@ class Optimizer(object):
         The behavior is similar to `torch.optim.Optimizer.zero_grad`.
 
         Args:
-            set_to_none (bool):
-                Instead of setting to zero, set the grads to None.
+            set_to_none (bool): Instead of setting to zero, set the grads to None.
         """
-
         for group in self.param_groups:
             if set_to_none:
 
@@ -80,29 +74,24 @@ class Optimizer(object):
 
     def state_dict(self):
         """Returns the state of the optimizer."""
-
         return self.state_groups
 
     def load_state_dict(self, state_dict):
         """Loads the optimizer state.
 
         Args:
-            state_dict (dict):
-                Optimizer state. Should be an object returned from a call to :meth:`state_dict`.
+            state_dict (dict): Optimizer state. Should be an object returned from a call to :meth:`state_dict`.
         """
-
         self.state_groups = state_dict
 
     def step(self, closure=None):
-        """Performs a single optimization step (parameter update).
+        """Performs a single optimization step.
 
         The behavior is similar to `torch.optim.Optimizer.step`.
 
         Args:
-            closure (callable, optional):
-                A closure that reevaluates the model and returns the loss.
+            closure (callable, optional): A closure that reevaluates the model and returns the loss.
         """
-
         loss = None
         if closure is not None:
             with torch.enable_grad():

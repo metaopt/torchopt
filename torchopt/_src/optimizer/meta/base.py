@@ -25,19 +25,17 @@ class MetaOptimizer(object):
     """A high-level optimizer base class for meta learning."""
 
     def __init__(self, net: nn.Module, impl: GradientTransformation):
-        """
+        """The `init` function.
+        
         Args:
-            net (nn.Module):
-                A network whose parameters should be optimized.
-            impl (GradientTransformation):
-                A low level optimizer function, it could be a optimizer function
+            net (nn.Module): A network whose parameters should be optimized.
+            impl (GradientTransformation): A low level optimizer function, it could be a optimizer function
                 provided by `alias.py` or a customerized `chain` provided by
                 `combine.py`.
                 Note that use `MetaOptimizer(sgd(moment_requires_grad=True))`
                 or `MetaOptimizer(chain(sgd(moment_requires_grad=True))) is
                 equivalent to `MetaSGD`.
         """
-
         self.impl = impl
         self.param_containers_groups = []  # type: ignore
         self.state_groups = []  # type: ignore
@@ -52,10 +50,8 @@ class MetaOptimizer(object):
         the network parameters without modifying tensors in-place.
 
         Args:
-            loss (torch.Tensor):
-                The loss that is used to compute the gradients to the network parameters.
+            loss (torch.Tensor): The loss that is used to compute the gradients to the network parameters.
         """
-
         # step parameter only
         for idx, (state, param_containers) in enumerate(
             zip(self.state_groups, self.param_containers_groups)
@@ -86,9 +82,9 @@ class MetaOptimizer(object):
         Note that the states are references, so any in-place operations will
         change the states inside `MetaOptimizer` at the same time.
         """
-
         out_groups = tuple(group for group in self.state_groups)
         return out_groups
 
     def load_state_dict(self, state_dict):
+        """Load the references of the optimizer states."""
         self.state_groups = list(group for group in state_dict)

@@ -35,13 +35,19 @@ class MetaAdam(MetaOptimizer):
         """The `init` function.
 
         Args:
-            net (nn.Module):
-                A network whose parameters should be optimized.
-            args:
-                Other arguments see `alias.adam`, here we set `moment_requires_grad=True`
-                to make tensors like momentum be differentiable.
+            net (nn.Module): A network whose parameters should be optimized.
+            args: Other arguments see `alias.adam`, 
+            lr: This is a fixed global scaling factor.
+            b1: The exponential decay rate to track the first moment of past gradients.
+            b2: The exponential decay rate to track the second moment of past gradients.
+            eps: A small constant applied to denominator outside of the square root
+                (as in the Adam paper) to avoid dividing by zero when rescaling.
+            eps_root: (default `0`) A small constant applied to denominator inside the square root (as
+                in RMSProp), to avoid dividing by zero when rescaling. This is needed
+                for example when computing (meta-)gradients through Adam.
+            moment_requires_grad: (default `True`) Here we set `moment_requires_grad=True` to make tensors like momentum be differentiable.
+            use_accelerated_op: (default `False`) If True use our implemented fused operator.
         """
-
         super().__init__(
             net,
             adam(

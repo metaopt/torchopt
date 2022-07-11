@@ -57,7 +57,6 @@ def apply_updates(params: base.Params, updates: base.Updates, inplace: bool = Tr
     Returns:
         Updated parameters, with same structure, shape and type as `params`.
     """
-
     if inplace:
 
         def f(p, u):

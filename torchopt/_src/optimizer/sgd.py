@@ -33,13 +33,14 @@ class SGD(Optimizer):
         """The `init` function.
 
         Args:
-            params (iterable):
-                An iterable of `torch.Tensor`s. Specifies what Tensors should be
+            params (iterable): An iterable of `torch.Tensor`s. Specifies what Tensors should be
                 optimized.
-            args:
-                Other arguments see `alias.adam`.
+            lr: This is a fixed global scaling factor.
+            momentum: (default `None`)
+                The `decay` rate used by the momentum term, when it is set to `None`,
+                then momentum is not used at all.
+            nesterov (default `False`): Whether nesterov momentum is used.
         """
-
         super().__init__(
             params, sgd(lr=lr, momentum=momentum, nesterov=nesterov, moment_requires_grad=False)
         )

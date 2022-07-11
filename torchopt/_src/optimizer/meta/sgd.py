@@ -36,13 +36,12 @@ class MetaSGD(MetaOptimizer):
         """The `init` function.
 
         Args:
-            net (nn.Module):
-                A network whose parameters should be optimized.
-            args:
-                Other arguments see `alias.sgd`, here we set `moment_requires_grad=True`
-                to make tensors like momentum be differentiable.
+            net: A network whose parameters should be optimized.
+            lr: This is a fixed global scaling factor.
+            momentum: The `decay` rate used by the momentum term, when it is set to `None`, then momentum is not used at all.
+            nesterov: Whether nesterov momentum is used.
+            moment_requires_grad: Here we set `moment_requires_grad=True` to make tensors like momentum be differentiable.
         """
-
         super().__init__(
             net,
             sgd(

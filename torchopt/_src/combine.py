@@ -48,7 +48,6 @@ def chain(*args: base.GradientTransformation) -> base.GradientTransformation:
     Returns:
         A single (init_fn, update_fn) tuple.
     """
-
     init_fns, update_fns = zip(*args)
 
     def init_fn(params):

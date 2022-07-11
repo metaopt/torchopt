@@ -72,20 +72,16 @@ def adam(
         Kingma et al, 2014: https://arxiv.org/abs/1412.6980
 
     Args:
-        lr:
-            This is a fixed global scaling factor.
-        b1:
-            The exponential decay rate to track the first moment of past gradients.
-        b2:
-            The exponential decay rate to track the second moment of past gradients.
-        eps:
-            A small constant applied to denominator outside of the square root
+        lr: This is a fixed global scaling factor.
+        b1: The exponential decay rate to track the first moment of past gradients.
+        b2: The exponential decay rate to track the second moment of past gradients.
+        eps: A small constant applied to denominator outside of the square root
             (as in the Adam paper) to avoid dividing by zero when rescaling.
-        eps_root: (default `0`)
+        eps_root: (default `0`) 
             A small constant applied to denominator inside the square root (as
             in RMSProp), to avoid dividing by zero when rescaling. This is needed
             for example when computing (meta-)gradients through Adam.
-        moment_requires_grad: (default `False`)
+        moment_requires_grad: (default `False`) 
             If True the momentums will be created with flag `requires_grad=True`,
             this flag is often used in Meta Learning algorithms.
         use_accelerated_op: (default `False`)
@@ -94,7 +90,6 @@ def adam(
     Returns:
         The corresponding `GradientTransformation` instance.
     """
-
     adam_inst = transform.scale_by_accelerated_adam if use_accelerated_op else transform.scale_by_adam
     return combine.chain(
         adam_inst(
@@ -134,7 +129,6 @@ def sgd(
     Returns:
         A `GradientTransformation` instance.
     """
-
     return combine.chain(
         (
             transform.trace(
@@ -154,6 +148,7 @@ def rmsprop(
     nesterov: bool = False
 ) -> base.GradientTransformation:
     """A flexible RMSProp optimizer.
+
     RMSProp is an SGD variant with learning rate adaptation. The `learning_rate`
     used for each weight is scaled by a suitable estimate of the magnitude of the
     gradients on previous steps. Several variants of RMSProp can be found
@@ -165,7 +160,7 @@ def rmsprop(
         Graves, 2013: https://arxiv.org/abs/1308.0850
 
     Args:
-        learning_rate:
+        lr:
             This is a fixed global scaling factor.
         decay:
             The decay used to track the magnitude of previous gradients.
@@ -187,7 +182,6 @@ def rmsprop(
     Returns:
         The corresponding `GradientTransformation` instance.
     """
-
     if centered:
         return combine.chain(
             transform.scale_by_stddev(decay=decay, eps=eps, initial_scale=initial_scale),

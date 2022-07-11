@@ -89,10 +89,8 @@ class TransformUpdateFn(Protocol):
         """The `update` function.
 
         Args:
-            updates:
-                A tree of candidate updates.
-            state:
-                The state of the gradient transformation.
+            updates: A tree of candidate updates.
+            state: The state of the gradient transformation.
             inplace: (optional)
                 If true, modify updates and state using inplace operations.
 
@@ -121,7 +119,7 @@ class GradientTransformation(NamedTuple):
             A pure function which, when called with an example instance of the
             parameters whose gradients will be transformed, returns a pytree
             containing the initial value for the optimizer state.
-      update:
+        update:
             A pure function which takes as input a pytree of updates (with the
             same tree structure as the original params pytree passed to init),
             the previous optimizer state (which may have been initialized using
@@ -143,7 +141,6 @@ def identity() -> GradientTransformation:
     Returns:
         An (init_fn, update_fn) tuple.
     """
-
     def init_fn(_):
         return EmptyState()
 

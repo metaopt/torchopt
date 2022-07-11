@@ -37,13 +37,21 @@ class MetaRMSProp(MetaOptimizer):
         """The `init` function.
 
         Args:
-            net (nn.Module):
-                A network whose parameters should be optimized.
-            args:
-                Other arguments see `alias.adam`, here we set `moment_requires_grad=True`
-                to make tensors like momentum be differentiable.
+            net (nn.Module): A network whose parameters should be optimized.
+            lr: This is a fixed global scaling factor.
+            decay: The decay used to track the magnitude of previous gradients.
+            eps: A small numerical constant to avoid dividing by zero when rescaling.
+            initial_scale: (default `0.`)
+                Initialization of accumulators tracking the magnitude of previous
+                updates. PyTorch uses `0`, TF1 uses `1`. When reproducing results
+                from a paper, verify the value used by the authors.
+            centered: (default `False`)
+                Whether the second moment or the variance of the past gradients is
+                used to rescale the latest gradients.
+            momentum: (default `None`)
+                Here we set `moment_requires_grad=True` to make tensors like momentum be differentiable.
+            nesterov (default `False`): Whether nesterov momentum is used.
         """
-
         super().__init__(
             net,
             rmsprop(

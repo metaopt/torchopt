@@ -67,7 +67,6 @@ def polynomial_schedule(
         schedule:
             A function that maps step counts to values.
     """
-
     if transition_steps <= 0:
         logging.info(
             'A polynomial schedule was set with a non-positive `transition_steps` '
@@ -101,7 +100,7 @@ def linear_schedule(
     transition_steps: int,
     transition_begin: int = 0
 ) -> base.Schedule:
-
+    """Alias polynomial schedule to linear schedule for convenience."""
     return polynomial_schedule(
         init_value=init_value,
         end_value=end_value,

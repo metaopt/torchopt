@@ -37,13 +37,23 @@ class RMSProp(Optimizer):
         """The `init` function.
 
         Args:
-            params (iterable):
-                An iterable of `torch.Tensor`s. Specifies what Tensors should be
+            params (iterable): An iterable of `torch.Tensor`s. Specifies what Tensors should be
                 optimized.
-            args:
-                Other arguments see `alias.sgd`.
+            lr: This is a fixed global scaling factor.
+            decay: The decay used to track the magnitude of previous gradients.
+            eps: A small numerical constant to avoid dividing by zero when rescaling.
+            initial_scale: (default `0.`)
+                Initialization of accumulators tracking the magnitude of previous
+                updates. PyTorch uses `0`, TF1 uses `1`. When reproducing results
+                from a paper, verify the value used by the authors.
+            centered: (default `False`)
+                Whether the second moment or the variance of the past gradients is
+                used to rescale the latest gradients.
+            momentum: (default `None`)
+                The `decay` rate used by the momentum term, when it is set to `None`,
+                then momentum is not used at all.
+            nesterov: (default `False`) Whether nesterov momentum is used.
         """
-
         super().__init__(
             params,
             rmsprop(

@@ -32,6 +32,7 @@ SAVED_PREFIX = "_saved_"
 
 
 def get_fn_name(fn, show_attrs, max_attr_chars):
+    """Returns function name."""
     name = str(type(fn).__name__)
     if not show_attrs:
         return name
@@ -68,31 +69,24 @@ def make_dot(var, params=None, show_attrs=False, show_saved=False, max_attr_char
 
     If a node represents a backward function, it is gray. Otherwise, the node
     represents a tensor and is either blue, orange, or green:
-     - Blue: reachable leaf tensors that requires grad (tensors whose `.grad`
+     Blue: reachable leaf tensors that requires grad (tensors whose `.grad`
         fields will be populated during `.backward()`)
-     - Orange: saved tensors of custom autograd functions as well as those
+     Orange: saved tensors of custom autograd functions as well as those
         saved by built-in backward nodes
-     - Green: tensor passed in as outputs
-     - Dark green: if any output is a view, we represent its base tensor with
+     Green: tensor passed in as outputs
+     Dark green: if any output is a view, we represent its base tensor with
         a dark green node.
 
     Args:
-        var:
-            Output tensor.
-        params: ([dict of (name, tensor) or state_dict])
-            Parameters to add names to node that requires grad.
-        show_attrs:
-            Whether to display non-tensor attributes of backward nodes
-            (Requires PyTorch version >= 1.9)
-        show_saved:
-            Whether to display saved tensor nodes that are not by custom
+        var: Output tensor.
+        params ([dict of (name, tensor) or state_dict]): Parameters to add names to node that requires grad.
+        show_attrs: Whether to display non-tensor attributes of backward nodes (Requires PyTorch version >= 1.9)
+        show_saved: Whether to display saved tensor nodes that are not by custom
             autograd functions. Saved tensor nodes for custom functions, if
             present, are always displayed. (Requires PyTorch version >= 1.9)
-        max_attr_chars:
-            If show_attrs is `True`, sets max number of characters
+        max_attr_chars: If show_attrs is `True`, sets max number of characters
             to display for any given attribute.
     """
-
     if (parse_version(torch.__version__) < parse_version("1.9") and (show_attrs or show_saved)):
         warnings.warn(
             "make_dot: showing grad_fn attributes and saved variables "
@@ -227,9 +221,9 @@ def make_dot(var, params=None, show_attrs=False, show_saved=False, max_attr_char
 
 def resize_graph(dot, size_per_element=0.15, min_size=12):
     """Resize the graph according to how much content it contains.
+
     Modify the graph in place.
     """
-
     # Get the approximate number of nodes and edges
     num_rows = len(dot.body)
     content_size = num_rows * size_per_element
