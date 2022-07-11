@@ -119,12 +119,8 @@ clean-py:
 	find . -depth -type d -name ".mypy_cache" -exec rm -r "{}" +
 	find . -depth -type d -name ".pytest_cache" -exec rm -r "{}" +
 
-<<<<<<< HEAD
-lint: flake8 py-format clang-format cpplint mypy docstyle spelling
-=======
 clean-build:
 	rm -rf build/ dist/
 	rm -rf *.egg-info .eggs
->>>>>>> upstream/main
 
 clean: clean-py clean-build clean-docs
