@@ -43,6 +43,7 @@ ScaleState = base.EmptyState
 
 
 def inc_count(updates, count: Tuple[int]) -> Tuple[int]:
+    """Increments int counter by one."""
 
     def f(c, g):
         return c + 1 if g is not None else c
@@ -59,6 +60,7 @@ def scale(step_size: float) -> base.GradientTransformation:
     Returns:
         An (init_fn, update_fn) tuple.
     """
+
     def init_fn(params):
         del params
         return ScaleState()

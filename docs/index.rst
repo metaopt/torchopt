@@ -31,7 +31,7 @@ You can also build shared libraries from source, use:
 The Team
 --------
 
-TorchOpt is a work by Jie Ren, Xidong Feng, Bo Liu, `Luo Mai <https://luomai.github.io/>`_ and `Yaodong Yang <https://www.yangyaodong.com/>`_.
+TorchOpt is a work by Jie Ren, Xidong Feng, `Bo Liu <https://github.com/Benjamin-eecs>`_, `Luo Mai <https://luomai.github.io/>`_ and `Yaodong Yang <https://www.yangyaodong.com/>`_.
 
 Support
 -------

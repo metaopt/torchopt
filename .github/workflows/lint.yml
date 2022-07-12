@@ -61,6 +61,14 @@ jobs:
         run: |
           make py-format
 
+      - name: cpplint
+        run: |
+          make cpplint
+
+      - name: clang-format
+        run: |
+          make clang-format
+          
       - name: addlicense
         run: |
           make addlicense
@@ -69,9 +77,9 @@ jobs:
         run: |
           make mypy
 
-    # - name: docstyle
-    #   run: |
-    #     make docstyle
+      - name: docstyle
+        run: |
+          make docstyle
 
     # - name: spelling
     #   run: |

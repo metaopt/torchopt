@@ -13,13 +13,13 @@
 // limitations under the License.
 // ==============================================================================
 
-#include "adam_op/adam_op.h"
+#include "include/adam_op/adam_op.h"
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-#include "adam_op/adam_op_impl.cuh"
-#include "adam_op/adam_op_impl.h"
+#include "include/adam_op/adam_op_impl.cuh"
+#include "include/adam_op/adam_op_impl.h"
 
 namespace torchopt {
 TensorArray<3> adamForwardInplace(const torch::Tensor& updates,

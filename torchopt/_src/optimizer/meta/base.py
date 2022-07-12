@@ -67,6 +67,7 @@ class MetaOptimizer(object):
                 container.update(unflatten_param)
 
     def add_param_group(self, net):
+        """Add a param group to the optimizer's param_groups."""
         from torchopt._src.utils import _extract_container
 
         net_container = _extract_container(net, with_buffer=False)

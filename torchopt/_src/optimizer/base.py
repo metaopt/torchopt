@@ -108,6 +108,7 @@ class Optimizer(object):
         return loss
 
     def add_param_group(self, params):
+        """Add a param group to the optimizer's param_groups."""
         params, tree = jax.tree_flatten(params)
         params = tuple(params)
         self.param_groups.append(params)

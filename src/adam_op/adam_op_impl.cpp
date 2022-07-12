@@ -13,14 +13,14 @@
 // limitations under the License.
 // ==============================================================================
 
-#include "adam_op/adam_op_impl.h"
+#include "include/adam_op/adam_op_impl.h"
 
 #include <omp.h>
 #include <torch/extension.h>
 
 #include <vector>
 
-#include "utils.h"
+#include "include/utils.h"
 
 namespace torchopt {
 using std::size_t;

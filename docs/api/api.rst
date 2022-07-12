@@ -1,5 +1,5 @@
 Common Optimizers
-===================
+=================
 
 .. currentmodule:: torchopt
 
@@ -30,11 +30,11 @@ SGD
 
 
 torchopt Transformations
-=====================
+========================
 
 
 Gradient Transforms
--------------------
+~~~~~~~~~~~~~~~~~~~
 
 .. currentmodule:: torchopt
 
@@ -128,7 +128,7 @@ torchopt Types
 
 
 torchopt Transforms and States
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autofunction:: adaptive_grad_clip
 .. autoclass:: AdaptiveGradClipState
@@ -283,7 +283,7 @@ Multi Transform
 
 
 Optimizer Wrappers
-====================
+==================
 
 .. currentmodule:: torchopt
 

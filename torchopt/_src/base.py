@@ -141,6 +141,7 @@ def identity() -> GradientTransformation:
     Returns:
         An (init_fn, update_fn) tuple.
     """
+
     def init_fn(_):
         return EmptyState()
 
