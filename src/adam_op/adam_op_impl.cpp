@@ -13,7 +13,7 @@
 // limitations under the License.
 // ==============================================================================
 
-#include "include/adam_op/adam_op_impl.h"
+#include "adam_op/adam_op_impl.h"
 
 #include <omp.h>
 #include <torch/extension.h>

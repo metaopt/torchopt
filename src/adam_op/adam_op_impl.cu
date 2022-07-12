@@ -17,7 +17,7 @@
 
 #include <vector>
 
-#include "include/adam_op/adam_op_impl.cuh"
+#include "adam_op/adam_op_impl.cuh"
 #include "include/utils.h"
 
 namespace torchopt {
