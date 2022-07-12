@@ -20,7 +20,7 @@
 
 #include <vector>
 
-#include "include/utils.h"
+#include "utils.h"
 
 namespace torchopt {
 using std::size_t;
