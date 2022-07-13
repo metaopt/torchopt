@@ -3,7 +3,7 @@ PROJECT_NAME   = torchopt
 COPYRIGHT      = "MetaOPT Team. All Rights Reserved."
 PROJECT_PATH   = ${PROJECT_NAME}
 SHELL          = /bin/bash
-SOURCE_FOLDERS = $(PROJECT_PATH) examples include src tests
+SOURCE_FOLDERS = $(PROJECT_PATH) examples include src tests docs
 PYTHON_FILES   = $(shell find $(SOURCE_FOLDERS) -type f -name "*.py" -o -name "*.pyi")
 CXX_FILES      = $(shell find $(SOURCE_FOLDERS) -type f -name "*.h" -o -name "*.cpp" -o -name "*.cuh" -o -name "*.cu")
 COMMIT_HASH    = $(shell git log -1 --format=%h)
@@ -37,6 +37,10 @@ docs-install:
 	$(call check_pip_install,doc8)
 	$(call check_pip_install,sphinx)
 	$(call check_pip_install,sphinx_rtd_theme)
+	$(call check_pip_install,sphinxcontrib-katex)
+	$(call check_pip_install,sphinxcontrib-bibtex)
+	$(call check_pip_install,sphinx-autodoc-typehints)
+	$(call check_pip_install,myst_nb)
 	$(call check_pip_install_extra,sphinxcontrib.spelling,sphinxcontrib.spelling pyenchant)
 
 pytest-install:

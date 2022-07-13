@@ -28,6 +28,33 @@ You can also build shared libraries from source, use:
     cd TorchOpt
     pip3 install .
 
+.. toctree::
+   :caption: Getting Started
+   :maxdepth: 1
+
+   torchopt101
+
+
+.. toctree::
+   :caption: Examples
+   :maxdepth: 1
+
+   examples
+
+
+.. toctree::
+   :caption: Developer Documentation
+   :maxdepth: 1
+
+   contributing
+
+.. toctree::
+   :caption: API Documentation
+   :maxdepth: 2
+
+   api/api.rst
+
+
 The Team
 --------
 

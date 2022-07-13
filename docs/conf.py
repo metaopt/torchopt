@@ -1,5 +1,18 @@
-# Configuration file for the Sphinx documentation builder.
+# Copyright 2022 MetaOPT Team. All Rights Reserved.
 #
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ==============================================================================
+"""Configuration file for the Sphinx documentation builder."""
 # This file only contains a selection of the most common options. For a full
 # list see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
@@ -12,13 +25,15 @@
 #
 # import os
 # import sys
-# sys.path.insert(0, os.path.abspath('.'))
+
 
 import pathlib
+import os
 import sys
-
+import TorchOpt
+import inspect
 import sphinx_rtd_theme
-
+import sphinxcontrib.katex as katex
 
 HERE = pathlib.Path(__file__).absolute().parent
 PROJECT_ROOT = HERE.parent
@@ -46,6 +61,16 @@ release = get_version()
 # ones.
 extensions = [
     "sphinx.ext.autodoc",
+    'sphinx.ext.autosummary',
+    'sphinx.ext.doctest',
+    'sphinx.ext.inheritance_diagram',
+    'sphinx.ext.intersphinx',
+    'sphinx.ext.linkcode',
+    'sphinx.ext.napoleon',
+    'sphinxcontrib.katex',
+    'sphinx_autodoc_typehints',
+    'sphinx_rtd_theme',
+    'myst_nb',  # This is used for the .ipynb notebooks
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -60,6 +85,34 @@ root_doc = "index"
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 spelling_exclude_patterns = [""]
+
+
+# -- Options for autodoc -----------------------------------------------------
+
+autodoc_default_options = {
+    'member-order': 'bysource',
+    'special-members': True,
+    'exclude-members': '__repr__, __str__, __weakref__',
+}
+
+# -- Options for myst -------------------------------------------------------
+
+jupyter_execute_notebooks = 'force'
+execution_allow_errors = False
+
+# -- Options for katex ------------------------------------------------------
+
+# See: https://sphinxcontrib-katex.readthedocs.io/en/0.4.1/macros.html
+latex_macros = r"""
+    \def \d              #1{\operatorname{#1}}
+"""
+
+# Translate LaTeX macros to KaTeX and add to options for HTML builder
+katex_macros = katex.latex_defs_to_katex_macros(latex_macros)
+katex_options = 'macros: {' + katex_macros + '}'
+
+# Add LaTeX macros for LATEX builder
+latex_elements = {'preamble': latex_macros}
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -81,6 +134,42 @@ def setup(app):
     app.add_js_file("js/copybutton.js")
     app.add_css_file("css/style.css")
 
+# -- Source code links -------------------------------------------------------
+
+
+def linkcode_resolve(domain, info):
+  """Resolve a GitHub URL corresponding to Python object."""
+  if domain != 'py':
+    return None
+
+  try:
+    mod = sys.modules[info['module']]
+  except ImportError:
+    return None
+
+  obj = mod
+  try:
+    for attr in info['fullname'].split('.'):
+      obj = getattr(obj, attr)
+  except AttributeError:
+    return None
+  else:
+    obj = inspect.unwrap(obj)
+
+  try:
+    filename = inspect.getsourcefile(obj)
+  except TypeError:
+    return None
+
+  try:
+    source, lineno = inspect.getsourcelines(obj)
+  except OSError:
+    return None
+
+  # TODO(slebedev): support tags after we release an initial version.
+  return 'https://github.com/metaopt/TorchOpt/tree/main/torchopt/%s#L%d#L%d' % (
+      os.path.relpath(filename, start=os.path.dirname(
+          TorchOpt.__file__)), lineno, lineno + len(source) - 1)
 
 # -- Extension configuration -------------------------------------------------
 
