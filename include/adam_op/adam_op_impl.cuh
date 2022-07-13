@@ -18,7 +18,7 @@
 
 #include <vector>
 
-#include "common.h"
+#include "include/common.h"
 
 namespace torchopt {
 TensorArray<3> adamForwardInplaceCUDA(const torch::Tensor &updates,
