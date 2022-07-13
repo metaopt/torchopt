@@ -2,7 +2,7 @@
 <!-- markdownlint-disable html -->
 
 <div align="center">
-  <img src="image/logod-07.png" width="75%" />
+  <img src="image/logo-large.png" width="75%" />
 </div>
 
 **TorchOpt** is a high-performance optimizer library built upon [PyTorch](https://pytorch.org/) for easy implementation of functional optimization and gradient-based meta-learning. It consists of two main features:
