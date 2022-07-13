@@ -8,3 +8,12 @@ functorch
 pytest
 pytest-cov
 pytest-xdist
+isort
+yapf
+mypy
+flake8
+flake8-bugbear
+doc8
+pydocstyle
+pyenchant
+cpplint
