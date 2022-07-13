@@ -63,7 +63,7 @@ def get_fn_name(fn, show_attrs, max_attr_chars):
 
 
 # mypy: ignore-errors
-def make_dot(var, params=None, show_attrs=False, show_saved=False, max_attr_chars=50):
+def make_dot(var, params=None, show_attrs=False, show_saved=False, max_attr_chars=50) -> Digraph:
     """Produces Graphviz representation of PyTorch autograd graph.
 
     If a node represents a backward function, it is gray. Otherwise, the node
@@ -225,7 +225,7 @@ def make_dot(var, params=None, show_attrs=False, show_saved=False, max_attr_char
     return dot
 
 
-def resize_graph(dot, size_per_element=0.15, min_size=12):
+def resize_graph(dot, size_per_element=0.5, min_size=12):
     """Resize the graph according to how much content it contains.
     Modify the graph in place.
     """

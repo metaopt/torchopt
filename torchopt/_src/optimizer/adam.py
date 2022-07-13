@@ -19,7 +19,7 @@ from torchopt._src.typing import ScalarOrSchedule
 
 
 class Adam(Optimizer):
-    """A canonical Stochastic Gradient Descent optimizer."""
+    """The classic Adam optimizer."""
 
     def __init__(
         self,
@@ -38,7 +38,7 @@ class Adam(Optimizer):
                 An iterable of `torch.Tensor`s. Specifies what Tensors should be
                 optimized.
             args:
-                Other arguments see `alias.sgd`.
+                Other arguments see `alias.adam`.
         """
 
         super().__init__(

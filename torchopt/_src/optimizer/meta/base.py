@@ -31,7 +31,7 @@ class MetaOptimizer(object):
                 A network whose parameters should be optimized.
             impl (GradientTransformation):
                 A low level optimizer function, it could be a optimizer function
-                provided by `alias.py` or a customerized `chain` provided by
+                provided by `alias.py` or a customized `chain` provided by
                 `combine.py`.
                 Note that use `MetaOptimizer(sgd(moment_requires_grad=True))`
                 or `MetaOptimizer(chain(sgd(moment_requires_grad=True))) is

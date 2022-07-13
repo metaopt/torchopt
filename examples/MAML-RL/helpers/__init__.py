@@ -21,7 +21,7 @@ from gym.envs.registration import register
 
 register(
     'TabularMDP-v0',
-    entry_point='helpers.Tabular_mdp:TabularMDPEnv',
+    entry_point='helpers.tabular_mdp:TabularMDPEnv',
     kwargs={
         'num_states': 10,
         'num_actions': 5,

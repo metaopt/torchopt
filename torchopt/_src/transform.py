@@ -187,7 +187,7 @@ def scale_by_adam(
             Term added to the denominator to improve numerical stability.
         eps_root:
             Term added to the denominator inside the square-root to improve
-            numerical stability when backpropagating gradients through the rescaling.
+            numerical stability when back-propagating gradients through the rescaling.
         moment_requires_grad:
             If true, states will be created with flag `requires_grad = True`.
 
@@ -248,7 +248,7 @@ def scale_by_accelerated_adam(
             Term added to the denominator to improve numerical stability.
         eps_root:
             Term added to the denominator inside the square-root to improve
-            numerical stability when backpropagating gradients through the rescaling.
+            numerical stability when back-propagating gradients through the rescaling.
         moment_requires_grad:
             If true, states will be created with flag `requires_grad = True`.
 
@@ -298,7 +298,7 @@ def trace(
 
     Note: `trace` and `ema` have very similar but distinct updates;
     `trace = decay * trace + t`, while `ema = decay * ema + (1-decay) * t`.
-    Both are frequently found in the optimisation literature.
+    Both are frequently found in the optimization literature.
 
     Args:
         decay:
@@ -406,10 +406,12 @@ def scale_by_rms(
                 return g.mul(torch.rsqrt(n.add(eps)))
 
         # """The followings are pytorch style"""
+        #
         # if inplace:
-        #   def f(g, n): return g.div_(torch.sqrt_(n).add_(eps))
+        #     def f(g, n): return g.div_(torch.sqrt_(n).add_(eps))
         # else:
-        #   def f(g, n): return g.div(torch.sqrt(n).add(eps))
+        #     def f(g, n): return g.div(torch.sqrt(n).add(eps))
+        #
         updates = jax.tree_map(f, updates, nu)
         return updates, ScaleByRmsState(nu=nu)
 
@@ -463,10 +465,12 @@ def scale_by_stddev(
                 return g.mul(torch.rsqrt(n.sub(m**2).add(eps)))
 
         # """The followings are pytorch style"""
+        #
         # if inplace:
-        #   def f(g, m, n): return g.div_(torch.sqrt_(n.sub_(m ** 2)).add(eps))
+        #     def f(g, m, n): return g.div_(torch.sqrt_(n.sub_(m ** 2)).add(eps))
         # else:
-        #   def f(g, m, n): return g.div(torch.sqrt(n.sub(m ** 2)).add(eps))
+        #     def f(g, m, n): return g.div(torch.sqrt(n.sub(m ** 2)).add(eps))
+        #
         updates = jax.tree_map(f, updates, mu, nu)
         return updates, ScaleByRStdDevState(mu=mu, nu=nu)
 
