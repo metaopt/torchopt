@@ -28,6 +28,7 @@ You can also build shared libraries from source, use:
     cd TorchOpt
     pip3 install .
 
+<<<<<<< HEAD
 .. toctree::
    :caption: Getting Started
    :maxdepth: 1
@@ -54,6 +55,20 @@ You can also build shared libraries from source, use:
 
    api/api.rst
 
+=======
+We provide a `conda <https://github.com/conda/conda>`_ environment recipe to install the build toolchain such as `cmake`, `g++`, and `nvcc`:
+
+.. code-block:: bash
+
+    git clone https://github.com/metaopt/TorchOpt.git
+    cd TorchOpt
+
+    # Use `CONDA_OVERRIDE_CUDA` if conda fails to detect the NVIDIA driver (e.g. WSL2 on Windows)
+    CONDA_OVERRIDE_CUDA=11.7 conda env create --file conda-recipe.yaml
+
+    conda activate torchopt
+    pip3 install .
+>>>>>>> upstream/main
 
 The Team
 --------

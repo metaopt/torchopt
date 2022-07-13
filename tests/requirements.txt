@@ -1,10 +1,19 @@
---extra-index-url https://download.pytorch.org/whl/cu113
-torch==1.11
+--extra-index-url https://download.pytorch.org/whl/cu116
+torch == 1.12
 torchvision
 functorch
 
 --requirement ../requirements.txt
 
 pytest
-pytest_cov
-pytest_xdist
+pytest-cov
+pytest-xdist
+isort
+yapf
+mypy
+flake8
+flake8-bugbear
+doc8
+pydocstyle
+pyenchant
+cpplint

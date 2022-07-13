@@ -1,4 +1,4 @@
-name: pypi
+name: PyPI
 
 on:
   release:
@@ -67,7 +67,7 @@ jobs:
         uses: Jimver/cuda-toolkit@v0.2.7
         id: cuda-toolkit
         with:
-          cuda: "11.3.1"
+          cuda: "11.6.2"
           method: network
           sub-packages: '["nvcc"]'
       - run: |
@@ -90,8 +90,9 @@ jobs:
 
       - name: Publish to PyPI
         env:
-          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+          TWINE_USERNAME: "__token__"
+          TWINE_PASSWORD: ${{ secrets.PYPI_UPLOAD_TOKEN }}
         run: |
           "${DEFAULT_PYTHON}" -m pip install --upgrade twine
-          "${DEFAULT_PYTHON}" -m twine upload dist/*
+          "${DEFAULT_PYTHON}" -m twine upload --repository testpypi dist/*
+          "${DEFAULT_PYTHON}" -m twine upload --repository pypi dist/*

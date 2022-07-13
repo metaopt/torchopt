@@ -19,7 +19,7 @@ from torchopt._src.typing import ScalarOrSchedule
 
 
 class Adam(Optimizer):
-    """A canonical Stochastic Gradient Descent optimizer."""
+    """The classic Adam optimizer."""
 
     def __init__(
         self,

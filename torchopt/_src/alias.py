@@ -105,7 +105,7 @@ def sgd(
     nesterov: bool = False,
     moment_requires_grad: bool = False,
 ) -> base.GradientTransformation:
-    """A canonical Stochastic Gradient Descent optimiser.
+    """A canonical Stochastic Gradient Descent optimizer.
 
     This implements stochastic gradient descent. It also includes support for
     momentum, and nesterov acceleration, as these are standard practice when
