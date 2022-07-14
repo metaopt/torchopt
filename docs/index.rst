@@ -28,34 +28,6 @@ You can also build shared libraries from source, use:
     cd TorchOpt
     pip3 install .
 
-<<<<<<< HEAD
-.. toctree::
-   :caption: Getting Started
-   :maxdepth: 1
-
-   torchopt101
-
-
-.. toctree::
-   :caption: Examples
-   :maxdepth: 1
-
-   examples
-
-
-.. toctree::
-   :caption: Developer Documentation
-   :maxdepth: 1
-
-   contributing
-
-.. toctree::
-   :caption: API Documentation
-   :maxdepth: 2
-
-   api/api.rst
-
-=======
 We provide a `conda <https://github.com/conda/conda>`_ environment recipe to install the build toolchain such as `cmake`, `g++`, and `nvcc`:
 
 .. code-block:: bash
@@ -68,12 +40,44 @@ We provide a `conda <https://github.com/conda/conda>`_ environment recipe to ins
 
     conda activate torchopt
     pip3 install .
->>>>>>> upstream/main
+
+.. toctree::
+   :caption: Getting Started
+   :maxdepth: 1
+
+   torchopt101/torchopt-101.rst
+
+
+.. toctree::
+   :caption: Examples
+   :maxdepth: 1
+
+   examples/MAML.rst
+
+
+.. toctree::
+   :caption: Developer Documentation
+   :maxdepth: 1
+
+   developer/contributing.rst
+   developer/contributor.rst
+
+.. toctree::
+   :caption: API Documentation
+   :maxdepth: 2
+
+   api/api.rst
 
 The Team
 --------
 
-TorchOpt is a work by Jie Ren, Xidong Feng, `Bo Liu <https://github.com/Benjamin-eecs>`_, `Luo Mai <https://luomai.github.io/>`_ and `Yaodong Yang <https://www.yangyaodong.com/>`_.
+TorchOpt is a work by
+
+* Jie Ren (`JieRen98 <https://github.com/JieRen98>`_)
+* Xidong Feng (`waterhorse1 <https://github.com/waterhorse1>`_)
+* Bo Liu (`Benjamin-eecs <https://github.com/Benjamin-eecs>`_)
+* Luo Mai (`luomai <https://luomai.github.io/>`_)
+* Yaodong Yang (`PKU-YYang <https://www.yangyaodong.com/>`_).
 
 Support
 -------

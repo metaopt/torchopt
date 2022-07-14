@@ -160,24 +160,17 @@ def rmsprop(
         Graves, 2013: https://arxiv.org/abs/1308.0850
 
     Args:
-        lr:
-            This is a fixed global scaling factor.
-        decay:
-            The decay used to track the magnitude of previous gradients.
-        eps:
-            A small numerical constant to avoid dividing by zero when rescaling.
-        initial_scale: (default `0.`)
-            Initialization of accumulators tracking the magnitude of previous
+        lr: This is a fixed global scaling factor.
+        decay: The decay used to track the magnitude of previous gradients.
+        eps: A small numerical constant to avoid dividing by zero when rescaling.
+        initial_scale: (default `0.`) Initialization of accumulators tracking the magnitude of previous
             updates. PyTorch uses `0`, TF1 uses `1`. When reproducing results
             from a paper, verify the value used by the authors.
-        centered: (default `False`)
-            Whether the second moment or the variance of the past gradients is
+        centered: (default `False`) Whether the second moment or the variance of the past gradients is
             used to rescale the latest gradients.
-        momentum: (default `None`)
-            The `decay` rate used by the momentum term, when it is set to `None`,
+        momentum: (default `None`) The `decay` rate used by the momentum term, when it is set to `None`,
             then momentum is not used at all.
-        nesterov (default `False`):
-            Whether nesterov momentum is used.
+        nesterov (default `False`): Whether nesterov momentum is used.
 
     Returns:
         The corresponding `GradientTransformation` instance.
@@ -190,10 +183,11 @@ def rmsprop(
                 if momentum is not None else base.identity()
             )
         )
-    return combine.chain(
-        transform.scale_by_rms(decay=decay, eps=eps, initial_scale=initial_scale), _scale_by_lr(lr),
-        (
-            transform.trace(decay=momentum, nesterov=nesterov)
-            if momentum is not None else base.identity()
+    else:
+        return combine.chain(
+            transform.scale_by_rms(decay=decay, eps=eps, initial_scale=initial_scale), _scale_by_lr(lr),
+            (
+                transform.trace(decay=momentum, nesterov=nesterov)
+                if momentum is not None else base.identity()
+            )
         )
-    )

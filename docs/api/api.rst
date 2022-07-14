@@ -7,6 +7,7 @@ Common Optimizers
 
     adam
     sgd
+    rmsprop
 
 
 Adam
@@ -20,7 +21,7 @@ SGD
 
 .. autofunction:: sgd
 
+RMSProp
+~~~~~~~
 
-
-
-
+.. autofunction:: rmsprop

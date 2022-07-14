@@ -26,14 +26,16 @@
 # import os
 # import sys
 
-
-import pathlib
-import os
-import sys
-import TorchOpt
 import inspect
+import os
+import pathlib
+import sys
+
 import sphinx_rtd_theme
 import sphinxcontrib.katex as katex
+
+import TorchOpt
+
 
 HERE = pathlib.Path(__file__).absolute().parent
 PROJECT_ROOT = HERE.parent
@@ -67,6 +69,7 @@ extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.linkcode',
     'sphinx.ext.napoleon',
+    "sphinxcontrib.bibtex",
     'sphinxcontrib.katex',
     'sphinx_autodoc_typehints',
     'sphinx_rtd_theme',
@@ -86,7 +89,6 @@ root_doc = "index"
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 spelling_exclude_patterns = [""]
 
-
 # -- Options for autodoc -----------------------------------------------------
 
 autodoc_default_options = {
@@ -95,10 +97,14 @@ autodoc_default_options = {
     'exclude-members': '__repr__, __str__, __weakref__',
 }
 
+# -- Options for bibtex -----------------------------------------------------
+
+bibtex_bibfiles = ['refs.bib']
+
 # -- Options for myst -------------------------------------------------------
 
-jupyter_execute_notebooks = 'force'
-execution_allow_errors = False
+nb_execution_mode = 'force'
+nb_execution_allow_errors = False
 
 # -- Options for katex ------------------------------------------------------
 
@@ -127,49 +133,53 @@ html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
 
-html_logo = "_static/images/logo.png"
+html_logo = "_static/images/logod-05.png"
 
 
 def setup(app):
     app.add_js_file("js/copybutton.js")
     app.add_css_file("css/style.css")
 
+
 # -- Source code links -------------------------------------------------------
 
 
 def linkcode_resolve(domain, info):
-  """Resolve a GitHub URL corresponding to Python object."""
-  if domain != 'py':
-    return None
+    """Resolve a GitHub URL corresponding to Python object."""
+    if domain != 'py':
+        return None
 
-  try:
-    mod = sys.modules[info['module']]
-  except ImportError:
-    return None
+    try:
+        mod = sys.modules[info['module']]
+    except ImportError:
+        return None
 
-  obj = mod
-  try:
-    for attr in info['fullname'].split('.'):
-      obj = getattr(obj, attr)
-  except AttributeError:
-    return None
-  else:
-    obj = inspect.unwrap(obj)
+    obj = mod
+    try:
+        for attr in info['fullname'].split('.'):
+            obj = getattr(obj, attr)
+    except AttributeError:
+        return None
+    else:
+        obj = inspect.unwrap(obj)
 
-  try:
-    filename = inspect.getsourcefile(obj)
-  except TypeError:
-    return None
+    try:
+        filename = inspect.getsourcefile(obj)
+    except TypeError:
+        return None
 
-  try:
-    source, lineno = inspect.getsourcelines(obj)
-  except OSError:
-    return None
+    try:
+        source, lineno = inspect.getsourcelines(obj)
+    except OSError:
+        return None
+    
+    # TODO(slebedev): support tags after we release an initial version.
+    return 'https://github.com/metaopt/TorchOpt/tree/main/torchopt/%s#L%d#L%d' % (
+        os.path.relpath(filename, start=os.path.dirname(TorchOpt.__file__)), 
+        lineno, 
+        lineno + len(source) - 1
+    )
 
-  # TODO(slebedev): support tags after we release an initial version.
-  return 'https://github.com/metaopt/TorchOpt/tree/main/torchopt/%s#L%d#L%d' % (
-      os.path.relpath(filename, start=os.path.dirname(
-          TorchOpt.__file__)), lineno, lineno + len(source) - 1)
 
 # -- Extension configuration -------------------------------------------------
 

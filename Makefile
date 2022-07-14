@@ -100,7 +100,7 @@ docstyle: docs-install
 	$(PYTHON) -m pydocstyle $(PROJECT_NAME) && doc8 docs && make -C docs html SPHINXOPTS="-W"
 
 docs: docs-install
-	make -C docs html && cd _build/html && $(PYTHON) -m http.server
+	make -C docs html && cd docs/_build/html && $(PYTHON) -m http.server
 
 spelling: docs-install
 	make -C docs spelling SPHINXOPTS="-W"
@@ -110,7 +110,7 @@ clean-docs:
 
 # Utility functions
 
-lint: flake8 py-format mypy clang-format cpplint addlicense
+lint: flake8 py-format mypy clang-format cpplint docstyle spelling
 
 format: py-format-install clang-format-install addlicense-install
 	$(PYTHON) -m isort --project torchopt $(PYTHON_FILES)
@@ -128,3 +128,22 @@ clean-build:
 	rm -rf *.egg-info .eggs
 
 clean: clean-py clean-build clean-docs
+
+# Build docker images
+
+docker-dev:
+	docker build --network=host -t $(PROJECT_NAME):$(COMMIT_HASH) -f docker/dev.dockerfile .
+	docker run --network=host -v /:/host -it $(PROJECT_NAME):$(COMMIT_HASH) bash
+	echo successfully build docker image with tag $(PROJECT_NAME):$(COMMIT_HASH)
+
+docker-release:
+	docker build --network=host -t $(PROJECT_NAME)-release:$(COMMIT_HASH) -f docker/release.dockerfile .
+	mkdir -p wheelhouse
+	docker run --network=host -v `pwd`/wheelhouse:/whl -it $(PROJECT_NAME)-release:$(COMMIT_HASH) bash -c "cp wheelhouse/* /whl"
+	echo successfully build docker image with tag $(PROJECT_NAME)-release:$(COMMIT_HASH)
+
+
+docker-test:
+	sudo docker build --network=host -t $(PROJECT_NAME):$(COMMIT_HASH) -f docker/test.dockerfile .
+	sudo docker run --network=host -v /:/host -it $(PROJECT_NAME):$(COMMIT_HASH) bash
+	echo successfully build docker image with tag $(PROJECT_NAME):$(COMMIT_HASH)

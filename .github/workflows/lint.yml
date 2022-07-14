@@ -80,7 +80,7 @@ jobs:
       - name: docstyle
         run: |
           make docstyle
-
-    # - name: spelling
-    #   run: |
-    #     make spelling
+          
+      - name: spelling
+        run: |
+          make spelling
