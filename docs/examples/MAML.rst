@@ -22,6 +22,7 @@ There are three types of data flow in RL training pipeline:
 3. Train: ;
 4. Test: ;
 5. Plot: ;
+6. Pipeline: ;
 
 
 In the following sections, we will set up Load Dataset, build the neural network, train-test, and plot to successfully run the MAML training and evaluation pipeline.
@@ -247,31 +248,18 @@ torchopt supports any user-defined PyTorch networks and optimizers. Yet, of cour
 ..     :align: center
 ..     :height: 300
 
-Plot
+Pipeline
 ----
 
-We can now plot the result during our optimization,
+We can now combine all the components together, and plot the results.
 
 ::
 
-    # Generally you should pull your plotting code out of your training
-    # script but we are doing it here for brevity.
-    df = pd.DataFrame(log)
-
-    fig, ax = plt.subplots(figsize=(6, 4))
-    train_df = df[df['mode'] == 'train']
-    test_df = df[df['mode'] == 'test']
-    ax.plot(train_df['epoch'], train_df['acc'], label='Train')
-    ax.plot(test_df['epoch'], test_df['acc'], label='Test')
-    ax.set_xlabel('Epoch')
-    ax.set_ylabel('Accuracy')
-    ax.set_ylim(70, 100)
-    fig.legend(ncol=2, loc='lower right')
-    fig.tight_layout()
-    fname = 'maml-accs.png'
-    print(f'--- Plotting accuracy to {fname}')
-    fig.savefig(fname)
-    plt.close(fig)
+    log = []
+    for epoch in range(10):
+        train(db, net, meta_opt, epoch, log)
+        test(db, net, epoch, log)
+        plot(log)
 
 .. .. image:: /_static/images/maml-accs.png
 ..     :align: center
