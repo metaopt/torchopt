@@ -12,17 +12,15 @@ Contrary to existing differentiable optimizer libraries such as `higher <https:/
 Overview
 --------
 
-In reinforcement learning, the agent interacts with environments to improve itself.
 
+There are six steps to finish MAML training pipeline:
 
-There are three types of data flow in RL training pipeline:
-
-1. Load Dataset: ;
-2. Build the Network: ;
-3. Train: ;
-4. Test: ;
-5. Plot: ;
-6. Pipeline: ;
+1. Load Dataset: load Omniglot dataset;
+2. Build the Network: build the neural network architecture of model;
+3. Train: meta-train;
+4. Test: meta-test;
+5. Plot: plot the results;
+6. Pipeline: combine step 3-5 together;
 
 
 In the following sections, we will set up Load Dataset, build the neural network, train-test, and plot to successfully run the MAML training and evaluation pipeline.
@@ -56,7 +54,8 @@ The goal is to train a model for few-shot Omniglot classification.
 Build the Network
 -----------------
 
-torchopt supports any user-defined PyTorch networks and optimizers. Yet, of course, the inputs and outputs must comply with torchopt's API. Here is an example:
+TorchOpt supports any user-defined PyTorch networks. Here is an example:
+
 ::
 
     import torch, numpy as np
@@ -157,7 +156,7 @@ Define ``train``:
             )
 
 Test
------
+----
 
 Define ``train``:
 ::
@@ -249,7 +248,7 @@ torchopt supports any user-defined PyTorch networks and optimizers. Yet, of cour
 ..     :height: 300
 
 Pipeline
-----
+--------
 
 We can now combine all the components together, and plot the results.
 

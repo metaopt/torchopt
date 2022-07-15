@@ -39,10 +39,7 @@ import sphinxcontrib.katex as katex
 
 HERE = pathlib.Path(__file__).absolute().parent
 PROJECT_ROOT = HERE.parent
-print(PROJECT_ROOT)
-print(sys.path)
-sys.path.append(str(PROJECT_ROOT))
-print(sys.path)
+
 import torchopt
 
 def get_version() -> str:
@@ -179,7 +176,7 @@ def linkcode_resolve(domain, info):
     
     # TODO(slebedev): support tags after we release an initial version.
     return 'https://github.com/metaopt/TorchOpt/tree/main/torchopt/%s#L%d#L%d' % (
-        os.path.relpath(filename, start=os.path.dirname(TorchOpt.__file__)), 
+        os.path.relpath(filename, start=os.path.dirname(torchopt.__file__)), 
         lineno, 
         lineno + len(source) - 1
     )
