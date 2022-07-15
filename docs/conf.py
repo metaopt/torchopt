@@ -33,14 +33,14 @@ import sys
 
 import sphinx_rtd_theme
 import sphinxcontrib.katex as katex
-
+import torchopt
 
 
 
 HERE = pathlib.Path(__file__).absolute().parent
 PROJECT_ROOT = HERE.parent
 
-import torchopt
+
 
 def get_version() -> str:
     sys.path.insert(0, str(PROJECT_ROOT / 'torchopt'))
@@ -70,7 +70,8 @@ extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.linkcode',
     'sphinx.ext.napoleon',
-    "sphinxcontrib.bibtex",
+    'sphinxcontrib.bibtex',
+    'sphinxcontrib.spelling',
     'sphinxcontrib.katex',
     'sphinx_autodoc_typehints',
     'sphinx_rtd_theme',
@@ -89,6 +90,8 @@ root_doc = "index"
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 spelling_exclude_patterns = [""]
+spelling_word_list_filename='spelling_wordlist.txt'
+
 
 # -- Options for autodoc -----------------------------------------------------
 
@@ -175,7 +178,7 @@ def linkcode_resolve(domain, info):
         return None
     
     # TODO(slebedev): support tags after we release an initial version.
-    return 'https://github.com/metaopt/TorchOpt/tree/main/torchopt/%s#L%d#L%d' % (
+    return 'https://github.com/metaopt/TorchOpt/tree/main/TorchOpt/%s#L%d#L%d' % (
         os.path.relpath(filename, start=os.path.dirname(torchopt.__file__)), 
         lineno, 
         lineno + len(source) - 1
