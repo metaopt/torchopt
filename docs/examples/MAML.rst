@@ -4,7 +4,7 @@ Model-Agnostic Meta-Learning
 Meta reinforcement learning has achieved significant successes in various applications.
 **Model-Agnostic Meta-Learning** (MAML) :cite:`MAML` is the pioneer one.
 In this tutorial, we will show how to train MAML on few-shot Omniglot classification with TorchOpt step by step.
-The full script is at `examples/MAML-RL/maml.py <https://github.com/metaopt/TorchOpt/blob/main/examples/few-shot/maml_omniglot.py>`_.
+The full script is at `examples/few-shot/maml_omnoglot.py <https://github.com/metaopt/TorchOpt/blob/main/examples/few-shot/maml_omniglot.py>`_.
 
 Contrary to existing differentiable optimizer libraries such as `higher <https://github.com/facebookresearch/higher>`_, which follows the PyTorch designing which leads to inflexible API, TorchOpt provides an easy way of construction through the code-level.
 
@@ -154,6 +154,68 @@ Define ``train``:
                     'time': time.time(),
                 }
             )
+
+Test
+-----
+
+Define ``train``:
+::
+
+    def test(db, net, epoch, log):
+        # Crucially in our testing procedure here, we do *not* fine-tune
+        # the model during testing for simplicity.
+        # Most research papers using MAML for this task do an extra
+        # stage of fine-tuning here that should be added if you are
+        # adapting this code for research.
+        net.train()
+        n_test_iter = db.x_test.shape[0] // db.batchsz
+        inner_opt = torchopt.MetaSGD(net, lr=1e-1)
+
+        qry_losses = []
+        qry_accs = []
+
+        for batch_idx in range(n_test_iter):
+            x_spt, y_spt, x_qry, y_qry = db.next('test')
+
+            task_num, setsz, c_, h, w = x_spt.size()
+            querysz = x_qry.size(1)
+
+            # TODO: Maybe pull this out into a separate module so it
+            # doesn't have to be duplicated between `train` and `test`?
+            n_inner_iter = 5
+
+            net_state_dict = torchopt.extract_state_dict(net)
+            optim_state_dict = torchopt.extract_state_dict(inner_opt)
+            for i in range(task_num):
+                # Optimize the likelihood of the support set by taking
+                # gradient steps w.r.t. the model's parameters.
+                # This adapts the model's meta-parameters to the task.
+                for _ in range(n_inner_iter):
+                    spt_logits = net(x_spt[i])
+                    spt_loss = F.cross_entropy(spt_logits, y_spt[i])
+                inner_opt.step(spt_loss)
+
+                # The query loss and acc induced by these parameters.
+                qry_logits = net(x_qry[i]).detach()
+                qry_loss = F.cross_entropy(qry_logits, y_qry[i], reduction='none')
+                qry_losses.append(qry_loss.detach())
+                qry_accs.append((qry_logits.argmax(dim=1) == y_qry[i]).detach())
+
+                torchopt.recover_state_dict(net, net_state_dict)
+                torchopt.recover_state_dict(inner_opt, optim_state_dict)
+
+        qry_losses = torch.cat(qry_losses).mean().item()
+        qry_accs = 100. * torch.cat(qry_accs).float().mean().item()
+        print(f'[Epoch {epoch+1:.2f}] Test Loss: {qry_losses:.2f} | Acc: {qry_accs:.2f}')
+        log.append(
+            {
+                'epoch': epoch + 1,
+                'loss': qry_losses,
+                'acc': qry_accs,
+                'mode': 'test',
+                'time': time.time(),
+            }
+        )
 
 Plot
 ----
