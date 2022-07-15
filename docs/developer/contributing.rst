@@ -9,7 +9,7 @@ To install TorchOpt in an "editable" mode, run
 
 .. code-block:: bash
 
-    $ pip install -e ".[dev]"
+    $ pip install -e "."
 
 in the main directory. This installation is removable by
 
@@ -18,36 +18,30 @@ in the main directory. This installation is removable by
     $ python setup.py develop --uninstall
 
 
-PEP8 Code Style Check and Code Formatter
-----------------------------------------
-
-We follow PEP8 python code style with flake8. To check, in the main directory, run:
-
-.. code-block:: bash
-
-    $ make lint
-
-We use isort and yapf to format all codes. To format, in the main directory, run:
-
-.. code-block:: bash
-
-    $ make format
-
-To check if formatted correctly, in the main directory, run:
-
-.. code-block:: bash
-
-    $ make check-codestyle
-
-
-Type Check
+Lint Check
 ----------
 
-We use `mypy <https://github.com/python/mypy/>`_ to check the type annotations. To check, in the main directory, run:
+We use several tools to secure code quality, including
+
+- PEP8 code style: flake8, yapf, isort;
+- Type check: mypy;
+- C++ Google-style: cpplint, clang-format;
+- License: addlicense;
+- Documentation: pydocstyle, doc8.
+
+To make things easier, we create several shortcuts as follows.
+
+To automatically format the code, run:
 
 .. code-block:: bash
 
-    $ make mypy
+    make format
+
+To check if everything conforms to the specification, run:
+
+.. code-block:: bash
+
+    make lint
 
 
 Test Locally
@@ -58,27 +52,6 @@ This command will run automatic tests in the main directory
 .. code-block:: bash
 
     $ make pytest
-
-
-Test by GitHub Actions
-----------------------
-
-1. Click the ``Actions`` button in your own repo:
-
-.. .. image:: _static/images/action1.jpg
-..     :align: center
-
-2. Click the green button:
-
-.. .. image:: _static/images/action2.jpg
-..     :align: center
-
-3. You will see ``Actions Enabled.`` on the top of html page.
-
-4. When you push a new commit to your own repo (e.g. ``git push``), it will automatically run the test in this page:
-
-.. .. image:: _static/images/action3.png
-..     :align: center
 
 
 Documentation
@@ -92,27 +65,10 @@ To compile documentation into webpage, run
 
 .. code-block:: bash
 
-    $ make doc
+    $ make docs
 
 The generated webpage is in ``docs/_build`` and can be viewed with browser (http://localhost:8000/).
 
-Detailed documentation is in https://TorchOpt.readthedocs.io/zh/latest/.
+Detailed documentation is in https://torchopt.readthedocs.io/zh/latest/.
 
-
-Documentation Generation Test
------------------------------
-
-We have the following three documentation tests:
-
-1. pydocstyle: test all docstring under ``TorchOpt/``;
-
-2. doc8: test ReStructuredText format;
-
-3. sphinx test: test if there is any error/warning when generating front-end html documentation.
-
-To check, in the main directory, run:
-
-.. code-block:: bash
-
-    $ make check-docstyle
 

@@ -34,12 +34,16 @@ import sys
 import sphinx_rtd_theme
 import sphinxcontrib.katex as katex
 
-import TorchOpt
+
 
 
 HERE = pathlib.Path(__file__).absolute().parent
 PROJECT_ROOT = HERE.parent
-
+print(PROJECT_ROOT)
+print(sys.path)
+sys.path.append(str(PROJECT_ROOT))
+print(sys.path)
+import torchopt
 
 def get_version() -> str:
     sys.path.insert(0, str(PROJECT_ROOT / 'torchopt'))

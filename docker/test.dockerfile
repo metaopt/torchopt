@@ -2,8 +2,8 @@ ARG cuda_docker_tag="11.2.2-cudnn8-devel-ubuntu20.04"
 FROM nvidia/cuda:${cuda_docker_tag}
 
 ENV DEBIAN_FRONTEND=noninteractive
-RUN rm /etc/apt/sources.list.d/cuda.list
-RUN rm /etc/apt/sources.list.d/nvidia-ml.list
+# RUN rm /etc/apt/sources.list.d/cuda.list
+# RUN rm /etc/apt/sources.list.d/nvidia-ml.list
 RUN apt-get update && apt-get install -y \
     tzdata \
     wget   \
@@ -14,10 +14,12 @@ RUN apt-get update && apt-get install -y \
     libglew-dev \
     patchelf \
     gcc \
+    g++ \
     htop\
     git \
     tmux \
     vim \
+    cmake \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 ENV LANG C.UTF-8

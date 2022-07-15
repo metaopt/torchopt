@@ -29,7 +29,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-This example shows how to use higher to do Model Agnostic Meta Learning (MAML)
+This example shows how to use TorchOpt to do Model Agnostic Meta Learning (MAML)
 for few-shot Omniglot classification.
 For more details see the original MAML paper:
 https://arxiv.org/abs/1703.03400

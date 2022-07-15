@@ -41,7 +41,6 @@ We provide a `conda <https://github.com/conda/conda>`_ environment recipe to ins
     conda activate torchopt
     pip3 install -e .
 
-------
 
 .. toctree::
    :caption: Getting Started

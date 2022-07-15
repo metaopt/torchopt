@@ -1,7 +1,7 @@
 Common Optimizers
 =================
 
-.. currentmodule:: TorchOpt
+.. currentmodule:: torchopt
 
 .. autosummary::
 
