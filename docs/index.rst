@@ -35,11 +35,13 @@ We provide a `conda <https://github.com/conda/conda>`_ environment recipe to ins
     git clone https://github.com/metaopt/TorchOpt.git
     cd TorchOpt
 
-    # Use `CONDA_OVERRIDE_CUDA` if conda fails to detect the NVIDIA driver (e.g. WSL2 on Windows)
+    # You may need `CONDA_OVERRIDE_CUDA` if conda fails to detect the NVIDIA driver (e.g. in docker or WSL2)
     CONDA_OVERRIDE_CUDA=11.7 conda env create --file conda-recipe.yaml
 
     conda activate torchopt
-    pip3 install .
+    pip3 install -e .
+
+------
 
 .. toctree::
    :caption: Getting Started
