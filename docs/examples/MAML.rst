@@ -48,14 +48,6 @@ First of all, you have to make an environment for your agent to interact with. Y
 
 CartPole-v0 includes a cart carrying a pole moving on a track. This is a simple environment with a discrete action space, for which DQN applies. You have to identify whether the action space is continuous or discrete and apply eligible algorithms. MAML :cite:`MAML`, for example, could only be applied to continuous action spaces, while almost all other policy gradient methods could be applied to both.
 
-Here is the detail of useful fields of CartPole-v0:
-
-- ``state``: the position of the cart, the velocity of the cart, the angle of the pole and the velocity of the tip of the pole;
-- ``action``: can only be one of ``[0, 1, 2]``, for moving the cart left, no move, and right;
-- ``reward``: each timestep you last, you will receive a +1 ``reward``;
-- ``done``: if CartPole is out-of-range or timeout (the pole is more than 15 degrees from vertical, or the cart moves more than 2.4 units from the center, or you last over 200 timesteps);
-- ``info``: extra info from environment simulation.
-
 The goal is to train a good policy that can get the highest reward in this environment.
 
 Test
@@ -66,34 +58,25 @@ torchopt supports any user-defined PyTorch networks and optimizers. Yet, of cour
 
     import torch, numpy as np
     from torch import nn
+    import torch.optim as optim
 
-    class Net(nn.Module):
-        def __init__(self, state_shape, action_shape):
-            super().__init__()
-            self.model = nn.Sequential(
-                nn.Linear(np.prod(state_shape), 128), nn.ReLU(inplace=True),
-                nn.Linear(128, 128), nn.ReLU(inplace=True),
-                nn.Linear(128, 128), nn.ReLU(inplace=True),
-                nn.Linear(128, np.prod(action_shape)),
-            )
+    net = nn.Sequential(
+        nn.Conv2d(1, 64, 3), nn.BatchNorm2d(64, momentum=1., affine=True), nn.ReLU(inplace=False),
+        nn.MaxPool2d(2, 2), nn.Conv2d(64, 64, 3), nn.BatchNorm2d(64, momentum=1., affine=True),
+        nn.ReLU(inplace=False), nn.MaxPool2d(2, 2), nn.Conv2d(64, 64, 3),
+        nn.BatchNorm2d(64, momentum=1., affine=True), nn.ReLU(inplace=False), nn.MaxPool2d(2, 2),
+        nn.Flatten(), nn.Linear(64, args.n_way)
+    ).to(device)
 
-        def forward(self, obs, state=None, info={}):
-            if not isinstance(obs, torch.Tensor):
-                obs = torch.tensor(obs, dtype=torch.float)
-            batch = obs.shape[0]
-            logits = self.model(obs.view(batch, -1))
-            return logits, state
-
-    state_shape = env.observation_space.shape or env.observation_space.n
-    action_shape = env.action_space.shape or env.action_space.n
-    net = Net(state_shape, action_shape)
-    optim = torch.optim.Adam(net.parameters(), lr=1e-3)
+    # We will use Adam to (meta-)optimize the initial parameters
+    # to be adapted.
+    meta_opt = optim.Adam(net.parameters(), lr=1e-3)
 
 
 Train
 -----
 
-If you want to use the original ``gym.Env``:
+Define ``train``:
 ::
 
     def train(db, net, meta_opt, epoch, log):
@@ -174,6 +157,36 @@ Plot
 ----
 
 torchopt supports any user-defined PyTorch networks and optimizers. Yet, of course, the inputs and outputs must comply with torchopt's API. Here is an example:
+
+::
+
+    # Generally you should pull your plotting code out of your training
+    # script but we are doing it here for brevity.
+    df = pd.DataFrame(log)
+
+    fig, ax = plt.subplots(figsize=(6, 4))
+    train_df = df[df['mode'] == 'train']
+    test_df = df[df['mode'] == 'test']
+    ax.plot(train_df['epoch'], train_df['acc'], label='Train')
+    ax.plot(test_df['epoch'], test_df['acc'], label='Test')
+    ax.set_xlabel('Epoch')
+    ax.set_ylabel('Accuracy')
+    ax.set_ylim(70, 100)
+    fig.legend(ncol=2, loc='lower right')
+    fig.tight_layout()
+    fname = 'maml-accs.png'
+    print(f'--- Plotting accuracy to {fname}')
+    fig.savefig(fname)
+    plt.close(fig)
+
+.. .. image:: /_static/images/maml-accs.png
+..     :align: center
+..     :height: 300
+
+Plot
+----
+
+We can now plot the result during our optimization,
 
 ::
 
