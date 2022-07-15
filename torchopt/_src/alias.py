@@ -185,8 +185,8 @@ def rmsprop(
         )
     else:
         return combine.chain(
-            transform.scale_by_rms(decay=decay, eps=eps, initial_scale=initial_scale), _scale_by_lr(lr),
-            (
+            transform.scale_by_rms(decay=decay, eps=eps, initial_scale=initial_scale),
+            _scale_by_lr(lr), (
                 transform.trace(decay=momentum, nesterov=nesterov)
                 if momentum is not None else base.identity()
             )
