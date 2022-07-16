@@ -1,0 +1,2 @@
+gym==0.15.3
+torchvision
