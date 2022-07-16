@@ -147,3 +147,7 @@ docker-test:
 	sudo docker build --network=host -t $(PROJECT_NAME):$(COMMIT_HASH) -f docker/test.dockerfile .
 	sudo docker run --network=host -v /:/host -it $(PROJECT_NAME):$(COMMIT_HASH) bash
 	echo successfully build docker image with tag $(PROJECT_NAME):$(COMMIT_HASH)
+
+
+pypi-wheel: 
+	python -m pip install --upgrade pip && pip install setuptools wheel twine && python setup.py sdist bdist_wheel &&twine upload dist/*
