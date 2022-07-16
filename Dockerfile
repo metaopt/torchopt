@@ -58,11 +58,6 @@ ENV GOROOT="${GOPATH}"
 ENV PATH="${GOBIN}:${PATH}"
 RUN go install github.com/google/addlicense@latest
 
-COPY --chown=torchopt tests/requirements.txt tests/requirements.txt
-RUN source ~/venv/bin/activate && \
-    python -m pip install --extra-index-url "${TORCH_INDEX_URL}" -r tests/requirements.txt && \
-    rm -rf ~/.pip/cache
-
 ####################################################################################################
 
 FROM builder AS base
@@ -80,7 +75,16 @@ ENTRYPOINT [ "/bin/bash", "--login" ]
 
 FROM devel-builder AS devel
 
-COPY --from=base /home/torchopt/venv /home/torchopt/venv
-COPY --from=base /home/torchopt/TorchOpt /home/torchopt/TorchOpt
+COPY --chown=torchopt . .
+
+# Install extra dependencies
+RUN source ~/venv/bin/activate && \
+    python -m pip install --extra-index-url "${TORCH_INDEX_URL}" -r tests/requirements.txt && \
+    rm -rf ~/.pip/cache ~/.cache/pip
+
+# Install TorchOpt
+RUN source ~/venv/bin/activate && \
+    python -m pip install -e . && \
+    rm -rf .eggs *.egg-info ~/.pip/cache ~/.cache/pip
 
 ENTRYPOINT [ "/bin/bash", "--login" ]
