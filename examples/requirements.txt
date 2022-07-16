@@ -1,2 +1,8 @@
 gym==0.15.3
 torchvision
+Pillow
+matplotlib
+pandas
+argparse
+seaborn
+torchviz

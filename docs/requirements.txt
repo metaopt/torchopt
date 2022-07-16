@@ -1,0 +1,5 @@
+torch == 1.12
+jax[cpu] >= 0.3
+numpy
+graphviz
+typing-extensions
