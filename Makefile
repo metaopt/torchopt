@@ -150,4 +150,4 @@ docker-test:
 
 
 pypi-wheel: 
-	python -m pip install --upgrade pip && pip install setuptools wheel twine && python setup.py sdist bdist_wheel &&twine upload dist/*
+	python -m pip install --upgrade pip && pip install setuptools wheel twine && python setup.py sdist bdist_wheel && twine upload dist/*
