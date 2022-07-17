@@ -30,7 +30,8 @@ Here is the overall procedure:
 Load Dataset
 ------------
 
-In your Python code, simply import torchopt and load the dataset, the full script is at `examples/few-shot/support/omniglot_loaders.py:
+In your Python code, simply import torchopt and load the dataset, the full script is at `examples/few-shot/support/omniglot_loaders.py  <https://github.com/metaopt/TorchOpt/blob/main/examples/few-shot/support/omniglot_loaders.py>`_:
+
 ::
 
     from .support.omniglot_loaders import OmniglotNShot
