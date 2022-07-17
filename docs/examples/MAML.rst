@@ -4,7 +4,7 @@ Model-Agnostic Meta-Learning
 Meta reinforcement learning has achieved significant successes in various applications.
 **Model-Agnostic Meta-Learning** (MAML) :cite:`MAML` is the pioneer one.
 In this tutorial, we will show how to train MAML on few-shot Omniglot classification with TorchOpt step by step.
-The full script is at `examples/few-shot/maml_omnoglot.py <https://github.com/metaopt/TorchOpt/blob/main/examples/few-shot/maml_omniglot.py>`_.
+The full script is at `examples/few-shot/maml_omniglot.py <https://github.com/metaopt/TorchOpt/blob/main/examples/few-shot/maml_omniglot.py>`_.
 
 Contrary to existing differentiable optimizer libraries such as `higher <https://github.com/facebookresearch/higher>`_, which follows the PyTorch designing which leads to inflexible API, TorchOpt provides an easy way of construction through the code-level.
 
@@ -30,7 +30,7 @@ Here is the overall procedure:
 Load Dataset
 ------------
 
-In your Python code, simply import torchopt and load the dataset:
+In your Python code, simply import torchopt and load the dataset, the full script is at `examples/few-shot/support/omniglot_loaders.py:
 ::
 
     from .support.omniglot_loaders import OmniglotNShot
@@ -220,32 +220,31 @@ Define ``train``:
 Plot
 ----
 
-torchopt supports any user-defined PyTorch networks and optimizers. Yet, of course, the inputs and outputs must comply with torchopt's API. Here is an example:
+TorchOpt supports any user-defined PyTorch networks and optimizers. Yet, of course, the inputs and outputs must comply with torchopt's API. Here is an example:
 
 ::
 
-    # Generally you should pull your plotting code out of your training
-    # script but we are doing it here for brevity.
-    df = pd.DataFrame(log)
 
-    fig, ax = plt.subplots(figsize=(6, 4))
-    train_df = df[df['mode'] == 'train']
-    test_df = df[df['mode'] == 'test']
-    ax.plot(train_df['epoch'], train_df['acc'], label='Train')
-    ax.plot(test_df['epoch'], test_df['acc'], label='Test')
-    ax.set_xlabel('Epoch')
-    ax.set_ylabel('Accuracy')
-    ax.set_ylim(70, 100)
-    fig.legend(ncol=2, loc='lower right')
-    fig.tight_layout()
-    fname = 'maml-accs.png'
-    print(f'--- Plotting accuracy to {fname}')
-    fig.savefig(fname)
-    plt.close(fig)
+    def plot(log):
+        # Generally you should pull your plotting code out of your training
+        # script but we are doing it here for brevity.
+        df = pd.DataFrame(log)
 
-.. .. image:: /_static/images/maml-accs.png
-..     :align: center
-..     :height: 300
+        fig, ax = plt.subplots(figsize=(6, 4))
+        train_df = df[df['mode'] == 'train']
+        test_df = df[df['mode'] == 'test']
+        ax.plot(train_df['epoch'], train_df['acc'], label='Train')
+        ax.plot(test_df['epoch'], test_df['acc'], label='Test')
+        ax.set_xlabel('Epoch')
+        ax.set_ylabel('Accuracy')
+        ax.set_ylim(70, 100)
+        fig.legend(ncol=2, loc='lower right')
+        fig.tight_layout()
+        fname = 'maml-accs.png'
+        print(f'--- Plotting accuracy to {fname}')
+        fig.savefig(fname)
+        plt.close(fig)
+
 
 Pipeline
 --------
@@ -260,9 +259,9 @@ We can now combine all the components together, and plot the results.
         test(db, net, epoch, log)
         plot(log)
 
-.. .. image:: /_static/images/maml-accs.png
-..     :align: center
-..     :height: 300
+.. image:: /_static/images/maml-accs.png
+    :align: center
+    :height: 300
 
 
 .. rubric:: References
