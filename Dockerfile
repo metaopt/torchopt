@@ -61,8 +61,10 @@ RUN go install github.com/google/addlicense@latest
 
 # Install extra PyPI dependencies
 COPY --chown=torchopt tests/requirements.txt tests/requirements.txt
+COPY --chown=torchopt tutorials/requirements.txt tutorials/requirements.txt
 RUN source ~/venv/bin/activate && \
-    python -m pip install --extra-index-url "${TORCH_INDEX_URL}" -r tests/requirements.txt && \
+    python -m pip install --extra-index-url "${TORCH_INDEX_URL}" \
+        -r tests/requirements.txt -r tutorials/requirements.txt && \
     rm -rf ~/.pip/cache ~/.cache/pip
 
 ####################################################################################################
