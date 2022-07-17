@@ -136,23 +136,15 @@ clean: clean-py clean-build clean-docs
 
 # Build docker images
 
-docker-dev:
-	docker build --network=host -t $(PROJECT_NAME):$(COMMIT_HASH) -f docker/dev.dockerfile .
-	docker run --network=host -v /:/host -it $(PROJECT_NAME):$(COMMIT_HASH) bash
-	echo successfully build docker image with tag $(PROJECT_NAME):$(COMMIT_HASH)
+docker-base:
+	docker build --target base --tag $(PROJECT_NAME):$(COMMIT_HASH) --file Dockerfile .
+	@echo Successfully build docker image with tag $(PROJECT_NAME):$(COMMIT_HASH)
 
-docker-release:
-	docker build --network=host -t $(PROJECT_NAME)-release:$(COMMIT_HASH) -f docker/release.dockerfile .
-	mkdir -p wheelhouse
-	docker run --network=host -v `pwd`/wheelhouse:/whl -it $(PROJECT_NAME)-release:$(COMMIT_HASH) bash -c "cp wheelhouse/* /whl"
-	echo successfully build docker image with tag $(PROJECT_NAME)-release:$(COMMIT_HASH)
+docker-devel:
+	docker build --target devel --tag $(PROJECT_NAME)-devel:$(COMMIT_HASH) --file Dockerfile .
+	@echo Successfully build docker image with tag $(PROJECT_NAME)-devel:$(COMMIT_HASH)
 
+docker: docker-base docker-devel
 
-docker-test:
-	sudo docker build --network=host -t $(PROJECT_NAME):$(COMMIT_HASH) -f docker/test.dockerfile .
-	sudo docker run --network=host -v /:/host -it $(PROJECT_NAME):$(COMMIT_HASH) bash
-	echo successfully build docker image with tag $(PROJECT_NAME):$(COMMIT_HASH)
-
-
-pypi-wheel: 
-	python -m pip install --upgrade pip && pip install setuptools wheel twine && python setup.py sdist bdist_wheel &&twine upload dist/*
+docker-run-devel: docker-devel
+	docker run --network=host --gpus=all -v /:/host -h ubuntu -it $(PROJECT_NAME)-devel:$(COMMIT_HASH)

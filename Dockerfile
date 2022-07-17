@@ -52,11 +52,18 @@ RUN sudo apt-get update && \
     sudo chown -R "$(whoami):$(whoami)" /usr/lib/go-1.16 && \
     sudo rm -rf /var/lib/apt/lists/*
 
+# Install addlicense
 ENV GOPATH="/usr/lib/go-1.16"
 ENV GOBIN="${GOPATH}/bin"
 ENV GOROOT="${GOPATH}"
 ENV PATH="${GOBIN}:${PATH}"
 RUN go install github.com/google/addlicense@latest
+
+# Install extra PyPI dependencies
+COPY --chown=torchopt tests/requirements.txt tests/requirements.txt
+RUN source ~/venv/bin/activate && \
+    python -m pip install --extra-index-url "${TORCH_INDEX_URL}" -r tests/requirements.txt && \
+    rm -rf ~/.pip/cache ~/.cache/pip
 
 ####################################################################################################
 
@@ -75,16 +82,4 @@ ENTRYPOINT [ "/bin/bash", "--login" ]
 
 FROM devel-builder AS devel
 
-COPY --chown=torchopt . .
-
-# Install extra dependencies
-RUN source ~/venv/bin/activate && \
-    python -m pip install --extra-index-url "${TORCH_INDEX_URL}" -r tests/requirements.txt && \
-    rm -rf ~/.pip/cache ~/.cache/pip
-
-# Install TorchOpt
-RUN source ~/venv/bin/activate && \
-    python -m pip install -e . && \
-    rm -rf .eggs *.egg-info ~/.pip/cache ~/.cache/pip
-
-ENTRYPOINT [ "/bin/bash", "--login" ]
+COPY --from=base /home/torchopt/TorchOpt .
