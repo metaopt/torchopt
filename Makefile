@@ -16,6 +16,11 @@ default: install
 install:
 	$(PYTHON) -m pip install .
 
+build:
+	$(PYTHON) -m pip install --upgrade pip
+	$(PYTHON) -m pip install --upgrade setuptools wheel build
+	$(PYTHON) -m build
+
 # Tools Installation
 
 check_pip_install = $(PYTHON) -m pip show $(1) &>/dev/null || (cd && $(PYTHON) -m pip install $(1) --upgrade)
