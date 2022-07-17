@@ -5,14 +5,4 @@ functorch
 
 --requirement ../requirements.txt
 
-sphinx
-sphinx_rtd_theme
-sphinxcontrib-katex
-sphinxcontrib-bibtex
-sphinx-autodoc-typehints
-IPython
 ipykernel
-pandoc
-myst_nb
-docutils
-matplotlib
