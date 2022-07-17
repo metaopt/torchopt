@@ -1,44 +1,90 @@
+# Dockerfile for TorchOpt
+#
+#   $ docker build --target base --tag torchopt:latest .
+#
+# or
+#
+#   $ docker build --target devel --tag torchopt-devel:latest .
+#
+
 ARG cuda_docker_tag="11.6.2-cudnn8-devel-ubuntu20.04"
-FROM nvidia/cuda:"${cuda_docker_tag}"
+FROM nvidia/cuda:"${cuda_docker_tag}" AS builder
 
-ARG DEBIAN_FRONTEND=noninteractive
-ARG HOME=/root
-ENV PATH=$HOME/go/bin:$PATH
+ENV DEBIAN_FRONTEND=noninteractive
+SHELL ["/bin/bash", "-c"]
 
-WORKDIR $HOME
+# Install packages
+RUN apt-get update && \
+    apt-get install -y sudo ca-certificates openssl \
+        git ssh build-essential gcc-10 g++-10 cmake make \
+        python3.9-dev python3.9-venv graphviz && \
+    rm -rf /var/lib/apt/lists/*
 
-# install base dependencies
+ENV LANG C.UTF-8
+ENV CC=gcc-10 CXX=g++-10
 
-RUN apt-get update && apt-get install -y software-properties-common && add-apt-repository ppa:ubuntu-toolchain-r/test && add-apt-repository ppa:deadsnakes/ppa
-RUN apt-get update \
-    && apt-get install -y git curl wget gcc-9 g++-9 build-essential patchelf make libssl-dev zlib1g-dev \
-    libbz2-dev libreadline-dev libsqlite3-dev llvm \
-    libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev \
-    python3.7 python3.8 python3.9 python3.10 \
-    python3.7-dev python3.8-dev python3.9-dev python3.10-dev \
-    python3.8-distutils python3.9-distutils python3.10-distutils
-RUN ln -sf /usr/bin/python3 /usr/bin/python
-RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 60 --slave /usr/bin/g++ g++ /usr/bin/g++-9
+# Add a new user
+RUN useradd -m -s /bin/bash torchopt && \
+    echo "torchopt ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+USER torchopt
+RUN echo "export PS1='[\[\e[1;33m\]\u\[\e[0m\]:\[\e[1;35m\]\w\[\e[0m\]]\$ '" >> ~/.bashrc
 
-# install pip
+# Setup virtual environment
+RUN /usr/bin/python3.9 -m venv --upgrade-deps ~/venv && rm -rf ~/.pip/cache
+RUN TORCH_INDEX_URL="https://download.pytorch.org/whl/cu$(echo "${CUDA_VERSION}" | cut -d'.' -f-2  | tr -d '.')" && \
+    echo "export TORCH_INDEX_URL='${TORCH_INDEX_URL}'" >> ~/venv/bin/activate && \
+    echo "source /home/torchopt/venv/bin/activate" >> ~/.bashrc
 
-RUN wget https://bootstrap.pypa.io/get-pip.py
-RUN for i in 7 8 9 10; do ln -sf /usr/bin/python3.$i /usr/bin/python3; python3 get-pip.py; done
+# Install dependencies
+WORKDIR /home/torchopt/TorchOpt
+COPY --chown=torchopt requirements.txt requirements.txt
+RUN source ~/venv/bin/activate && \
+    python -m pip install --extra-index-url "${TORCH_INDEX_URL}" -r requirements.txt && \
+    rm -rf ~/.pip/cache ~/.cache/pip
 
-# install go from source
+####################################################################################################
 
-RUN wget https://golang.org/dl/go1.17.3.linux-amd64.tar.gz
-RUN rm -rf /usr/local/go && tar -C /usr/local -xzf go1.17.3.linux-amd64.tar.gz
-RUN ln -sf /usr/local/go/bin/go /usr/bin/go
+FROM builder AS devel-builder
 
+# Install extra dependencies
+RUN sudo apt-get update && \
+    sudo apt-get install -y golang-1.16 clang-format clang-tidy && \
+    sudo chown -R "$(whoami):$(whoami)" /usr/lib/go-1.16 && \
+    sudo rm -rf /var/lib/apt/lists/*
 
-# install big wheels
+ENV GOPATH="/usr/lib/go-1.16"
+ENV GOBIN="${GOPATH}/bin"
+ENV GOROOT="${GOPATH}"
+ENV PATH="${GOBIN}:${PATH}"
+RUN go install github.com/google/addlicense@latest
 
-RUN for i in 7 8 9; do ln -sf /usr/bin/python3.$i /usr/bin/python3; pip3 install torch opencv-python-headless; done
+####################################################################################################
 
-WORKDIR /app
-COPY . .
+FROM builder AS base
 
-# compile and test release wheels
+COPY --chown=torchopt . .
 
-RUN for i in 7 8 9; do ln -sf /usr/bin/python3.$i /usr/bin/python3; make pypi-wheel; make release-test; done
+# Install TorchOpt
+RUN source ~/venv/bin/activate && \
+    python -m pip install -e . && \
+    rm -rf .eggs *.egg-info ~/.pip/cache ~/.cache/pip
+
+ENTRYPOINT [ "/bin/bash", "--login" ]
+
+####################################################################################################
+
+FROM devel-builder AS devel
+
+COPY --chown=torchopt . .
+
+# Install extra dependencies
+RUN source ~/venv/bin/activate && \
+    python -m pip install --extra-index-url "${TORCH_INDEX_URL}" -r tests/requirements.txt && \
+    rm -rf ~/.pip/cache ~/.cache/pip
+
+# Install TorchOpt
+RUN source ~/venv/bin/activate && \
+    python -m pip install -e . && \
+    rm -rf .eggs *.egg-info ~/.pip/cache ~/.cache/pip
+
+ENTRYPOINT [ "/bin/bash", "--login" ]
