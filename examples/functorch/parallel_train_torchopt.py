@@ -24,7 +24,6 @@ from functorch import combine_state_for_ensemble, grad_and_value, make_functiona
 
 import torchopt
 
-
 # Adapted from http://willwhitney.com/parallel-training-jax.html , which is a
 # tutorial on Model Ensembling with JAX by Will Whitney.
 #
@@ -111,6 +110,7 @@ def step6():
         if i % 200 == 0:
             print(loss)
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Functorch Ensembled Models with TorchOpt")
     parser.add_argument(
@@ -147,8 +147,6 @@ if __name__ == '__main__':
     # exactly the same data in each training step!
     # Because the goal of this doc is to show that we can use eager-mode vmap to
     # achieve similar things as JAX, the rest of this is left as an exercise to the reader.
-
-
 
     # cuda_is_avail = torch.cuda.is_available()
     # print(f"cuda_is_avail: {cuda_is_avail}")
