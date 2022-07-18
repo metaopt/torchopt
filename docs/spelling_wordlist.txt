@@ -47,3 +47,17 @@ webpage
 Omniglot
 differentiable
 toolchain
+init
+fn
+inplace
+impl
+params
+iterable
+nan
+param
+Graphviz
+autograd
+attrs
+GradientTransformations
+args
+chainable

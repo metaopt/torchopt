@@ -114,8 +114,8 @@ Schedules
 .. autofunction:: polynomial_schedule
 
 
-Apply Paramter Updates
-======================
+Apply Parameter Updates
+=======================
 
 .. currentmodule:: torchopt
 

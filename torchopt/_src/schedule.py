@@ -35,12 +35,13 @@ import numpy as np
 from absl import logging
 
 from torchopt._src import base, typing
+from torchopt._src.typing import Scalar
 
 
 def polynomial_schedule(
-    init_value: typing.Scalar,
-    end_value: typing.Scalar,
-    power: typing.Scalar,
+    init_value: Scalar,
+    end_value: Scalar,
+    power: Scalar,
     transition_steps: int,
     transition_begin: int = 0
 ) -> base.Schedule:
@@ -95,8 +96,8 @@ def polynomial_schedule(
 
 # Alias polynomial schedule to linear schedule for convenience.
 def linear_schedule(
-    init_value: typing.Scalar,
-    end_value: typing.Scalar,
+    init_value: Scalar,
+    end_value: Scalar,
     transition_steps: int,
     transition_begin: int = 0
 ) -> base.Schedule:
