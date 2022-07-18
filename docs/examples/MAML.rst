@@ -30,7 +30,7 @@ Here is the overall procedure:
 Load Dataset
 ------------
 
-In your Python code, simply import torchopt and load the dataset, the full script is at `examples/few-shot/support/omniglot_loaders.py  <https://github.com/metaopt/TorchOpt/blob/main/examples/few-shot/support/omniglot_loaders.py>`_:
+In your Python code, simply import torch and load the dataset, the full script is at `examples/few-shot/support/omniglot_loaders.py  <https://github.com/metaopt/TorchOpt/blob/main/examples/few-shot/support/omniglot_loaders.py>`_:
 
 ::
 
@@ -80,6 +80,7 @@ Train
 -----
 
 Define ``train``:
+
 ::
 
     def train(db, net, meta_opt, epoch, log):
@@ -159,7 +160,8 @@ Define ``train``:
 Test
 ----
 
-Define ``train``:
+Define ``test``:
+
 ::
 
     def test(db, net, epoch, log):
@@ -224,7 +226,6 @@ Plot
 TorchOpt supports any user-defined PyTorch networks and optimizers. Yet, of course, the inputs and outputs must comply with torchopt's API. Here is an example:
 
 ::
-
 
     def plot(log):
         # Generally you should pull your plotting code out of your training

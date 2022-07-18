@@ -69,13 +69,10 @@ def make_dot(var, params=None, show_attrs=False, show_saved=False, max_attr_char
 
     If a node represents a backward function, it is gray. Otherwise, the node
     represents a tensor and is either blue, orange, or green:
-     - Blue: reachable leaf tensors that requires grad (tensors whose `.grad`
-        fields will be populated during `.backward()`)
-     - Orange: saved tensors of custom autograd functions as well as those
-        saved by built-in backward nodes
-     - Green: tensor passed in as outputs
-     - Dark green: if any output is a view, we represent its base tensor with
-        a dark green node.
+    Blue: reachable leaf tensors that requires grad (tensors whose `.grad` fields will be populated during `.backward()`).
+    Orange: saved tensors of custom autograd functions as well as those saved by built-in backward nodes.
+    Green: tensor passed in as outputs.
+    Dark green: if any output is a view, we represent its base tensor with a dark green node.
 
     Args:
         var: Output tensor.

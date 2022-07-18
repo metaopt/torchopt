@@ -26,14 +26,13 @@ class Optimizer(object):
     """A high-level base class that has the similar with `torch.optim.Optimizer`."""
 
     def __init__(self, params: Iterable, impl: GradientTransformation):
-        """The `init` function.
+        r"""The `init` function.
         
         Args:
-            params (iterable): An iterable of `torch.Tensor`s. Specifies what Tensors should be optimized.
+            params (iterable): An iterable of `torch.Tensor`\s. Specifies what Tensors should be optimized.
             impl (GradientTransformation): A low level optimizer function, it could be a optimizer function
                 provided by `alias.py` or a customized `chain` provided by `combine.py`.
-                Note that use `MetaOptimizer(sgd())` or `MetaOptimizer(chain(sgd()))`
-                is equivalent to `SGD`.
+                Note that use `MetaOptimizer(sgd())` or `MetaOptimizer(chain(sgd()))` is equivalent to `SGD`.
         """
         if not isinstance(params, list):
             params = list(params)
@@ -44,7 +43,7 @@ class Optimizer(object):
         self.add_param_group(params)
 
     def zero_grad(self, set_to_none: bool = False):
-        """Sets the gradients of all optimized `torch.Tensor`s to zero.
+        r"""Sets the gradients of all optimized `torch.Tensor`\s to zero.
 
         The behavior is similar to `torch.optim.Optimizer.zero_grad`.
 

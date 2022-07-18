@@ -9,7 +9,7 @@ To install TorchOpt in an "editable" mode, run
 
 .. code-block:: bash
 
-    $ pip install -e "."
+    $ pip install -e .
 
 in the main directory. This installation is removable by
 

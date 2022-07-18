@@ -35,15 +35,15 @@ from typing import Callable, NamedTuple, Tuple
 
 from typing_extensions import Protocol
 
-from torchopt._src import typing
+from torchopt._src.typing import TensorTree, Numeric
 
 
-OptState = typing.TensorTree  # States are arbitrary nests of `torch.Tensor`.
+OptState = TensorTree  # States are arbitrary nests of `torch.Tensor`.
 # Parameters are arbitrary nests of `torch.Tensor`.
-Params = typing.TensorTree
+Params = TensorTree
 Updates = Params  # Gradient updates are of the same type as parameters.
 
-Schedule = Callable[[typing.Numeric], typing.Numeric]
+Schedule = Callable[[Numeric], Numeric]
 
 
 class EmptyState(NamedTuple):

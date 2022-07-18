@@ -151,6 +151,8 @@ def setup(app):
 
 
 def linkcode_resolve(domain, info):
+    print(domain)
+    print(info)
     """Resolve a GitHub URL corresponding to Python object."""
     if domain != 'py':
         return None
