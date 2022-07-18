@@ -24,6 +24,7 @@ from functorch import combine_state_for_ensemble, grad_and_value, make_functiona
 
 import torchopt
 
+
 # Adapted from http://willwhitney.com/parallel-training-jax.html , which is a
 # tutorial on Model Ensembling with JAX by Will Whitney.
 #
