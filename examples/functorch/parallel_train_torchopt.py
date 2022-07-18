@@ -24,20 +24,6 @@ from functorch import combine_state_for_ensemble, grad_and_value, make_functiona
 
 import torchopt
 
-# Adapted from http://willwhitney.com/parallel-training-jax.html , which is a
-# tutorial on Model Ensembling with JAX by Will Whitney.
-#
-# The original code comes with the following citation:
-# @misc{Whitney2021Parallelizing,
-#     author = {William F. Whitney},
-#     title = { {Parallelizing neural networks on one GPU with JAX} },
-#     year = {2021},
-#     url = {http://willwhitney.com/parallel-training-jax.html},
-# }
-
-# GOAL: Demonstrate that it is possible to use eager-mode vmap
-# to parallelize training over models.
-
 
 def make_spirals(n_samples, noise_std=0., rotations=1.):
     ts = torch.linspace(0, 1, n_samples, device=DEVICE)
@@ -112,6 +98,19 @@ def step6():
 
 
 if __name__ == '__main__':
+    # Adapted from http://willwhitney.com/parallel-training-jax.html , which is a
+    # tutorial on Model Ensembling with JAX by Will Whitney.
+    #
+    # The original code comes with the following citation:
+    # @misc{Whitney2021Parallelizing,
+    #     author = {William F. Whitney},
+    #     title = { {Parallelizing neural networks on one GPU with JAX} },
+    #     year = {2021},
+    #     url = {http://willwhitney.com/parallel-training-jax.html},
+    # }
+
+    # GOAL: Demonstrate that it is possible to use eager-mode vmap
+    # to parallelize training over models.
     parser = argparse.ArgumentParser(description="Functorch Ensembled Models with TorchOpt")
     parser.add_argument(
         "--device",

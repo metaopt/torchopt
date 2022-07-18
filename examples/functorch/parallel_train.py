@@ -13,14 +13,6 @@
 # limitations under the License.
 # ==============================================================================
 
-import argparse
-import math
-
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from functorch import combine_state_for_ensemble, grad_and_value, make_functional, vmap
-
 # Adapted from http://willwhitney.com/parallel-training-jax.html , which is a
 # tutorial on Model Ensembling with JAX by Will Whitney.
 #
@@ -34,6 +26,15 @@ from functorch import combine_state_for_ensemble, grad_and_value, make_functiona
 
 # GOAL: Demonstrate that it is possible to use eager-mode vmap
 # to parallelize training over models.
+
+import argparse
+import math
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from functorch import combine_state_for_ensemble, grad_and_value, make_functional, vmap
+
 
 parser = argparse.ArgumentParser(description="Functorch Ensembled Models")
 parser.add_argument(
