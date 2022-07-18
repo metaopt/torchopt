@@ -35,7 +35,7 @@ from typing import Callable, NamedTuple, Tuple
 
 from typing_extensions import Protocol
 
-from torchopt._src.typing import TensorTree, Numeric
+from torchopt._src.typing import Numeric, TensorTree
 
 
 OptState = TensorTree  # States are arbitrary nests of `torch.Tensor`.
