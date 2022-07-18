@@ -15,10 +15,11 @@
 
 import argparse
 import math
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from functorch import make_functional, grad_and_value, vmap, combine_state_for_ensemble
+from functorch import combine_state_for_ensemble, grad_and_value, make_functional, vmap
 
 # Adapted from http://willwhitney.com/parallel-training-jax.html , which is a
 # tutorial on Model Ensembling with JAX by Will Whitney.
@@ -50,7 +51,7 @@ DEVICE = args.device
 
 def make_spirals(n_samples, noise_std=0., rotations=1.):
     ts = torch.linspace(0, 1, n_samples, device=DEVICE)
-    rs = ts ** 0.5
+    rs = ts**0.5
     thetas = rs * rotations * 2 * math.pi
     signs = torch.randint(0, 2, (n_samples,), device=DEVICE) * 2 - 1
     labels = (signs > 0).to(torch.long).to(DEVICE)
@@ -66,6 +67,7 @@ points, labels = make_spirals(100, noise_std=0.05)
 
 # Step 2: Define two-layer MLP and loss function
 class MLPClassifier(nn.Module):
+
     def __init__(self, hidden_dim=32, n_classes=2):
         super().__init__()
         self.hidden_dim = hidden_dim
@@ -91,6 +93,7 @@ func_model, weights = make_functional(MLPClassifier().to(DEVICE))
 
 
 def train_step_fn(weights, batch, targets, lr=0.2):
+
     def compute_loss(weights, batch, targets):
         output = func_model(weights, batch)
         loss = loss_fn(output, targets)
@@ -128,6 +131,7 @@ def init_fn(num_models):
     models = [MLPClassifier().to(DEVICE) for _ in range(num_models)]
     _, params, _ = combine_state_for_ensemble(models)
     return params
+
 
 # Step 6: Now, can we try multiple models at the same time?
 # The answer is: yes! `loss` is a 2-tuple, and we can see that the value keeps
