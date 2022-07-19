@@ -40,6 +40,10 @@ py-format-install:
 mypy-install:
 	$(call check_pip_install,mypy)
 
+pre-commit-install:
+	$(call check_pip_install,pre-commit)
+	$(PYTHON) -m pre_commit install --install-hooks
+
 docs-install:
 	$(call check_pip_install,pydocstyle)
 	$(call check_pip_install,doc8)
@@ -96,6 +100,9 @@ py-format: py-format-install
 
 mypy: mypy-install
 	$(PYTHON) -m mypy $(PROJECT_PATH)
+
+pre-commit: pre-commit-install
+	$(PYTHON) -m pre_commit run --all-files
 
 # C++ linters
 

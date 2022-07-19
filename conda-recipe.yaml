@@ -80,3 +80,4 @@ dependencies:
   - clang-format
   - clang-tools  # clang-tidy
   - cpplint
+  - pre-commit

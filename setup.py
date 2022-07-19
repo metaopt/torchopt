@@ -28,7 +28,8 @@ class CMakeExtension(Extension):
 class cmake_build_ext(build_ext):
     def build_extension(self, ext):
         if not isinstance(ext, CMakeExtension):
-            return super().build_extension(ext)
+            super().build_extension(ext)
+            return
 
         import pybind11
         from torch.utils import cpp_extension
