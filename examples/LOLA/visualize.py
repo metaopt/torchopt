@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # Copyright 2022 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +23,7 @@ import seaborn as sns
 def plot(file):
     data = np.load('result.npy', allow_pickle=True).tolist()
     sns.set(style='darkgrid')
-    sns.set_theme(style="darkgrid")
+    sns.set_theme(style='darkgrid')
     for step in range(3):
         plt.plot(data[step], label='Step ' + str(step))
     plt.legend()
@@ -31,5 +33,5 @@ def plot(file):
 
 
 # plot progress:
-if __name__ == "__main__":
+if __name__ == '__main__':
     plot('result.npy')

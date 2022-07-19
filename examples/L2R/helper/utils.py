@@ -162,7 +162,7 @@ def plot(baseline, l2r):
     import seaborn as sns
 
     sns.set(style='darkgrid')
-    sns.set_theme(style="darkgrid")
+    sns.set_theme(style='darkgrid')
     plt.plot(baseline, label='baseline')
     plt.plot(l2r, label='l2r')
     plt.legend()

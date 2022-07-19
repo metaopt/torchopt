@@ -183,5 +183,3 @@ Make Dot
 ~~~~~~~~
 
 .. autofunction:: make_dot
-
-

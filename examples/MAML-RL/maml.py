@@ -192,13 +192,13 @@ def main(args):
         test_post_reward.append(sum(test_post_reward_ls) / TASK_NUM)
 
         print('Train_iters', i)
-        print("train_pre_reward", sum(train_pre_reward_ls) / TASK_NUM)
-        print("train_post_reward", sum(train_post_reward_ls) / TASK_NUM)
-        print("test_pre_reward", sum(test_pre_reward_ls) / TASK_NUM)
-        print("test_post_reward", sum(test_post_reward_ls) / TASK_NUM)
+        print('train_pre_reward', sum(train_pre_reward_ls) / TASK_NUM)
+        print('train_post_reward', sum(train_post_reward_ls) / TASK_NUM)
+        print('test_pre_reward', sum(test_pre_reward_ls) / TASK_NUM)
+        print('test_post_reward', sum(test_post_reward_ls) / TASK_NUM)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Reinforcement learning with Model-Agnostic Meta-Learning (MAML) - Train'
     )

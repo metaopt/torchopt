@@ -31,7 +31,7 @@ def main(args):
     agent1_copy, agent2_copy = Agent(args), Agent(args)
     n_lookaheads = args.n_lookaheads
     joint_scores = []
-    print("start iterations with", n_lookaheads, "lookaheads:")
+    print('start iterations with', n_lookaheads, 'lookaheads:')
 
     for update in range(args.n_update):
         # reset virtual update
@@ -112,7 +112,7 @@ def main(args):
     return joint_scores
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     args = parse_args()
     joint_score = dict()
     for nla in range(3):

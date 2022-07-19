@@ -270,4 +270,3 @@ We can now combine all the components together, and plot the results.
 
 .. bibliography:: /refs.bib
     :style: unsrtalpha
-

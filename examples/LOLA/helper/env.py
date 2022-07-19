@@ -45,7 +45,7 @@ class OneHot(gym.Space):
         return (self.n,)
 
     def __repr__(self):
-        return "OneHot(%d)" % self.n
+        return 'OneHot(%d)' % self.n
 
     def __eq__(self, other):
         return self.n == other.n

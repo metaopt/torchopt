@@ -50,9 +50,9 @@ def get_version() -> str:
 
 # -- Project information -----------------------------------------------------
 
-project = "TorchOpt"
-copyright = "2022 MetaOPT Team"
-author = "TorchOpt Contributors"
+project = 'TorchOpt'
+copyright = '2022 MetaOPT Team'
+author = 'TorchOpt Contributors'
 
 # The full version, including alpha/beta/rc tags
 release = get_version()
@@ -63,7 +63,7 @@ release = get_version()
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    "sphinx.ext.autodoc",
+    'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx.ext.doctest',
     'sphinx.ext.inheritance_diagram',
@@ -79,18 +79,18 @@ extensions = [
 ]
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ["_templates"]
-source_suffix = [".rst"]
+templates_path = ['_templates']
+source_suffix = ['.rst']
 
 # The root document.
-root_doc = "index"
+root_doc = 'index'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
-spelling_exclude_patterns = [""]
-spelling_word_list_filename = ["spelling_wordlist.txt"]
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+spelling_exclude_patterns = ['']
+spelling_word_list_filename = ['spelling_wordlist.txt']
 
 # -- Options for autodoc -----------------------------------------------------
 
@@ -128,24 +128,24 @@ latex_elements = {'preamble': latex_macros}
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "sphinx_rtd_theme"
+html_theme = 'sphinx_rtd_theme'
 html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ["_static"]
+html_static_path = ['_static']
 
-html_logo = "_static/images/logod-05.png"
+html_logo = '_static/images/logod-05.png'
 
 
 def setup(app):
-    app.add_js_file("https://cdn.jsdelivr.net/npm/vega@5.20.2")
-    app.add_js_file("https://cdn.jsdelivr.net/npm/vega-lite@5.1.0")
-    app.add_js_file("https://cdn.jsdelivr.net/npm/vega-embed@6.17.0")
+    app.add_js_file('https://cdn.jsdelivr.net/npm/vega@5.20.2')
+    app.add_js_file('https://cdn.jsdelivr.net/npm/vega-lite@5.1.0')
+    app.add_js_file('https://cdn.jsdelivr.net/npm/vega-embed@6.17.0')
 
-    app.add_js_file("js/copybutton.js")
-    app.add_css_file("css/style.css")
+    app.add_js_file('js/copybutton.js')
+    app.add_css_file('css/style.css')
 
 
 # -- Source code links -------------------------------------------------------

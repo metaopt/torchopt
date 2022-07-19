@@ -78,8 +78,8 @@ class Omniglot(data.Dataset):
 
     def _check_exists(self):
         return os.path.exists(
-            os.path.join(self.root, self.processed_folder, "images_evaluation")
-        ) and os.path.exists(os.path.join(self.root, self.processed_folder, "images_background"))
+            os.path.join(self.root, self.processed_folder, 'images_evaluation')
+        ) and os.path.exists(os.path.join(self.root, self.processed_folder, 'images_background'))
 
     def download(self):
         import zipfile
@@ -107,22 +107,22 @@ class Omniglot(data.Dataset):
             with open(file_path, 'wb') as f:
                 f.write(data.read())
             file_processed = os.path.join(self.root, self.processed_folder)
-            print("== Unzip from " + file_path + " to " + file_processed)
+            print('== Unzip from ' + file_path + ' to ' + file_processed)
             zip_ref = zipfile.ZipFile(file_path, 'r')
             zip_ref.extractall(file_processed)
             zip_ref.close()
-        print("Download finished.")
+        print('Download finished.')
 
 
 def find_classes(root_dir):
     retour = []
     for (root, dirs, files) in os.walk(root_dir):
         for f in files:
-            if f.endswith("png"):
+            if f.endswith('png'):
                 r = root.split('/')
                 lr = len(r)
-                retour.append((f, r[lr - 2] + "/" + r[lr - 1], root))
-    print("== Found %d items " % len(retour))
+                retour.append((f, r[lr - 2] + '/' + r[lr - 1], root))
+    print('== Found %d items ' % len(retour))
     return retour
 
 
@@ -131,7 +131,7 @@ def index_classes(items):
     for i in items:
         if i[1] not in idx:
             idx[i[1]] = len(idx)
-    print("== Found %d classes" % len(idx))
+    print('== Found %d classes' % len(idx))
     return idx
 
 
@@ -208,16 +208,16 @@ class OmniglotNShot:
         assert (k_shot + k_query) <= 20
 
         # save pointer of current read batch in total cache
-        self.indexes = {"train": 0, "test": 0}
+        self.indexes = {'train': 0, 'test': 0}
         self.datasets = {
-            "train": self.x_train,
-            "test": self.x_test,
+            'train': self.x_train,
+            'test': self.x_test,
         }  # original data cached
-        print("DB: train", self.x_train.shape, "test", self.x_test.shape)
+        print('DB: train', self.x_train.shape, 'test', self.x_test.shape)
 
         self.datasets_cache = {
-            "train": self.load_data_cache(self.datasets["train"]),  # current epoch data cached
-            "test": self.load_data_cache(self.datasets["test"]),
+            'train': self.load_data_cache(self.datasets['train']),  # current epoch data cached
+            'test': self.load_data_cache(self.datasets['test']),
         }
 
     def normalization(self):

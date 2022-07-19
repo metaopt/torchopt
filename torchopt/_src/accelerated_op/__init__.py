@@ -23,7 +23,7 @@ def accelerated_op_available(devices=None):
     op = AdamOp()
 
     if devices is None:
-        devices = [torch.device("cuda"), torch.device("cpu")]
+        devices = [torch.device('cuda'), torch.device('cpu')]
     elif isinstance(devices, torch.device):
         devices = [devices]
 

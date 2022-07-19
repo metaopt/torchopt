@@ -70,5 +70,3 @@ To compile documentation into webpage, run
 The generated webpage is in ``docs/_build`` and can be viewed with browser (http://localhost:8000/).
 
 Detailed documentation is in https://torchopt.readthedocs.io/zh/latest/.
-
-

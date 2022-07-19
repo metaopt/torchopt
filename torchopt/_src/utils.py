@@ -140,7 +140,7 @@ def extract_state_dict(mod, copy=False, *, with_buffer=True, enable_visual=False
             return state
 
     else:
-        raise RuntimeError(f"Unexpected class of {mod}")
+        raise RuntimeError(f'Unexpected class of {mod}')
 
 
 def _extract_container(mod, with_buffer=True):
@@ -162,7 +162,7 @@ def _extract_container(mod, with_buffer=True):
                 _update(module._buffers)
         return tuple(containers)
     else:
-        raise RuntimeError(f"Unexpected class of {mod}")
+        raise RuntimeError(f'Unexpected class of {mod}')
 
 
 def recover_state_dict(mod, state):
@@ -184,4 +184,4 @@ def recover_state_dict(mod, state):
     elif isinstance(mod, MetaOptimizer):
         mod.load_state_dict(state)
     else:
-        raise RuntimeError(f"Unexpected class of {mod}")
+        raise RuntimeError(f'Unexpected class of {mod}')

@@ -77,4 +77,3 @@ $(document).ready(function() {
         }
     });
 });
-
