@@ -86,6 +86,11 @@ Support
 If you are having issues, please let us know by filing an issue on our
 `issue tracker <https://github.com/metaopt/TorchOpt/issues>`_.
 
+Changelog
+---------
+
+See :gitcode:`CHANGELOG.md`.
+
 License
 -------
 

@@ -25,6 +25,7 @@ The README is organized as follows:
 - [Visualization](#visualization)
 - [Installation](#installation)
 - [Future Plan](#future-plan)
+- [Changelog](#changelog)
 - [The Team](#the-team)
 - [Citing TorchOpt](#citing-torchopt)
 
@@ -241,6 +242,10 @@ pip3 install -e .
 - [ ] Support general implicit differentiation with functional programing.
 - [ ] Support more optimizers such as AdamW, RMSProp
 - [ ] CPU-accelerated optimizer
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md).
 
 --------------------------------------------------------------------------------
 
