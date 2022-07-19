@@ -27,7 +27,7 @@ import torchopt
 
 
 class TrainingState(NamedTuple):
-    params: Any
+    weights: Any
     opt_state: Any
 
 
@@ -63,8 +63,7 @@ class MLPClassifier(nn.Module):
 
 
 def train_step_fn(training_state, batch, targets):
-    params, opt_state = training_state
-
+    weights, opt_state = training_state
     def compute_loss(params, batch, targets):
         output = func_model(params, batch)
         loss = loss_fn(output, targets)
