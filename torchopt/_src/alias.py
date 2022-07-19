@@ -90,7 +90,6 @@ def adam(
     Returns:
         The corresponding :class:`GradientTransformation` instance.
     """
-
     adam_inst = (
         transform.scale_by_accelerated_adam if use_accelerated_op else transform.scale_by_adam
     )
@@ -126,7 +125,7 @@ def sgd(
         momentum: (default: :data:`None`)
             The ``decay`` rate used by the momentum term, when it is set to :data:`None`, then
             momentum is not used at all.
-        nesterov (default: :data:`False`):
+        nesterov: (default: :data:`False`)
             Whether the nesterov momentum is used.
         moment_requires_grad: (default: :data:`False`)
             If :data:`True` the momentums will be created with flag ``requires_grad=True``, this
@@ -135,7 +134,6 @@ def sgd(
     Returns:
         A :class:`GradientTransformation` instance.
     """
-
     return combine.chain(
         (
             transform.trace(
@@ -184,12 +182,12 @@ def rmsprop(
         momentum: (default: :data:`None`)
             The ``decay`` rate used by the momentum term, when it is set to :data:`None`, then
             momentum is not used at all.
-        nesterov (default: :data:`False`): Whether the nesterov momentum is used.
+        nesterov: (default: :data:`False`)
+            Whether the nesterov momentum is used.
 
     Returns:
         The corresponding :class:`GradientTransformation` instance.
     """
-
     if centered:
         return combine.chain(
             transform.scale_by_stddev(decay=decay, eps=eps, initial_scale=initial_scale),

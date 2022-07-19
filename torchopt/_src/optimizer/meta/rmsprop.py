@@ -25,7 +25,7 @@ from torchopt._src.typing import ScalarOrSchedule
 class MetaRMSProp(MetaOptimizer):
     """The differentiable RMSProp optimizer.
 
-    See also:
+    See Also:
         - The functional RMSProp optimizer: :func:`torchopt.rmsprop`.
         - The classic RMSProp optimizer: :class:`torchopt.RMSProp`.
     """
@@ -48,7 +48,7 @@ class MetaRMSProp(MetaOptimizer):
             lr: This is a fixed global scaling factor.
             decay: The decay used to track the magnitude of previous gradients.
             eps: A small numerical constant to avoid dividing by zero when rescaling.
-            initial_scale: (default: :data:`0.0`):
+            initial_scale: (default: :data:`0.0`)
                 Initialization of accumulators tracking the magnitude of previous updates. PyTorch
                 uses :data:`0.0`, TensorFlow 1.x uses :data:`1.0`. When reproducing results from a
                 paper, verify the value used by the authors.
@@ -58,9 +58,9 @@ class MetaRMSProp(MetaOptimizer):
             momentum: (default: :data:`None`)
                 Here we set ``moment_requires_grad=True`` to make tensors like momentum be
                 differentiable.
-            nesterov (default: :data:`False`): Whether the nesterov momentum is used.
+            nesterov: (default: :data:`False`)
+                Whether the nesterov momentum is used.
         """
-
         super().__init__(
             net,
             rmsprop(

@@ -23,7 +23,7 @@ from torchopt._src.typing import ScalarOrSchedule
 class MetaAdam(MetaOptimizer):
     """The differentiable Adam optimizer.
 
-    See also:
+    See Also:
         - The functional Adam optimizer: :func:`torchopt.adam`.
         - The classic Adam optimizer: :class:`torchopt.Adam`.
     """
@@ -47,8 +47,7 @@ class MetaAdam(MetaOptimizer):
             lr: This is a fixed global scaling factor.
             b1: The exponential decay rate to track the first moment of past gradients.
             b2: The exponential decay rate to track the second moment of past gradients.
-            eps:
-                A small constant applied to denominator outside of the square root (as in the Adam
+            eps: A small constant applied to denominator outside of the square root (as in the Adam
                 paper) to avoid dividing by zero when rescaling.
             eps_root: (default: :data:`0.0`)
                 A small constant applied to denominator inside the square root (as in RMSProp), to
@@ -60,7 +59,6 @@ class MetaAdam(MetaOptimizer):
             use_accelerated_op: (default: :data:`False`)
                 If :data:`True` use our implemented fused operator.
         """
-
         super().__init__(
             net,
             adam(

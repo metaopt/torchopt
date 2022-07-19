@@ -25,7 +25,7 @@ from torchopt._src.typing import ScalarOrSchedule
 class RMSProp(Optimizer):
     """The classic RMSProp optimizer.
 
-    See also:
+    See Also:
         - The functional RMSProp optimizer: :func:`torchopt.rmsprop`.
         - The differentiable meta-RMSProp optimizer: :class:`torchopt.MetaRMSProp`.
     """
@@ -41,11 +41,11 @@ class RMSProp(Optimizer):
         momentum: Optional[float] = None,
         nesterov: bool = False,
     ):
-        """The `init` function.
+        r"""The `init` function.
 
         Args:
-            params (iterable of torch.Tensor):
-                An iterable of :class:`torch.Tensor`\s. Specifies what Tensors should be optimized.
+            params (iterable of torch.Tensor): An iterable of :class:`torch.Tensor`\s. Specifies
+                what Tensors should be optimized.
             lr: This is a fixed global scaling factor.
             decay: The decay used to track the magnitude of previous gradients.
             eps: A small numerical constant to avoid dividing by zero when rescaling.
@@ -59,9 +59,9 @@ class RMSProp(Optimizer):
             momentum: (default: :data:`None`)
                 The ``decay`` rate used by the momentum term, when it is set to :data:`None`, then
                 momentum is not used at all.
-            nesterov: (default: :data:`False`) Whether the nesterov momentum is used.
+            nesterov: (default: :data:`False`)
+                Whether the nesterov momentum is used.
         """
-
         super().__init__(
             params,
             rmsprop(

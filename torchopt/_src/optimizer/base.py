@@ -29,15 +29,14 @@ class Optimizer:
         r"""The :meth:`init` function.
 
         Args:
-            params (iterable of torch.Tensor):
-                An iterable of :class:`torch.Tensor`\s. Specifies what tensors should be optimized.
-            impl (GradientTransformation):
-                A low level optimizer function, it could be a optimizer function provided by
-                ``alias.py`` or a customized ``chain`` provided by ``combine.py``.
+            params (iterable of torch.Tensor): An iterable of :class:`torch.Tensor`\s. Specifies
+                what tensors should be optimized.
+            impl (GradientTransformation): A low level optimizer function, it could be a optimizer
+                function provided by ``alias.py`` or a customized ``chain`` provided by
+                ``combine.py``.
                 Note that using ``Optimizer(sgd())`` or ``Optimizer(chain(sgd()))`` is equivalent to
                 :class:`torchopt.SGD`.
         """
-
         if not isinstance(params, list):
             params = list(params)
         self.impl = impl
@@ -54,7 +53,6 @@ class Optimizer:
         Args:
             set_to_none (bool): Instead of setting to zero, set the ``grads`` to :data:`None`.
         """
-
         for group in self.param_groups:
             if set_to_none:
 
@@ -78,7 +76,6 @@ class Optimizer:
 
     def state_dict(self):
         """Returns the state of the optimizer."""
-
         return self.state_groups
 
     def load_state_dict(self, state_dict):
@@ -88,7 +85,6 @@ class Optimizer:
             state_dict (dict): Optimizer state. Should be an object returned from a call to
                 :meth:`state_dict`.
         """
-
         self.state_groups = state_dict
 
     def step(self, closure=None):
@@ -99,7 +95,6 @@ class Optimizer:
         Args:
             closure (callable, optional): A closure that reevaluates the model and returns the loss.
         """
-
         loss = None
         if closure is not None:
             with torch.enable_grad():
@@ -117,7 +112,6 @@ class Optimizer:
 
     def add_param_group(self, params):
         """Add a param group to the optimizer's :attr:`param_groups`."""
-
         params, tree = jax.tree_flatten(params)
         params = tuple(params)
         self.param_groups.append(params)

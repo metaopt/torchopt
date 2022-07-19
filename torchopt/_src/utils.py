@@ -39,14 +39,12 @@ def stop_gradient(target):
     Note that the :func:`stop_gradient` operation is in-place.
 
     Args:
-        target:
-            The target that to be detached from the computation graph, it could be a
+        target: The target that to be detached from the computation graph, it could be a
             :class:`nn.Module`, :class:`torchopt.MetaOptimizer`, state of the
             :class:`torchopt.MetaOptimizer`, or just a plain list of tensors.
-        inplace:
-            If :data:`True`, the target will be detached in-place. if :data:`Frue`, this function
-            will return a detached copy of the target. The in-place operation is fast and memory
-            efficient but may raise back-propagation error.
+        inplace: If :data:`True`, the target will be detached in-place. if :data:`Frue`, this
+            function will return a detached copy of the target. The in-place operation is fast and
+            memory efficient but may raise back-propagation error.
     """
 
     def f(obj):
@@ -92,7 +90,6 @@ def extract_state_dict(mod, copy=False, *, with_buffer=True, enable_visual=False
     Returns:
         State extracted of the input object.
     """
-
     if isinstance(mod, nn.Module):
         if enable_visual:
             visual_contents = {}
@@ -182,7 +179,6 @@ def recover_state_dict(mod, state):
         mod: Target that need to recover.
         state: The recovering state.
     """
-
     if isinstance(mod, nn.Module):
         target_container = _extract_container(mod)
         for target, source in zip(target_container, state.params):

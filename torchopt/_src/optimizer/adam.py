@@ -25,7 +25,7 @@ from torchopt._src.typing import ScalarOrSchedule
 class Adam(Optimizer):
     """The classic Adam optimizer.
 
-    See also:
+    See Also:
         - The functional Adam optimizer: :func:`torchopt.adam`.
         - The differentiable meta-Adam optimizer: :class:`torchopt.MetaAdam`.
     """
@@ -40,16 +40,15 @@ class Adam(Optimizer):
         eps_root: float = 0.0,
         use_accelerated_op: bool = False,
     ):
-        """The :meth:`init` function.
+        r"""The :meth:`init` function.
 
         Args:
-            params (iterable of torch.Tensor):
-                An iterable of :class:`torch.Tensor`\s. Specifies what tensors should be optimized.
+            params (iterable of torch.Tensor): An iterable of :class:`torch.Tensor`\s. Specifies
+                what tensors should be optimized.
             lr: This is a fixed global scaling factor.
             b1: The exponential decay rate to track the first moment of past gradients.
             b2: The exponential decay rate to track the second moment of past gradients.
-            eps:
-                A small constant applied to denominator outside of the square root (as in the Adam
+            eps: A small constant applied to denominator outside of the square root (as in the Adam
                 paper) to avoid dividing by zero when rescaling.
             eps_root: (default: :data:`0.0`)
                 A small constant applied to denominator inside the square root (as in RMSProp), to
@@ -58,7 +57,6 @@ class Adam(Optimizer):
             use_accelerated_op: (default: :data:`False`)
                 If :data:`True` use our implemented fused operator.
         """
-
         super().__init__(
             params,
             adam(

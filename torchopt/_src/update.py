@@ -56,7 +56,6 @@ def apply_updates(
     Returns:
         Updated parameters, with same structure, shape and type as ``params``.
     """
-
     if inplace:
 
         def f(p, u):

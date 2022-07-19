@@ -21,7 +21,6 @@ from torchopt._src.base import EmptyState, GradientTransformation
 
 def zero_nan_hook(g: torch.Tensor) -> torch.Tensor:
     """Registers a zero nan hook to replace nan with zero."""
-
     return torch.where(torch.isnan(g), torch.zeros_like(g), g)
 
 

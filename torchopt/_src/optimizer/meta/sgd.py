@@ -25,7 +25,7 @@ from torchopt._src.typing import ScalarOrSchedule
 class MetaSGD(MetaOptimizer):
     """The differentiable Stochastic Gradient Descent optimizer.
 
-    See also:
+    See Also:
         - The functional SGD optimizer: :func:`torchopt.sgd`.
         - The classic SGD optimizer: :class:`torchopt.SGD`.
     """
@@ -43,15 +43,12 @@ class MetaSGD(MetaOptimizer):
         Args:
             net: A network whose parameters should be optimized.
             lr: This is a fixed global scaling factor.
-            momentum:
-                The ``decay`` rate used by the momentum term, when it is set to :data:`None`, then
-                momentum is not used at all.
+            momentum: The ``decay`` rate used by the momentum term, when it is set to :data:`None`,
+                then momentum is not used at all.
             nesterov: Whether the nesterov momentum is used.
-            moment_requires_grad:
-                Here we set ``moment_requires_grad=True`` to make tensors like momentum be
-                differentiable.
+            moment_requires_grad: Here we set ``moment_requires_grad=True`` to make tensors like
+                momentum be differentiable.
         """
-
         super().__init__(
             net,
             sgd(

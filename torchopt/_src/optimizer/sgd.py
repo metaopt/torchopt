@@ -25,7 +25,7 @@ from torchopt._src.typing import ScalarOrSchedule
 class SGD(Optimizer):
     """The classic SGD optimizer.
 
-    See also:
+    See Also:
         - The functional SGD optimizer: :func:`torchopt.sgd`.
         - The differentiable meta-SGD optimizer: :class:`torchopt.MetaSGD`.
     """
@@ -37,18 +37,18 @@ class SGD(Optimizer):
         momentum: Optional[float] = None,
         nesterov: bool = False,
     ):
-        """The :meth:`init` function.
+        r"""The :meth:`init` function.
 
         Args:
-            params (iterable of torch.Tensor):
-                An iterable of :class:`torch.Tensor`\s. Specifies what tensors should be optimized.
+            params (iterable of torch.Tensor): An iterable of :class:`torch.Tensor`\s. Specifies
+                what tensors should be optimized.
             lr: This is a fixed global scaling factor.
             momentum: (default: :data:`None`)
                 The ``decay`` rate used by the momentum term, when it is set to :data:`None`, then
                 momentum is not used at all.
-            nesterov (default: :data:`False`): Whether the nesterov momentum is used.
+            nesterov: (default: :data:`False`)
+                Whether the nesterov momentum is used.
         """
-
         super().__init__(
             params,
             sgd(lr=lr, momentum=momentum, nesterov=nesterov, moment_requires_grad=False),
