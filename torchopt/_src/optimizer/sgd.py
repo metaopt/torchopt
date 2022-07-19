@@ -28,7 +28,7 @@ class SGD(Optimizer):
         params,
         lr: ScalarOrSchedule,
         momentum: Union[float, None] = None,
-        nesterov: bool = False
+        nesterov: bool = False,
     ):
         """The `init` function.
 
@@ -42,5 +42,6 @@ class SGD(Optimizer):
             nesterov (default `False`): Whether nesterov momentum is used.
         """
         super().__init__(
-            params, sgd(lr=lr, momentum=momentum, nesterov=nesterov, moment_requires_grad=False)
+            params,
+            sgd(lr=lr, momentum=momentum, nesterov=nesterov, moment_requires_grad=False),
         )

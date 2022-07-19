@@ -71,7 +71,13 @@ def sample_traj(env, task, policy):
                 rews_buf[step][batch] = rew
                 gammas_buf[step][batch] = done * GAMMA
                 ob = next_ob
-    return Traj(obs=obs_buf, acs=acs_buf, next_obs=next_obs_buf, rews=rews_buf, gammas=gammas_buf)
+    return Traj(
+        obs=obs_buf,
+        acs=acs_buf,
+        next_obs=next_obs_buf,
+        rews=rews_buf,
+        gammas=gammas_buf,
+    )
 
 
 def a2c_loss(traj, policy, value_coef):
@@ -82,8 +88,9 @@ def a2c_loss(traj, policy, value_coef):
     returns = []
     g = next_values[-1, :]
     for i in reversed(range(next_values.shape[0])):
-        g = traj.rews[i, :] + traj.gammas[i, :] * \
-            ((1 - lambdas[i, :]) * next_values[i, :] + lambdas[i, :] * g)
+        g = traj.rews[i, :] + traj.gammas[i, :] * (
+            (1 - lambdas[i, :]) * next_values[i, :] + lambdas[i, :] * g
+        )
         returns.insert(0, g)
     lambda_returns = torch.from_numpy(np.array(returns))
     pi, values = policy(torch.from_numpy(traj.obs))
@@ -106,8 +113,8 @@ def evaluate(env, seed, task_num, policy):
             num_states=STATE_DIM,
             num_actions=ACTION_DIM,
             max_episode_steps=TRAJ_LEN,
-            seed=args.seed
-        )
+            seed=args.seed,
+        ),
     )
     tasks = env.sample_tasks(num_tasks=task_num)
     policy_state_dict = torchopt.extract_state_dict(policy)
@@ -140,8 +147,8 @@ def main(args):
             num_states=STATE_DIM,
             num_actions=ACTION_DIM,
             max_episode_steps=TRAJ_LEN,
-            seed=args.seed
-        )
+            seed=args.seed,
+        ),
     )
     # Policy
     policy = CategoricalMLPPolicy(input_size=STATE_DIM, output_size=ACTION_DIM)
@@ -193,8 +200,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description='Reinforcement learning with '
-        'Model-Agnostic Meta-Learning (MAML) - Train'
+        description='Reinforcement learning with Model-Agnostic Meta-Learning (MAML) - Train'
     )
     parser.add_argument('--seed', type=int, default=1, help='random seed (default: 1)')
     args = parser.parse_args()

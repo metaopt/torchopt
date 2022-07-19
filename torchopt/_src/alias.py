@@ -43,7 +43,6 @@ def _scale_by_lr(lr: ScalarOrSchedule, flip_sign=True):
     if callable(lr):
 
         def schedule_wrapper(count):
-
             def f(scaled_lr):
                 return m * scaled_lr
 
@@ -60,7 +59,7 @@ def adam(
     eps: float = 1e-8,
     eps_root: float = 0.0,
     moment_requires_grad: bool = False,
-    use_accelerated_op: bool = False
+    use_accelerated_op: bool = False,
 ) -> base.GradientTransformation:
     """The classic Adam optimizer.
 
@@ -77,11 +76,11 @@ def adam(
         b2: The exponential decay rate to track the second moment of past gradients.
         eps: A small constant applied to denominator outside of the square root
             (as in the Adam paper) to avoid dividing by zero when rescaling.
-        eps_root: (default `0`) 
+        eps_root: (default `0`)
             A small constant applied to denominator inside the square root (as
             in RMSProp), to avoid dividing by zero when rescaling. This is needed
             for example when computing (meta-)gradients through Adam.
-        moment_requires_grad: (default `False`) 
+        moment_requires_grad: (default `False`)
             If True the momentums will be created with flag `requires_grad=True`,
             this flag is often used in Meta Learning algorithms.
         use_accelerated_op: (default `False`)
@@ -90,10 +89,16 @@ def adam(
     Returns:
         The corresponding `GradientTransformation` instance.
     """
-    adam_inst = transform.scale_by_accelerated_adam if use_accelerated_op else transform.scale_by_adam
+    adam_inst = (
+        transform.scale_by_accelerated_adam if use_accelerated_op else transform.scale_by_adam
+    )
     return combine.chain(
         adam_inst(
-            b1=b1, b2=b2, eps=eps, eps_root=eps_root, moment_requires_grad=moment_requires_grad
+            b1=b1,
+            b2=b2,
+            eps=eps,
+            eps_root=eps_root,
+            moment_requires_grad=moment_requires_grad,
         ),
         _scale_by_lr(lr),
     )
@@ -132,9 +137,14 @@ def sgd(
     return combine.chain(
         (
             transform.trace(
-                decay=momentum, nesterov=nesterov, moment_requires_grad=moment_requires_grad
-            ) if momentum is not None else base.identity()
-        ), _scale_by_lr(lr)
+                decay=momentum,
+                nesterov=nesterov,
+                moment_requires_grad=moment_requires_grad,
+            )
+            if momentum is not None
+            else base.identity()
+        ),
+        _scale_by_lr(lr),
     )
 
 
@@ -142,10 +152,10 @@ def rmsprop(
     lr: ScalarOrSchedule,
     decay: float = 0.9,
     eps: float = 1e-8,
-    initial_scale: float = 0.,
+    initial_scale: float = 0.0,
     centered: bool = False,
     momentum: Optional[float] = None,
-    nesterov: bool = False
+    nesterov: bool = False,
 ) -> base.GradientTransformation:
     """A flexible RMSProp optimizer.
 
@@ -178,16 +188,20 @@ def rmsprop(
     if centered:
         return combine.chain(
             transform.scale_by_stddev(decay=decay, eps=eps, initial_scale=initial_scale),
-            _scale_by_lr(lr), (
+            _scale_by_lr(lr),
+            (
                 transform.trace(decay=momentum, nesterov=nesterov)
-                if momentum is not None else base.identity()
-            )
+                if momentum is not None
+                else base.identity()
+            ),
         )
     else:
         return combine.chain(
             transform.scale_by_rms(decay=decay, eps=eps, initial_scale=initial_scale),
-            _scale_by_lr(lr), (
+            _scale_by_lr(lr),
+            (
                 transform.trace(decay=momentum, nesterov=nesterov)
-                if momentum is not None else base.identity()
-            )
+                if momentum is not None
+                else base.identity()
+            ),
         )

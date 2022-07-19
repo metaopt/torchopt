@@ -70,6 +70,7 @@ def scale(step_size: float) -> base.GradientTransformation:
 
             def f(g):
                 return g.mul_(step_size) if g is not None else None
+
         else:
 
             def f(g):
@@ -83,6 +84,7 @@ def scale(step_size: float) -> base.GradientTransformation:
 
 class ScaleByScheduleState(NamedTuple):
     """Maintains count for scale scheduling."""
+
     count: Tuple[int, ...]  # type: ignore
 
 
@@ -118,6 +120,7 @@ def _update_moment(updates, moments, decay, order, inplace=True):
 
         def f(g, t):
             return t.mul_(decay).add_(g**order, alpha=1 - decay) if g is not None else t
+
     else:
 
         def f(g, t):
@@ -132,6 +135,7 @@ def _update_moment_per_elem_norm(updates, moments, decay, order, inplace=True):
 
         def f(g, t):
             return t.mul_(decay).add_(g**order, alpha=1 - decay) if g is not None else t
+
     else:
 
         def f(g, t):
@@ -154,6 +158,7 @@ def _bias_correction(moment, decay, count, inplace=True):
 
         def f(t, c):
             return t.div_(1 - decay**c)
+
     else:
 
         def f(t, c):
@@ -193,11 +198,11 @@ def scale_by_adam(
 
     def init_fn(params):
         mu = jax.tree_map(  # First moment
-            lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad),
-            params)
+            lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params
+        )
         nu = jax.tree_map(  # Second moment
-            lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad),
-            params)
+            lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params
+        )
         return ScaleByAdamState(count=tuple(0 for _ in range(len(mu))), mu=tuple(mu), nu=tuple(nu))
 
     def update_fn(updates, state, inplace=True):
@@ -210,6 +215,7 @@ def scale_by_adam(
 
             def f(g, m, v):
                 return m.div_(torch.sqrt_(v.add_(eps_root)).add_(eps)) if g is not None else None
+
         else:
 
             def f(g, m, v):
@@ -255,11 +261,11 @@ def scale_by_accelerated_adam(
 
     def init_fn(params):
         mu = jax.tree_map(  # First moment
-            lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad),
-            params)
+            lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params
+        )
         nu = jax.tree_map(  # Second moment
-            lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad),
-            params)
+            lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params
+        )
         return ScaleByAdamState(count=tuple(0 for _ in range(len(params))), mu=mu, nu=nu)
 
     def update_fn(updates, state, inplace=True):
@@ -308,12 +314,14 @@ def trace(
     """
 
     def init_fn(params):
-        if decay == 0.:
+        if decay == 0.0:
             return TraceState(trace=())
         else:
             return TraceState(
-                trace=jax.
-                tree_map(lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params)
+                trace=jax.tree_map(
+                    lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad),
+                    params,
+                )
             )
 
     def update_fn(updates, state, inplace=True):
@@ -364,9 +372,7 @@ class ScaleByRmsState(NamedTuple):
 
 
 def scale_by_rms(
-    decay: float = 0.9,
-    eps: float = 1e-8,
-    initial_scale: float = 0.
+    decay: float = 0.9, eps: float = 1e-8, initial_scale: float = 0.0
 ) -> base.GradientTransformation:
     """Rescale updates by the root of the exp. moving avg of the square.
 
@@ -395,6 +401,7 @@ def scale_by_rms(
 
             def f(g, n):
                 return g.mul_(torch.rsqrt(n.add(eps)))
+
         else:
 
             def f(g, n):
@@ -421,9 +428,7 @@ class ScaleByRStdDevState(NamedTuple):
 
 
 def scale_by_stddev(
-    decay: float = 0.9,
-    eps: float = 1e-8,
-    initial_scale: float = 0.
+    decay: float = 0.9, eps: float = 1e-8, initial_scale: float = 0.0
 ) -> base.GradientTransformation:
     """Rescale updates by the root of the centered exp. moving average of squares.
 
@@ -454,6 +459,7 @@ def scale_by_stddev(
 
             def f(g, m, n):
                 return g.mul_(torch.rsqrt(n.sub(m**2).add(eps)))
+
         else:
 
             def f(g, m, n):

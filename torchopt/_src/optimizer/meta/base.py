@@ -26,7 +26,7 @@ class MetaOptimizer(object):
 
     def __init__(self, net: nn.Module, impl: GradientTransformation):
         """The `init` function.
-        
+
         Args:
             net (nn.Module): A network whose parameters should be optimized.
             impl (GradientTransformation): A low level optimizer function, it could be a optimizer function

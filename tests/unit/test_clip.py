@@ -26,7 +26,6 @@ import torchopt
 
 
 class HighLevelInplace(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         torch.manual_seed(0)
@@ -39,7 +38,7 @@ class HighLevelInplace(unittest.TestCase):
         cls.loader = data.DataLoader(cls.dataset, cls.batch_size, False)
 
         cls.lr = 1e0
-        cls.max_norm = 10.
+        cls.max_norm = 10.0
 
     def setUp(self) -> None:
         torch.manual_seed(0)
@@ -48,7 +47,8 @@ class HighLevelInplace(unittest.TestCase):
 
     def test_sgd(self) -> None:
         chain = torchopt.combine.chain(
-            torchopt.clip.clip_grad_norm(max_norm=self.max_norm), torchopt.sgd(lr=self.lr)
+            torchopt.clip.clip_grad_norm(max_norm=self.max_norm),
+            torchopt.sgd(lr=self.lr),
         )
         optim = torchopt.Optimizer(self.model.parameters(), chain)
         optim_ref = torch.optim.SGD(self.model_ref.parameters(), self.lr)

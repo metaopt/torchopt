@@ -44,6 +44,7 @@ PROJECT_ROOT = HERE.parent
 def get_version() -> str:
     sys.path.insert(0, str(PROJECT_ROOT / 'torchopt'))
     import version  # noqa
+
     return version.__version__
 
 
@@ -181,8 +182,9 @@ def linkcode_resolve(domain, info):
 
     # TODO(slebedev): support tags after we release an initial version.
     return 'https://github.com/metaopt/TorchOpt/tree/main/TorchOpt/%s#L%d#L%d' % (
-        os.path.relpath(filename, start=os.path.dirname(torchopt.__file__
-                                                       )), lineno, lineno + len(source) - 1
+        os.path.relpath(filename, start=os.path.dirname(torchopt.__file__)),
+        lineno,
+        lineno + len(source) - 1,
     )
 
 

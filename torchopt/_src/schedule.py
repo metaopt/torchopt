@@ -43,7 +43,7 @@ def polynomial_schedule(
     end_value: Scalar,
     power: Scalar,
     transition_steps: int,
-    transition_begin: int = 0
+    transition_begin: int = 0,
 ) -> base.Schedule:
     """Constructs a schedule with polynomial transition from init to end value.
 
@@ -83,7 +83,6 @@ def polynomial_schedule(
         transition_begin = 0
 
     def schedule(count):
-
         def impl(count):
             count = np.clip(count - transition_begin, 0, transition_steps)
             frac = 1 - count / transition_steps
@@ -99,7 +98,7 @@ def linear_schedule(
     init_value: Scalar,
     end_value: Scalar,
     transition_steps: int,
-    transition_begin: int = 0
+    transition_begin: int = 0,
 ) -> base.Schedule:
     """Alias polynomial schedule to linear schedule for convenience."""
     return polynomial_schedule(
@@ -107,5 +106,5 @@ def linear_schedule(
         end_value=end_value,
         power=1,
         transition_steps=transition_steps,
-        transition_begin=transition_begin
+        transition_begin=transition_begin,
     )

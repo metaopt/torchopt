@@ -29,7 +29,7 @@ class Adam(Optimizer):
         b2: float = 0.999,
         eps: float = 1e-8,
         eps_root: float = 0.0,
-        use_accelerated_op: bool = False
+        use_accelerated_op: bool = False,
     ):
         """The `init` function.
 
@@ -54,6 +54,6 @@ class Adam(Optimizer):
                 eps=eps,
                 eps_root=eps_root,
                 moment_requires_grad=False,
-                use_accelerated_op=use_accelerated_op
-            )
+                use_accelerated_op=use_accelerated_op,
+            ),
         )

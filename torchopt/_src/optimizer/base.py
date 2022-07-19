@@ -27,7 +27,7 @@ class Optimizer(object):
 
     def __init__(self, params: Iterable, impl: GradientTransformation):
         r"""The `init` function.
-        
+
         Args:
             params (iterable): An iterable of `torch.Tensor`\s. Specifies what Tensors should be optimized.
             impl (GradientTransformation): A low level optimizer function, it could be a optimizer function

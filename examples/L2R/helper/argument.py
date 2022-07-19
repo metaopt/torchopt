@@ -24,7 +24,10 @@ def parse_args():
 
     parser.add_argument('--lr', type=float, default=1e-3, help='learning rate')
     parser.add_argument(
-        '--pos_ratio', type=float, default=0.995, help='Ratio of positive examples in training'
+        '--pos_ratio',
+        type=float,
+        default=0.995,
+        help='Ratio of positive examples in training',
     )
     parser.add_argument('--ntest', type=int, default=500, help='Number of testing examples')
     parser.add_argument('--ntrain', type=int, default=5000, help='Number of testing examples')

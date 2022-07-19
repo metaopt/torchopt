@@ -32,7 +32,7 @@ flake8-install:
 
 py-format-install:
 	$(call check_pip_install,isort)
-	$(call check_pip_install,yapf)
+	$(call check_pip_install,black)
 
 mypy-install:
 	$(call check_pip_install,mypy)
@@ -83,7 +83,7 @@ flake8: flake8-install
 
 py-format: py-format-install
 	$(PYTHON) -m isort --project torchopt --check $(PYTHON_FILES) && \
-	$(PYTHON) -m yapf --in-place --recursive $(PYTHON_FILES)
+	$(PYTHON) -m black --safe -l 100 -t py37 -S --check $(PYTHON_FILES)
 
 mypy: mypy-install
 	$(PYTHON) -m mypy $(PROJECT_NAME)
@@ -119,7 +119,7 @@ lint: flake8 py-format mypy clang-format cpplint docstyle spelling
 
 format: py-format-install clang-format-install addlicense-install
 	$(PYTHON) -m isort --project torchopt $(PYTHON_FILES)
-	$(PYTHON) -m yapf --in-place --recursive $(PYTHON_FILES)
+	$(PYTHON) -m black --safe -l 100 -t py37 -S $(PYTHON_FILES)
 	clang-format -style=file -i $(CXX_FILES)
 	addlicense -c $(COPYRIGHT) -l apache -y 2022 $(SOURCE_FOLDERS)
 

@@ -30,13 +30,15 @@ class OneHot(gym.Space):
         self.n = n
 
     def sample(self):
-        return np.random.multinomial(1, [1. / self.n] * self.n)
+        return np.random.multinomial(1, [1.0 / self.n] * self.n)
 
     def contains(self, x):
-        return isinstance(x, np.ndarray) and \
-            x.shape == (self.n, ) and \
-            np.all(np.logical_or(x == 0, x == 1)) and \
-            np.sum(x) == 1
+        return (
+            isinstance(x, np.ndarray)
+            and x.shape == (self.n,)
+            and np.all(np.logical_or(x == 0, x == 1))
+            and np.sum(x) == 1
+        )
 
     @property
     def shape(self):
@@ -91,6 +93,6 @@ class IPD(gym.Env):
         s1 = self.states[ac1, ac0]
         observation = [s0, s1]
         reward = [r0, r1]
-        done = (self.step_count == self.max_steps)
+        done = self.step_count == self.max_steps
         info = [{'available_actions': aa} for aa in self.available_actions]
         return observation, reward, done, info

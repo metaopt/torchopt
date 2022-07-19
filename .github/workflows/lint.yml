@@ -2,6 +2,8 @@ name: Lint
 
 on:
   push:
+    branches:
+      - main
   pull_request:
 
 permissions:
@@ -23,7 +25,7 @@ jobs:
           submodules: "recursive"
           fetch-depth: 1
 
-      - name: Set up Python 3.7  # the lowest version we support
+      - name: Set up Python 3.7 # the lowest version we support
         uses: actions/setup-python@v4
         with:
           python-version: "3.7"
@@ -57,7 +59,7 @@ jobs:
         run: |
           make flake8
 
-      - name: isort and yapf
+      - name: isort and black
         run: |
           make py-format
 
@@ -68,7 +70,7 @@ jobs:
       - name: clang-format
         run: |
           make clang-format
-          
+
       - name: addlicense
         run: |
           make addlicense
@@ -80,7 +82,7 @@ jobs:
       - name: docstyle
         run: |
           make docstyle
-          
+
       - name: spelling
         run: |
           make spelling

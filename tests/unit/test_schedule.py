@@ -19,11 +19,10 @@ import torchopt
 
 
 class TestSchedule(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
-        cls.init_value = 1.
-        cls.end_value = 0.
+        cls.init_value = 1.0
+        cls.end_value = 0.0
         cls.gap_value = cls.init_value - cls.end_value
         cls.transition_steps = 10
         cls.transition_begin = 1
@@ -36,12 +35,14 @@ class TestSchedule(unittest.TestCase):
             init_value=self.init_value,
             end_value=self.end_value,
             transition_steps=self.transition_steps,
-            transition_begin=self.transition_begin
+            transition_begin=self.transition_begin,
         )
         for i in range(self.transition_begin, self.transition_steps):
             lr = schedule(i)
-            lr_gt = self.init_value - self.gap_value * \
-                (i - self.transition_begin) / self.transition_steps
+            lr_gt = (
+                self.init_value
+                - self.gap_value * (i - self.transition_begin) / self.transition_steps
+            )
             self.assertEqual(lr, lr_gt)
 
 

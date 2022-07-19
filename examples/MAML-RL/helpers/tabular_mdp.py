@@ -52,7 +52,11 @@ class TabularMDPEnv(gym.Env):
         self._task = task
         self._transitions = task.get(
             'transitions',
-            np.full((num_states, num_actions, num_states), 1.0 / num_states, dtype=np.float32)
+            np.full(
+                (num_states, num_actions, num_states),
+                1.0 / num_states,
+                dtype=np.float32,
+            ),
         )
         self._rewards_mean = task.get(
             'rewards_mean', np.zeros((num_states, num_actions), dtype=np.float32)
@@ -68,16 +72,15 @@ class TabularMDPEnv(gym.Env):
 
     def sample_tasks(self, num_tasks):
         transitions = self.np_random.dirichlet(
-            np.ones(self.num_states), size=(num_tasks, self.num_states, self.num_actions)
+            np.ones(self.num_states),
+            size=(num_tasks, self.num_states, self.num_actions),
         )
         rewards_mean = self.np_random.normal(
             1.0, 1.0, size=(num_tasks, self.num_states, self.num_actions)
         )
         tasks = [
-            {
-                'transitions': transition,
-                'rewards_mean': reward_mean
-            } for (transition, reward_mean) in zip(transitions, rewards_mean)
+            {'transitions': transition, 'rewards_mean': reward_mean}
+            for (transition, reward_mean) in zip(transitions, rewards_mean)
         ]
         return tasks
 

@@ -41,7 +41,7 @@ def get_fn_name(fn, show_attrs, max_attr_chars):
         if not attr.startswith(SAVED_PREFIX):
             continue
         val = getattr(fn, attr)
-        attr = attr[len(SAVED_PREFIX):]
+        attr = attr[len(SAVED_PREFIX) :]
         if torch.is_tensor(val):
             attrs[attr] = "[saved tensor]"
         elif isinstance(val, tuple) and any(torch.is_tensor(t) for t in val):
@@ -57,7 +57,7 @@ def get_fn_name(fn, show_attrs, max_attr_chars):
     attrstr = '%-' + str(col1width) + 's: %' + str(col2width) + 's'
 
     def truncate(s):
-        return s[:col2width - 3] + "..." if len(s) > col2width else s
+        return s[: col2width - 3] + "..." if len(s) > col2width else s
 
     params = '\n'.join(attrstr % (k, truncate(str(v))) for (k, v) in attrs.items())
     return name + '\n' + sep + '\n' + params
@@ -84,7 +84,7 @@ def make_dot(var, params=None, show_attrs=False, show_saved=False, max_attr_char
         max_attr_chars: If show_attrs is `True`, sets max number of characters
             to display for any given attribute.
     """
-    if (parse_version(torch.__version__) < parse_version("1.9") and (show_attrs or show_saved)):
+    if parse_version(torch.__version__) < parse_version("1.9") and (show_attrs or show_saved):
         warnings.warn(
             "make_dot: showing grad_fn attributes and saved variables "
             "requires PyTorch version >= 1.9. (This does NOT apply to "
@@ -118,7 +118,7 @@ def make_dot(var, params=None, show_attrs=False, show_saved=False, max_attr_char
         fontsize='10',
         ranksep='0.1',
         height='0.2',
-        fontname='monospace'
+        fontname='monospace',
     )
     dot = Digraph(node_attr=node_attr, graph_attr=dict(size="12,12"))
     seen = set()
@@ -133,7 +133,10 @@ def make_dot(var, params=None, show_attrs=False, show_saved=False, max_attr_char
 
     def get_var_name_with_flag(var):
         if var in param_map:
-            return '%s\n %s' % (param_map[var][0], size_to_str(param_map[var][1].size()))
+            return '%s\n %s' % (
+                param_map[var][0],
+                size_to_str(param_map[var][1].size()),
+            )
         else:
             return None
 
@@ -149,7 +152,7 @@ def make_dot(var, params=None, show_attrs=False, show_saved=False, max_attr_char
                     continue
                 val = getattr(fn, attr)
                 seen.add(val)
-                attr = attr[len(SAVED_PREFIX):]
+                attr = attr[len(SAVED_PREFIX) :]
                 if torch.is_tensor(val):
                     dot.edge(str(id(fn)), str(id(val)), dir="none")
                     dot.node(str(id(val)), get_var_name(val, attr), fillcolor='orange')
@@ -197,7 +200,7 @@ def make_dot(var, params=None, show_attrs=False, show_saved=False, max_attr_char
             return
         seen.add(var)
         dot.node(str(id(var)), get_var_name(var), fillcolor=color)
-        if (var.grad_fn):
+        if var.grad_fn:
             add_nodes(var.grad_fn)
             dot.edge(str(id(var.grad_fn)), str(id(var)))
         if var._is_view():

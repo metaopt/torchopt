@@ -30,13 +30,13 @@ class MetaAdam(MetaOptimizer):
         eps: float = 1e-8,
         eps_root: float = 0.0,
         moment_requires_grad: bool = True,
-        use_accelerated_op: bool = False
+        use_accelerated_op: bool = False,
     ):
         """The `init` function.
 
         Args:
             net (nn.Module): A network whose parameters should be optimized.
-            args: Other arguments see `alias.adam`, 
+            args: Other arguments see `alias.adam`,
             lr: This is a fixed global scaling factor.
             b1: The exponential decay rate to track the first moment of past gradients.
             b2: The exponential decay rate to track the second moment of past gradients.
@@ -57,6 +57,6 @@ class MetaAdam(MetaOptimizer):
                 eps=eps,
                 eps_root=eps_root,
                 moment_requires_grad=moment_requires_grad,
-                use_accelerated_op=use_accelerated_op
-            )
+                use_accelerated_op=use_accelerated_op,
+            ),
         )

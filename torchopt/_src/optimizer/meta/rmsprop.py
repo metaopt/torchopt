@@ -29,10 +29,10 @@ class MetaRMSProp(MetaOptimizer):
         lr: ScalarOrSchedule,
         decay: float = 0.9,
         eps: float = 1e-8,
-        initial_scale: float = 0.,
+        initial_scale: float = 0.0,
         centered: bool = False,
         momentum: Union[float, None] = None,
-        nesterov: bool = False
+        nesterov: bool = False,
     ):
         """The `init` function.
 
@@ -61,6 +61,6 @@ class MetaRMSProp(MetaOptimizer):
                 initial_scale=initial_scale,
                 centered=centered,
                 momentum=momentum,
-                nesterov=nesterov
-            )
+                nesterov=nesterov,
+            ),
         )

@@ -27,9 +27,7 @@ ClipState = base.EmptyState
 
 
 def clip_grad_norm(
-    max_norm: float,
-    norm_type: float = 2.,
-    error_if_nonfinite: bool = False
+    max_norm: float, norm_type: float = 2.0, error_if_nonfinite: bool = False
 ) -> base.GradientTransformation:
     """Clips gradient norm of an iterable of parameters.
 
@@ -51,7 +49,7 @@ def clip_grad_norm(
             if g is not None:
                 available_updates.append(g)
         if len(available_updates) == 0:
-            return torch.tensor(0.)
+            return torch.tensor(0.0)
         device = available_updates[0].device
         with torch.no_grad():
             if norm_type == inf:
@@ -60,7 +58,7 @@ def clip_grad_norm(
             else:
                 total_norm = torch.norm(
                     torch.stack([torch.norm(p, norm_type).to(device) for p in available_updates]),
-                    norm_type
+                    norm_type,
                 )
             if error_if_nonfinite and torch.logical_or(total_norm.isnan(), total_norm.isinf()):
                 raise RuntimeError(
@@ -73,11 +71,12 @@ def clip_grad_norm(
         # Note: multiplying by the clamped coef is redundant when the coef is clamped to 1, but doing so
         # avoids a `if clip_coef < 1:` conditional which can require a CPU <=> device synchronization
         # when the gradients do not reside in CPU memory.
-        clip_coef_clamped = min(clip_coef, 1.)
+        clip_coef_clamped = min(clip_coef, 1.0)
         if inplace:
 
             def f(g):
                 return g.mul_(clip_coef_clamped) if g is not None else None
+
         else:
 
             def f(g):

@@ -29,7 +29,7 @@ def accelerated_op_available(devices=None):
 
     try:
         for device in devices:
-            updates = torch.tensor(1., device=device)
+            updates = torch.tensor(1.0, device=device)
             op(updates, updates, updates, 1)
         return True
     except BaseException:

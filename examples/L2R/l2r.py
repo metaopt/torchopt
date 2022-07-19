@@ -60,7 +60,12 @@ def run_baseline(args, mnist_train, mnist_test):
     args.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     train_set, val_set, test_set = get_imbalance_dataset(
-        mnist_train, mnist_test, pos_ratio=pos_ratio, ntrain=ntrain, nval=nval, ntest=ntest
+        mnist_train,
+        mnist_test,
+        pos_ratio=pos_ratio,
+        ntrain=ntrain,
+        nval=nval,
+        ntest=ntest,
     )
     train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, num_workers=4)
     valid_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=True, num_workers=1)
@@ -124,7 +129,12 @@ def run_L2R(args, mnist_train, mnist_test):
     args.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     train_set, val_set, test_set = get_imbalance_dataset(
-        mnist_train, mnist_test, pos_ratio=pos_ratio, ntrain=ntrain, nval=nval, ntest=ntest
+        mnist_train,
+        mnist_test,
+        pos_ratio=pos_ratio,
+        ntrain=ntrain,
+        nval=nval,
+        ntest=ntest,
     )
     train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, num_workers=2)
     valid_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=True, num_workers=1)
@@ -148,8 +158,10 @@ def run_L2R(args, mnist_train, mnist_test):
                 valid = iter(valid_loader)
                 valid_x, valid_label = valid.next()
             train_x, train_label, valid_x, valid_label = (
-                train_x.to(args.device), train_label.to(args.device), valid_x.to(args.device),
-                valid_label.to(args.device)
+                train_x.to(args.device),
+                train_label.to(args.device),
+                valid_x.to(args.device),
+                valid_label.to(args.device),
             )
 
             # reset meta-parameter weights
@@ -164,8 +176,7 @@ def run_L2R(args, mnist_train, mnist_test):
 
             # caclulate outer_loss, deirve meta-gradient and normalise
             outer_loss = model.outer_loss(valid_x, valid_label)
-            model.meta_weights = - \
-                torch.autograd.grad(outer_loss, model.meta_weights)[0]
+            model.meta_weights = -torch.autograd.grad(outer_loss, model.meta_weights)[0]
             model.meta_weights = torch.nn.ReLU()(model.meta_weights)
             model.normalise()
 

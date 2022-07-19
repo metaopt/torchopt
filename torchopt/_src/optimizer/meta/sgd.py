@@ -31,7 +31,7 @@ class MetaSGD(MetaOptimizer):
         lr: ScalarOrSchedule,
         momentum: Union[float, None] = None,
         nesterov: bool = False,
-        moment_requires_grad: bool = True
+        moment_requires_grad: bool = True,
     ):
         """The `init` function.
 
@@ -48,6 +48,6 @@ class MetaSGD(MetaOptimizer):
                 lr=lr,
                 momentum=momentum,
                 nesterov=nesterov,
-                moment_requires_grad=moment_requires_grad
-            )
+                moment_requires_grad=moment_requires_grad,
+            ),
         )

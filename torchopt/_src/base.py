@@ -82,10 +82,9 @@ class TransformUpdateFn(Protocol):
     """
 
     @abstractmethod
-    def __call__(self,
-                 updates: Updates,
-                 state: OptState,
-                 inplace: bool = True) -> Tuple[Updates, OptState]:
+    def __call__(
+        self, updates: Updates, state: OptState, inplace: bool = True
+    ) -> Tuple[Updates, OptState]:
         """The `update` function.
 
         Args:
