@@ -61,3 +61,9 @@ attrs
 GradientTransformations
 args
 chainable
+adam
+Adam
+rmsprop
+RMSProp
+sgd
+SGD
