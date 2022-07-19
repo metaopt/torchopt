@@ -70,7 +70,7 @@ def train_step_fn(training_state, batch, targets):
         loss = loss_fn(output, targets)
         return loss
 
-    grads, loss = grad_and_value(compute_loss)(weights, batch, targets)
+    grads, loss = grad_and_value(compute_loss)(params, batch, targets)
 
     # functional optimizer API is here now
     # new_opt_state0 = opt_state[0]._asdict()
@@ -95,15 +95,17 @@ def step4():
 
 
 def init_fn(num_models):
-    models = [MLPClassifier().to(DEVICE) for _ in range(num_models)]
-    _, params, _ = combine_state_for_ensemble(models)
-    return params
+    # models = [MLPClassifier().to(DEVICE) for _ in range(num_models)]
+    # _, params, _ = combine_state_for_ensemble(models)
+    _, params = make_functional(MLPClassifier().to(DEVICE))
+    opt_state = optimizer.init(params)
+    return params, opt_state
 
 
 def step6():
     parallel_init_fn = vmap(init_fn,)
     parallel_train_step_fn = vmap(train_step_fn, in_dims=(0, None, None))
-    params, opt_states = parallel_init_fn(torch.ones(2,))
+    params, opt_state = parallel_init_fn(torch.ones(2,))
     for i in range(2000):
         loss, (params, opt_states) = parallel_train_step_fn((params, opt_states), points, labels)
         if i % 200 == 0:
