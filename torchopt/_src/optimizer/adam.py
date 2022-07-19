@@ -13,17 +13,26 @@
 # limitations under the License.
 # ==============================================================================
 
+from typing import Iterable
+
+import torch
+
 from torchopt._src.alias import adam
 from torchopt._src.optimizer.base import Optimizer
 from torchopt._src.typing import ScalarOrSchedule
 
 
 class Adam(Optimizer):
-    """The classic Adam optimizer."""
+    """The classic Adam optimizer.
+
+    See also:
+        - The functional Adam optimizer: :func:`torchopt.adam`.
+        - The differentiable meta-Adam optimizer: :class:`torchopt.MetaAdam`.
+    """
 
     def __init__(
         self,
-        params,
+        params: Iterable[torch.Tensor],
         lr: ScalarOrSchedule,
         b1: float = 0.9,
         b2: float = 0.999,
@@ -31,20 +40,25 @@ class Adam(Optimizer):
         eps_root: float = 0.0,
         use_accelerated_op: bool = False,
     ):
-        """The `init` function.
+        """The :meth:`init` function.
 
         Args:
-            params (iterable): An iterable of `torch.Tensor`s. Specifies what Tensors should be optimized.
+            params (iterable of torch.Tensor):
+                An iterable of :class:`torch.Tensor`\s. Specifies what tensors should be optimized.
             lr: This is a fixed global scaling factor.
             b1: The exponential decay rate to track the first moment of past gradients.
             b2: The exponential decay rate to track the second moment of past gradients.
-            eps: A small constant applied to denominator outside of the square root
-                 (as in the Adam paper) to avoid dividing by zero when rescaling.
-            eps_root: (default `0`) A small constant applied to denominator inside the square root (as
-                in RMSProp), to avoid dividing by zero when rescaling. This is needed
-                for example when computing (meta-)gradients through Adam.
-            use_accelerated_op: (default `False`) If True use our implemented fused operator.
+            eps:
+                A small constant applied to denominator outside of the square root (as in the Adam
+                paper) to avoid dividing by zero when rescaling.
+            eps_root: (default: :data:`0.0`)
+                A small constant applied to denominator inside the square root (as in RMSProp), to
+                avoid dividing by zero when rescaling. This is needed for example when computing
+                (meta-)gradients through Adam.
+            use_accelerated_op: (default: :data:`False`)
+                If :data:`True` use our implemented fused operator.
         """
+
         super().__init__(
             params,
             adam(

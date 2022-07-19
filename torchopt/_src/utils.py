@@ -31,20 +31,22 @@ class _ModuleState(NamedTuple):
 def stop_gradient(target):
     """Stop the gradient for the input object.
 
-    Since a tensor use `grad_fn` to connect itself with the previous computation
-    graph, the back-propagated gradient will flow over the tensor and continue
-    flow to the tensors that is connected by `grad_fn`. Some algorithms requires
-    manually detaching tensors from the computation graph.
+    Since a tensor use :attr:`grad_fn` to connect itself with the previous computation graph, the
+    back-propagated gradient will flow over the tensor and continue flow to the tensors that is
+    connected by :attr:`grad_fn`. Some algorithms requires manually detaching tensors from the
+    computation graph.
 
-    Note that the stop_gradient operation is in-place.
+    Note that the :func:`stop_gradient` operation is in-place.
 
     Args:
-        target: The target that to be detached from the computation graph, it could
-            be a `nn.Module`, `torchopt.MetaOptimizer`, state of the
-            `torchopt.MetaOptimizer`, or just a plain list of tensors.
-        inplace: If true, the target will be detached in-place. if false, this function
-            will return a detached copy of the target. The in-place operation is
-            fast and memory efficient but may raise back-propagation error.
+        target:
+            The target that to be detached from the computation graph, it could be a
+            :class:`nn.Module`, :class:`torchopt.MetaOptimizer`, state of the
+            :class:`torchopt.MetaOptimizer`, or just a plain list of tensors.
+        inplace:
+            If :data:`True`, the target will be detached in-place. if :data:`Frue`, this function
+            will return a detached copy of the target. The in-place operation is fast and memory
+            efficient but may raise back-propagation error.
     """
 
     def f(obj):
@@ -68,26 +70,29 @@ def stop_gradient(target):
 def extract_state_dict(mod, copy=False, *, with_buffer=True, enable_visual=False, visual_prefix=''):
     """Extract target state.
 
-    Since a tensor use `grad_fn` to connect itself with the previous computation
-    graph, the back-propagated gradient will flow over the tensor and continue
-    flow to the tensors that is connected by `grad_fn`. Some algorithms requires
-    manually detaching tensors from the computation graph.
+    Since a tensor use :attr:`grad_fn` to connect itself with the previous computation graph, the
+    back-propagated gradient will flow over the tensor and continue flow to the tensors that is
+    connected by :attr:`grad_fn`. Some algorithms requires manually detaching tensors from the
+    computation graph.
 
-    Note that the extracted state is a reference, which means any in-place operator
-    will affect the target that the state is extracted from.
+    Note that the extracted state is a reference, which means any in-place operator will affect the
+    target that the state is extracted from.
 
     Args:
-        mod: It could be a `nn.Module` or `torchopt.MetaOptimizer`.
-        with_buffer: Extract buffer together with parameters, this argument is only used
-            if the input target is `nn.Module`.
-        enable_visual: Add additional annotations, which could be used in computation graph
-            visualization. Currently, this flag only has effect on `nn.Module` but
-            we will support `torchopt.MetaOptimizer` later.
+        mod: It could be a :class:`nn.Module` or :class:`torchopt.MetaOptimizer`.
+        with_buffer:
+            Extract buffer together with parameters, this argument is only used if the input target
+            is :class:`nn.Module`.
+        enable_visual:
+            Add additional annotations, which could be used in computation graph visualization.
+            Currently, this flag only has effect on :class:`nn.Module` but we will support
+            :class:`torchopt.MetaOptimizer` later.
         visual_prefix: Prefix for the visualization annotations.
 
     Returns:
         State extracted of the input object.
     """
+
     if isinstance(mod, nn.Module):
         if enable_visual:
             visual_contents = {}
@@ -168,15 +173,16 @@ def _extract_container(mod, with_buffer=True):
 def recover_state_dict(mod, state):
     """Recover state.
 
-    This function is compatible for the `extract_state`.
+    This function is compatible for the ``extract_state``.
 
-    Note that the recovering process is not in-place, so the tensors of the object
-    will not be modified.
+    Note that the recovering process is not in-place, so the tensors of the object will not be
+    modified.
 
     Args:
         mod: Target that need to recover.
         state: The recovering state.
     """
+
     if isinstance(mod, nn.Module):
         target_container = _extract_container(mod)
         for target, source in zip(target_container, state.params):

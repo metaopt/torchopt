@@ -4,14 +4,13 @@ Model-Agnostic Meta-Learning
 Meta reinforcement learning has achieved significant successes in various applications.
 **Model-Agnostic Meta-Learning** (MAML) :cite:`MAML` is the pioneer one.
 In this tutorial, we will show how to train MAML on few-shot Omniglot classification with TorchOpt step by step.
-The full script is at `examples/few-shot/maml_omniglot.py <https://github.com/metaopt/TorchOpt/blob/main/examples/few-shot/maml_omniglot.py>`_.
+The full script is at :gitcode:`examples/few-shot/maml_omniglot.py`.
 
 Contrary to existing differentiable optimizer libraries such as `higher <https://github.com/facebookresearch/higher>`_, which follows the PyTorch designing which leads to inflexible API, TorchOpt provides an easy way of construction through the code-level.
 
 
 Overview
 --------
-
 
 There are six steps to finish MAML training pipeline:
 
@@ -30,9 +29,9 @@ Here is the overall procedure:
 Load Dataset
 ------------
 
-In your Python code, simply import torch and load the dataset, the full script is at `examples/few-shot/support/omniglot_loaders.py  <https://github.com/metaopt/TorchOpt/blob/main/examples/few-shot/support/omniglot_loaders.py>`_:
+In your Python code, simply import torch and load the dataset, the full script is at :gitcode:`examples/few-shot/support/omniglot_loaders.py`:
 
-::
+.. code-block:: python
 
     from .support.omniglot_loaders import OmniglotNShot
     import torch
@@ -49,7 +48,6 @@ In your Python code, simply import torch and load the dataset, the full script i
         device=device,
     )
 
-
 The goal is to train a model for few-shot Omniglot classification.
 
 Build the Network
@@ -57,31 +55,38 @@ Build the Network
 
 TorchOpt supports any user-defined PyTorch networks. Here is an example:
 
-::
+.. code-block:: python
 
     import torch, numpy as np
     from torch import nn
     import torch.optim as optim
 
     net = nn.Sequential(
-        nn.Conv2d(1, 64, 3), nn.BatchNorm2d(64, momentum=1., affine=True), nn.ReLU(inplace=False),
-        nn.MaxPool2d(2, 2), nn.Conv2d(64, 64, 3), nn.BatchNorm2d(64, momentum=1., affine=True),
-        nn.ReLU(inplace=False), nn.MaxPool2d(2, 2), nn.Conv2d(64, 64, 3),
-        nn.BatchNorm2d(64, momentum=1., affine=True), nn.ReLU(inplace=False), nn.MaxPool2d(2, 2),
-        nn.Flatten(), nn.Linear(64, args.n_way)
+        nn.Conv2d(1, 64, 3),
+        nn.BatchNorm2d(64, momentum=1., affine=True),
+        nn.ReLU(inplace=False),
+        nn.MaxPool2d(2, 2),
+        nn.Conv2d(64, 64, 3),
+        nn.BatchNorm2d(64, momentum=1., affine=True),
+        nn.ReLU(inplace=False),
+        nn.MaxPool2d(2, 2),
+        nn.Conv2d(64, 64, 3),
+        nn.BatchNorm2d(64, momentum=1., affine=True),
+        nn.ReLU(inplace=False), nn.MaxPool2d(2, 2),
+        nn.Flatten(),
+        nn.Linear(64, args.n_way),
     ).to(device)
 
     # We will use Adam to (meta-)optimize the initial parameters
     # to be adapted.
     meta_opt = optim.Adam(net.parameters(), lr=1e-3)
 
-
 Train
 -----
 
-Define ``train``:
+Define the ``train`` function:
 
-::
+.. code-block:: python
 
     def train(db, net, meta_opt, epoch, log):
         net.train()
@@ -96,11 +101,11 @@ Define ``train``:
             task_num, setsz, c_, h, w = x_spt.size()
             querysz = x_qry.size(1)
 
-        # TODO: Maybe pull this out into a separate module so it
-        # doesn't have to be duplicated between `train` and `test`?
+            # TODO: Maybe pull this out into a separate module so it
+            # doesn't have to be duplicated between `train` and `test`?
 
-        # Initialize the inner optimizer to adapt the parameters to
-        # the support set.
+            # Initialize the inner optimizer to adapt the parameters to
+            # the support set.
             n_inner_iter = 5
 
             qry_losses = []
@@ -110,28 +115,28 @@ Define ``train``:
             net_state_dict = torchopt.extract_state_dict(net)
             optim_state_dict = torchopt.extract_state_dict(inner_opt)
             for i in range(task_num):
-            # Optimize the likelihood of the support set by taking
-            # gradient steps w.r.t. the model's parameters.
-            # This adapts the model's meta-parameters to the task.
-            # higher is able to automatically keep copies of
-            # your network's parameters as they are being updated.
+                # Optimize the likelihood of the support set by taking
+                # gradient steps w.r.t. the model's parameters.
+                # This adapts the model's meta-parameters to the task.
+                # higher is able to automatically keep copies of
+                # your network's parameters as they are being updated.
                 for _ in range(n_inner_iter):
                     spt_logits = net(x_spt[i])
                     spt_loss = F.cross_entropy(spt_logits, y_spt[i])
                     inner_opt.step(spt_loss)
 
-            # The final set of adapted parameters will induce some
-            # final loss and accuracy on the query dataset.
-            # These will be used to update the model's meta-parameters.
+                # The final set of adapted parameters will induce some
+                # final loss and accuracy on the query dataset.
+                # These will be used to update the model's meta-parameters.
                 qry_logits = net(x_qry[i])
                 qry_loss = F.cross_entropy(qry_logits, y_qry[i])
             qry_losses.append(qry_loss.detach())
                 qry_acc = (qry_logits.argmax(dim=1) == y_qry[i]).sum().item() / querysz
                 qry_accs.append(qry_acc)
 
-            # Update the model's meta-parameters to optimize the query
-            # losses across all of the tasks sampled in this batch.
-            # This unrolls through the gradient steps.
+                # Update the model's meta-parameters to optimize the query
+                # losses across all of the tasks sampled in this batch.
+                # This unrolls through the gradient steps.
                 qry_loss.backward()
 
                 torchopt.recover_state_dict(net, net_state_dict)
@@ -160,9 +165,9 @@ Define ``train``:
 Test
 ----
 
-Define ``test``:
+Define the ``test`` function:
 
-::
+.. code-block:: python
 
     def test(db, net, epoch, log):
         # Crucially in our testing procedure here, we do *not* fine-tune
@@ -223,9 +228,9 @@ Define ``test``:
 Plot
 ----
 
-TorchOpt supports any user-defined PyTorch networks and optimizers. Yet, of course, the inputs and outputs must comply with torchopt's API. Here is an example:
+TorchOpt supports any user-defined PyTorch networks and optimizers. Yet, of course, the inputs and outputs must comply with TorchOpt's API. Here is an example:
 
-::
+.. code-block:: python
 
     def plot(log):
         # Generally you should pull your plotting code out of your training
@@ -253,7 +258,7 @@ Pipeline
 
 We can now combine all the components together, and plot the results.
 
-::
+.. code-block:: python
 
     log = []
     for epoch in range(10):
@@ -268,5 +273,5 @@ We can now combine all the components together, and plot the results.
 
 .. rubric:: References
 
-.. bibliography:: /refs.bib
+.. bibliography:: /references.bib
     :style: unsrtalpha

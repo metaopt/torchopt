@@ -1,4 +1,4 @@
-:github_url: https://github.com/metaopt/TorchOpt/tree/main/docs
+:github_url: https://github.com/metaopt/TorchOpt/tree/HEAD/docs
 
 TorchOpt
 --------

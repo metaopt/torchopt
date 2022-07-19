@@ -20,6 +20,7 @@ from torchopt._src.accelerated_op.adam_op import AdamOp
 
 def accelerated_op_available(devices=None):
     """Check the availability of accelerated optimizer."""
+
     op = AdamOp()
 
     if devices is None:

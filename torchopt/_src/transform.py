@@ -52,13 +52,13 @@ def inc_count(updates, count: Tuple[int]) -> Tuple[int]:
 
 
 def scale(step_size: float) -> base.GradientTransformation:
-    """Scale updates by some fixed scalar `step_size`.
+    """Scale updates by some fixed scalar ``step_size``.
 
     Args:
         step_size: A scalar corresponding to a fixed scaling factor for updates.
 
     Returns:
-        An (init_fn, update_fn) tuple.
+        An ``(init_fn, update_fn)`` tuple.
     """
 
     def init_fn(params):
@@ -89,15 +89,15 @@ class ScaleByScheduleState(NamedTuple):
 
 
 def scale_by_schedule(step_size_fn: Schedule) -> base.GradientTransformation:
-    """Scale updates using a custom schedule for the `step_size`.
+    """Scale updates using a custom schedule for the ``step_size``.
 
     Args:
         step_size_fn:
-            A function that takes an update count as input and proposes the
-            step_size to multiply the updates by.
+            A function that takes an update count as input and proposes the ``step_size`` to
+            multiply the updates by.
 
     Returns:
-        An (init_fn, update_fn) tuple.
+        An ``(init_fn, update_fn)`` tuple.
     """
 
     def init_fn(params):
@@ -115,7 +115,8 @@ def scale_by_schedule(step_size_fn: Schedule) -> base.GradientTransformation:
 
 
 def _update_moment(updates, moments, decay, order, inplace=True):
-    """Compute the exponential moving average of the `order`-th moment."""
+    """Compute the exponential moving average of the ``order``-th moment."""
+
     if inplace:
 
         def f(g, t):
@@ -131,6 +132,7 @@ def _update_moment(updates, moments, decay, order, inplace=True):
 
 def _update_moment_per_elem_norm(updates, moments, decay, order, inplace=True):
     """Compute the EMA of the `order`-th moment of the element-wise norm."""
+
     if inplace:
 
         def f(g, t):
@@ -154,6 +156,7 @@ class ScaleByAdamState(NamedTuple):
 
 def _bias_correction(moment, decay, count, inplace=True):
     """Perform bias correction. This becomes a no-op as count goes to infinity."""
+
     if inplace:
 
         def f(t, c):
@@ -257,6 +260,7 @@ def scale_by_accelerated_adam(
     Returns:
         An (init_fn, update_fn) tuple.
     """
+
     from torchopt._src.accelerated_op import AdamOp
 
     def init_fn(params):

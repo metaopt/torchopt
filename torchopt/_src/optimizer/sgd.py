@@ -13,7 +13,9 @@
 # limitations under the License.
 # ==============================================================================
 
-from typing import Union
+from typing import Iterable, Optional
+
+import torch
 
 from torchopt._src.alias import sgd
 from torchopt._src.optimizer.base import Optimizer
@@ -21,26 +23,32 @@ from torchopt._src.typing import ScalarOrSchedule
 
 
 class SGD(Optimizer):
-    """The classic SGD optimizer."""
+    """The classic SGD optimizer.
+
+    See also:
+        - The functional SGD optimizer: :func:`torchopt.sgd`.
+        - The differentiable meta-SGD optimizer: :class:`torchopt.MetaSGD`.
+    """
 
     def __init__(
         self,
-        params,
+        params: Iterable[torch.Tensor],
         lr: ScalarOrSchedule,
-        momentum: Union[float, None] = None,
+        momentum: Optional[float] = None,
         nesterov: bool = False,
     ):
-        """The `init` function.
+        """The :meth:`init` function.
 
         Args:
-            params (iterable): An iterable of `torch.Tensor`s. Specifies what Tensors should be
-                optimized.
+            params (iterable of torch.Tensor):
+                An iterable of :class:`torch.Tensor`\s. Specifies what tensors should be optimized.
             lr: This is a fixed global scaling factor.
-            momentum: (default `None`)
-                The `decay` rate used by the momentum term, when it is set to `None`,
-                then momentum is not used at all.
-            nesterov (default `False`): Whether nesterov momentum is used.
+            momentum: (default: :data:`None`)
+                The ``decay`` rate used by the momentum term, when it is set to :data:`None`, then
+                momentum is not used at all.
+            nesterov (default: :data:`False`): Whether the nesterov momentum is used.
         """
+
         super().__init__(
             params,
             sgd(lr=lr, momentum=momentum, nesterov=nesterov, moment_requires_grad=False),

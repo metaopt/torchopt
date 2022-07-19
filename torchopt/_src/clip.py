@@ -32,11 +32,10 @@ def clip_grad_norm(
     """Clips gradient norm of an iterable of parameters.
 
     Args:
-        max_delta:
-            The maximum absolute value for each element in the update.
+        max_delta: The maximum absolute value for each element in the update.
 
     Returns:
-        An (init_fn, update_fn) tuple.
+        An ``(init_fn, update_fn)`` tuple.
     """
 
     def init_fn(params):
@@ -62,10 +61,9 @@ def clip_grad_norm(
                 )
             if error_if_nonfinite and torch.logical_or(total_norm.isnan(), total_norm.isinf()):
                 raise RuntimeError(
-                    f'The total norm of order {norm_type} for gradients from '
-                    '`parameters` is non-finite, so it cannot be clipped. To disable '
-                    'this error and scale the gradients by the non-finite norm anyway, '
-                    'set `error_if_nonfinite=False`'
+                    f'The total norm of order {norm_type} for gradients from `parameters` is '
+                    f'non-finite, so it cannot be clipped. To disable this error and scale the '
+                    f'gradients by the non-finite norm anyway, set `error_if_nonfinite=False`'
                 )
         clip_coef = max_norm / (float(total_norm) + 1e-6)
         # Note: multiplying by the clamped coef is redundant when the coef is clamped to 1, but doing so

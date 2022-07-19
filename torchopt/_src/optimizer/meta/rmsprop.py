@@ -13,7 +13,9 @@
 # limitations under the License.
 # ==============================================================================
 
-from typing import Union
+from typing import Optional
+
+import torch.nn as nn
 
 from torchopt._src.alias import rmsprop
 from torchopt._src.optimizer.meta.base import MetaOptimizer
@@ -21,37 +23,44 @@ from torchopt._src.typing import ScalarOrSchedule
 
 
 class MetaRMSProp(MetaOptimizer):
-    """The classic RMSProp optimizer."""
+    """The differentiable RMSProp optimizer.
+
+    See also:
+        - The functional RMSProp optimizer: :func:`torchopt.rmsprop`.
+        - The classic RMSProp optimizer: :class:`torchopt.RMSProp`.
+    """
 
     def __init__(
         self,
-        net,
+        net: nn.Module,
         lr: ScalarOrSchedule,
         decay: float = 0.9,
         eps: float = 1e-8,
         initial_scale: float = 0.0,
         centered: bool = False,
-        momentum: Union[float, None] = None,
+        momentum: Optional[float] = None,
         nesterov: bool = False,
     ):
-        """The `init` function.
+        """The :meth:`init` function.
 
         Args:
             net (nn.Module): A network whose parameters should be optimized.
             lr: This is a fixed global scaling factor.
             decay: The decay used to track the magnitude of previous gradients.
             eps: A small numerical constant to avoid dividing by zero when rescaling.
-            initial_scale: (default `0.`)
-                Initialization of accumulators tracking the magnitude of previous
-                updates. PyTorch uses `0`, TF1 uses `1`. When reproducing results
-                from a paper, verify the value used by the authors.
-            centered: (default `False`)
+            initial_scale: (default: :data:`0.0`):
+                Initialization of accumulators tracking the magnitude of previous updates. PyTorch
+                uses :data:`0.0`, TensorFlow 1.x uses :data:`1.0`. When reproducing results from a
+                paper, verify the value used by the authors.
+            centered: (default: :data:`False`)
                 Whether the second moment or the variance of the past gradients is
                 used to rescale the latest gradients.
-            momentum: (default `None`)
-                Here we set `moment_requires_grad=True` to make tensors like momentum be differentiable.
-            nesterov (default `False`): Whether nesterov momentum is used.
+            momentum: (default: :data:`None`)
+                Here we set ``moment_requires_grad=True`` to make tensors like momentum be
+                differentiable.
+            nesterov (default: :data:`False`): Whether the nesterov momentum is used.
         """
+
         super().__init__(
             net,
             rmsprop(

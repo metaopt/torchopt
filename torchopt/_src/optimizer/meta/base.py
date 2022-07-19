@@ -22,19 +22,21 @@ from torchopt._src.update import apply_updates
 
 
 class MetaOptimizer(object):
-    """A high-level optimizer base class for meta learning."""
+    """The base class for high-level differentiable optimizers."""
 
     def __init__(self, net: nn.Module, impl: GradientTransformation):
-        """The `init` function.
+        """The :meth:`init` function.
 
         Args:
-            net (nn.Module): A network whose parameters should be optimized.
-            impl (GradientTransformation): A low level optimizer function, it could be a optimizer function
-                provided by `alias.py` or a customized `chain` provided by `combine.py`.
-                Note that use `MetaOptimizer(sgd(moment_requires_grad=True))`
-                or `MetaOptimizer(chain(sgd(moment_requires_grad=True))) is
-                equivalent to `MetaSGD`.
+            net (torch.nn.Module): A network whose parameters should be optimized.
+            impl (GradientTransformation):
+                A low level optimizer function, it could be a optimizer function provided by
+                ``alias.py`` or a customized ``chain`` provided by ``combine.py``.
+                Note that using ``MetaOptimizer(sgd(moment_requires_grad=True))`` or
+                ``MetaOptimizer(chain(sgd(moment_requires_grad=True)))`` is equivalent to
+                :class:`torchopt.MetaSGD`.
         """
+
         self.impl = impl
         self.param_containers_groups = []  # type: ignore
         self.state_groups = []  # type: ignore
@@ -42,15 +44,18 @@ class MetaOptimizer(object):
         self.add_param_group(net)
 
     def step(self, loss: torch.Tensor):
-        """Compute the gradients of the loss to the network parameters and update network parameters.
+        """Compute the gradients of the loss to the network parameters and update network
+        parameters.
 
-        Graph of the derivative will be constructed, allowing to compute higher order derivative products.
-        We use the differentiable optimizer (pass argument inplace=False) to scale the gradients and update
-        the network parameters without modifying tensors in-place.
+        Graph of the derivative will be constructed, allowing to compute higher order derivative
+        products. We use the differentiable optimizer (pass argument ``inplace=False``) to scale the
+        gradients and update the network parameters without modifying tensors in-place.
 
         Args:
-            loss (torch.Tensor): The loss that is used to compute the gradients to the network parameters.
+            loss (torch.Tensor):
+                The loss that is used to compute the gradients to the network parameters.
         """
+
         # step parameter only
         for idx, (state, param_containers) in enumerate(
             zip(self.state_groups, self.param_containers_groups)
@@ -66,7 +71,8 @@ class MetaOptimizer(object):
                 container.update(unflatten_param)
 
     def add_param_group(self, net):
-        """Add a param group to the optimizer's param_groups."""
+        """Add a param group to the optimizer's :attr:`state_groups`."""
+
         from torchopt._src.utils import _extract_container
 
         net_container = _extract_container(net, with_buffer=False)
@@ -79,12 +85,14 @@ class MetaOptimizer(object):
     def state_dict(self):
         """Extract the references of the optimizer states.
 
-        Note that the states are references, so any in-place operations will
-        change the states inside `MetaOptimizer` at the same time.
+        Note that the states are references, so any in-place operations will change the states
+        inside :class:`MetaOptimizer` at the same time.
         """
+
         out_groups = tuple(group for group in self.state_groups)
         return out_groups
 
     def load_state_dict(self, state_dict):
         """Load the references of the optimizer states."""
+
         self.state_groups = list(group for group in state_dict)

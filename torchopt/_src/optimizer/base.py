@@ -22,18 +22,22 @@ from torchopt._src.base import GradientTransformation
 from torchopt._src.update import apply_updates
 
 
-class Optimizer(object):
-    """A high-level base class that has the similar with `torch.optim.Optimizer`."""
+class Optimizer:
+    """A base class for classic optimizers that similar to :class:`torch.optim.Optimizer`."""
 
-    def __init__(self, params: Iterable, impl: GradientTransformation):
-        r"""The `init` function.
+    def __init__(self, params: Iterable[torch.Tensor], impl: GradientTransformation):
+        r"""The :meth:`init` function.
 
         Args:
-            params (iterable): An iterable of `torch.Tensor`\s. Specifies what Tensors should be optimized.
-            impl (GradientTransformation): A low level optimizer function, it could be a optimizer function
-                provided by `alias.py` or a customized `chain` provided by `combine.py`.
-                Note that use `MetaOptimizer(sgd())` or `MetaOptimizer(chain(sgd()))` is equivalent to `SGD`.
+            params (iterable of torch.Tensor):
+                An iterable of :class:`torch.Tensor`\s. Specifies what tensors should be optimized.
+            impl (GradientTransformation):
+                A low level optimizer function, it could be a optimizer function provided by
+                ``alias.py`` or a customized ``chain`` provided by ``combine.py``.
+                Note that using ``Optimizer(sgd())`` or ``Optimizer(chain(sgd()))`` is equivalent to
+                :class:`torchopt.SGD`.
         """
+
         if not isinstance(params, list):
             params = list(params)
         self.impl = impl
@@ -43,13 +47,14 @@ class Optimizer(object):
         self.add_param_group(params)
 
     def zero_grad(self, set_to_none: bool = False):
-        r"""Sets the gradients of all optimized `torch.Tensor`\s to zero.
+        r"""Sets the gradients of all optimized :class:`torch.Tensor`\s to zero.
 
-        The behavior is similar to `torch.optim.Optimizer.zero_grad`.
+        The behavior is similar to :meth:`torch.optim.Optimizer.zero_grad`.
 
         Args:
-            set_to_none (bool): Instead of setting to zero, set the grads to None.
+            set_to_none (bool): Instead of setting to zero, set the ``grads`` to :data:`None`.
         """
+
         for group in self.param_groups:
             if set_to_none:
 
@@ -73,24 +78,28 @@ class Optimizer(object):
 
     def state_dict(self):
         """Returns the state of the optimizer."""
+
         return self.state_groups
 
     def load_state_dict(self, state_dict):
         """Loads the optimizer state.
 
         Args:
-            state_dict (dict): Optimizer state. Should be an object returned from a call to :meth:`state_dict`.
+            state_dict (dict): Optimizer state. Should be an object returned from a call to
+                :meth:`state_dict`.
         """
+
         self.state_groups = state_dict
 
     def step(self, closure=None):
         """Performs a single optimization step.
 
-        The behavior is similar to `torch.optim.Optimizer.step`.
+        The behavior is similar to :meth:`torch.optim.Optimizer.step`.
 
         Args:
             closure (callable, optional): A closure that reevaluates the model and returns the loss.
         """
+
         loss = None
         if closure is not None:
             with torch.enable_grad():
@@ -107,7 +116,8 @@ class Optimizer(object):
         return loss
 
     def add_param_group(self, params):
-        """Add a param group to the optimizer's param_groups."""
+        """Add a param group to the optimizer's :attr:`param_groups`."""
+
         params, tree = jax.tree_flatten(params)
         params = tuple(params)
         self.param_groups.append(params)

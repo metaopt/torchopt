@@ -63,6 +63,7 @@ release = get_version()
 extensions = [
     'sphinx.ext.napoleon',
     'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
     'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
     'sphinx.ext.todo',
@@ -114,9 +115,12 @@ pygments_style = 'default'
 
 autodoc_default_options = {
     'member-order': 'bysource',
+    'undoc-members': True,
     'special-members': True,
-    'exclude-members': '__repr__, __str__, __weakref__',
+    'show-inheritance': True,
+    'exclude-members': '__module__, __dict__, __repr__, __str__, __weakref__',
 }
+autoclass_content = 'both'
 
 # -- Options for bibtex -----------------------------------------------------
 

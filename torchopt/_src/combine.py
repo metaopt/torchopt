@@ -36,18 +36,18 @@ from torchopt._src import base
 def chain(*args: base.GradientTransformation) -> base.GradientTransformation:
     """Applies a list of chainable update transformations.
 
-    Given a sequence of chainable transforms, `chain` returns an `init_fn`
-    that constructs a `state` by concatenating the states of the individual
-    transforms, and returns an `update_fn` which chains the update transformations
-    feeding the appropriate state to each.
+    Given a sequence of chainable transforms, :func:`chain` returns an :func:`init_fn` that
+    constructs a ``state`` by concatenating the states of the individual transforms, and returns an
+    :func:`update_fn` which chains the update transformations feeding the appropriate state to each.
 
     Args:
         *args:
-            A sequence of chainable (init_fn, update_fn) tuples.
+            A sequence of chainable ``(init_fn, update_fn)`` tuples.
 
     Returns:
-        A single (init_fn, update_fn) tuple.
+        A single ``(init_fn, update_fn)`` tuple.
     """
+
     init_fns, update_fns = zip(*args)
 
     def init_fn(params):
@@ -56,8 +56,8 @@ def chain(*args: base.GradientTransformation) -> base.GradientTransformation:
     def update_fn(updates, state, inplace=True):
         if len(update_fns) != len(state):
             raise ValueError(
-                'The number of updates and states has to be the same in '
-                'chain! Make sure you have called init first!'
+                'The number of updates and states has to be the same in chain! Make sure you have '
+                'called init first!'
             )
         new_state = []
         for s, fn in zip(state, update_fns):

@@ -20,9 +20,10 @@ MetaOptimizer
 .. autoclass:: MetaOptimizer
     :members:
 
+------
 
-Common Optimizers
-=================
+Functional Optimizers
+=====================
 
 .. currentmodule:: torchopt
 
@@ -31,41 +32,79 @@ Common Optimizers
     adam
     sgd
     rmsprop
+
+Functional Adam Optimizer
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: adam
+
+Functional SGD Optimizer
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: sgd
+
+Functional RMSProp Optimizer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: rmsprop
+
+------
+
+Classic Optimizers
+==================
+
+.. currentmodule:: torchopt
+
+.. autosummary::
+
+    Adam
+    SGD
+    RMSProp
+
+Classic Adam Optimizer
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: Adam
+
+Classic SGD Optimizer
+~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: SGD
+
+Classic RMSProp Optimizer
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: RMSProp
+
+------
+
+Differentiable Meta-Optimizers
+==============================
+
+.. currentmodule:: torchopt
+
+.. autosummary::
+
     MetaAdam
     MetaSGD
     MetaRMSProp
 
+Differentiable Meta-Adam Optimizer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Adam
-~~~~
+.. autoclass:: MetaAdam
 
-.. autofunction:: adam
+Differentiable Meta-SGD Optimizer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-SGD
-~~~
+.. autoclass:: MetaSGD
 
-.. autofunction:: sgd
+Differentiable Meta-RMSProp Optimizer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-RMSProp
-~~~~~~~
+.. autoclass:: MetaRMSProp
 
-.. autofunction:: rmsprop
-
-MetaAdam
-~~~~~~~~
-
-.. autofunction:: MetaAdam
-
-MetaSGD
-~~~~~~~
-
-.. autofunction:: MetaSGD
-
-MetaRMSProp
-~~~~~~~~~~~
-
-.. autofunction:: MetaRMSProp
-
+------
 
 Optimizer Hooks
 ===============
