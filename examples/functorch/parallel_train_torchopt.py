@@ -107,7 +107,7 @@ def step6():
     parallel_train_step_fn = vmap(train_step_fn, in_dims=(0, None, None))
     params, opt_state = parallel_init_fn(torch.ones(2,))
     for i in range(2000):
-        loss, (params, opt_states) = parallel_train_step_fn((params, opt_states), points, labels)
+        loss, (params, opt_states) = parallel_train_step_fn((params, opt_state), points, labels)
         if i % 200 == 0:
             print(loss)
 
