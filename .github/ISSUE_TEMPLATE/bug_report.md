@@ -23,9 +23,9 @@ Please use the markdown code blocks for both code and stack traces.
 import torchopt
 ```
 
-```bash
+```pytb
 Traceback (most recent call last):
-  File ... 
+  File ...
 ```
 
 ## Expected behavior
@@ -33,14 +33,16 @@ Traceback (most recent call last):
 A clear and concise description of what you expected to happen.
 
 ## Screenshots
+
 If applicable, add screenshots to help explain your problem.
 
 ## System info
 
 Describe the characteristic of your environment:
- * Describe how the library was installed (pip, source, ...)
- * Python version
- * Versions of any other relevant libraries
+
+- Describe how the library was installed (pip, source, ...)
+- Python version
+- Versions of any other relevant libraries
 
 ```python
 import torchopt, numpy, sys

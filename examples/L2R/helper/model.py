@@ -34,18 +34,25 @@ import torch.nn as nn
 
 
 class LeNet5(nn.Module):
-
     def __init__(self, args):
         super(LeNet5, self).__init__()
         self.model = nn.Sequential(
-            nn.Conv2d(1, 16, 5), nn.ReLU(), nn.MaxPool2d(2), nn.Conv2d(16, 32, 5), nn.ReLU(),
-            nn.MaxPool2d(2), nn.Flatten(), nn.Linear(512, 128), nn.ReLU(), nn.Linear(128, 1),
-            nn.Sigmoid()
+            nn.Conv2d(1, 16, 5),
+            nn.ReLU(),
+            nn.MaxPool2d(2),
+            nn.Conv2d(16, 32, 5),
+            nn.ReLU(),
+            nn.MaxPool2d(2),
+            nn.Flatten(),
+            nn.Linear(512, 128),
+            nn.ReLU(),
+            nn.Linear(128, 1),
+            nn.Sigmoid(),
         )
         self.args = args
-        self.meta_weights = torch.zeros(
-            self.args.batch_size, requires_grad=True
-        ).to(self.args.device)
+        self.meta_weights = torch.zeros(self.args.batch_size, requires_grad=True).to(
+            self.args.device
+        )
         self.criterion = nn.BCELoss()
 
     def forward(self, x):

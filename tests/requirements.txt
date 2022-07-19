@@ -9,7 +9,8 @@ pytest
 pytest-cov
 pytest-xdist
 isort
-yapf
+black >= 22.6.0
+pylint
 mypy
 flake8
 flake8-bugbear
@@ -17,3 +18,4 @@ doc8
 pydocstyle
 pyenchant
 cpplint
+pre-commit

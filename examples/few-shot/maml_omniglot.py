@@ -29,7 +29,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-This example shows how to use higher to do Model Agnostic Meta Learning (MAML)
+This example shows how to use TorchOpt to do Model Agnostic Meta Learning (MAML)
 for few-shot Omniglot classification.
 For more details see the original MAML paper:
 https://arxiv.org/abs/1703.03400
@@ -96,11 +96,20 @@ def main():
     # and the parameters needed to be manually updated and copied
     # for the updates.
     net = nn.Sequential(
-        nn.Conv2d(1, 64, 3), nn.BatchNorm2d(64, momentum=1., affine=True), nn.ReLU(inplace=False),
-        nn.MaxPool2d(2, 2), nn.Conv2d(64, 64, 3), nn.BatchNorm2d(64, momentum=1., affine=True),
-        nn.ReLU(inplace=False), nn.MaxPool2d(2, 2), nn.Conv2d(64, 64, 3),
-        nn.BatchNorm2d(64, momentum=1., affine=True), nn.ReLU(inplace=False), nn.MaxPool2d(2, 2),
-        nn.Flatten(), nn.Linear(64, args.n_way)
+        nn.Conv2d(1, 64, 3),
+        nn.BatchNorm2d(64, momentum=1.0, affine=True),
+        nn.ReLU(inplace=False),
+        nn.MaxPool2d(2, 2),
+        nn.Conv2d(64, 64, 3),
+        nn.BatchNorm2d(64, momentum=1.0, affine=True),
+        nn.ReLU(inplace=False),
+        nn.MaxPool2d(2, 2),
+        nn.Conv2d(64, 64, 3),
+        nn.BatchNorm2d(64, momentum=1.0, affine=True),
+        nn.ReLU(inplace=False),
+        nn.MaxPool2d(2, 2),
+        nn.Flatten(),
+        nn.Linear(64, args.n_way),
     ).to(device)
 
     # We will use Adam to (meta-)optimize the initial parameters
@@ -170,7 +179,7 @@ def train(db, net, meta_opt, epoch, log):
 
         meta_opt.step()
         qry_losses = sum(qry_losses) / task_num
-        qry_accs = 100. * sum(qry_accs) / task_num
+        qry_accs = 100.0 * sum(qry_accs) / task_num
         i = epoch + float(batch_idx) / n_train_iter
         iter_time = time.time() - start_time
 
@@ -233,7 +242,7 @@ def test(db, net, epoch, log):
             torchopt.recover_state_dict(inner_opt, optim_state_dict)
 
     qry_losses = torch.cat(qry_losses).mean().item()
-    qry_accs = 100. * torch.cat(qry_accs).float().mean().item()
+    qry_accs = 100.0 * torch.cat(qry_accs).float().mean().item()
     print(f'[Epoch {epoch+1:.2f}] Test Loss: {qry_losses:.2f} | Acc: {qry_accs:.2f}')
     log.append(
         {

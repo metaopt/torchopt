@@ -13,7 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 
-from typing import Union
+from typing import Optional
 
 import torch.nn as nn
 
@@ -23,32 +23,39 @@ from torchopt._src.typing import ScalarOrSchedule
 
 
 class MetaSGD(MetaOptimizer):
-    """A canonical Stochastic Gradient Descent optimizer."""
+    """The differentiable Stochastic Gradient Descent optimizer.
 
+    See Also:
+        - The functional SGD optimizer: :func:`torchopt.sgd`.
+        - The classic SGD optimizer: :class:`torchopt.SGD`.
+    """
+
+    # pylint: disable=too-many-arguments
     def __init__(
         self,
         net: nn.Module,
         lr: ScalarOrSchedule,
-        momentum: Union[float, None] = None,
+        momentum: Optional[float] = None,
         nesterov: bool = False,
-        moment_requires_grad: bool = True
+        moment_requires_grad: bool = True,
     ):
-        """The `init` function.
+        """The :meth:`init` function.
 
         Args:
-            net (nn.Module):
-                A network whose parameters should be optimized.
-            args:
-                Other arguments see `alias.sgd`, here we set `moment_requires_grad=True`
-                to make tensors like momentum be differentiable.
+            net: A network whose parameters should be optimized.
+            lr: This is a fixed global scaling factor.
+            momentum: The ``decay`` rate used by the momentum term, when it is set to :data:`None`,
+                then momentum is not used at all.
+            nesterov: Whether the nesterov momentum is used.
+            moment_requires_grad: Here we set ``moment_requires_grad=True`` to make tensors like
+                momentum be differentiable.
         """
-
         super().__init__(
             net,
             sgd(
                 lr=lr,
                 momentum=momentum,
                 nesterov=nesterov,
-                moment_requires_grad=moment_requires_grad
-            )
+                moment_requires_grad=moment_requires_grad,
+            ),
         )

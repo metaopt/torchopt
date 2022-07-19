@@ -13,7 +13,9 @@
 # limitations under the License.
 # ==============================================================================
 
-from typing import Union
+from typing import Iterable, Optional
+
+import torch
 
 from torchopt._src.alias import rmsprop
 from torchopt._src.optimizer.base import Optimizer
@@ -21,29 +23,46 @@ from torchopt._src.typing import ScalarOrSchedule
 
 
 class RMSProp(Optimizer):
-    """An RMSProp optimizer."""
+    """The classic RMSProp optimizer.
 
+    See Also:
+        - The functional RMSProp optimizer: :func:`torchopt.rmsprop`.
+        - The differentiable meta-RMSProp optimizer: :class:`torchopt.MetaRMSProp`.
+    """
+
+    # pylint: disable=too-many-arguments
     def __init__(
         self,
-        params,
+        params: Iterable[torch.Tensor],
         lr: ScalarOrSchedule,
         decay: float = 0.9,
         eps: float = 1e-8,
-        initial_scale: float = 0.,
+        initial_scale: float = 0.0,
         centered: bool = False,
-        momentum: Union[float, None] = None,
-        nesterov: bool = False
+        momentum: Optional[float] = None,
+        nesterov: bool = False,
     ):
-        """The `init` function.
+        r"""The `init` function.
 
         Args:
-            params (iterable):
-                An iterable of `torch.Tensor`s. Specifies what Tensors should be
-                optimized.
-            args:
-                Other arguments see `alias.sgd`.
+            params (iterable of torch.Tensor): An iterable of :class:`torch.Tensor`\s. Specifies
+                what Tensors should be optimized.
+            lr: This is a fixed global scaling factor.
+            decay: The decay used to track the magnitude of previous gradients.
+            eps: A small numerical constant to avoid dividing by zero when rescaling.
+            initial_scale: (default: :data:`0.0`)
+                Initialization of accumulators tracking the magnitude of previous updates. PyTorch
+                uses :data:`0.0`, TensorFlow 1.x uses :data:`1.0`. When reproducing results from a
+                paper, verify the value used by the authors.
+            centered: (default: :data:`False`)
+                Whether the second moment or the variance of the past gradients is used to rescale
+                the latest gradients.
+            momentum: (default: :data:`None`)
+                The ``decay`` rate used by the momentum term, when it is set to :data:`None`, then
+                momentum is not used at all.
+            nesterov: (default: :data:`False`)
+                Whether the nesterov momentum is used.
         """
-
         super().__init__(
             params,
             rmsprop(
@@ -53,6 +72,6 @@ class RMSProp(Optimizer):
                 initial_scale=initial_scale,
                 centered=centered,
                 momentum=momentum,
-                nesterov=nesterov
-            )
+                nesterov=nesterov,
+            ),
         )

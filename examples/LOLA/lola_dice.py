@@ -31,7 +31,7 @@ def main(args):
     agent1_copy, agent2_copy = Agent(args), Agent(args)
     n_lookaheads = args.n_lookaheads
     joint_scores = []
-    print("start iterations with", n_lookaheads, "lookaheads:")
+    print('start iterations with', n_lookaheads, 'lookaheads:')
 
     for update in range(args.n_update):
         # reset virtual update
@@ -41,8 +41,10 @@ def main(args):
         # agent 2 assumes that agent 1 conducts n-step lookahead
         for _ in range(n_lookaheads):
             memory1, memory2 = sample(
-                ipd, [agent1.virtual_theta.theta, agent2.theta], [agent1.values, agent2.values],
-                args
+                ipd,
+                [agent1.virtual_theta.theta, agent2.theta],
+                [agent1.values, agent2.values],
+                args,
             )
             inner_loss = memory1.dice_objective(use_baseline=args.use_baseline)
             agent1.virtual_optimiser.step(inner_loss)
@@ -50,15 +52,20 @@ def main(args):
         # agent 1 assumes that agent 2 conducts n-step lookahead
         for _ in range(n_lookaheads):
             memory1, memory2 = sample(
-                ipd, [agent1.theta, agent2.virtual_theta.theta], [agent1.values, agent2.values],
-                args
+                ipd,
+                [agent1.theta, agent2.virtual_theta.theta],
+                [agent1.values, agent2.values],
+                args,
             )
             inner_loss = memory2.dice_objective(use_baseline=args.use_baseline)
             agent2.virtual_optimiser.step(inner_loss)
 
         # update agent 1
         memory1, memory2 = sample(
-            ipd, [agent1.theta, agent2.virtual_theta.theta], [agent1.values, agent2.values], args
+            ipd,
+            [agent1.theta, agent2.virtual_theta.theta],
+            [agent1.values, agent2.values],
+            args,
         )
         outer_loss = memory1.dice_objective(use_baseline=args.use_baseline)
         agent1.theta_optimizer.zero_grad()
@@ -71,7 +78,10 @@ def main(args):
 
         # update agent 2
         memory1, memory2 = sample(
-            ipd, [agent1.virtual_theta.theta, agent2.theta], [agent1.values, agent2.values], args
+            ipd,
+            [agent1.virtual_theta.theta, agent2.theta],
+            [agent1.values, agent2.values],
+            args,
         )
         outer_loss = memory2.dice_objective(use_baseline=args.use_baseline)
         agent2.theta_optimizer.zero_grad()
@@ -91,16 +101,18 @@ def main(args):
             p1 = [p.item() for p in torch.sigmoid(agent1.theta)]
             p2 = [p.item() for p in torch.sigmoid(agent2.theta)]
             print(
-                'update', update, 'score (%.3f,%.3f)' % (score[0], score[1]),
-                'policy (agent1) = {%.3f, %.3f, %.3f, %.3f, %.3f}' %
-                (p1[0], p1[1], p1[2], p1[3], p1[4]),
-                ' (agent2) = {%.3f, %.3f, %.3f, %.3f, %.3f}' % (p2[0], p2[1], p2[2], p2[3], p2[4])
+                'update',
+                update,
+                'score (%.3f,%.3f)' % (score[0], score[1]),
+                'policy (agent1) = {%.3f, %.3f, %.3f, %.3f, %.3f}'
+                % (p1[0], p1[1], p1[2], p1[3], p1[4]),
+                ' (agent2) = {%.3f, %.3f, %.3f, %.3f, %.3f}' % (p2[0], p2[1], p2[2], p2[3], p2[4]),
             )
 
     return joint_scores
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     args = parse_args()
     joint_score = dict()
     for nla in range(3):

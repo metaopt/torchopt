@@ -20,6 +20,7 @@ from torchopt._src.base import EmptyState, GradientTransformation
 
 
 def zero_nan_hook(g: torch.Tensor) -> torch.Tensor:
+    """Registers a zero nan hook to replace nan with zero."""
     return torch.where(torch.isnan(g), torch.zeros_like(g), g)
 
 
@@ -29,14 +30,13 @@ def register_hook(hook) -> GradientTransformation:
     This function passes through the *gradient updates* unchanged.
 
     Returns:
-        An (init_fn, update_fn) tuple.
+        An ``(init_fn, update_fn)`` tuple.
     """
 
     def init_fn(_):
         return EmptyState()
 
-    def update_fn(updates, state, inplace=False):
-
+    def update_fn(updates, state, inplace=False):  # pylint: disable=unused-argument
         def f(g):
             return g.register_hook(hook) if g is not None else None
 

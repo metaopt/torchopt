@@ -19,8 +19,6 @@ import jax
 import torch
 import torch.nn as nn
 
-from torchopt._src.optimizer.meta import MetaOptimizer
-
 
 class _ModuleState(NamedTuple):
     params: List[Dict]
@@ -31,29 +29,28 @@ class _ModuleState(NamedTuple):
 def stop_gradient(target):
     """Stop the gradient for the input object.
 
-    Since a tensor use `grad_fn` to connect itself with the previous computation
-    graph, the back-propagated gradient will flow over the tensor and continue
-    flow to the tensors that is connected by `grad_fn`. Some algorithms requires
-    manually detaching tensors from the computation graph.
+    Since a tensor use :attr:`grad_fn` to connect itself with the previous computation graph, the
+    back-propagated gradient will flow over the tensor and continue flow to the tensors that is
+    connected by :attr:`grad_fn`. Some algorithms requires manually detaching tensors from the
+    computation graph.
 
-    Note that the stop_gradient operation is in-place.
+    Note that the :func:`stop_gradient` operation is in-place.
 
     Args:
-        target:
-            The target that to be detached from the computation graph, it could
-            be a `nn.Module`, `torchopt.MetaOptimizer`, state of the
-            `torchopt.MetaOptimizer`, or just a plain list of tensors.
-        inplace:
-            If true, the target will be detached in-place. if false, this function
-            will return a detached copy of the target. The in-place operation is
-            fast and memory efficient but may raise back-propagation error.
+        target: The target that to be detached from the computation graph, it could be a
+            :class:`nn.Module`, :class:`torchopt.MetaOptimizer`, state of the
+            :class:`torchopt.MetaOptimizer`, or just a plain list of tensors.
+        inplace: If :data:`True`, the target will be detached in-place. if :data:`Frue`, this
+            function will return a detached copy of the target. The in-place operation is fast and
+            memory efficient but may raise back-propagation error.
     """
+    # pylint: disable=import-outside-toplevel
+    from torchopt._src.optimizer.meta.base import MetaOptimizer
 
     def f(obj):
         if isinstance(obj, torch.Tensor):
             requires_grad = obj.requires_grad
             obj.detach_().requires_grad_(requires_grad)
-        return None
 
     if isinstance(target, _ModuleState):
         true_target = target.params
@@ -67,39 +64,40 @@ def stop_gradient(target):
     jax.tree_map(f, true_target)
 
 
+# pylint: disable=too-many-branches,too-many-locals
 def extract_state_dict(mod, copy=False, *, with_buffer=True, enable_visual=False, visual_prefix=''):
     """Extract target state.
 
-    Since a tensor use `grad_fn` to connect itself with the previous computation
-    graph, the back-propagated gradient will flow over the tensor and continue
-    flow to the tensors that is connected by `grad_fn`. Some algorithms requires
-    manually detaching tensors from the computation graph.
+    Since a tensor use :attr:`grad_fn` to connect itself with the previous computation graph, the
+    back-propagated gradient will flow over the tensor and continue flow to the tensors that is
+    connected by :attr:`grad_fn`. Some algorithms requires manually detaching tensors from the
+    computation graph.
 
-    Note that the extracted state is a reference, which means any in-place operator
-    will affect the target that the state is extracted from.
+    Note that the extracted state is a reference, which means any in-place operator will affect the
+    target that the state is extracted from.
 
     Args:
-        mod:
-            It could be a `nn.Module` or `torchopt.MetaOptimizer`.
+        mod: It could be a :class:`nn.Module` or :class:`torchopt.MetaOptimizer`.
         with_buffer:
-            Extract buffer together with parameters, this argument is only used
-            if the input target is `nn.Module`.
+            Extract buffer together with parameters, this argument is only used if the input target
+            is :class:`nn.Module`.
         enable_visual:
-            Add additional annotations, which could be used in computation graph
-            visualization. Currently, this flag only has effect on `nn.Module` but
-            we will support `torchopt.MetaOptimizer` later.
-        visual_prefix:
-            Prefix for the visualization annotations.
+            Add additional annotations, which could be used in computation graph visualization.
+            Currently, this flag only has effect on :class:`nn.Module` but we will support
+            :class:`torchopt.MetaOptimizer` later.
+        visual_prefix: Prefix for the visualization annotations.
 
     Returns:
         State extracted of the input object.
     """
+    # pylint: disable=import-outside-toplevel
+    from torchopt._src.optimizer.meta.base import MetaOptimizer
 
-    if isinstance(mod, nn.Module):
+    if isinstance(mod, nn.Module):  # pylint: disable=no-else-return
         if enable_visual:
             visual_contents = {}
 
-            for k, v in mod.named_parameters():
+            for k, v in mod.named_parameters():  # pylint: disable=invalid-name
                 if v.grad_fn is not None:
                     visual_contents.update({v.grad_fn: (visual_prefix + k, v)})
                 else:
@@ -109,17 +107,18 @@ def extract_state_dict(mod, copy=False, *, with_buffer=True, enable_visual=False
 
         params = []
 
-        def get_v(v):
+        def get_v(v):  # pylint: disable=invalid-name
             if copy:
                 requires_grad = v.requires_grad
                 return v.clone().detach_().requires_grad_(requires_grad)
-            else:
-                return v
+
+            return v
 
         def _update(term):
             if len(term) != 0:
                 params.append({k: get_v(v) for k, v in term.items()})
 
+        # pylint: disable=protected-access
         _update(mod._parameters)
         if with_buffer:
             _update(mod._buffers)
@@ -130,12 +129,13 @@ def extract_state_dict(mod, copy=False, *, with_buffer=True, enable_visual=False
             if with_buffer:
                 _update(module._buffers)
         return _ModuleState(params=tuple(params), visual_contents=visual_contents)
+
     elif isinstance(mod, MetaOptimizer):
         state = mod.state_dict()
         if copy:
             flatten_state, state_tree = jax.tree_flatten(state)
 
-            def get_v(v):
+            def get_v(v):  # pylint: disable=invalid-name
                 if not isinstance(v, torch.Tensor):
                     return v
                 requires_grad = v.requires_grad
@@ -143,11 +143,10 @@ def extract_state_dict(mod, copy=False, *, with_buffer=True, enable_visual=False
 
             flatten_state = jax.tree_map(get_v, flatten_state)
             return state_tree.unflatten(flatten_state)
-        else:
-            return state
 
-    else:
-        raise RuntimeError(f"Unexpected class of {mod}")
+        return state
+
+    raise RuntimeError(f'Unexpected class of {mod}')
 
 
 def _extract_container(mod, with_buffer=True):
@@ -158,6 +157,7 @@ def _extract_container(mod, with_buffer=True):
             if len(term) != 0:
                 containers.append(term)
 
+        # pylint: disable=protected-access
         _update(mod._parameters)
         if with_buffer:
             _update(mod._buffers)
@@ -168,24 +168,24 @@ def _extract_container(mod, with_buffer=True):
             if with_buffer:
                 _update(module._buffers)
         return tuple(containers)
-    else:
-        raise RuntimeError(f"Unexpected class of {mod}")
+
+    raise RuntimeError(f'Unexpected class of {mod}')
 
 
 def recover_state_dict(mod, state):
     """Recover state.
 
-    This function is compatible for the `extract_state`.
+    This function is compatible for the ``extract_state``.
 
-    Note that the recovering process is not in-place, so the tensors of the object
-    will not be modified.
+    Note that the recovering process is not in-place, so the tensors of the object will not be
+    modified.
 
     Args:
-        mod:
-            Target that need to recover.
-        state:
-            The recovering state.
+        mod: Target that need to recover.
+        state: The recovering state.
     """
+    # pylint: disable=import-outside-toplevel
+    from torchopt._src.optimizer.meta.base import MetaOptimizer
 
     if isinstance(mod, nn.Module):
         target_container = _extract_container(mod)
@@ -194,4 +194,4 @@ def recover_state_dict(mod, state):
     elif isinstance(mod, MetaOptimizer):
         mod.load_state_dict(state)
     else:
-        raise RuntimeError(f"Unexpected class of {mod}")
+        raise RuntimeError(f'Unexpected class of {mod}')

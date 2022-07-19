@@ -27,7 +27,6 @@ import torchopt
 
 
 class LowLevelInplace(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         torch.manual_seed(0)

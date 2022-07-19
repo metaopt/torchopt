@@ -30,19 +30,22 @@
 # limitations under the License.
 # ==============================================================================
 
-from typing import List, NamedTuple, Tuple, Union
+# pylint: disable=invalid-name
+
+from typing import NamedTuple, Tuple
 
 import jax
 import torch
 
 from torchopt._src import base
-from torchopt._src.typing import ScalarOrSchedule, Schedule
+from torchopt._src.typing import Schedule
 
 
 ScaleState = base.EmptyState
 
 
 def inc_count(updates, count: Tuple[int]) -> Tuple[int]:
+    """Increments int counter by one."""
 
     def f(c, g):
         return c + 1 if g is not None else c
@@ -51,14 +54,13 @@ def inc_count(updates, count: Tuple[int]) -> Tuple[int]:
 
 
 def scale(step_size: float) -> base.GradientTransformation:
-    """Scale updates by some fixed scalar `step_size`.
+    """Scale updates by some fixed scalar ``step_size``.
 
     Args:
-        step_size:
-            A scalar corresponding to a fixed scaling factor for updates.
+        step_size: A scalar corresponding to a fixed scaling factor for updates.
 
     Returns:
-        An (init_fn, update_fn) tuple.
+        An ``(init_fn, update_fn)`` tuple.
     """
 
     def init_fn(params):
@@ -70,6 +72,7 @@ def scale(step_size: float) -> base.GradientTransformation:
 
             def f(g):
                 return g.mul_(step_size) if g is not None else None
+
         else:
 
             def f(g):
@@ -88,15 +91,15 @@ class ScaleByScheduleState(NamedTuple):
 
 
 def scale_by_schedule(step_size_fn: Schedule) -> base.GradientTransformation:
-    """Scale updates using a custom schedule for the `step_size`.
+    """Scale updates using a custom schedule for the ``step_size``.
 
     Args:
         step_size_fn:
-            A function that takes an update count as input and proposes the
-            step_size to multiply the updates by.
+            A function that takes an update count as input and proposes the ``step_size`` to
+            multiply the updates by.
 
     Returns:
-        An (init_fn, update_fn) tuple.
+        An ``(init_fn, update_fn)`` tuple.
     """
 
     def init_fn(params):
@@ -114,12 +117,12 @@ def scale_by_schedule(step_size_fn: Schedule) -> base.GradientTransformation:
 
 
 def _update_moment(updates, moments, decay, order, inplace=True):
-    """Compute the exponential moving average of the `order`-th moment."""
-
+    """Compute the exponential moving average of the ``order``-th moment."""
     if inplace:
 
         def f(g, t):
             return t.mul_(decay).add_(g**order, alpha=1 - decay) if g is not None else t
+
     else:
 
         def f(g, t):
@@ -130,11 +133,11 @@ def _update_moment(updates, moments, decay, order, inplace=True):
 
 def _update_moment_per_elem_norm(updates, moments, decay, order, inplace=True):
     """Compute the EMA of the `order`-th moment of the element-wise norm."""
-
     if inplace:
 
         def f(g, t):
             return t.mul_(decay).add_(g**order, alpha=1 - decay) if g is not None else t
+
     else:
 
         def f(g, t):
@@ -153,11 +156,11 @@ class ScaleByAdamState(NamedTuple):
 
 def _bias_correction(moment, decay, count, inplace=True):
     """Perform bias correction. This becomes a no-op as count goes to infinity."""
-
     if inplace:
 
         def f(t, c):
             return t.div_(1 - decay**c)
+
     else:
 
         def f(t, c):
@@ -197,11 +200,11 @@ def scale_by_adam(
 
     def init_fn(params):
         mu = jax.tree_map(  # First moment
-            lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad),
-            params)
+            lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params
+        )
         nu = jax.tree_map(  # Second moment
-            lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad),
-            params)
+            lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params
+        )
         return ScaleByAdamState(count=tuple(0 for _ in range(len(mu))), mu=tuple(mu), nu=tuple(nu))
 
     def update_fn(updates, state, inplace=True):
@@ -214,6 +217,7 @@ def scale_by_adam(
 
             def f(g, m, v):
                 return m.div_(torch.sqrt_(v.add_(eps_root)).add_(eps)) if g is not None else None
+
         else:
 
             def f(g, m, v):
@@ -255,16 +259,15 @@ def scale_by_accelerated_adam(
     Returns:
         An (init_fn, update_fn) tuple.
     """
-
-    from .accelerated_op import AdamOp
+    from torchopt._src.accelerated_op import AdamOp  # pylint: disable=import-outside-toplevel
 
     def init_fn(params):
         mu = jax.tree_map(  # First moment
-            lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad),
-            params)
+            lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params
+        )
         nu = jax.tree_map(  # Second moment
-            lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad),
-            params)
+            lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params
+        )
         return ScaleByAdamState(count=tuple(0 for _ in range(len(params))), mu=mu, nu=nu)
 
     def update_fn(updates, state, inplace=True):
@@ -313,13 +316,15 @@ def trace(
     """
 
     def init_fn(params):
-        if decay == 0.:
+        if decay == 0.0:
             return TraceState(trace=())
-        else:
-            return TraceState(
-                trace=jax.
-                tree_map(lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params)
+
+        return TraceState(
+            trace=jax.tree_map(
+                lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad),
+                params,
             )
+        )
 
     def update_fn(updates, state, inplace=True):
         if nesterov:
@@ -369,9 +374,7 @@ class ScaleByRmsState(NamedTuple):
 
 
 def scale_by_rms(
-    decay: float = 0.9,
-    eps: float = 1e-8,
-    initial_scale: float = 0.
+    decay: float = 0.9, eps: float = 1e-8, initial_scale: float = 0.0
 ) -> base.GradientTransformation:
     """Rescale updates by the root of the exp. moving avg of the square.
 
@@ -400,6 +403,7 @@ def scale_by_rms(
 
             def f(g, n):
                 return g.mul_(torch.rsqrt(n.add(eps)))
+
         else:
 
             def f(g, n):
@@ -426,9 +430,7 @@ class ScaleByRStdDevState(NamedTuple):
 
 
 def scale_by_stddev(
-    decay: float = 0.9,
-    eps: float = 1e-8,
-    initial_scale: float = 0.
+    decay: float = 0.9, eps: float = 1e-8, initial_scale: float = 0.0
 ) -> base.GradientTransformation:
     """Rescale updates by the root of the centered exp. moving average of squares.
 
@@ -459,6 +461,7 @@ def scale_by_stddev(
 
             def f(g, m, n):
                 return g.mul_(torch.rsqrt(n.sub(m**2).add(eps)))
+
         else:
 
             def f(g, m, n):

@@ -13,6 +13,8 @@
 # limitations under the License.
 # ==============================================================================
 
+# pylint: disable=c-extension-no-member,invalid-name
+
 from typing import Any
 
 import torch
@@ -20,16 +22,20 @@ import torch
 from torchopt._lib import adam_op
 
 
-class AdamOp(object):
+class AdamOp:  # pylint: disable=too-few-public-methods
+    """Fused accelerated Adam operators."""
 
-    class MuOp(torch.autograd.Function):
+    class MuOp(torch.autograd.Function):  # pylint: disable=abstract-method
+        """Bias-corrected first moment estimate."""
 
         @staticmethod
         def jvp(ctx: Any, *grad_inputs: Any) -> Any:
-            pass
+            # pylint: disable=line-too-long
+            """Defines a formula for differentiating the operation with forward mode automatic differentiation."""
 
         @staticmethod
         def forward(ctx: Any, *args: Any, **kwargs: Any) -> Any:
+            """Performs the operation."""
             updates, mu, b1 = args
             new_mu = adam_op.forwardMu(updates, mu, b1)
             ctx.save_for_backward(updates, mu)
@@ -38,20 +44,25 @@ class AdamOp(object):
 
         @staticmethod
         def backward(ctx: Any, *args: Any) -> Any:
+            # pylint: disable=line-too-long
+            """Defines a formula for differentiating the operation with backward mode automatic differentiation (alias to the :meth:`vjp` method)."""
             dmu = args[0]
             updates, mu = ctx.saved_tensors
             b1 = ctx.b1
             result = adam_op.backwardMu(dmu, updates, mu, b1)
             return result[0], result[1], None
 
-    class NuOp(torch.autograd.Function):
+    class NuOp(torch.autograd.Function):  # pylint: disable=abstract-method
+        """Bias-corrected second raw moment estimate."""
 
         @staticmethod
         def jvp(ctx: Any, *grad_inputs: Any) -> Any:
-            pass
+            # pylint: disable=line-too-long
+            """Defines a formula for differentiating the operation with forward mode automatic differentiation."""
 
         @staticmethod
         def forward(ctx: Any, *args: Any, **kwargs: Any) -> Any:
+            """Performs the operation."""
             updates, nu, b2 = args
             new_nu = adam_op.forwardNu(updates, nu, b2)
             ctx.save_for_backward(updates, nu)
@@ -60,20 +71,25 @@ class AdamOp(object):
 
         @staticmethod
         def backward(ctx: Any, *args: Any) -> Any:
+            # pylint: disable=line-too-long
+            """Defines a formula for differentiating the operation with backward mode automatic differentiation (alias to the :meth:`vjp` function)."""
             dnu = args[0]
             updates, nu = ctx.saved_tensors
             b2 = ctx.b2
             result = adam_op.backwardNu(dnu, updates, nu, b2)
             return result[0], result[1], None
 
-    class UpdatesOp(torch.autograd.Function):
+    class UpdatesOp(torch.autograd.Function):  # pylint: disable=abstract-method
+        """Adam updates."""
 
         @staticmethod
         def jvp(ctx: Any, *grad_inputs: Any) -> Any:
-            pass
+            # pylint: disable=line-too-long
+            """Defines a formula for differentiating the operation with forward mode automatic differentiation."""
 
         @staticmethod
         def forward(ctx: Any, *args: Any, **kwargs: Any) -> Any:
+            """Performs the operation."""
             new_mu, new_nu, (b1, b2, eps, eps_root, count) = args
             new_updates = adam_op.forwardUpdates(new_mu, new_nu, b1, b2, eps, eps_root, count)
             ctx.save_for_backward(new_updates, new_mu, new_nu)
@@ -82,13 +98,17 @@ class AdamOp(object):
 
         @staticmethod
         def backward(ctx: Any, *args: Any) -> Any:
+            # pylint: disable=line-too-long
+            """Defines a formula for differentiating the operation with backward mode automatic differentiation (alias to the :meth:`vjp` function)."""
             dupdates = args[0]
             updates, new_mu, new_nu = ctx.saved_tensors
-            b1, b2, eps, eps_root, count = ctx.others
+            b1, b2, _, _, count = ctx.others
             result = adam_op.backwardUpdates(dupdates, updates, new_mu, new_nu, b1, b2, count)
             return result[0], result[1], None
 
-    def __init__(self, b1=0.9, b2=0.999, eps=1e-8, eps_root=0., inplace=True):
+    # pylint: disable=too-many-arguments
+    def __init__(self, b1=0.9, b2=0.999, eps=1e-8, eps_root=0.0, inplace=True):
+        """The :meth:`__init__` function."""
         self.b1 = b1
         self.b2 = b2
         self.eps = eps
@@ -96,6 +116,7 @@ class AdamOp(object):
         self.inplace = inplace
 
     def __call__(self, mu, nu, updates, count):
+        """The :meth:`__call__` function."""
         if updates is None:
             return mu, nu, None
         if updates.is_cuda:

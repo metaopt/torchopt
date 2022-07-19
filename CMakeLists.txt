@@ -152,5 +152,5 @@ message(STATUS "Detected Torch libraries: \"${TORCH_LIBRARIES}\"")
 
 add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
 
-include_directories(include)
+include_directories(${CMAKE_SOURCE_DIR})
 add_subdirectory(src)

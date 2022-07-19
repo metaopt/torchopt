@@ -22,6 +22,8 @@ dependencies:
   - pytorch::pytorch-mutex = *=*cuda*
   - pip:
       - functorch
+      - torchviz
+      - sphinxcontrib-katex  # for documentation
   - jax
   - jaxlib >= 0.3=*cuda*
   - optax
@@ -51,17 +53,24 @@ dependencies:
 
   # Documentation
   - sphinx
-  - sphinxcontrib-spelling
+  - sphinx_rtd_theme
   - sphinx-autobuild
   - sphinx-copybutton
-  - sphinx_rtd_theme
+  - sphinxcontrib-spelling
+  - sphinxcontrib-bibtex
+  - sphinx-autodoc-typehints
+  - myst-nb
+  - ipykernel
+  - pandoc
+  - docutils
 
   # Testing
   - pytest
   - pytest-cov
   - pytest-xdist
   - isort
-  - yapf
+  - conda-forge::black >= 22.6.0
+  - pylint
   - mypy
   - flake8
   - flake8-bugbear
@@ -71,3 +80,4 @@ dependencies:
   - clang-format
   - clang-tools  # clang-tidy
   - cpplint
+  - pre-commit

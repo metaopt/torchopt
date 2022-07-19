@@ -21,9 +21,7 @@ import torchopt
 
 
 def test_gamma():
-
     class Rollout:
-
         @staticmethod
         def get():
             out = torch.empty(5, 2)
@@ -41,7 +39,6 @@ def test_gamma():
             return torch.hstack(out).view(10, 1)
 
     class ValueNetwork(nn.Module):
-
         def __init__(self):
             super().__init__()
             self.fc = nn.Linear(10, 1)
@@ -77,8 +74,8 @@ def test_gamma():
         torchopt.recover_state_dict(net, net_state)
         if i % 100 == 0:
             with torch.no_grad():
-                print(f"epoch {i} | gamma: {torch.sigmoid(gamma)}")
+                print(f'epoch {i} | gamma: {torch.sigmoid(gamma)}')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     test_gamma()

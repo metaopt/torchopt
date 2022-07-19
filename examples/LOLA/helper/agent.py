@@ -23,14 +23,12 @@ import torchopt
 
 
 class theta_model(nn.Module):
-
     def __init__(self, theta):
         super().__init__()
         self.theta = nn.Parameter(torch.tensor(theta.detach(), requires_grad=True))
 
 
-class Agent():
-
+class Agent:
     def __init__(self, args):
 
         self.args = args

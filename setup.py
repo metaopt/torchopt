@@ -26,15 +26,11 @@ class CMakeExtension(Extension):
 
 
 class cmake_build_ext(build_ext):
-    def copy(self, extdir):
-        for op_path in pathlib.Path(extdir).iterdir():
-            if not op_path.is_dir():
-                continue
-            for file in op_path.iterdir():
-                if str(file).rpartition('.')[-1] == 'so':
-                    shutil.copy(file, HERE / 'torchopt' / '_lib')
+    def build_extension(self, ext):
+        if not isinstance(ext, CMakeExtension):
+            super().build_extension(ext)
+            return
 
-    def build_extensions(self):
         import pybind11
         from torch.utils import cpp_extension
 
@@ -47,41 +43,40 @@ class cmake_build_ext(build_ext):
 
         config = 'Debug' if self.debug else 'Release'
 
-        for ext in self.extensions:
-            extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
-            print(self.get_ext_fullpath(ext.name))
+        extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
+        print(self.get_ext_fullpath(ext.name))
 
-            PYTHON_INCLUDE_DIR = ';'.join(self.include_dirs)
-            TORCH_INCLUDE_PATH = ';'.join(cpp_extension.include_paths())
-            TORCH_LIBRARY_PATH = ';'.join(cpp_extension.library_paths())
+        PYTHON_INCLUDE_DIR = ';'.join(self.include_dirs)
+        TORCH_INCLUDE_PATH = ';'.join(cpp_extension.include_paths())
+        TORCH_LIBRARY_PATH = ';'.join(cpp_extension.library_paths())
 
-            cmake_args = [
-                f'-DCMAKE_BUILD_TYPE={config}',
-                f'-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{config.upper()}={extdir}',
-                f'-DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_{config.upper()}={self.build_temp}',
-                f'-DPYTHON_EXECUTABLE={sys.executable}',
-                f'-DPYBIND11_CMAKE_DIR={pybind11.get_cmake_dir()}',
-                f'-DPYTHON_INCLUDE_DIR={PYTHON_INCLUDE_DIR}',
-                f'-DTORCH_INCLUDE_PATH={TORCH_INCLUDE_PATH}',
-                f'-DTORCH_LIBRARY_PATH={TORCH_LIBRARY_PATH}',
-            ]
+        cmake_args = [
+            f'-DCMAKE_BUILD_TYPE={config}',
+            f'-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{config.upper()}={extdir}',
+            f'-DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_{config.upper()}={self.build_temp}',
+            f'-DPYTHON_EXECUTABLE={sys.executable}',
+            f'-DPYBIND11_CMAKE_DIR={pybind11.get_cmake_dir()}',
+            f'-DPYTHON_INCLUDE_DIR={PYTHON_INCLUDE_DIR}',
+            f'-DTORCH_INCLUDE_PATH={TORCH_INCLUDE_PATH}',
+            f'-DTORCH_LIBRARY_PATH={TORCH_LIBRARY_PATH}',
+        ]
 
-            build_args = ['--config', config]
+        build_args = ['--config', config]
 
-            if (
-                'CMAKE_BUILD_PARALLEL_LEVEL' not in os.environ
-                and hasattr(self, 'parallel') and self.parallel
-            ):
-                build_args.append(f'-j{self.parallel}')
+        if (
+            'CMAKE_BUILD_PARALLEL_LEVEL' not in os.environ
+            and hasattr(self, 'parallel')
+            and self.parallel
+        ):
+            build_args.append(f'-j{self.parallel}')
 
-            try:
-                os.chdir(build_temp)
-                self.spawn(['cmake', ext.source_dir] + cmake_args)
-                if not self.dry_run:
-                    self.spawn(['cmake', '--build', '.'] + build_args)
-                self.copy(extdir)
-            finally:
-                os.chdir(HERE)
+        try:
+            os.chdir(build_temp)
+            self.spawn(['cmake', ext.source_dir] + cmake_args)
+            if not self.dry_run:
+                self.spawn(['cmake', '--build', '.'] + build_args)
+        finally:
+            os.chdir(HERE)
 
 
 setup(
@@ -90,6 +85,8 @@ setup(
     author='TorchOpt Contributors',
     author_email='jieren9806@gmail.com, xidong.feng.20@ucl.ac.uk, benjaminliu.eecs@gmail.com',
     description='A Jax-style optimizer for PyTorch.',
+    long_description=open('README.md', encoding='utf8').read(),
+    long_description_content_type='text/markdown',
     license='Apache License Version 2.0',
     keywords='Meta-Learning, PyTorch, Optimizer',
     url='https://github.com/metaopt/TorchOpt',
@@ -97,9 +94,7 @@ setup(
     package_data={'sharedlib': ['_lib/*.so']},
     include_package_data=True,
     cmdclass={'build_ext': cmake_build_ext},
-    ext_modules=[
-        CMakeExtension('torchopt._lib.adam_op', source_dir=HERE)
-    ],
+    ext_modules=[CMakeExtension('torchopt._lib.adam_op', source_dir=HERE)],
     setup_requires=[  # for `torch.utils.cpp_extension`
         'torch == 1.12',
         'numpy',
@@ -112,5 +107,24 @@ setup(
         'graphviz',
         'typing-extensions',
     ],
-    python_requires='>= 3.7'
+    python_requires='>= 3.7',
+    classifiers=[
+        # How mature is this project? Common values are
+        #   3 - Alpha
+        #   4 - Beta
+        #   5 - Production/Stable
+        'Development Status :: 4 - Beta',
+        # Indicate who your project is intended for
+        'Intended Audience :: Science/Research',
+        'Intended Audience :: Developers',
+        'Topic :: Scientific/Engineering :: Artificial Intelligence',
+        # Pick your license as you wish (should match "license" above)
+        'License :: OSI Approved :: Apache Software License',
+        # Specify the Python versions you support here. In particular, ensure
+        # that you indicate whether you support Python 2, Python 3 or both.
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+    ],
 )

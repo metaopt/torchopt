@@ -43,8 +43,7 @@ def magic_box(x):
 
 
 # replay buffer
-class Memory():
-
+class Memory:
     def __init__(self, args):
         self.self_logprobs = []
         self.other_logprobs = []
@@ -65,9 +64,9 @@ class Memory():
         rewards = torch.stack(self.rewards, dim=1)
 
         # apply discount:
-        cum_discount = torch.cumprod(
-            self.args.gamma * torch.ones(*rewards.size()), dim=1
-        ) / self.args.gamma
+        cum_discount = (
+            torch.cumprod(self.args.gamma * torch.ones(*rewards.size()), dim=1) / self.args.gamma
+        )
         discounted_rewards = rewards * cum_discount
         discounted_values = values * cum_discount
 
@@ -92,7 +91,7 @@ class Memory():
     def value_loss(self):
         values = torch.stack(self.values, dim=1)
         rewards = torch.stack(self.rewards, dim=1)
-        return torch.mean((rewards - values)**2)
+        return torch.mean((rewards - values) ** 2)
 
 
 def act(batch_states, theta, values):

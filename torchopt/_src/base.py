@@ -35,27 +35,27 @@ from typing import Callable, NamedTuple, Tuple
 
 from typing_extensions import Protocol
 
-from torchopt._src import typing
+from torchopt._src.typing import Numeric, TensorTree
 
 
-OptState = typing.TensorTree  # States are arbitrary nests of `torch.Tensor`.
+OptState = TensorTree  # States are arbitrary nests of `torch.Tensor`.
 # Parameters are arbitrary nests of `torch.Tensor`.
-Params = typing.TensorTree
+Params = TensorTree
 Updates = Params  # Gradient updates are of the same type as parameters.
 
-Schedule = Callable[[typing.Numeric], typing.Numeric]
+Schedule = Callable[[Numeric], Numeric]
 
 
 class EmptyState(NamedTuple):
     """An empty state for the simplest stateless transformations."""
 
 
-class TransformInitFn(Protocol):
-    """A callable type for the `init` step of a `GradientTransformation`.
+class TransformInitFn(Protocol):  # pylint: disable=too-few-public-methods
+    """A callable type for the :func:`init` step of a :class:`GradientTransformation`.
 
-    The `init` step takes a tree of `params` and uses these to construct an
-    arbitrary structured initial `state` for the gradient transformation. This
-    may hold statistics of the past updates or any other non static information.
+    The :func:`init` step takes a tree of ``params`` and uses these to construct an arbitrary
+    structured initial ``state`` for the gradient transformation. This may hold statistics of the
+    past updates or any other non static information.
     """
 
     @abstractmethod
@@ -71,64 +71,57 @@ class TransformInitFn(Protocol):
         """
 
 
-class TransformUpdateFn(Protocol):
-    """A callable type for the `update` step of a `GradientTransformation`.
+class TransformUpdateFn(Protocol):  # pylint: disable=too-few-public-methods
+    """A callable type for the :func:`update` step of a :class:`GradientTransformation`.
 
-    The `update` step takes a tree of candidate parameter `updates` (e.g. their
-    gradient with respect to some loss), an arbitrary structured `state`, and the
-    current `params` of the model being optimized. The `params` argument is
-    optional, it must however be provided when using transformations that require
-    access to the current values of the parameters.
+    The :func:`update` step takes a tree of candidate parameter ``updates`` (e.g. their gradient
+    with respect to some loss), an arbitrary structured ``state``, and the current ``params`` of the
+    model being optimized. The ``params`` argument is optional, it must however be provided when
+    using transformations that require access to the current values of the parameters.
     """
 
     @abstractmethod
-    def __call__(self,
-                 updates: Updates,
-                 state: OptState,
-                 inplace: bool = True) -> Tuple[Updates, OptState]:
+    def __call__(
+        self, updates: Updates, state: OptState, inplace: bool = True
+    ) -> Tuple[Updates, OptState]:
         """The `update` function.
 
         Args:
-            updates:
-                A tree of candidate updates.
-            state:
-                The state of the gradient transformation.
+            updates: A tree of candidate updates.
+            state: The state of the gradient transformation.
             inplace: (optional)
-                If true, modify updates and state using inplace operations.
+                If :data:`True`, modify updates and state using inplace operations.
 
         Returns:
-            The transformed updates, and the updated state.
+            The transformed ``updates``, and the updated ``state``.
         """
 
 
 class GradientTransformation(NamedTuple):
     """A pair of pure functions implementing a gradient transformation.
 
-    TorchOpt optimizers are all implemented as _gradient transformations_ like
-    Optax. A gradient transformation is defined to be a pair of pure functions,
-    which are combined together in a `NamedTuple` so that they can be referred
-    to by name.
+    TorchOpt optimizers are all implemented as *gradient transformations* like Optax. A gradient
+    transformation is defined to be a pair of pure functions, which are combined together in a
+    :class:`NamedTuple` so that they can be referred to by name.
 
-    Since gradient transformations do not contain any internal state, all stateful
-    optimizer properties (such as the current step count when using optimizer
-    schedules, or momentum values) are passed through gradient transformations by
-    using the optimizer _state_ pytree. Each time a gradient transformation is
-    applied, the state is computed and returned, ready to be passed to the next
-    call to the gradient transformation.
+    Since gradient transformations do not contain any internal state, all stateful optimizer
+    properties (such as the current step count when using optimizer schedules, or momentum values)
+    are passed through gradient transformations by using the optimizer *state* ``pytree``. Each time
+    a gradient transformation is applied, the state is computed and returned, ready to be passed to
+    the next call to the gradient transformation.
 
     Attributes:
         init:
-            A pure function which, when called with an example instance of the
-            parameters whose gradients will be transformed, returns a pytree
-            containing the initial value for the optimizer state.
-      update:
-            A pure function which takes as input a pytree of updates (with the
-            same tree structure as the original params pytree passed to init),
-            the previous optimizer state (which may have been initialized using
-            the init function), and optionally the inplace flag. The update
-            function then returns the computed gradient updates, and a updates
-            optimizer state. If the inplace flag is true, the output results are
-            the same instance as the input.
+            A pure function which, when called with an example instance of the parameters whose
+            gradients will be transformed, returns a ``pytree`` containing the initial value for the
+            optimizer state.
+        update:
+            A pure function which takes as input a pytree of updates (with the same tree structure
+            as the original params ``pytree`` passed to :attr:`init`), the previous optimizer state
+            (which may have been initialized using the :attr:`init` function), and optionally the
+            ``inplace`` flag. The :attr:`update` function then returns the computed gradient
+            updates, and a updates optimizer state. If the ``inplace`` flag is :data:`True`, the
+            output results are the same instance as the input.
     """
 
     init: TransformInitFn
@@ -141,13 +134,13 @@ def identity() -> GradientTransformation:
     This function passes through the *gradient updates* unchanged.
 
     Returns:
-        An (init_fn, update_fn) tuple.
+        An ``(init_fn, update_fn)`` tuple.
     """
 
     def init_fn(_):
         return EmptyState()
 
-    def update_fn(updates, state, inplace=False):
+    def update_fn(updates, state, inplace=False):  # pylint: disable=unused-argument
         return updates, state
 
     return GradientTransformation(init_fn, update_fn)

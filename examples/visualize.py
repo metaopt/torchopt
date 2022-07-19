@@ -22,7 +22,6 @@ import torchopt
 
 
 class Net(nn.Module):
-
     def __init__(self, dim):
         super().__init__()
         self.fc = nn.Linear(dim, 1)
@@ -34,7 +33,7 @@ class Net(nn.Module):
 def draw_torchviz():
     net = Net(dim).cuda()
     optimizer = torchopt.MetaAdam(net, lr=1e-3, use_accelerated_op=False)
-    meta_param = torch.tensor(1., requires_grad=True)
+    meta_param = torch.tensor(1.0, requires_grad=True)
 
     xs = torch.ones(batch_size, dim).cuda()
 
@@ -45,13 +44,13 @@ def draw_torchviz():
     pred = net(xs, meta_param)
     loss = F.mse_loss(pred, torch.ones_like(pred))
     # draw computation graph
-    torchviz.make_dot(loss).render("torchviz_graph", format="svg")
+    torchviz.make_dot(loss).render('torchviz_graph', format='svg')
 
 
 def draw_torchopt():
     net = Net(dim).cuda()
     optimizer = torchopt.MetaAdam(net, lr=1e-3, use_accelerated_op=True)
-    meta_param = torch.tensor(1., requires_grad=True)
+    meta_param = torch.tensor(1.0, requires_grad=True)
 
     xs = torch.ones(batch_size, dim).cuda()
 
@@ -66,10 +65,8 @@ def draw_torchopt():
     pred = net(xs, meta_param)
     loss = F.mse_loss(pred, torch.ones_like(pred))
     # draw computation graph
-    torchopt.visual.make_dot(loss, [net_state_0, net_state_1, {
-        meta_param: "meta_param"
-    }]).render(
-        "torchopt_graph", format="svg"
+    torchopt.visual.make_dot(loss, [net_state_0, net_state_1, {meta_param: 'meta_param'}]).render(
+        'torchopt_graph', format='svg'
     )
 
 
