@@ -26,6 +26,9 @@ build:
 check_pip_install = $(PYTHON) -m pip show $(1) &>/dev/null || (cd && $(PYTHON) -m pip install $(1) --upgrade)
 check_pip_install_extra = $(PYTHON) -m pip show $(1) &>/dev/null || (cd && $(PYTHON) -m pip install $(2) --upgrade)
 
+pylint-install:
+	$(call check_pip_install,pylint)
+
 flake8-install:
 	$(call check_pip_install,flake8)
 	$(call check_pip_install_extra,bugbear,flake8_bugbear)
@@ -80,6 +83,9 @@ pytest: pytest-install
 test: pytest
 
 # Python linters
+
+pylint: pylint-install
+	$(PYTHON) -m pylint $(PROJECT_PATH)
 
 flake8: flake8-install
 	$(PYTHON) -m flake8 $(PYTHON_FILES) --count --select=E9,F63,F7,F82,E225,E251 --show-source --statistics

@@ -36,7 +36,7 @@ def get_fn_name(fn, show_attrs, max_attr_chars):
     name = str(type(fn).__name__)
     if not show_attrs:
         return name
-    attrs = dict()
+    attrs = {}
     for attr in dir(fn):
         if not attr.startswith(SAVED_PREFIX):
             continue
@@ -51,12 +51,12 @@ def get_fn_name(fn, show_attrs, max_attr_chars):
     if not attrs:
         return name
     max_attr_chars = max(max_attr_chars, 3)
-    col1width = max(len(k) for k in attrs.keys())
+    col1width = max(map(len, attrs))
     col2width = min(max(len(str(v)) for v in attrs.values()), max_attr_chars)
     sep = '-' * max(col1width + col2width + 2, len(name))
     attrstr = '%-' + str(col1width) + 's: %' + str(col2width) + 's'
 
-    def truncate(s):
+    def truncate(s):  # pylint: disable=invalid-name
         return s[: col2width - 3] + '...' if len(s) > col2width else s
 
     params = '\n'.join(attrstr % (k, truncate(str(v))) for (k, v) in attrs.items())
@@ -64,6 +64,7 @@ def get_fn_name(fn, show_attrs, max_attr_chars):
 
 
 # mypy: ignore-errors
+# pylint: disable=too-many-branches,too-many-statements,too-many-locals
 def make_dot(
     var: torch.Tensor, params=None, show_attrs=False, show_saved=False, max_attr_chars=50
 ) -> Digraph:
@@ -105,7 +106,7 @@ def make_dot(
     param_map = {}
 
     if params is not None:
-        from torchopt._src.utils import _ModuleState
+        from torchopt._src.utils import _ModuleState  # pylint: disable=import-outside-toplevel
 
         if isinstance(params, _ModuleState):
             param_map.update(params.visual_contents)
@@ -135,21 +136,17 @@ def make_dot(
     seen = set()
 
     def size_to_str(size):
-        return '(' + (', ').join(['%d' % v for v in size]) + ')'
+        return '(' + (', ').join(map(str, size)) + ')'
 
     def get_var_name(var, name=None):
         if not name:
             name = param_map[var] if var in param_map else ''
-        return '%s\n %s' % (name, size_to_str(var.size()))
+        return f'{name}\n{size_to_str(var.size())}'
 
     def get_var_name_with_flag(var):
         if var in param_map:
-            return '%s\n %s' % (
-                param_map[var][0],
-                size_to_str(param_map[var][1].size()),
-            )
-        else:
-            return None
+            return f'{param_map[var][0]}\n{size_to_str(param_map[var][1].size())}'
+        return None
 
     def add_nodes(fn):
         assert not torch.is_tensor(fn)
@@ -170,7 +167,7 @@ def make_dot(
                 if isinstance(val, tuple):
                     for i, t in enumerate(val):
                         if torch.is_tensor(t):
-                            name = attr + '[%s]' % str(i)
+                            name = f'{attr}[{i}]'
                             dot.edge(str(id(fn)), str(id(t)), dir='none')
                             dot.node(str(id(t)), get_var_name(t, name), fillcolor='orange')
 
@@ -185,7 +182,7 @@ def make_dot(
         fn_fillcolor = None
         var_name = get_var_name_with_flag(fn)
         if var_name is not None:
-            fn_name = '%s\n %s' % (fn_name, var_name)
+            fn_name = f'{fn_name}\n{var_name}'
             fn_fillcolor = 'lightblue'
 
         # add the node for this grad_fn
@@ -214,13 +211,14 @@ def make_dot(
         if var.grad_fn:
             add_nodes(var.grad_fn)
             dot.edge(str(id(var.grad_fn)), str(id(var)))
+        # pylint: disable=protected-access
         if var._is_view():
             add_base_tensor(var._base, color='darkolivegreen3')
             dot.edge(str(id(var._base)), str(id(var)), style='dotted')
 
     # handle multiple outputs
     if isinstance(var, tuple):
-        for v in var:
+        for v in var:  # pylint: disable=invalid-name
             add_base_tensor(v)
     else:
         add_base_tensor(var)

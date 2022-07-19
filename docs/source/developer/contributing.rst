@@ -23,7 +23,7 @@ Lint Check
 
 We use several tools to secure code quality, including:
 
-    * PEP8 code style: ``flake8``, ``isort``, ``black``
+    * PEP8 code style: ``black``, ``isort``, ``pylint``, ``flake8``
     * Type hint check: ``mypy``
     * C++ Google-style: ``cpplint``, ``clang-format``
     * License: ``addlicense``

@@ -19,8 +19,6 @@ import jax
 import torch
 import torch.nn as nn
 
-from torchopt._src.optimizer.meta import MetaOptimizer
-
 
 class _ModuleState(NamedTuple):
     params: List[Dict]
@@ -46,12 +44,13 @@ def stop_gradient(target):
             function will return a detached copy of the target. The in-place operation is fast and
             memory efficient but may raise back-propagation error.
     """
+    # pylint: disable=import-outside-toplevel
+    from torchopt._src.optimizer.meta.base import MetaOptimizer
 
     def f(obj):
         if isinstance(obj, torch.Tensor):
             requires_grad = obj.requires_grad
             obj.detach_().requires_grad_(requires_grad)
-        return None
 
     if isinstance(target, _ModuleState):
         true_target = target.params
@@ -65,6 +64,7 @@ def stop_gradient(target):
     jax.tree_map(f, true_target)
 
 
+# pylint: disable=too-many-branches,too-many-locals
 def extract_state_dict(mod, copy=False, *, with_buffer=True, enable_visual=False, visual_prefix=''):
     """Extract target state.
 
@@ -90,11 +90,14 @@ def extract_state_dict(mod, copy=False, *, with_buffer=True, enable_visual=False
     Returns:
         State extracted of the input object.
     """
-    if isinstance(mod, nn.Module):
+    # pylint: disable=import-outside-toplevel
+    from torchopt._src.optimizer.meta.base import MetaOptimizer
+
+    if isinstance(mod, nn.Module):  # pylint: disable=no-else-return
         if enable_visual:
             visual_contents = {}
 
-            for k, v in mod.named_parameters():
+            for k, v in mod.named_parameters():  # pylint: disable=invalid-name
                 if v.grad_fn is not None:
                     visual_contents.update({v.grad_fn: (visual_prefix + k, v)})
                 else:
@@ -104,17 +107,18 @@ def extract_state_dict(mod, copy=False, *, with_buffer=True, enable_visual=False
 
         params = []
 
-        def get_v(v):
+        def get_v(v):  # pylint: disable=invalid-name
             if copy:
                 requires_grad = v.requires_grad
                 return v.clone().detach_().requires_grad_(requires_grad)
-            else:
-                return v
+
+            return v
 
         def _update(term):
             if len(term) != 0:
                 params.append({k: get_v(v) for k, v in term.items()})
 
+        # pylint: disable=protected-access
         _update(mod._parameters)
         if with_buffer:
             _update(mod._buffers)
@@ -125,12 +129,13 @@ def extract_state_dict(mod, copy=False, *, with_buffer=True, enable_visual=False
             if with_buffer:
                 _update(module._buffers)
         return _ModuleState(params=tuple(params), visual_contents=visual_contents)
+
     elif isinstance(mod, MetaOptimizer):
         state = mod.state_dict()
         if copy:
             flatten_state, state_tree = jax.tree_flatten(state)
 
-            def get_v(v):
+            def get_v(v):  # pylint: disable=invalid-name
                 if not isinstance(v, torch.Tensor):
                     return v
                 requires_grad = v.requires_grad
@@ -138,11 +143,10 @@ def extract_state_dict(mod, copy=False, *, with_buffer=True, enable_visual=False
 
             flatten_state = jax.tree_map(get_v, flatten_state)
             return state_tree.unflatten(flatten_state)
-        else:
-            return state
 
-    else:
-        raise RuntimeError(f'Unexpected class of {mod}')
+        return state
+
+    raise RuntimeError(f'Unexpected class of {mod}')
 
 
 def _extract_container(mod, with_buffer=True):
@@ -153,6 +157,7 @@ def _extract_container(mod, with_buffer=True):
             if len(term) != 0:
                 containers.append(term)
 
+        # pylint: disable=protected-access
         _update(mod._parameters)
         if with_buffer:
             _update(mod._buffers)
@@ -163,8 +168,8 @@ def _extract_container(mod, with_buffer=True):
             if with_buffer:
                 _update(module._buffers)
         return tuple(containers)
-    else:
-        raise RuntimeError(f'Unexpected class of {mod}')
+
+    raise RuntimeError(f'Unexpected class of {mod}')
 
 
 def recover_state_dict(mod, state):
@@ -179,6 +184,9 @@ def recover_state_dict(mod, state):
         mod: Target that need to recover.
         state: The recovering state.
     """
+    # pylint: disable=import-outside-toplevel
+    from torchopt._src.optimizer.meta.base import MetaOptimizer
+
     if isinstance(mod, nn.Module):
         target_container = _extract_container(mod)
         for target, source in zip(target_container, state.params):

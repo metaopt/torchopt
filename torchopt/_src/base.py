@@ -50,7 +50,7 @@ class EmptyState(NamedTuple):
     """An empty state for the simplest stateless transformations."""
 
 
-class TransformInitFn(Protocol):
+class TransformInitFn(Protocol):  # pylint: disable=too-few-public-methods
     """A callable type for the :func:`init` step of a :class:`GradientTransformation`.
 
     The :func:`init` step takes a tree of ``params`` and uses these to construct an arbitrary
@@ -71,7 +71,7 @@ class TransformInitFn(Protocol):
         """
 
 
-class TransformUpdateFn(Protocol):
+class TransformUpdateFn(Protocol):  # pylint: disable=too-few-public-methods
     """A callable type for the :func:`update` step of a :class:`GradientTransformation`.
 
     The :func:`update` step takes a tree of candidate parameter ``updates`` (e.g. their gradient
@@ -140,7 +140,7 @@ def identity() -> GradientTransformation:
     def init_fn(_):
         return EmptyState()
 
-    def update_fn(updates, state, inplace=False):
+    def update_fn(updates, state, inplace=False):  # pylint: disable=unused-argument
         return updates, state
 
     return GradientTransformation(init_fn, update_fn)

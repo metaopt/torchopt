@@ -30,6 +30,8 @@
 # limitations under the License.
 # ==============================================================================
 
+# pylint: disable=invalid-name
+
 from typing import Optional
 
 import jax
@@ -52,6 +54,7 @@ def _scale_by_lr(lr: ScalarOrSchedule, flip_sign=True):
     return transform.scale(sign * lr)
 
 
+# pylint: disable=too-many-arguments
 def adam(
     lr: ScalarOrSchedule,
     b1: float = 0.9,
@@ -148,6 +151,7 @@ def sgd(
     )
 
 
+# pylint: disable=too-many-arguments
 def rmsprop(
     lr: ScalarOrSchedule,
     decay: float = 0.9,
@@ -159,10 +163,10 @@ def rmsprop(
 ) -> base.GradientTransformation:
     """The functional version of the RMSProp optimizer.
 
-    RMSProp is an SGD variant with learning rate adaptation. The *learning rate* used for each weight
-    is scaled by a suitable estimate of the magnitude of the gradients on previous steps. Several
-    variants of RMSProp can be found in the literature. This alias provides an easy to configure
-    RMSProp optimizer that can be used to switch between several of these variants.
+    RMSProp is an SGD variant with learning rate adaptation. The *learning rate* used for each
+    weight is scaled by a suitable estimate of the magnitude of the gradients on previous steps.
+    Several variants of RMSProp can be found in the literature. This alias provides an easy to
+    configure RMSProp optimizer that can be used to switch between several of these variants.
 
     References:
         - Tieleman and Hinton, 2012: http://www.cs.toronto.edu/~hinton/coursera/lecture6/lec6.pdf
@@ -198,13 +202,13 @@ def rmsprop(
                 else base.identity()
             ),
         )
-    else:
-        return combine.chain(
-            transform.scale_by_rms(decay=decay, eps=eps, initial_scale=initial_scale),
-            _scale_by_lr(lr),
-            (
-                transform.trace(decay=momentum, nesterov=nesterov)
-                if momentum is not None
-                else base.identity()
-            ),
-        )
+
+    return combine.chain(
+        transform.scale_by_rms(decay=decay, eps=eps, initial_scale=initial_scale),
+        _scale_by_lr(lr),
+        (
+            transform.trace(decay=momentum, nesterov=nesterov)
+            if momentum is not None
+            else base.identity()
+        ),
+    )

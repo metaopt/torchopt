@@ -30,13 +30,15 @@
 # limitations under the License.
 # ==============================================================================
 
-from typing import List, NamedTuple, Tuple, Union
+# pylint: disable=invalid-name
+
+from typing import NamedTuple, Tuple
 
 import jax
 import torch
 
 from torchopt._src import base
-from torchopt._src.typing import ScalarOrSchedule, Schedule
+from torchopt._src.typing import Schedule
 
 
 ScaleState = base.EmptyState
@@ -257,7 +259,7 @@ def scale_by_accelerated_adam(
     Returns:
         An (init_fn, update_fn) tuple.
     """
-    from torchopt._src.accelerated_op import AdamOp
+    from torchopt._src.accelerated_op import AdamOp  # pylint: disable=import-outside-toplevel
 
     def init_fn(params):
         mu = jax.tree_map(  # First moment
@@ -316,13 +318,13 @@ def trace(
     def init_fn(params):
         if decay == 0.0:
             return TraceState(trace=())
-        else:
-            return TraceState(
-                trace=jax.tree_map(
-                    lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad),
-                    params,
-                )
+
+        return TraceState(
+            trace=jax.tree_map(
+                lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad),
+                params,
             )
+        )
 
     def update_fn(updates, state, inplace=True):
         if nesterov:

@@ -28,6 +28,7 @@ class MetaAdam(MetaOptimizer):
         - The classic Adam optimizer: :class:`torchopt.Adam`.
     """
 
+    # pylint: disable=too-many-arguments
     def __init__(
         self,
         net: nn.Module,

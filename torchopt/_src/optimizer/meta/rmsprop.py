@@ -30,6 +30,7 @@ class MetaRMSProp(MetaOptimizer):
         - The classic RMSProp optimizer: :class:`torchopt.RMSProp`.
     """
 
+    # pylint: disable=too-many-arguments
     def __init__(
         self,
         net: nn.Module,

@@ -30,6 +30,7 @@ class MetaSGD(MetaOptimizer):
         - The classic SGD optimizer: :class:`torchopt.SGD`.
     """
 
+    # pylint: disable=too-many-arguments
     def __init__(
         self,
         net: nn.Module,

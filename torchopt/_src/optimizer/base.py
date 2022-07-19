@@ -58,19 +58,17 @@ class Optimizer:
 
                 def f(p):
                     p.grad = None
-                    return None
 
             else:
 
                 def f(p):
                     if p.grad is None:
-                        return None
+                        return
                     if p.grad.grad_fn is not None:
                         p.grad.detach_()
                     else:
                         p.grad.requires_grad_(False)
                     p.grad.zero_()
-                    return None
 
             jax.tree_map(f, group)
 

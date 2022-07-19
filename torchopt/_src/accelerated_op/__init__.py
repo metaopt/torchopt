@@ -32,5 +32,5 @@ def accelerated_op_available(devices=None):
             updates = torch.tensor(1.0, device=device)
             op(updates, updates, updates, 1)
         return True
-    except BaseException:
+    except BaseException:  # pylint: disable=broad-except
         return False

@@ -59,6 +59,10 @@ jobs:
         run: |
           make flake8
 
+      - name: pylint
+        run: |
+          make pylint
+
       - name: isort and black
         run: |
           make py-format

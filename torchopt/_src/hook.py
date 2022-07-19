@@ -36,7 +36,7 @@ def register_hook(hook) -> GradientTransformation:
     def init_fn(_):
         return EmptyState()
 
-    def update_fn(updates, state, inplace=False):
+    def update_fn(updates, state, inplace=False):  # pylint: disable=unused-argument
         def f(g):
             return g.register_hook(hook) if g is not None else None
 

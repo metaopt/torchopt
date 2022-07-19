@@ -21,7 +21,7 @@ from torchopt._src.base import GradientTransformation
 from torchopt._src.update import apply_updates
 
 
-class MetaOptimizer(object):
+class MetaOptimizer:
     """The base class for high-level differentiable optimizers."""
 
     def __init__(self, net: nn.Module, impl: GradientTransformation):
@@ -52,7 +52,7 @@ class MetaOptimizer(object):
         Args:
             loss (torch.Tensor): The loss that is used to compute the gradients to the network
                 parameters.
-        """
+        """  # pylint: disable=line-too-long
         # step parameter only
         for idx, (state, param_containers) in enumerate(
             zip(self.state_groups, self.param_containers_groups)
@@ -69,6 +69,7 @@ class MetaOptimizer(object):
 
     def add_param_group(self, net):
         """Add a param group to the optimizer's :attr:`state_groups`."""
+        # pylint: disable=import-outside-toplevel,cyclic-import
         from torchopt._src.utils import _extract_container
 
         net_container = _extract_container(net, with_buffer=False)

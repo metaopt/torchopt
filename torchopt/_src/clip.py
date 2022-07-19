@@ -66,9 +66,9 @@ def clip_grad_norm(
                     f'gradients by the non-finite norm anyway, set `error_if_nonfinite=False`'
                 )
         clip_coef = max_norm / (float(total_norm) + 1e-6)
-        # Note: multiplying by the clamped coef is redundant when the coef is clamped to 1, but doing so
-        # avoids a `if clip_coef < 1:` conditional which can require a CPU <=> device synchronization
-        # when the gradients do not reside in CPU memory.
+        # Note: multiplying by the clamped coef is redundant when the coef is clamped to 1, but
+        # doing so avoids a `if clip_coef < 1:` conditional which can require a CPU <=> device
+        # synchronization when the gradients do not reside in CPU memory.
         clip_coef_clamped = min(clip_coef, 1.0)
         if inplace:
 
