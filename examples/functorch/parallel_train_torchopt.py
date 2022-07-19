@@ -26,7 +26,7 @@ from functorch import combine_state_for_ensemble, grad_and_value, make_functiona
 import torchopt
 
 
-def make_spirals(n_samples, noise_std=0., rotations=1.):
+def make_spirals(n_samples, noise_std=0.0, rotations=1.0):
     ts = torch.linspace(0, 1, n_samples, device=DEVICE)
     rs = ts**0.5
     thetas = rs * rotations * 2 * math.pi
@@ -40,7 +40,6 @@ def make_spirals(n_samples, noise_std=0., rotations=1.):
 
 
 class MLPClassifier(nn.Module):
-
     def __init__(self, hidden_dim=32, n_classes=2):
         super().__init__()
         self.hidden_dim = hidden_dim
@@ -58,7 +57,6 @@ class MLPClassifier(nn.Module):
 
 
 class Net(nn.Module):
-
     def __init__(self, dim):
         super().__init__()
         self.fc = nn.Linear(dim, 1, bias=True)
@@ -106,11 +104,11 @@ def init_fn(model_idx):
     # print(len(models))
     # print(models)
     # _, weights, _ = combine_state_for_ensemble(models)
-    #print(weights)
+    # print(weights)
     _, weights = make_functional(Net(4).to(DEVICE))
     opt_state = optimizer.init(weights)
     print(weights)
-    #print(opt_state)
+    # print(opt_state)
     print(opt_state)
     return weights, opt_state
 
@@ -139,11 +137,11 @@ if __name__ == '__main__':
 
     # GOAL: Demonstrate that it is possible to use eager-mode vmap
     # to parallelize training over models.
-    parser = argparse.ArgumentParser(description="Functorch Ensembled Models with TorchOpt")
+    parser = argparse.ArgumentParser(description='Functorch Ensembled Models with TorchOpt')
     parser.add_argument(
-        "--device",
+        '--device',
         type=str,
-        default="cpu",
+        default='cpu',
         help="CPU or GPU ID for this process (default: 'cpu')",
     )
     args = parser.parse_args()

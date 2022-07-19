@@ -36,11 +36,11 @@ import torch.nn.functional as F
 from functorch import combine_state_for_ensemble, grad_and_value, make_functional, vmap
 
 
-parser = argparse.ArgumentParser(description="Functorch Ensembled Models")
+parser = argparse.ArgumentParser(description='Functorch Ensembled Models')
 parser.add_argument(
-    "--device",
+    '--device',
     type=str,
-    default="cpu",
+    default='cpu',
     help="CPU or GPU ID for this process (default: 'cpu')",
 )
 args = parser.parse_args()
@@ -50,7 +50,7 @@ DEVICE = args.device
 # Step 1: Make some spirals
 
 
-def make_spirals(n_samples, noise_std=0., rotations=1.):
+def make_spirals(n_samples, noise_std=0.0, rotations=1.0):
     ts = torch.linspace(0, 1, n_samples, device=DEVICE)
     rs = ts**0.5
     thetas = rs * rotations * 2 * math.pi
@@ -68,7 +68,6 @@ points, labels = make_spirals(100, noise_std=0.05)
 
 # Step 2: Define two-layer MLP and loss function
 class MLPClassifier(nn.Module):
-
     def __init__(self, hidden_dim=32, n_classes=2):
         super().__init__()
         self.hidden_dim = hidden_dim
@@ -94,7 +93,6 @@ func_model, weights = make_functional(MLPClassifier().to(DEVICE))
 
 
 def train_step_fn(weights, batch, targets, lr=0.2):
-
     def compute_loss(weights, batch, targets):
         output = func_model(weights, batch)
         loss = loss_fn(output, targets)
