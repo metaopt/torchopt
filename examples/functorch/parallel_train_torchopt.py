@@ -16,7 +16,7 @@
 import argparse
 import math
 from collections import namedtuple
-from typing import Any
+from typing import Any, NamedTuple
 
 import torch
 import torch.nn as nn
@@ -25,9 +25,11 @@ from functorch import combine_state_for_ensemble, grad_and_value, make_functiona
 
 import torchopt
 
+
 class TrainingState(NamedTuple):
     params: Any
     opt_state: Any
+
 
 def make_spirals(n_samples, noise_std=0., rotations=1.):
     ts = torch.linspace(0, 1, n_samples, device=DEVICE)
@@ -59,7 +61,9 @@ class MLPClassifier(nn.Module):
         x = F.log_softmax(x, -1)
         return x
 
-def train_step_fn(params, opt_state):
+
+def train_step_fn(training_state, batch, targets):
+    params, opt_state = training_state
 
     def compute_loss(params, batch, targets):
         output = func_model(params, batch)
@@ -77,20 +81,9 @@ def train_step_fn(params, opt_state):
 
     updates, new_opt_state = optimizer.update(grads, opt_state)
     new_params = torchopt.apply_updates(params, updates)
-    print()
-    print("params")
-    print(params)
-    print()
-
-    print()
-    print("updates")
-    print(updates)
-    print()
-
     # Default `inplace=True` gave me an error
-    params = TorchOpt.apply_updates(params, updates, inplace=False)
-
-    return loss, (new_params, new_opt_state) 
+    # params = torchopt.apply_updates(params, updates, inplace=False)
+    return loss, (new_params, new_opt_state)
 
 
 def step4():
@@ -108,11 +101,11 @@ def init_fn(num_models):
 
 
 def step6():
-    parallel_init_fn = vmap(init_fn, )
+    parallel_init_fn = vmap(init_fn,)
     parallel_train_step_fn = vmap(train_step_fn, in_dims=(0, None, None))
     params, opt_states = parallel_init_fn(torch.ones(2,))
     for i in range(2000):
-        params, opt_states = parallel_train_step_fn(params, opt_states)
+        loss, (params, opt_states) = parallel_train_step_fn((params, opt_states), points, labels)
         if i % 200 == 0:
             print(loss)
 
@@ -154,7 +147,7 @@ if __name__ == '__main__':
     step4()
     # Step 5: We're ready for multiple models. Let's define an init_fn
     # that, given a number of models, returns to us all of the weights.
-
+    optimizer = torchopt.adam(lr=0.2)
     # Step 6: Now, can we try multiple models at the same time?
     # The answer is: yes! `loss` is a 2-tuple, and we can see that the value keeps
     # on decreasing
@@ -166,5 +159,3 @@ if __name__ == '__main__':
     # exactly the same data in each training step!
     # Because the goal of this doc is to show that we can use eager-mode vmap to
     # achieve similar things as JAX, the rest of this is left as an exercise to the reader.
-
-
