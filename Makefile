@@ -1,7 +1,7 @@
 print-%  : ; @echo $* = $($*)
 PROJECT_NAME   = torchopt
 COPYRIGHT      = "MetaOPT Team. All Rights Reserved."
-PROJECT_PATH   = ${PROJECT_NAME}
+PROJECT_PATH   = $(PROJECT_NAME)
 SHELL          = /bin/bash
 SOURCE_FOLDERS = $(PROJECT_PATH) examples include src tests docs
 PYTHON_FILES   = $(shell find $(SOURCE_FOLDERS) -type f -name "*.py")
@@ -41,7 +41,10 @@ docs-install:
 	$(call check_pip_install,pydocstyle)
 	$(call check_pip_install,doc8)
 	$(call check_pip_install,sphinx)
-	$(call check_pip_install,sphinx_rtd_theme)
+	$(call check_pip_install,sphinx-rtd-theme)
+	$(call check_pip_install,sphinx-autoapi)
+	$(call check_pip_install,sphinx-autobuild)
+	$(call check_pip_install,sphinx-copybutton)
 	$(call check_pip_install,sphinxcontrib-katex)
 	$(call check_pip_install,sphinxcontrib-bibtex)
 	$(call check_pip_install,sphinx-autodoc-typehints)
@@ -72,7 +75,7 @@ addlicense-install: go-install
 # Tests
 
 pytest: pytest-install
-	cd tests && $(PYTHON) -m pytest unit --cov ${PROJECT_PATH} --durations 0 -v --cov-report term-missing --color=yes
+	cd tests && $(PYTHON) -m pytest unit --cov $(PROJECT_PATH) --durations 0 -v --cov-report term-missing --color=yes
 
 test: pytest
 
@@ -86,7 +89,7 @@ py-format: py-format-install
 	$(PYTHON) -m black --safe -l 100 -t py37 -S --check $(PYTHON_FILES)
 
 mypy: mypy-install
-	$(PYTHON) -m mypy $(PROJECT_NAME)
+	$(PYTHON) -m mypy $(PROJECT_PATH)
 
 # C++ linters
 
@@ -102,10 +105,10 @@ addlicense: addlicense-install
 	addlicense -c $(COPYRIGHT) -l apache -y 2022 -check $(SOURCE_FOLDERS)
 
 docstyle: docs-install
-	$(PYTHON) -m pydocstyle $(PROJECT_NAME) && doc8 docs && make -C docs html SPHINXOPTS="-W"
+	$(PYTHON) -m pydocstyle $(PROJECT_PATH) && doc8 docs && make -C docs html SPHINXOPTS="-W"
 
 docs: docs-install
-	make -C docs html && cd docs/_build/html && $(PYTHON) -m http.server
+	$(PYTHON) -m sphinx_autobuild --watch $(PROJECT_PATH) --open-browser docs/source docs/build
 
 spelling: docs-install
 	make -C docs spelling SPHINXOPTS="-W"

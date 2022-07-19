@@ -28,7 +28,9 @@ class AdamOp(object):
 
         @staticmethod
         def jvp(ctx: Any, *grad_inputs: Any) -> Any:
-            """Defines a formula for differentiating the operation with forward mode automatic differentiation."""
+            """Defines a formula for differentiating the operation with forward mode automatic
+            differentiation.
+            """
             pass
 
         @staticmethod
@@ -42,7 +44,9 @@ class AdamOp(object):
 
         @staticmethod
         def backward(ctx: Any, *args: Any) -> Any:
-            """Defines a formula for differentiating the operation with backward mode automatic differentiation (alias to the vjp function)."""
+            """Defines a formula for differentiating the operation with backward mode automatic
+            differentiation (alias to the :meth:`vjp` method).
+            """
             dmu = args[0]
             updates, mu = ctx.saved_tensors
             b1 = ctx.b1

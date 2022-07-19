@@ -15,12 +15,20 @@
  */
 
 body {
-    font-family: "Lato","proxima-nova","Helvetica Neue",Arial,sans-serif;
+    font-family: "Lato", "proxima-nova", "Helvetica Neue", Arial, sans-serif;
 }
 
 /* Default header fonts are ugly */
-h1, h2, .rst-content .toctree-wrapper p.caption, h3, h4, h5, h6, legend, p.caption {
-    font-family: "Lato","proxima-nova","Helvetica Neue",Arial,sans-serif;
+h1,
+h2,
+.rst-content .toctree-wrapper p.caption,
+h3,
+h4,
+h5,
+h6,
+legend,
+p.caption {
+    font-family: "Lato", "proxima-nova", "Helvetica Neue", Arial, sans-serif;
 }
 
 /* Use white for docs background */
@@ -32,7 +40,8 @@ h1, h2, .rst-content .toctree-wrapper p.caption, h3, h4, h5, h6, legend, p.capti
     max-width: 1200px !important;
 }
 
-.wy-nav-content-wrap, .wy-menu li.current > a  {
+.wy-nav-content-wrap,
+.wy-menu li.current>a {
     background-color: #fff;
 }
 
@@ -61,7 +70,7 @@ h1, h2, .rst-content .toctree-wrapper p.caption, h3, h4, h5, h6, legend, p.capti
     color: #333;
 }
 
-.wy-nav-top > a {
+.wy-nav-top>a {
     display: none;
 }
 
@@ -82,12 +91,18 @@ h1, h2, .rst-content .toctree-wrapper p.caption, h3, h4, h5, h6, legend, p.capti
 }
 
 /* Use our red for literals (it's very similar to the original color) */
-.rst-content tt.literal, .rst-content tt.literal, .rst-content code.literal {
+.rst-content tt.literal,
+.rst-content tt.literal,
+.rst-content code.literal {
     color: #4692BC;
 }
 
-.rst-content tt.xref, a .rst-content tt, .rst-content tt.xref,
-.rst-content code.xref, a .rst-content tt, a .rst-content code {
+.rst-content tt.xref,
+a .rst-content tt,
+.rst-content tt.xref,
+.rst-content code.xref,
+a .rst-content tt,
+a .rst-content code {
     color: #404040;
 }
 
@@ -120,7 +135,8 @@ footer {
 }
 
 footer .rst-footer-buttons {
-    font-size: 125%; /* revert footer settings - 1/80% = 125% */
+    font-size: 125%;
+    /* revert footer settings - 1/80% = 125% */
 }
 
 footer p {

@@ -30,7 +30,7 @@ from PIL import Image
 
 class Omniglot(data.Dataset):
     """
-    The items are (filename,category). The index of all the categories can be found in self.idx_classes
+    The items are ``(filename, category)``. The index of all the categories can be found in :property:`idx_classes`
     Args:
     - root: the directory where the dataset will be stored
     - transform: how to transform the input
