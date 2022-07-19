@@ -16,6 +16,7 @@
 import argparse
 import math
 from collections import namedtuple
+from typing import Any
 
 import torch
 import torch.nn as nn
@@ -24,6 +25,9 @@ from functorch import combine_state_for_ensemble, grad_and_value, make_functiona
 
 import torchopt
 
+class TrainingState(NamedTuple):
+    params: Any
+    opt_state: Any
 
 def make_spirals(n_samples, noise_std=0., rotations=1.):
     ts = torch.linspace(0, 1, n_samples, device=DEVICE)
@@ -55,23 +59,38 @@ class MLPClassifier(nn.Module):
         x = F.log_softmax(x, -1)
         return x
 
+def train_step_fn(params, opt_state):
 
-def train_step_fn(weights, batch, targets, lr=0.2):
-
-    def compute_loss(weights, batch, targets):
-        output = func_model(weights, batch)
+    def compute_loss(params, batch, targets):
+        output = func_model(params, batch)
         loss = loss_fn(output, targets)
         return loss
 
-    grad_weights, loss = grad_and_value(compute_loss)(weights, batch, targets)
+    grads, loss = grad_and_value(compute_loss)(weights, batch, targets)
 
     # functional optimizer API is here now
-    new_weights = []
-    with torch.no_grad():
-        for grad_weight, weight in zip(grad_weights, weights):
-            new_weights.append(weight - grad_weight * lr)
+    # new_opt_state0 = opt_state[0]._asdict()
+    # for k, v in new_opt_state0.items():
+    #     if type(v) is tuple:
+    #         new_opt_state0[k] = tuple(v_el.clone() for v_el in v)
+    # new_opt_state = (opt_state[0]._make(new_opt_state0.values()), opt_state[1])
 
-    return loss, new_weights
+    updates, new_opt_state = optimizer.update(grads, opt_state)
+    new_params = torchopt.apply_updates(params, updates)
+    print()
+    print("params")
+    print(params)
+    print()
+
+    print()
+    print("updates")
+    print(updates)
+    print()
+
+    # Default `inplace=True` gave me an error
+    params = TorchOpt.apply_updates(params, updates, inplace=False)
+
+    return loss, (new_params, new_opt_state) 
 
 
 def step4():
@@ -89,10 +108,11 @@ def init_fn(num_models):
 
 
 def step6():
+    parallel_init_fn = vmap(init_fn, )
     parallel_train_step_fn = vmap(train_step_fn, in_dims=(0, None, None))
-    batched_weights = init_fn(num_models=2)
+    params, opt_states = parallel_init_fn(torch.ones(2,))
     for i in range(2000):
-        loss, batched_weights = parallel_train_step_fn(batched_weights, points, labels)
+        params, opt_states = parallel_train_step_fn(params, opt_states)
         if i % 200 == 0:
             print(loss)
 
@@ -147,139 +167,4 @@ if __name__ == '__main__':
     # Because the goal of this doc is to show that we can use eager-mode vmap to
     # achieve similar things as JAX, the rest of this is left as an exercise to the reader.
 
-    # cuda_is_avail = torch.cuda.is_available()
-    # print(f"cuda_is_avail: {cuda_is_avail}")
-    # DEVICE = "cuda" if cuda_is_avail else "cpu"
 
-    # learning_rate = 1.
-    # batch_size = 1
-    # dim = 3
-    # # Ignore `params` since we'll make them in init_fn
-    # func, _ = make_functional(Net(dim).to(DEVICE))
-    # # Fairly certain use_accelerated_op works in my real code, but not this toy example for some reason
-    # # optimizer = TorchOpt.adam(learning_rate, use_accelerated_op=cuda_is_avail)
-    # optimizer = TorchOpt.adam(learning_rate)
-
-    # class Net(nn.Module):
-    #     def __init__(self, dim):
-    #         super().__init__()
-    #         self.fc = nn.Linear(dim, 1, bias=True)
-    #         nn.init.ones_(self.fc.weight)
-    #         nn.init.zeros_(self.fc.bias)
-
-    #     def forward(self, x):
-    #         return self.fc(x)
-
-    # # We don't really need parallelized init like this, but it might be the easiest way just for
-    # # matching the data format required for the par train step
-    # def init_fn(dummy_parallel):
-    #     # Ignore `func` since all of them are identical. Just use `func` from earlier instead
-    #     _, params = make_functional(Net(dim).to(DEVICE))
-
-    #     # print(params)
-    #     opt_state = optimizer.init(params)
-    #     print("opt_state before add tensor to count")
-    #     print(opt_state)
-    #     print()
-
-    #     # TorchOpt doesn't give tensor types for `count` -- add that here:
-    #     opt_state = (
-    #         opt_state[0]._replace(
-    #                 # Doesn't work -- possible this with some modification could be best
-    #                 # count=transpose_stack(opt_state[0].count)
-
-    #                 # Not clear if we want [el] or even [[el]] here (even if not ultimately written
-    #                 # quite like that), which IIRC worked fine too so far
-    #                 count=tuple(torch.tensor(el).to(DEVICE) for el in opt_state[0].count)
-    #             ),
-    #         opt_state[1]
-    #     )
-
-    #     print("opt_state after add tensor to count")
-    #     print(opt_state)
-    #     print()
-
-    #     return params, opt_state
-
-    # xs = 2 * torch.ones(batch_size, dim).to(DEVICE)
-    # ys = torch.ones(batch_size).to(DEVICE)
-
-    # def train_step_fn(params, opt_state):
-    #     def compute_loss(params):
-    #         pred = func(params, xs)
-    #         loss = ((pred - ys) ** 2).sum()
-    #         print("loss", loss)
-    #         return loss
-
-    #     # grads = torch.autograd.grad(loss, params)
-    #     grads, loss = functorch.grad_and_value(compute_loss)(params)
-    #     # print(grads)
-    #     # print(opt_state)
-
-    #     # print()
-    #     # print("opt_state before clone")
-    #     # print(opt_state)
-
-    #     # Clone tensors to avoid error (TODO can surely avoid this better)
-    #     new_opt_state0 = opt_state[0]._asdict()
-    #     for k, v in new_opt_state0.items():
-    #         if type(v) is tuple:
-    #             new_opt_state0[k] = tuple(v_el.clone() for v_el in v)
-    #     new_opt_state = (opt_state[0]._make(new_opt_state0.values()), opt_state[1])
-
-    #     # # If we can't get rid of clone above, then we should maybe add an assert of equality
-    #     # # or torch.allclose() or sth here. IIRC plain assert == worked outside of vmap, but not in vmap.
-    #     # #
-    #     # print()
-    #     # print("opt_state after clone")
-    #     # print(new_opt_state)
-    #     # print()
-
-    #     opt_state = new_opt_state
-
-    #     print()
-    #     print("opt_state:")
-    #     print(opt_state)
-    #     print()
-    #     print()
-    #     print("grads:")
-    #     print(grads)
-    #     print()
-
-    #     with torch.no_grad():
-    #         updates, opt_state = optimizer.update(grads, opt_state)
-
-    #         print()
-    #         print("params")
-    #         print(params)
-    #         print()
-
-    #         print()
-    #         print("updates")
-    #         print(updates)
-    #         print()
-
-    #         # Default `inplace=True` gave me an error
-    #         params = TorchOpt.apply_updates(params, updates, inplace=False)
-    #         # print(params)
-
-    #     return params, opt_state
-
-    # # NOTE Any other `randomness` setting threw a bug. Real code can't use this as written, bc gives
-    # # identical inits for each net in the ensemble
-    # parallel_init_fn = functorch.vmap(init_fn, randomness='same')
-    # parallel_train_step_fn = functorch.vmap(train_step_fn)
-
-    # params, opt_states = parallel_init_fn(torch.ones(2,))
-
-    # print("opt_states[0] before par train step fn")
-    # print(opt_states[0])
-    # print()
-    # print([len(t) for t in opt_states[0]])
-    # print()
-    # for tup in opt_states[0]:
-    #     print(len(tup))
-    #     print([tns.shape for tns in tup])
-    # params, opt_states = parallel_train_step_fn(params, opt_states)
-
-    # print(params)
