@@ -38,7 +38,7 @@ import torchopt
 
 
 HERE = pathlib.Path(__file__).absolute().parent
-PROJECT_ROOT = HERE.parent
+PROJECT_ROOT = HERE.parent.parent
 
 
 def get_version() -> str:

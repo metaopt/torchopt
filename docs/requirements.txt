@@ -5,8 +5,11 @@ functorch
 
 --requirement ../requirements.txt
 
-sphinx
-sphinx_rtd_theme
+sphinx >= 5.0
+sphinx-autoapi
+sphinx-autobuild
+sphinx-copybutton
+sphinx-rtd-theme
 sphinxcontrib-katex
 sphinxcontrib-bibtex
 sphinx-autodoc-typehints

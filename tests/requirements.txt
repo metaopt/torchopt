@@ -9,7 +9,7 @@ pytest
 pytest-cov
 pytest-xdist
 isort
-yapf
+black >= 22.6.0
 mypy
 flake8
 flake8-bugbear
