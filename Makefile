@@ -4,7 +4,7 @@ COPYRIGHT      = "MetaOPT Team. All Rights Reserved."
 PROJECT_PATH   = ${PROJECT_NAME}
 SHELL          = /bin/bash
 SOURCE_FOLDERS = $(PROJECT_PATH) examples include src tests docs
-PYTHON_FILES   = $(shell find $(SOURCE_FOLDERS) -type f -name "*.py" -o -name "*.pyi")
+PYTHON_FILES   = $(shell find $(SOURCE_FOLDERS) -type f -name "*.py")
 CXX_FILES      = $(shell find $(SOURCE_FOLDERS) -type f -name "*.h" -o -name "*.cpp" -o -name "*.cuh" -o -name "*.cu")
 COMMIT_HASH    = $(shell git log -1 --format=%h)
 PATH           := $(HOME)/go/bin:$(PATH)
