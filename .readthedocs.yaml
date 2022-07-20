@@ -9,7 +9,7 @@ build:
   tools:
     python: "miniconda3-4.7"
 conda:
-  environment: conda-recipe.yaml
+  environment: docs/env.yml
 formats:
   - pdf
 sphinx:
