@@ -64,6 +64,10 @@ jobs:
           echo "${{ steps.py39.outputs.python-path }}" >> .python-paths
           echo "${{ steps.py310.outputs.python-path }}" >> .python-paths
 
+      - name: Setup compilers
+        run: |
+          sudo apt update && sudo apt install -y gcc-6 gcc-6-multilib g++-6 g++-6-multilib
+
       - name: Setup CUDA Toolkit
         uses: Jimver/cuda-toolkit@v0.2.7
         id: cuda-toolkit
@@ -79,6 +83,7 @@ jobs:
       - name: Build sdist and wheels
         run: |
           DEFAULT_PYTHON="$(head -n 1 .python-paths)"
+          export CC="gcc-6" CXX="g++-6"
 
           while read -r PYTHON; do
             echo "Building wheel with Python: ${PYTHON} ($("${PYTHON}" --version))"
@@ -120,6 +125,16 @@ jobs:
             "${PYTHON}" -m pip uninstall torchopt -y
             popd
           done < .python-paths
+
+      - name: Audit Wheels
+        env:
+          TWINE_USERNAME: "__token__"
+          TWINE_PASSWORD: ${{ secrets.TESTPYPI_UPLOAD_TOKEN }}
+        run: |
+          PYTHON="$(head -n 1 .python-paths)"
+          PYVER="cp$("${PYTHON}" --version | cut -d ' ' -f2 | cut -d '.' -f-2 | tr -d '.')"
+          "${PYTHON}" -m pip install --upgrade auditwheel
+          "${PYTHON}" -m auditwheel show dist/torchopt-*-${PYVER}-*.whl
 
       - name: Publish to PyPI Test
         env:
