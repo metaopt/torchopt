@@ -1,0 +1,21 @@
+--extra-index-url https://download.pytorch.org/whl/cu116
+torch == 1.12
+torchvision
+functorch
+
+--requirement ../requirements.txt
+
+sphinx >= 5.0
+sphinx-autoapi
+sphinx-autobuild
+sphinx-copybutton
+sphinx-rtd-theme
+sphinxcontrib-katex
+sphinxcontrib-bibtex
+sphinx-autodoc-typehints
+IPython
+ipykernel
+pandoc
+myst_nb
+docutils
+matplotlib

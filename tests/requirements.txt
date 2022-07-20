@@ -1,0 +1,21 @@
+--extra-index-url https://download.pytorch.org/whl/cu116
+torch == 1.12
+torchvision
+functorch
+
+--requirement ../requirements.txt
+
+pytest
+pytest-cov
+pytest-xdist
+isort
+black >= 22.6.0
+pylint
+mypy
+flake8
+flake8-bugbear
+doc8
+pydocstyle
+pyenchant
+cpplint
+pre-commit

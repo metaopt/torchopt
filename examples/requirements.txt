@@ -1,0 +1,13 @@
+--extra-index-url https://download.pytorch.org/whl/cu116
+torch == 1.12
+torchvision
+functorch
+
+--requirement ../requirements.txt
+
+gym < 1.0.0.a0
+matplotlib
+pandas
+seaborn
+torchviz
+pillow
