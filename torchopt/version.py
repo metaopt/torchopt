@@ -14,4 +14,4 @@
 # ==============================================================================
 """TorchOpt: a high-performance optimizer library built upon PyTorch."""
 
-__version__ = '0.4.1'
+__version__ = '0.4.2a0'
