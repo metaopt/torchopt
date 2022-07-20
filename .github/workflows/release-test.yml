@@ -64,8 +64,8 @@ jobs:
       - name: Build sdist and wheels
         run: |
           DEFAULT_PYTHON="$(head -n 1 .python-paths)"
+
           while read -r PYTHON; do
-            [[ -z "${PYTHON}" ]] && continue
             echo "Building wheel with Python: ${PYTHON} ($("${PYTHON}" --version))"
             "${PYTHON}" -m pip install --upgrade pip setuptools wheel build
             if [[ "${PYTHON}" == "${DEFAULT_PYTHON}" ]]; then
@@ -75,11 +75,20 @@ jobs:
             fi
           done < .python-paths
 
+      - name: List built sdist and wheels
+        run: |
+          if [[ -n "$(find dist -maxdepth 0 -not -empty -print 2>/dev/null)" ]]; then
+            echo "Built sdist and wheels:"
+            find dist -mindepth 1 | sort -V
+          else
+            echo "No sdist and wheels are built."
+            exit 1
+          fi
+
       - name: Test sdist and wheels
         run: |
           DEFAULT_PYTHON="$(head -n 1 .python-paths)"
           while read -r PYTHON; do
-            [[ -z "${PYTHON}" ]] && continue
             PYVER="cp$("${PYTHON}" --version | cut -d ' ' -f2 | cut -d '.' -f-2 | tr -d '.')"
             mkdir -p "temp-${PYVER}"
             pushd "temp-${PYVER}"
@@ -91,7 +100,7 @@ jobs:
             fi
             echo "Testing wheel with Python: ${PYTHON} (${PYVER})"
             "${PYTHON}" -m pip uninstall torchopt -y
-            "${PYTHON}" -m pip install ../dist/torchopt-${PYVER}-*.whl
+            "${PYTHON}" -m pip install ../dist/torchopt-*-${PYVER}-*.whl
             "${PYTHON}" -c 'import torchopt'
             "${PYTHON}" -m pip uninstall torchopt -y
             popd
