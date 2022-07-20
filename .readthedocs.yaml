@@ -8,6 +8,9 @@ build:
   os: "ubuntu-20.04"
   tools:
     python: "miniconda3-4.7"
+  jobs:
+    pre_create_environment:
+      - export CONDA_OVERRIDE_CUDA=11.7
 conda:
   environment: docs/env.yml
 formats:
