@@ -25,7 +25,7 @@ dependencies:
       - torchviz
       - sphinxcontrib-katex  # for documentation
   - jax
-  - jaxlib >= 0.3=*cuda*
+  - jaxlib >= 0.3
   - optax
   - tensorboard
   - wandb
