@@ -88,6 +88,27 @@ jobs:
             fi
           done <<< "${PYTHON_EXECUTABLES}"
 
+      - name: Test sdist and wheels
+        run: |
+          while IFS='' read -rd':' PYTHON || [[ -n "${PYTHON}" ]]; do
+            [[ -z "${PYTHON}" ]] && continue
+            PYVER="cp$("${PYTHON}" --version | cut -d ' ' -f2 | cut -d '.' -f-2 | tr -d '.')"
+            mkdir -p "temp-${PYVER}"
+            pushd "temp-${PYVER}"
+            if [[ "${PYTHON}" == "${DEFAULT_PYTHON}" ]]; then
+              echo "Testing sdist with Python: ${PYTHON} (${PYVER})"
+              "${PYTHON}" -m pip uninstall torchopt -y
+              "${PYTHON}" -m pip install ../dist/torchopt-*.tar.gz
+              "${PYTHON}" -c 'import torchopt'
+            fi
+            echo "Testing wheel with Python: ${PYTHON} (${PYVER})"
+            "${PYTHON}" -m pip uninstall torchopt -y
+            "${PYTHON}" -m pip install ../dist/torchopt-${PYVER}-*.whl
+            "${PYTHON}" -c 'import torchopt'
+            "${PYTHON}" -m pip uninstall torchopt -y
+            popd
+          done <<< "${PYTHON_EXECUTABLES}"
+
       - name: Publish to PyPI
         env:
           TWINE_USERNAME: "__token__"
