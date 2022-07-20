@@ -77,6 +77,7 @@ TorchOpt is a work by
 * Jie Ren (`JieRen98 <https://github.com/JieRen98>`_)
 * Xidong Feng (`waterhorse1 <https://github.com/waterhorse1>`_)
 * Bo Liu (`Benjamin-eecs <https://github.com/Benjamin-eecs>`_)
+* Xuehai Pan (`XuehaiPan <https://github.com/XuehaiPan>`_)
 * Luo Mai (`luomai <https://luomai.github.io/>`_)
 * Yaodong Yang (`PKU-YYang <https://www.yangyaodong.com/>`_).
 

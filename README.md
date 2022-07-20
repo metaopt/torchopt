@@ -251,7 +251,7 @@ See [CHANGELOG.md](CHANGELOG.md).
 
 ## The Team
 
-TorchOpt is a work by Jie Ren, Xidong Feng, [Bo Liu](https://github.com/Benjamin-eecs/), [Luo Mai](https://luomai.github.io/) and [Yaodong Yang](https://www.yangyaodong.com/).
+TorchOpt is a work by Jie Ren, Xidong Feng, [Bo Liu](https://github.com/Benjamin-eecs), [Xuehai Pan](https://github.com/XuehaiPan), [Luo Mai](https://luomai.github.io/) and [Yaodong Yang](https://www.yangyaodong.com/).
 
 ## Citing TorchOpt
 
@@ -259,7 +259,7 @@ If you find TorchOpt useful, please cite it in your publications.
 
 ```bibtex
 @software{TorchOpt,
-  author = {Jie Ren and Xidong Feng and Bo Liu and Luo Mai and Yaodong Yang},
+  author = {Jie Ren and Xidong Feng and Bo Liu and Xuehai Pan and Luo Mai and Yaodong Yang},
   title = {TorchOpt},
   year = {2022},
   publisher = {GitHub},
