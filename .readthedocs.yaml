@@ -8,7 +8,6 @@ build:
   tools:
     python: "miniconda3-4.7"
   commands:
-    pre_create_environment:
       - CONDA_OVERRIDE_CUDA=11.7 conda env create --file docs/env.yml
       - conda activate torchopt
       - pip install -e .
