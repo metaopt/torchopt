@@ -1,8 +1,0 @@
-.vscode
-.idea
-build
-__pycache__
-TorchOpt/**/*.so
-TorchOpt.egg-info
-dist
-**/.ipynb_checkpoints/*
