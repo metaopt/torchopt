@@ -2,17 +2,22 @@
 # See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
 
 
-
 version: 2
 build:
   os: "ubuntu-20.04"
   tools:
     python: "miniconda3-4.7"
-  jobs:
+  commands:
     pre_create_environment:
-      - export CONDA_OVERRIDE_CUDA=11.7
-conda:
-  environment: docs/env.yml
+      - CONDA_OVERRIDE_CUDA=11.7 conda env create --file docs/env.yml
+      - conda activate torchopt
+      - pip install -e .
+python:
+  version: 3.7
+  install:
+    - requirements: docs/requirements.txt
+    - method: setuptools
+      path: .
 formats:
   - pdf
 sphinx:
