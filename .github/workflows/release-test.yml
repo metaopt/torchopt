@@ -113,4 +113,5 @@ jobs:
         run: |
           DEFAULT_PYTHON="$(head -n 1 .python-paths)"
           "${DEFAULT_PYTHON}" -m pip install --upgrade twine
+          echo "username: ${TWINE_USERNAME}"
           "${DEFAULT_PYTHON}" -m twine upload --repository testpypi dist/*
