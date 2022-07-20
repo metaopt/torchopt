@@ -1,11 +1,25 @@
-name: PyPI
+name: Build
 
 on:
+  pull_request:
+    paths:
+      - setup.py
+      - setup.cfg
+      - pyproject.toml
+      - MANIFEST.in
+      - CMakeLists.txt
+      - include/**
+      - src/**
+      - torchopt/version.py
   release:
-    types: [created]
+    types:
+      - created
+
+permissions:
+  contents: read
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -45,23 +59,10 @@ jobs:
 
       - name: Set up Python executable paths
         run: |
-          DEFAULT_PYTHON="${{ steps.py37.outputs.python-path }}"
-          echo "DEFAULT_PYTHON=${DEFAULT_PYTHON}" >> "${GITHUB_ENV}"
-
-          PYTHON_EXECUTABLES="${{ steps.py37.outputs.python-path }}"
-          PYTHON_EXECUTABLES="${PYTHON_EXECUTABLES}:${{ steps.py38.outputs.python-path }}"
-          PYTHON_EXECUTABLES="${PYTHON_EXECUTABLES}:${{ steps.py39.outputs.python-path }}"
-          PYTHON_EXECUTABLES="${PYTHON_EXECUTABLES}:${{ steps.py310.outputs.python-path }}"
-          echo "PYTHON_EXECUTABLES=${PYTHON_EXECUTABLES}" >> "${GITHUB_ENV}"
-
-      - name: Check consistency between the package version and release tag
-        run: |
-          RELEASE_VER="${GITHUB_REF#refs/*/}"
-          PACKAGE_VER="v$(python setup.py --version)"
-          if [[ "${RELEASE_VER}" != "${PACKAGE_VER}" ]]; then
-            echo "package ver. (${PACKAGE_VER}) != release ver. (${RELEASE_VER})"
-            exit 1
-          fi
+          echo "${{ steps.py37.outputs.python-path }}" > .python-paths
+          echo "${{ steps.py38.outputs.python-path }}" >> .python-paths
+          echo "${{ steps.py39.outputs.python-path }}" >> .python-paths
+          echo "${{ steps.py310.outputs.python-path }}" >> .python-paths
 
       - name: Setup CUDA Toolkit
         uses: Jimver/cuda-toolkit@v0.2.7
@@ -77,8 +78,9 @@ jobs:
 
       - name: Build sdist and wheels
         run: |
-          while IFS='' read -rd':' PYTHON || [[ -n "${PYTHON}" ]]; do
-            [[ -z "${PYTHON}" ]] && continue
+          DEFAULT_PYTHON="$(head -n 1 .python-paths)"
+
+          while read -r PYTHON; do
             echo "Building wheel with Python: ${PYTHON} ($("${PYTHON}" --version))"
             "${PYTHON}" -m pip install --upgrade pip setuptools wheel build
             if [[ "${PYTHON}" == "${DEFAULT_PYTHON}" ]]; then
@@ -86,12 +88,22 @@ jobs:
             else
               "${PYTHON}" -m build --wheel
             fi
-          done <<< "${PYTHON_EXECUTABLES}"
+          done < .python-paths
+
+      - name: List built sdist and wheels
+        run: |
+          if [[ -n "$(find dist -maxdepth 0 -not -empty -print 2>/dev/null)" ]]; then
+            echo "Built sdist and wheels:"
+            find dist -mindepth 1 | sort -V
+          else
+            echo "No sdist and wheels are built."
+            exit 1
+          fi
 
       - name: Test sdist and wheels
         run: |
-          while IFS='' read -rd':' PYTHON || [[ -n "${PYTHON}" ]]; do
-            [[ -z "${PYTHON}" ]] && continue
+          DEFAULT_PYTHON="$(head -n 1 .python-paths)"
+          while read -r PYTHON; do
             PYVER="cp$("${PYTHON}" --version | cut -d ' ' -f2 | cut -d '.' -f-2 | tr -d '.')"
             mkdir -p "temp-${PYVER}"
             pushd "temp-${PYVER}"
@@ -103,17 +115,37 @@ jobs:
             fi
             echo "Testing wheel with Python: ${PYTHON} (${PYVER})"
             "${PYTHON}" -m pip uninstall torchopt -y
-            "${PYTHON}" -m pip install ../dist/torchopt-${PYVER}-*.whl
+            "${PYTHON}" -m pip install ../dist/torchopt-*-${PYVER}-*.whl
             "${PYTHON}" -c 'import torchopt'
             "${PYTHON}" -m pip uninstall torchopt -y
             popd
-          done <<< "${PYTHON_EXECUTABLES}"
+          done < .python-paths
+
+      - name: Check consistency between the package version and release tag
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          RELEASE_VER="${GITHUB_REF#refs/*/}"
+          PACKAGE_VER="v$(python setup.py --version)"
+          if [[ "${RELEASE_VER}" != "${PACKAGE_VER}" ]]; then
+            echo "package ver. (${PACKAGE_VER}) != release ver. (${RELEASE_VER})"
+            exit 1
+          fi
+
+      - name: Publish to PyPI Test
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          TWINE_USERNAME: "__token__"
+          TWINE_PASSWORD: ${{ secrets.TESTPYPI_UPLOAD_TOKEN }}
+        run: |
+          PYTHON="$(head -n 1 .python-paths)"
+          "${PYTHON}" -m pip install --upgrade twine
+          "${PYTHON}" -m twine upload --repository testpypi dist/*
 
       - name: Publish to PyPI
+        if: startsWith(github.ref, 'refs/tags/')
         env:
           TWINE_USERNAME: "__token__"
           TWINE_PASSWORD: ${{ secrets.PYPI_UPLOAD_TOKEN }}
         run: |
-          "${DEFAULT_PYTHON}" -m pip install --upgrade twine
-          "${DEFAULT_PYTHON}" -m twine upload --repository testpypi dist/*
-          "${DEFAULT_PYTHON}" -m twine upload --repository pypi dist/*
+          PYTHON="$(head -n 1 .python-paths)"
+          "${PYTHON}" -m twine upload --repository pypi dist/*

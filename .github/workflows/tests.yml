@@ -5,6 +5,16 @@ on:
     branches:
       - main
   pull_request:
+    paths:
+      - setup.py
+      - setup.cfg
+      - pyproject.toml
+      - MANIFEST.in
+      - CMakeLists.txt
+      - include/**
+      - src/**
+      - tests/**
+      - torchopt/**
 
 permissions:
   contents: read
