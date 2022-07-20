@@ -45,13 +45,13 @@ jobs:
       - name: Set up Python executable paths
         run: |
           DEFAULT_PYTHON="${{ steps.py37.outputs.python-path }}"
-          echo "DEFAULT_PYTHON='${DEFAULT_PYTHON}'" >> "${GITHUB_ENV}"
+          echo "DEFAULT_PYTHON=${DEFAULT_PYTHON}" >> "${GITHUB_ENV}"
 
           PYTHON_EXECUTABLES="${{ steps.py37.outputs.python-path }}"
           PYTHON_EXECUTABLES="${PYTHON_EXECUTABLES}:${{ steps.py38.outputs.python-path }}"
           PYTHON_EXECUTABLES="${PYTHON_EXECUTABLES}:${{ steps.py39.outputs.python-path }}"
           PYTHON_EXECUTABLES="${PYTHON_EXECUTABLES}:${{ steps.py310.outputs.python-path }}"
-          echo "PYTHON_EXECUTABLES='${PYTHON_EXECUTABLES}'" >> "${GITHUB_ENV}"
+          echo "PYTHON_EXECUTABLES=${PYTHON_EXECUTABLES}" >> "${GITHUB_ENV}"
 
       - name: Setup CUDA Toolkit
         uses: Jimver/cuda-toolkit@v0.2.7
