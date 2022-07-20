@@ -18,9 +18,14 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: "${{ github.ref }}"
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    if: github.repository == 'metaopt/TorchOpt'
     timeout-minutes: 30
     steps:
       - name: Checkout
@@ -137,6 +142,7 @@ jobs:
           TWINE_USERNAME: "__token__"
           TWINE_PASSWORD: ${{ secrets.TESTPYPI_UPLOAD_TOKEN }}
         run: |
+          [[ -n "${TWINE_PASSWORD}" ]] || exit 1
           PYTHON="$(head -n 1 .python-paths)"
           "${PYTHON}" -m pip install --upgrade twine
           "${PYTHON}" -m twine upload --repository testpypi dist/*
@@ -147,5 +153,6 @@ jobs:
           TWINE_USERNAME: "__token__"
           TWINE_PASSWORD: ${{ secrets.PYPI_UPLOAD_TOKEN }}
         run: |
+          [[ -n "${TWINE_PASSWORD}" ]] || exit 1
           PYTHON="$(head -n 1 .python-paths)"
           "${PYTHON}" -m twine upload --repository pypi dist/*
