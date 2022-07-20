@@ -10,6 +10,7 @@ build:
   commands:
       - CONDA_OVERRIDE_CUDA=11.7 conda env create --file docs/env.yml
       - conda activate torchopt
+      - pip install -r requirements.txt
       - pip install -e .
 python:
   install:
