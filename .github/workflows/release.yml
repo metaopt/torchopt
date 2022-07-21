@@ -126,13 +126,20 @@ jobs:
             popd
           done < .python-paths
 
+      - name: Audit wheels
+        run: |
+          PYTHON="$(head -n 1 .python-paths)"
+          PYVER="cp$("${PYTHON}" --version | cut -d ' ' -f2 | cut -d '.' -f-2 | tr -d '.')"
+          "${PYTHON}" -m pip install --upgrade auditwheel
+          "${PYTHON}" -m auditwheel show dist/torchopt-*-${PYVER}-*.whl
+
       - name: Check consistency between the package version and release tag
         if: startsWith(github.ref, 'refs/tags/')
         run: |
-          RELEASE_VER="${GITHUB_REF#refs/*/}"
+          RELEASE_TAG="${GITHUB_REF#refs/*/}"
           PACKAGE_VER="v$(python setup.py --version)"
-          if [[ "${RELEASE_VER}" != "${PACKAGE_VER}" ]]; then
-            echo "package ver. (${PACKAGE_VER}) != release ver. (${RELEASE_VER})"
+          if [[ "${PACKAGE_VER}" != "${RELEASE_TAG}" ]]; then
+            echo "package ver. (${PACKAGE_VER}) != release tag. (${RELEASE_TAG})"
             exit 1
           fi
 
