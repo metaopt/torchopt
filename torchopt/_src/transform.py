@@ -38,13 +38,13 @@ import jax
 import torch
 
 from torchopt._src import base
-from torchopt._src.typing import Numeric, Schedule
+from torchopt._src.typing import Schedule
 
 
 ScaleState = base.EmptyState
 
 
-def inc_count(updates, count: Tuple[Numeric, ...]) -> Tuple[Numeric, ...]:
+def inc_count(updates, count: Tuple[torch.Tensor, ...]) -> Tuple[torch.Tensor, ...]:
     """Increments int counter by one.
 
     Returns:
@@ -97,7 +97,7 @@ def scale(step_size: float) -> base.GradientTransformation:
 class ScaleByScheduleState(NamedTuple):
     """Maintains count for scale scheduling."""
 
-    count: Tuple[Numeric, ...]  # type: ignore
+    count: Tuple[torch.Tensor, ...]  # type: ignore
 
 
 def scale_by_schedule(step_size_fn: Schedule) -> base.GradientTransformation:
@@ -162,7 +162,7 @@ def _update_moment_per_elem_norm(updates, moments, decay, order, inplace=True):
 class ScaleByAdamState(NamedTuple):
     """State for the Adam algorithm."""
 
-    count: Tuple[Numeric, ...]  # type: ignore
+    count: Tuple[torch.Tensor, ...]  # type: ignore
     mu: base.Updates
     nu: base.Updates
 
