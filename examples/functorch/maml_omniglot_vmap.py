@@ -29,7 +29,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-This example shows how to use TorchOpt to do Model Agnostic Meta Learning (MAML)
+This example shows how to use higher to do Model Agnostic Meta Learning (MAML)
 for few-shot Omniglot classification.
 For more details see the original MAML paper:
 https://arxiv.org/abs/1703.03400
@@ -39,18 +39,29 @@ Our MAML++ fork and experiments are available at:
 https://github.com/bamos/HowToTrainYourMAMLPytorch
 """
 
+
+import os
+import sys
+
+
+cur = os.path.abspath(os.path.dirname(__file__))
+root = os.path.split(cur)[0]
+sys.path.append(root + '/few-shot')
 import argparse
+import functools
 import time
 
+import functorch
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+from functorch import grad, make_functional_with_buffers, vmap
 from support.omniglot_loaders import OmniglotNShot
+from torch import nn
 
 import torchopt
 
@@ -59,11 +70,16 @@ mpl.use('Agg')
 plt.style.use('bmh')
 
 
+# Squash the warning spam
+functorch._C._set_vmap_fallback_warning_enabled(False)
+
+
 def main():
     argparser = argparse.ArgumentParser()
     argparser.add_argument('--n_way', type=int, help='n way', default=5)
     argparser.add_argument('--k_spt', type=int, help='k shot for support set', default=5)
     argparser.add_argument('--k_qry', type=int, help='k shot for query set', default=15)
+    argparser.add_argument('--device', type=str, help='device', default='cuda')
     argparser.add_argument(
         '--task_num', type=int, help='meta batch size, namely task num', default=32
     )
@@ -77,7 +93,7 @@ def main():
     rng = np.random.default_rng(args.seed)
 
     # Set up the Omniglot loader.
-    device = torch.device('cuda:0')
+    device = args.device
     db = OmniglotNShot(
         '/tmp/omniglot-data',
         batchsz=args.task_num,
@@ -89,43 +105,77 @@ def main():
         device=device,
     )
 
-    # Create a vanilla PyTorch neural network that will be
-    # automatically monkey-patched by higher later.
-    # Before higher, models could *not* be created like this
-    # and the parameters needed to be manually updated and copied
-    # for the updates.
+    # Create a vanilla PyTorch neural network.
+    inplace_relu = True
     net = nn.Sequential(
         nn.Conv2d(1, 64, 3),
-        nn.BatchNorm2d(64, momentum=1.0, affine=True),
-        nn.ReLU(inplace=False),
+        nn.BatchNorm2d(64, affine=True, track_running_stats=False),
+        nn.ReLU(inplace=inplace_relu),
         nn.MaxPool2d(2, 2),
         nn.Conv2d(64, 64, 3),
-        nn.BatchNorm2d(64, momentum=1.0, affine=True),
-        nn.ReLU(inplace=False),
+        nn.BatchNorm2d(64, affine=True, track_running_stats=False),
+        nn.ReLU(inplace=inplace_relu),
         nn.MaxPool2d(2, 2),
         nn.Conv2d(64, 64, 3),
-        nn.BatchNorm2d(64, momentum=1.0, affine=True),
-        nn.ReLU(inplace=False),
+        nn.BatchNorm2d(64, affine=True, track_running_stats=False),
+        nn.ReLU(inplace=inplace_relu),
         nn.MaxPool2d(2, 2),
         nn.Flatten(),
         nn.Linear(64, args.n_way),
     ).to(device)
 
+    net.train()
+
+    # Given this module we've created, rip out the parameters and buffers
+    # and return a functional version of the module. `fnet` is stateless
+    # and can be called with `fnet(params, buffers, args, kwargs)`
+    fnet, params, buffers = make_functional_with_buffers(net)
+
     # We will use Adam to (meta-)optimize the initial parameters
     # to be adapted.
-    meta_opt = optim.Adam(net.parameters(), lr=1e-3)
+    meta_opt = optim.Adam(params, lr=1e-3)
 
     log = []
-    for epoch in range(10):
-        train(db, net, meta_opt, epoch, log)
-        test(db, net, epoch, log)
+    for epoch in range(100):
+        train(db, [params, buffers, fnet], device, meta_opt, epoch, log)
+        test(db, [params, buffers, fnet], device, epoch, log)
         plot(log)
 
 
-def train(db, net, meta_opt, epoch, log):
-    net.train()
+# Trains a model for n_inner_iter using the support and returns a loss
+# using the query.
+def loss_for_task(net, n_inner_iter, x_spt, y_spt, x_qry, y_qry):
+    params, buffers, fnet = net
+    opt = torchopt.sgd(lr=1e-1)
+    opt_state = opt.init(params)
+
+    querysz = x_qry.size(0)
+
+    def compute_loss(new_params, buffers, x, y):
+        logits = fnet(new_params, buffers, x)
+        loss = F.cross_entropy(logits, y)
+        return loss
+
+    new_params = params
+    # change sgd implementation with torchopt
+    for _ in range(n_inner_iter):
+        grads = grad(compute_loss)(new_params, buffers, x_spt, y_spt)
+        updates, opt_state = opt.update(grads, opt_state, inplace=False)
+        new_params = torchopt.apply_updates(new_params, updates, inplace=False)
+
+    # The final set of adapted parameters will induce some
+    # final loss and accuracy on the query dataset.
+    # These will be used to update the model's meta-parameters.
+    qry_logits = fnet(new_params, buffers, x_qry)
+    qry_loss = F.cross_entropy(qry_logits, y_qry)
+    qry_acc = (qry_logits.argmax(dim=1) == y_qry).sum() / querysz
+
+    return qry_loss, qry_acc
+
+
+def train(db, net, device, meta_opt, epoch, log):
+    params, buffers, fnet = net
     n_train_iter = db.x_train.shape[0] // db.batchsz
-    inner_opt = torchopt.MetaSGD(net, lr=1e-1)
 
     for batch_idx in range(n_train_iter):
         start_time = time.time()
@@ -133,58 +183,27 @@ def train(db, net, meta_opt, epoch, log):
         x_spt, y_spt, x_qry, y_qry = db.next()
 
         task_num, setsz, c_, h, w = x_spt.size()
-        querysz = x_qry.size(1)
 
-        # TODO: Maybe pull this out into a separate module so it
-        # doesn't have to be duplicated between `train` and `test`?
-
-        # Initialize the inner optimizer to adapt the parameters to
-        # the support set.
         n_inner_iter = 5
-
-        qry_losses = []
-        qry_accs = []
         meta_opt.zero_grad()
 
-        net_state_dict = torchopt.extract_state_dict(net)
-        optim_state_dict = torchopt.extract_state_dict(inner_opt)
-        for i in range(task_num):
-            # Optimize the likelihood of the support set by taking
-            # gradient steps w.r.t. the model's parameters.
-            # This adapts the model's meta-parameters to the task.
-            # higher is able to automatically keep copies of
-            # your network's parameters as they are being updated.
-            for _ in range(n_inner_iter):
-                spt_logits = net(x_spt[i])
-                spt_loss = F.cross_entropy(spt_logits, y_spt[i])
-                inner_opt.step(spt_loss)
+        # In parallel, trains one model per task. There is a support (x, y)
+        # for each task and a query (x, y) for each task.
+        compute_loss_for_task = functools.partial(loss_for_task, net, n_inner_iter)
+        qry_losses, qry_accs = vmap(compute_loss_for_task)(x_spt, y_spt, x_qry, y_qry)
 
-            # The final set of adapted parameters will induce some
-            # final loss and accuracy on the query dataset.
-            # These will be used to update the model's meta-parameters.
-            qry_logits = net(x_qry[i])
-            qry_loss = F.cross_entropy(qry_logits, y_qry[i])
-            qry_losses.append(qry_loss.detach())
-            qry_acc = (qry_logits.argmax(dim=1) == y_qry[i]).sum().item() / querysz
-            qry_accs.append(qry_acc)
-
-            # Update the model's meta-parameters to optimize the query
-            # losses across all of the tasks sampled in this batch.
-            # This unrolls through the gradient steps.
-            qry_loss.backward()
-
-            torchopt.recover_state_dict(net, net_state_dict)
-            torchopt.recover_state_dict(inner_opt, optim_state_dict)
+        # Compute the maml loss by summing together the returned losses.
+        qry_losses.sum().backward()
 
         meta_opt.step()
-        qry_losses = sum(qry_losses) / task_num
-        qry_accs = 100.0 * sum(qry_accs) / task_num
+        qry_losses = qry_losses.detach().sum() / task_num
+        qry_accs = 100.0 * qry_accs.sum() / task_num
         i = epoch + float(batch_idx) / n_train_iter
         iter_time = time.time() - start_time
-
-        print(
-            f'[Epoch {i:.2f}] Train Loss: {qry_losses:.2f} | Acc: {qry_accs:.2f} | Time: {iter_time:.2f}'
-        )
+        if batch_idx % 4 == 0:
+            print(
+                f'[Epoch {i:.2f}] Train Loss: {qry_losses:.2f} | Acc: {qry_accs:.2f} | Time: {iter_time:.2f}'
+            )
 
         log.append(
             {
@@ -197,48 +216,39 @@ def train(db, net, meta_opt, epoch, log):
         )
 
 
-def test(db, net, epoch, log):
+def test(db, net, device, epoch, log):
     # Crucially in our testing procedure here, we do *not* fine-tune
     # the model during testing for simplicity.
     # Most research papers using MAML for this task do an extra
     # stage of fine-tuning here that should be added if you are
     # adapting this code for research.
-    net.train()
+    [params, buffers, fnet] = net
     n_test_iter = db.x_test.shape[0] // db.batchsz
-    inner_opt = torchopt.MetaSGD(net, lr=1e-1)
 
     qry_losses = []
     qry_accs = []
 
     for batch_idx in range(n_test_iter):
         x_spt, y_spt, x_qry, y_qry = db.next('test')
-
         task_num, setsz, c_, h, w = x_spt.size()
-        querysz = x_qry.size(1)
 
         # TODO: Maybe pull this out into a separate module so it
         # doesn't have to be duplicated between `train` and `test`?
         n_inner_iter = 5
 
-        net_state_dict = torchopt.extract_state_dict(net)
-        optim_state_dict = torchopt.extract_state_dict(inner_opt)
         for i in range(task_num):
-            # Optimize the likelihood of the support set by taking
-            # gradient steps w.r.t. the model's parameters.
-            # This adapts the model's meta-parameters to the task.
+            new_params = params
             for _ in range(n_inner_iter):
-                spt_logits = net(x_spt[i])
+                spt_logits = fnet(new_params, buffers, x_spt[i])
                 spt_loss = F.cross_entropy(spt_logits, y_spt[i])
-                inner_opt.step(spt_loss)
+                grads = torch.autograd.grad(spt_loss, new_params)
+                new_params = [p - g * 1e-1 for p, g, in zip(new_params, grads)]
 
             # The query loss and acc induced by these parameters.
-            qry_logits = net(x_qry[i]).detach()
+            qry_logits = fnet(new_params, buffers, x_qry[i]).detach()
             qry_loss = F.cross_entropy(qry_logits, y_qry[i], reduction='none')
             qry_losses.append(qry_loss.detach())
             qry_accs.append((qry_logits.argmax(dim=1) == y_qry[i]).detach())
-
-            torchopt.recover_state_dict(net, net_state_dict)
-            torchopt.recover_state_dict(inner_opt, optim_state_dict)
 
     qry_losses = torch.cat(qry_losses).mean().item()
     qry_accs = 100.0 * torch.cat(qry_accs).float().mean().item()
