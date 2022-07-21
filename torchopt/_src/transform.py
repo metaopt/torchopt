@@ -38,17 +38,27 @@ import jax
 import torch
 
 from torchopt._src import base
-from torchopt._src.typing import Schedule
+from torchopt._src.typing import Numeric, Schedule
 
 
 ScaleState = base.EmptyState
 
 
-def inc_count(updates, count: Tuple[int]) -> Tuple[int]:
-    """Increments int counter by one."""
+def inc_count(updates, count: Tuple[Numeric, ...]) -> Tuple[Numeric, ...]:
+    """Increments int counter by one.
+
+    Returns:
+        A counter incremeted by one, or max_int if the maximum precision is reached.
+    """
+    max_int32_value = torch.iinfo(torch.int32).max
+    one = torch.ones(1, dtype=torch.int32, device=count[0].device)
 
     def f(c, g):
-        return c + 1 if g is not None else c
+        return (
+            c + (1 - torch.div(c, max_int32_value, rounding_mode='trunc')) * one
+            if g is not None
+            else c
+        )
 
     return jax.tree_map(f, count, updates)
 
@@ -87,7 +97,7 @@ def scale(step_size: float) -> base.GradientTransformation:
 class ScaleByScheduleState(NamedTuple):
     """Maintains count for scale scheduling."""
 
-    count: Tuple[int, ...]  # type: ignore
+    count: Tuple[Numeric, ...]  # type: ignore
 
 
 def scale_by_schedule(step_size_fn: Schedule) -> base.GradientTransformation:
@@ -103,7 +113,10 @@ def scale_by_schedule(step_size_fn: Schedule) -> base.GradientTransformation:
     """
 
     def init_fn(params):
-        return ScaleByScheduleState(count=tuple(0 for _ in range(len(params))))
+        zero = jax.tree_map(  # First moment
+            lambda t: torch.zeros(1, dtype=torch.int32, device=t.device), params
+        )
+        return ScaleByScheduleState(count=tuple(zero))
 
     def update_fn(updates, state, inplace=True):
         step_size = step_size_fn(state.count)
@@ -149,7 +162,7 @@ def _update_moment_per_elem_norm(updates, moments, decay, order, inplace=True):
 class ScaleByAdamState(NamedTuple):
     """State for the Adam algorithm."""
 
-    count: Tuple[int, ...]  # type: ignore
+    count: Tuple[Numeric, ...]  # type: ignore
     mu: base.Updates
     nu: base.Updates
 
@@ -199,13 +212,16 @@ def scale_by_adam(
     """
 
     def init_fn(params):
+        zero = jax.tree_map(  # First moment
+            lambda t: torch.zeros(1, dtype=torch.int32, device=t.device), params
+        )
         mu = jax.tree_map(  # First moment
             lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params
         )
         nu = jax.tree_map(  # Second moment
             lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params
         )
-        return ScaleByAdamState(count=tuple(0 for _ in range(len(mu))), mu=tuple(mu), nu=tuple(nu))
+        return ScaleByAdamState(count=tuple(zero), mu=tuple(mu), nu=tuple(nu))
 
     def update_fn(updates, state, inplace=True):
         mu = _update_moment(updates, state.mu, b1, 1, inplace)
@@ -262,13 +278,16 @@ def scale_by_accelerated_adam(
     from torchopt._src.accelerated_op import AdamOp  # pylint: disable=import-outside-toplevel
 
     def init_fn(params):
+        zero = jax.tree_map(  # First moment
+            lambda t: torch.zeros(1, dtype=torch.int32, device=t.device), params
+        )
         mu = jax.tree_map(  # First moment
             lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params
         )
         nu = jax.tree_map(  # Second moment
             lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params
         )
-        return ScaleByAdamState(count=tuple(0 for _ in range(len(params))), mu=mu, nu=nu)
+        return ScaleByAdamState(count=tuple(zero), mu=mu, nu=nu)
 
     def update_fn(updates, state, inplace=True):
         count_inc = inc_count(updates, state.count)
