@@ -50,10 +50,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+from support.omniglot_loaders import OmniglotNShot
 
 import torchopt
-
-from .support.omniglot_loaders import OmniglotNShot
 
 
 mpl.use('Agg')
