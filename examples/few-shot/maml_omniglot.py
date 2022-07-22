@@ -53,7 +53,8 @@ import torch.optim as optim
 
 import torchopt
 
-from .support.omniglot_loaders import OmniglotNShot
+
+from support.omniglot_loaders import OmniglotNShot  # isort: skip
 
 
 mpl.use('Agg')

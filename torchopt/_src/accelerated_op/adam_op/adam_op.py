@@ -19,7 +19,7 @@ from typing import Any
 
 import torch
 
-from torchopt._lib import adam_op
+from torchopt._lib import adam_op  # pylint: disable=no-name-in-module
 
 
 class AdamOp:  # pylint: disable=too-few-public-methods
