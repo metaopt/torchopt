@@ -38,9 +38,10 @@ from torchvision.datasets import MNIST
 import torchopt
 
 
-from helper.argument import parse_args  # isort:skip
-from helper.model import LeNet5  # isort:skip
-from helper.utils import get_imbalance_dataset, plot, set_seed  # isort:skip
+# isort: off
+from helper.argument import parse_args
+from helper.model import LeNet5
+from helper.utils import get_imbalance_dataset, plot, set_seed
 
 
 def run_baseline(args, mnist_train, mnist_test):
