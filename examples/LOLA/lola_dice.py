@@ -18,11 +18,10 @@
 
 import numpy as np
 import torch
-
-from .helper.agent import Agent
-from .helper.argument import parse_args
-from .helper.env import IPD
-from .helper.utils import sample, step
+from helper.agent import Agent
+from helper.argument import parse_args
+from helper.env import IPD
+from helper.utils import sample, step
 
 
 def main(args):
