@@ -21,6 +21,7 @@ dependencies:
   - pytorch::torchvision
   - pytorch::pytorch-mutex = *=*cuda*
   - pip:
+      - '--edit .'  # torchopt
       - functorch
       - torchviz
       - sphinxcontrib-katex  # for documentation
