@@ -195,6 +195,11 @@ def main(args):
         print('test_pre_reward', sum(test_pre_reward_ls) / TASK_NUM)
         print('test_post_reward', sum(test_post_reward_ls) / TASK_NUM)
 
+        np.save('train_pre_reward_{}.npy'.format(args.seed), np.array(train_pre_reward))
+        np.save('train_post_reward_{}.npy'.format(args.seed), np.array(train_post_reward))
+        np.save('test_pre_reward_{}.npy'.format(args.seed), np.array(test_pre_reward))
+        np.save('test_post_reward_{}.npy'.format(args.seed), np.array(test_post_reward))
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
