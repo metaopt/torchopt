@@ -11,6 +11,7 @@ on:
       - include/**
       - src/**
       - torchopt/version.py
+      - .github/workflow/release.yml
   release:
     types:
       - created
