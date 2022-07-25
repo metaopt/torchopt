@@ -14,7 +14,7 @@ on:
       - include/**
       - src/**
       - torchopt/version.py
-      - .github/workflow/release.yml
+      - .github/workflow/build.yml
   release:
     types:
       - published
@@ -30,7 +30,7 @@ concurrency:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     if: github.repository == 'metaopt/TorchOpt' && (github.event_name != 'push' || startsWith(github.ref, 'refs/tags/'))
     timeout-minutes: 30
     steps:
@@ -83,9 +83,15 @@ jobs:
           method: network
           sub-packages: '["nvcc"]'
       - run: |
-          echo "Installed CUDA version is: ${{steps.cuda-toolkit.outputs.cuda}}"
+          CUDA_VERSION="${{steps.cuda-toolkit.outputs.cuda}}"
+          echo "CUDA_VERSION=${CUDA_VERSION}" >> "${GITHUB_ENV}"
+          TORCH_INDEX_URL="https://download.pytorch.org/whl/cu$(echo "${CUDA_VERSION}" | cut -d'.' -f-2  | tr -d '.')"
+          echo "TORCH_INDEX_URL=${TORCH_INDEX_URL}" >> "${GITHUB_ENV}"
+
+          echo "Installed CUDA version is: ${CUDA_VERSION}"
           echo "CUDA install location: ${{steps.cuda-toolkit.outputs.CUDA_PATH}}"
           nvcc -V
+          echo "Torch index URL: ${TORCH_INDEX_URL}"
 
       - name: Build sdist and wheels
         run: |
@@ -94,6 +100,8 @@ jobs:
           while read -r PYTHON; do
             echo "Building wheel with Python: ${PYTHON} ($("${PYTHON}" --version))"
             "${PYTHON}" -m pip install --upgrade pip setuptools wheel build
+            "${PYTHON}" -m pip install --extra-index-url "${TORCH_INDEX_URL}" \
+              -r requirements.txt
             if [[ "${PYTHON}" == "${DEFAULT_PYTHON}" ]]; then
               "${PYTHON}" -m build
             else
@@ -113,10 +121,19 @@ jobs:
 
       - name: Audit and repair wheels
         run: |
-          PYTHON="$(head -n 1 .python-paths)"
-          "${PYTHON}" -m pip install --upgrade git+https://github.com/XuehaiPan/auditwheel.git@torchopt
-          find dist -mindepth 1 -name 'torchopt-*.whl' -print0 | xargs -0 "${PYTHON}" -m auditwheel show
-          "${PYTHON}" -m auditwheel repair --plat manylinux2014_x86_64 --wheel-dir wheelhouse --strip dist/torchopt-*.whl
+          while read -r PYTHON; do
+            PYVER="cp$("${PYTHON}" --version | cut -d ' ' -f2 | cut -d '.' -f-2 | tr -d '.')"
+            echo "Audit and repair wheel for Python: ${PYTHON} (${PYVER})"
+            LIBTORCH_PATH="$("${PYTHON}" -c 'import os, site; print(os.path.join(site.getsitepackages()[0], "torch", "lib"))')"
+            "${PYTHON}" -m pip install --upgrade git+https://github.com/XuehaiPan/auditwheel.git@torchopt
+            "${PYTHON}" -m auditwheel show dist/torchopt-*-${PYVER}-*.whl
+            (
+              export LD_LIBRARY_PATH="${LIBTORCH_PATH}${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+              echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}"
+              "${PYTHON}" -m auditwheel repair --plat manylinux2014_x86_64 --wheel-dir wheelhouse dist/torchopt-*-${PYVER}-*.whl
+            )
+          done < .python-paths
+
           rm dist/torchopt-*.whl
           mv wheelhouse/torchopt-*manylinux*.whl dist/
 
@@ -162,7 +179,7 @@ jobs:
           fi
 
       - name: Publish to TestPyPI
-        if: startsWith(github.ref, 'refs/tags/') || github.event_name != 'workflow_dispatch'
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
         uses: pypa/gh-action-pypi-publish@v1.5.0
         with:
           user: __token__
@@ -172,7 +189,7 @@ jobs:
           print_hash: true
 
       - name: Publish to PyPI
-        if: startsWith(github.ref, 'refs/tags/') || github.event_name != 'workflow_dispatch'
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
         uses: pypa/gh-action-pypi-publish@v1.5.0
         with:
           user: __token__
