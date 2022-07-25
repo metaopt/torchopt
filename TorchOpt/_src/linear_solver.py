@@ -40,7 +40,7 @@ from TorchOpt._src import linalg
 
 def tree_add_scalar_mul(tree_x, scalar, tree_y):
     """Compute tree_x + scalar * tree_y."""
-    return jax.tree_map(lambda x, y: x.add(y, alpha=scalar), tree_x, tree_y)
+    return jax.tree_util.tree_map(lambda x, y: x.add(y, alpha=scalar), tree_x, tree_y)
 
 
 def _make_ridge_matvec(matvec: Callable, ridge: float = 0.0):
@@ -74,8 +74,10 @@ def solve_cg(matvec: Callable,
 
 
 def _make_rmatvec(matvec, x):
-    transpose = jax.linear_transpose(matvec, x)
-    return lambda y: transpose(y)[0]
+    matvec_x, vjp = functorch.vjp(matvec, x)
+    return lambda y: vjp(y)[0]
+    # transpose = jax.linear_transpose(matvec, x)
+    # return lambda y: transpose(y)[0]
 
 
 def _normal_matvec(matvec, x):
