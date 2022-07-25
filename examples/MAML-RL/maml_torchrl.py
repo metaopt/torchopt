@@ -131,21 +131,21 @@ def main(args):
             NUM_ENVS,
             lambda_env,
             selected_keys=['observation', 'next_observation', 'reward', 'action', 'done'],
-        )
+        ).to(device)
     else:
         env = SerialEnv(
             NUM_ENVS,
             lambda_env,
             selected_keys=['observation', 'next_observation', 'reward', 'action', 'done'],
-        )
+        ).to(device)
     env.reset()
     # Policy
     obs_key = list(env.observation_spec.keys())[0]
     actor_critic_module = ActorCritic(
-        env.observation_spec[obs_key].shape[-1], env.action_spec.shape[-1]
+        env.observation_spec[obs_key].shape[-1],
+        env.action_spec.shape[-1],
     ).to(device)
     policy_module = actor_critic_module.get_policy_operator()
-    print(policy_module)
     value_module = actor_critic_module.get_value_operator()
 
     inner_opt = torchopt.MetaSGD(actor_critic_module, lr=0.3)
@@ -173,14 +173,18 @@ def main(args):
             for k in range(inner_iters):
                 with set_exploration_mode('random'), torch.no_grad(), timeit('rollout'):
                     pre_traj_td = env.rollout(
-                        policy=policy_module, max_steps=TRAJ_LEN, auto_reset=True
+                        policy=policy_module,
+                        max_steps=TRAJ_LEN,
+                        auto_reset=True,
                     ).to(device)
                 inner_loss = a2c_loss(pre_traj_td, policy_module, value_module, value_coef=0.5)
                 inner_opt.step(inner_loss)
 
             with set_exploration_mode('random'), torch.no_grad(), timeit('rollout'):
                 post_traj_td = env.rollout(
-                    policy=policy_module, max_steps=TRAJ_LEN, auto_reset=True
+                    policy=policy_module,
+                    max_steps=TRAJ_LEN,
+                    auto_reset=True,
                 ).to(device)
             outer_loss = a2c_loss(post_traj_td, policy_module, value_module, value_coef=0.5)
             outer_loss.backward()
@@ -195,7 +199,13 @@ def main(args):
         outer_opt.step()
 
         test_pre_reward_ls, test_post_reward_ls = evaluate(
-            env, dummy_env, args.seed, TASK_NUM, actor_critic_module, policy_module, value_module
+            env,
+            dummy_env,
+            args.seed,
+            TASK_NUM,
+            actor_critic_module,
+            policy_module,
+            value_module,
         )
 
         train_pre_reward.append(sum(train_pre_reward_ls) / TASK_NUM)
