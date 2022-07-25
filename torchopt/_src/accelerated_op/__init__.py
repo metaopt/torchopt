@@ -26,6 +26,8 @@ def accelerated_op_available(devices=None):
         devices = [torch.device('cuda'), torch.device('cpu')]
     elif isinstance(devices, torch.device):
         devices = [devices]
+    elif isinstance(devices, str):
+        devices = [torch.device(devices)]
 
     try:
         for device in devices:
