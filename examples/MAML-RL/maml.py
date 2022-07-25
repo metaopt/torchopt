@@ -20,11 +20,11 @@ import gym
 import numpy as np
 import torch
 import torch.optim as optim
-import tqdm
-from helpers.policy_old import CategoricalMLPPolicy
-from torchrl import timeit
 
-import TorchOpt
+import torchopt
+
+
+from helpers.policy import CategoricalMLPPolicy  # isort: skip
 
 
 TASK_NUM = 40
@@ -70,9 +70,15 @@ def sample_traj(env, task, policy):
                 next_obs_buf[step][batch] = next_ob
                 acs_buf[step][batch] = ac
                 rews_buf[step][batch] = rew
-                gammas_buf[step][batch] = done * GAMMA
+                gammas_buf[step][batch] = (1 - done) * GAMMA
                 ob = next_ob
-    return Traj(obs=obs_buf, acs=acs_buf, next_obs=next_obs_buf, rews=rews_buf, gammas=gammas_buf)
+    return Traj(
+        obs=obs_buf,
+        acs=acs_buf,
+        next_obs=next_obs_buf,
+        rews=rews_buf,
+        gammas=gammas_buf,
+    )
 
 
 def a2c_loss(traj, policy, value_coef):
@@ -100,37 +106,36 @@ def a2c_loss(traj, policy, value_coef):
 def evaluate(env, seed, task_num, policy):
     pre_reward_ls = []
     post_reward_ls = []
-    inner_opt = TorchOpt.MetaSGD(policy, lr=0.5)
+    inner_opt = torchopt.MetaSGD(policy, lr=0.5)
     env = gym.make(
         'TabularMDP-v0',
         **dict(
-            num_states=STATE_DIM, num_actions=ACTION_DIM, max_episode_steps=TRAJ_LEN, seed=args.seed
+            num_states=STATE_DIM,
+            num_actions=ACTION_DIM,
+            max_episode_steps=TRAJ_LEN,
+            seed=args.seed,
         ),
     )
     tasks = env.sample_tasks(num_tasks=task_num)
-    policy_state_dict = TorchOpt.extract_state_dict(policy)
-    optim_state_dict = TorchOpt.extract_state_dict(inner_opt)
+    policy_state_dict = torchopt.extract_state_dict(policy)
+    optim_state_dict = torchopt.extract_state_dict(inner_opt)
     for idx in range(task_num):
         for _ in range(inner_iters):
-            with timeit('rollout_eval'):
-                pre_trajs = sample_traj(env, tasks[idx], policy)
-
+            pre_trajs = sample_traj(env, tasks[idx], policy)
             inner_loss = a2c_loss(pre_trajs, policy, value_coef=0.5)
             inner_opt.step(inner_loss)
-        with timeit('rollout_eval'):
-            post_trajs = sample_traj(env, tasks[idx], policy)
+        post_trajs = sample_traj(env, tasks[idx], policy)
 
         # Logging
         pre_reward_ls.append(np.sum(pre_trajs.rews, axis=0).mean())
         post_reward_ls.append(np.sum(post_trajs.rews, axis=0).mean())
 
-        TorchOpt.recover_state_dict(policy, policy_state_dict)
-        TorchOpt.recover_state_dict(inner_opt, optim_state_dict)
+        torchopt.recover_state_dict(policy, policy_state_dict)
+        torchopt.recover_state_dict(inner_opt, optim_state_dict)
     return pre_reward_ls, post_reward_ls
 
 
 def main(args):
-
     # init training
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed_all(args.seed)
@@ -138,41 +143,40 @@ def main(args):
     env = gym.make(
         'TabularMDP-v0',
         **dict(
-            num_states=STATE_DIM, num_actions=ACTION_DIM, max_episode_steps=TRAJ_LEN, seed=args.seed
+            num_states=STATE_DIM,
+            num_actions=ACTION_DIM,
+            max_episode_steps=TRAJ_LEN,
+            seed=args.seed,
         ),
     )
     # Policy
     policy = CategoricalMLPPolicy(input_size=STATE_DIM, output_size=ACTION_DIM)
-    inner_opt = TorchOpt.MetaSGD(policy, lr=0.5)
+    inner_opt = torchopt.MetaSGD(policy, lr=0.5)
     outer_opt = optim.Adam(policy.parameters(), lr=1e-3)
     train_pre_reward = []
     train_post_reward = []
     test_pre_reward = []
     test_post_reward = []
 
-    pbar = tqdm.tqdm(range(outer_iters))
-    for i in pbar:
+    for i in range(outer_iters):
         tasks = env.sample_tasks(num_tasks=TASK_NUM)
         train_pre_reward_ls = []
         train_post_reward_ls = []
 
         outer_opt.zero_grad()
 
-        policy_state_dict = TorchOpt.extract_state_dict(policy)
-        optim_state_dict = TorchOpt.extract_state_dict(inner_opt)
+        policy_state_dict = torchopt.extract_state_dict(policy)
+        optim_state_dict = torchopt.extract_state_dict(inner_opt)
         for idx in range(TASK_NUM):
-
             for _ in range(inner_iters):
-                with timeit('rollout'):
-                    pre_trajs = sample_traj(env, tasks[idx], policy)
+                pre_trajs = sample_traj(env, tasks[idx], policy)
                 inner_loss = a2c_loss(pre_trajs, policy, value_coef=0.5)
                 inner_opt.step(inner_loss)
-            with timeit('rollout'):
-                post_trajs = sample_traj(env, tasks[idx], policy)
+            post_trajs = sample_traj(env, tasks[idx], policy)
             outer_loss = a2c_loss(post_trajs, policy, value_coef=0.5)
             outer_loss.backward()
-            TorchOpt.recover_state_dict(policy, policy_state_dict)
-            TorchOpt.recover_state_dict(inner_opt, optim_state_dict)
+            torchopt.recover_state_dict(policy, policy_state_dict)
+            torchopt.recover_state_dict(inner_opt, optim_state_dict)
             # Logging
             train_pre_reward_ls.append(np.sum(pre_trajs.rews, axis=0).mean())
             train_post_reward_ls.append(np.sum(post_trajs.rews, axis=0).mean())
@@ -185,23 +189,16 @@ def main(args):
         test_pre_reward.append(sum(test_pre_reward_ls) / TASK_NUM)
         test_post_reward.append(sum(test_post_reward_ls) / TASK_NUM)
 
-        pbar.set_description(
-            f'train_pre_reward: {sum(train_pre_reward_ls) / TASK_NUM}, '
-            f'train_post_reward: {sum(train_post_reward_ls) / TASK_NUM}, '
-            f'test_pre_reward: {sum(test_pre_reward_ls) / TASK_NUM}, '
-            f'test_post_reward: {sum(test_post_reward_ls) / TASK_NUM}'
-        )
-        timeit.print()
-
-        np.save('train_pre_reward_{}.npy'.format(args.seed), np.array(train_pre_reward))
-        np.save('train_post_reward_{}.npy'.format(args.seed), np.array(train_post_reward))
-        np.save('test_pre_reward_{}.npy'.format(args.seed), np.array(test_pre_reward))
-        np.save('test_post_reward_{}.npy'.format(args.seed), np.array(test_post_reward))
+        print('Train_iters', i)
+        print('train_pre_reward', sum(train_pre_reward_ls) / TASK_NUM)
+        print('train_post_reward', sum(train_post_reward_ls) / TASK_NUM)
+        print('test_pre_reward', sum(test_pre_reward_ls) / TASK_NUM)
+        print('test_post_reward', sum(test_post_reward_ls) / TASK_NUM)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
-        description='Reinforcement learning with ' 'Model-Agnostic Meta-Learning (MAML) - Train'
+        description='Reinforcement learning with Model-Agnostic Meta-Learning (MAML) - Train'
     )
     parser.add_argument('--seed', type=int, default=1, help='random seed (default: 1)')
     args = parser.parse_args()

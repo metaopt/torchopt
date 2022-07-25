@@ -4,13 +4,14 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+# ==============================================================================
 
 import argparse
 
@@ -18,18 +19,20 @@ import numpy as np
 import torch
 import torch.optim as optim
 import tqdm
-from helpers.policy import ActorCritic
 from torchrl import timeit
 from torchrl.envs import GymEnv, ParallelEnv, SerialEnv
 from torchrl.envs.utils import set_exploration_mode, step_tensordict
-from torchrl.modules import OneHotCategorical, ProbabilisticTDModule
+from torchrl.modules import OneHotCategorical
 from torchrl.objectives.returns.functional import vec_td_lambda_advantage_estimate
 
-import TorchOpt
+import torchopt
 
 
-TASK_NUM = 40
-TRAJ_NUM = 20
+from helpers.policy_torchrl import ActorCritic  # isort: skip
+
+
+TASK_NUM = 4
+TRAJ_NUM = 2
 TRAJ_LEN = 10
 
 NUM_ENVS = TRAJ_NUM  # number of envs to run in parallel
@@ -80,12 +83,12 @@ def evaluate(env, dummy_env, seed, task_num, actor_critic, policy, value):
     post_reward_ls = []
     device = next(actor_critic.parameters()).device
 
-    inner_opt = TorchOpt.MetaSGD(actor_critic, lr=0.5)
+    inner_opt = torchopt.MetaSGD(actor_critic, lr=0.5)
 
     tasks = dummy_env.sample_tasks(num_tasks=task_num)
 
-    policy_state_dict = TorchOpt.extract_state_dict(actor_critic)
-    optim_state_dict = TorchOpt.extract_state_dict(inner_opt)
+    policy_state_dict = torchopt.extract_state_dict(actor_critic)
+    optim_state_dict = torchopt.extract_state_dict(inner_opt)
     for idx in range(task_num):
         env.reset_task(tasks[idx])
         for _ in range(inner_iters):
@@ -100,8 +103,8 @@ def evaluate(env, dummy_env, seed, task_num, actor_critic, policy, value):
         pre_reward_ls.append(torch.sum(pre_traj_td.get('reward'), dim=1).mean().item())
         post_reward_ls.append(torch.sum(post_traj_td.get('reward'), dim=1).mean().item())
 
-        TorchOpt.recover_state_dict(actor_critic, policy_state_dict)
-        TorchOpt.recover_state_dict(inner_opt, optim_state_dict)
+        torchopt.recover_state_dict(actor_critic, policy_state_dict)
+        torchopt.recover_state_dict(inner_opt, optim_state_dict)
     return pre_reward_ls, post_reward_ls
 
 
@@ -139,7 +142,7 @@ def main(args):
     policy_module = actor_critic_module.get_policy_operator()
     value_module = actor_critic_module.get_value_operator()
 
-    inner_opt = TorchOpt.MetaSGD(actor_critic_module, lr=0.5)
+    inner_opt = torchopt.MetaSGD(actor_critic_module, lr=0.5)
     outer_opt = optim.Adam(actor_critic_module.parameters(), lr=1e-3)
     train_pre_reward = []
     train_post_reward = []
@@ -156,8 +159,8 @@ def main(args):
         train_post_reward_ls = []
 
         outer_opt.zero_grad()
-        policy_state_dict = TorchOpt.extract_state_dict(actor_critic_module)
-        optim_state_dict = TorchOpt.extract_state_dict(inner_opt)
+        policy_state_dict = torchopt.extract_state_dict(actor_critic_module)
+        optim_state_dict = torchopt.extract_state_dict(inner_opt)
         for idx in range(TASK_NUM):
             # print("idx: ", idx)
             env.reset_task(tasks[idx])
@@ -174,8 +177,8 @@ def main(args):
             outer_loss = a2c_loss(post_traj_td, policy_module, value_module, value_coef=0.5)
             outer_loss.backward()
 
-            TorchOpt.recover_state_dict(actor_critic_module, policy_state_dict)
-            TorchOpt.recover_state_dict(inner_opt, optim_state_dict)
+            torchopt.recover_state_dict(actor_critic_module, policy_state_dict)
+            torchopt.recover_state_dict(inner_opt, optim_state_dict)
 
             # Logging
             train_pre_reward_ls.append(torch.sum(pre_traj_td.get('reward'), dim=1).mean().item())
@@ -209,7 +212,7 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
-        description='Reinforcement learning with ' 'Model-Agnostic Meta-Learning (MAML) - Train'
+        description='Reinforcement learning with Model-Agnostic Meta-Learning (MAML) - Train'
     )
     parser.add_argument('--seed', type=int, default=1, help='random seed (default: 1)')
     parser.add_argument('--parallel', action='store_true', help='run envs in parallel')
