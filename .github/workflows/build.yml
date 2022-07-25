@@ -32,7 +32,7 @@ jobs:
   build:
     runs-on: ubuntu-18.04
     if: github.repository == 'metaopt/TorchOpt' && (github.event_name != 'push' || startsWith(github.ref, 'refs/tags/'))
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -126,10 +126,10 @@ jobs:
             echo "Audit and repair wheel for Python: ${PYTHON} (${PYVER})"
             LIBTORCH_PATH="$("${PYTHON}" -c 'import os, site; print(os.path.join(site.getsitepackages()[0], "torch", "lib"))')"
             "${PYTHON}" -m pip install --upgrade git+https://github.com/XuehaiPan/auditwheel.git@torchopt
-            "${PYTHON}" -m auditwheel show dist/torchopt-*-${PYVER}-*.whl
             (
               export LD_LIBRARY_PATH="${LIBTORCH_PATH}${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
               echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}"
+              "${PYTHON}" -m auditwheel show dist/torchopt-*-${PYVER}-*.whl &&
               "${PYTHON}" -m auditwheel repair --plat manylinux2014_x86_64 --wheel-dir wheelhouse dist/torchopt-*-${PYVER}-*.whl
             )
           done < .python-paths
@@ -156,15 +156,17 @@ jobs:
             pushd "temp-${PYVER}"
             if [[ "${PYTHON}" == "${DEFAULT_PYTHON}" ]]; then
               echo "Testing sdist with Python: ${PYTHON} (${PYVER})"
-              "${PYTHON}" -m pip uninstall torchopt -y
-              "${PYTHON}" -m pip install ../dist/torchopt-*.tar.gz
+              "${PYTHON}" -m pip uninstall torch torchopt -y
+              "${PYTHON}" -m pip install --extra-index-url https://download.pytorch.org/whl/cpu \
+                ../dist/torchopt-*.tar.gz
               "${PYTHON}" -c 'import torchopt'
             fi
             echo "Testing wheel with Python: ${PYTHON} (${PYVER})"
-            "${PYTHON}" -m pip uninstall torchopt -y
-            "${PYTHON}" -m pip install ../dist/torchopt-*-${PYVER}-*.whl
+            "${PYTHON}" -m pip uninstall torch torchopt -y
+            "${PYTHON}" -m pip install --extra-index-url https://download.pytorch.org/whl/cpu \
+              ../dist/torchopt-*-${PYVER}-*.whl
             "${PYTHON}" -c 'import torchopt'
-            "${PYTHON}" -m pip uninstall torchopt -y
+            "${PYTHON}" -m pip uninstall torch torchopt -y
             popd
           done < .python-paths
 
@@ -187,6 +189,7 @@ jobs:
           repository_url: https://test.pypi.org/legacy/
           verbose: true
           print_hash: true
+          skip_existing: true
 
       - name: Publish to PyPI
         if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
@@ -196,3 +199,4 @@ jobs:
           password: ${{ secrets.PYPI_UPLOAD_TOKEN }}
           verbose: true
           print_hash: true
+          skip_existing: true
