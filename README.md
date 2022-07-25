@@ -210,6 +210,8 @@ Requirements
 - (Optional) For visualizing computation graphs
   - [Graphviz](https://graphviz.org/download/) (for Linux users use `apt/yum install graphviz` or `conda install -c anaconda python-graphviz`)
 
+Please follow the instructions at <https://pytorch.org> to install PyTorch in your Python environment first. Then run the following command to install TorchOpt:
+
 ```bash
 pip3 install torchopt
 ```
