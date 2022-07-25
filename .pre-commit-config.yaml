@@ -27,7 +27,6 @@ repos:
     rev: 22.6.0
     hooks:
       - id: black
-        args: [--safe, -S, -t, py37, -l, '100']
         stages: [commit, push, manual]
   - repo: local
     hooks:
