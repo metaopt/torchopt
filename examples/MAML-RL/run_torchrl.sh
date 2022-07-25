@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-python maml.py --seed 1
-python maml.py --seed 2
-python maml.py --seed 3
-python maml.py --seed 4
-python maml.py --seed 5
+python maml_torchrl.py --parallel --seed 1
+python maml_torchrl.py --parallel --seed 2
+python maml_torchrl.py --parallel --seed 3
+python maml_torchrl.py --parallel --seed 4
+python maml_torchrl.py --parallel --seed 5
