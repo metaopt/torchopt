@@ -14,11 +14,15 @@
 # ==============================================================================
 
 import argparse
+import copy
 
 import numpy as np
 import torch
 import torch.optim as optim
 import tqdm
+
+
+torch.autograd.set_detect_anomaly(True)
 from torchrl import timeit
 from torchrl.envs import GymEnv, ParallelEnv, SerialEnv
 from torchrl.envs.utils import set_exploration_mode, step_tensordict
@@ -81,9 +85,10 @@ def a2c_loss(traj, policy_module, value_module, value_coef):
 def evaluate(env, dummy_env, seed, task_num, actor_critic, policy, value):
     pre_reward_ls = []
     post_reward_ls = []
+    env.reset()
     device = next(actor_critic.parameters()).device
 
-    inner_opt = torchopt.MetaSGD(actor_critic, lr=0.5)
+    inner_opt = torchopt.MetaSGD(actor_critic, lr=0.3)
 
     tasks = dummy_env.sample_tasks(num_tasks=task_num)
 
@@ -93,11 +98,11 @@ def evaluate(env, dummy_env, seed, task_num, actor_critic, policy, value):
         env.reset_task(tasks[idx])
         for _ in range(inner_iters):
             with set_exploration_mode('random'), torch.no_grad(), timeit('rollout_eval'):
-                pre_traj_td = env.rollout(policy, n_steps=TRAJ_LEN).to(device)
+                pre_traj_td = env.rollout(policy=policy, max_steps=TRAJ_LEN).to(device)
             inner_loss = a2c_loss(pre_traj_td, policy, value, value_coef=0.5)
             inner_opt.step(inner_loss)
         with set_exploration_mode('random'), torch.no_grad(), timeit('rollout_eval'):
-            post_traj_td = env.rollout(policy, n_steps=TRAJ_LEN).to(device)
+            post_traj_td = env.rollout(policy=policy, max_steps=TRAJ_LEN).to(device)
 
         # Logging
         pre_reward_ls.append(torch.sum(pre_traj_td.get('reward'), dim=1).mean().item())
@@ -140,9 +145,10 @@ def main(args):
         env.observation_spec[obs_key].shape[-1], env.action_spec.shape[-1]
     ).to(device)
     policy_module = actor_critic_module.get_policy_operator()
+    print(policy_module)
     value_module = actor_critic_module.get_value_operator()
 
-    inner_opt = torchopt.MetaSGD(actor_critic_module, lr=0.5)
+    inner_opt = torchopt.MetaSGD(actor_critic_module, lr=0.3)
     outer_opt = optim.Adam(actor_critic_module.parameters(), lr=1e-3)
     train_pre_reward = []
     train_post_reward = []
@@ -167,13 +173,15 @@ def main(args):
             for k in range(inner_iters):
                 with set_exploration_mode('random'), torch.no_grad(), timeit('rollout'):
                     pre_traj_td = env.rollout(
-                        policy=policy_module, n_steps=TRAJ_LEN, auto_reset=True
+                        policy=policy_module, max_steps=TRAJ_LEN, auto_reset=True
                     ).to(device)
                 inner_loss = a2c_loss(pre_traj_td, policy_module, value_module, value_coef=0.5)
                 inner_opt.step(inner_loss)
 
             with set_exploration_mode('random'), torch.no_grad(), timeit('rollout'):
-                post_traj_td = env.rollout(policy=policy_module, n_steps=TRAJ_LEN).to(device)
+                post_traj_td = env.rollout(
+                    policy=policy_module, max_steps=TRAJ_LEN, auto_reset=True
+                ).to(device)
             outer_loss = a2c_loss(post_traj_td, policy_module, value_module, value_coef=0.5)
             outer_loss.backward()
 

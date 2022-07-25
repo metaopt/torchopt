@@ -84,12 +84,15 @@ class ActorCritic(ActorValueOperator):
             ),
             ProbabilisticActor(
                 spec=None,
-                module=CategoricalSubNet(input_size, output_size),
+                module=TensorDictModule(
+                    CategoricalSubNet(input_size, output_size),
+                    in_keys=['hidden'],
+                    out_keys=['logits'],
+                ),
                 distribution_class=OneHotCategorical,
                 return_log_prob=False,
-                in_keys=['hidden'],
-                out_keys=['action'],
-                default_interaction_mode='random',
+                dist_param_keys=['logits'],
+                out_key_sample=['action'],
             ),
             ValueOperator(
                 module=ValueSubNet(input_size, output_size),
