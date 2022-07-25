@@ -115,8 +115,8 @@ jobs:
         run: |
           PYTHON="$(head -n 1 .python-paths)"
           "${PYTHON}" -m pip install --upgrade git+https://github.com/XuehaiPan/auditwheel.git@torchopt
-          "${PYTHON}" -m auditwheel show dist/torchopt-*.whl
-          "${PYTHON}" -m auditwheel repair --plat manylinux2014_x86_64 --strip --wheel-dir wheelhouse dist/torchopt-*.whl
+          find dist -mindepth 1 -name 'torchopt-*.whl' -print0 | xargs -0 "${PYTHON}" -m auditwheel show
+          "${PYTHON}" -m auditwheel repair --plat manylinux2014_x86_64 --wheel-dir wheelhouse --strip dist/torchopt-*.whl
           rm dist/torchopt-*.whl
           mv wheelhouse/torchopt-*manylinux*.whl dist/
 
