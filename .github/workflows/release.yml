@@ -106,6 +106,25 @@ jobs:
             exit 1
           fi
 
+      - name: Audit and repair wheels
+        run: |
+          PYTHON="$(head -n 1 .python-paths)"
+          "${PYTHON}" -m pip install --upgrade git+https://github.com/XuehaiPan/auditwheel.git@torchopt
+          "${PYTHON}" -m auditwheel show dist/torchopt-*.whl
+          "${PYTHON}" -m auditwheel repair --plat manylinux2014_x86_64 --strip --wheel-dir wheelhouse dist/torchopt-*.whl
+          rm dist/torchopt-*.whl
+          mv wheelhouse/torchopt-*manylinux*.whl dist/
+
+      - name: List built sdist and wheels
+        run: |
+          if [[ -n "$(find dist -maxdepth 0 -not -empty -print 2>/dev/null)" ]]; then
+            echo "Built sdist and wheels:"
+            find dist -mindepth 1 | sort -V
+          else
+            echo "No sdist and wheels are built."
+            exit 1
+          fi
+
       - name: Test sdist and wheels
         run: |
           DEFAULT_PYTHON="$(head -n 1 .python-paths)"
@@ -126,13 +145,6 @@ jobs:
             "${PYTHON}" -m pip uninstall torchopt -y
             popd
           done < .python-paths
-
-      - name: Audit wheels
-        run: |
-          PYTHON="$(head -n 1 .python-paths)"
-          PYVER="cp$("${PYTHON}" --version | cut -d ' ' -f2 | cut -d '.' -f-2 | tr -d '.')"
-          "${PYTHON}" -m pip install --upgrade auditwheel
-          "${PYTHON}" -m auditwheel show dist/torchopt-*-${PYVER}-*.whl
 
       - name: Check consistency between the package version and release tag
         if: startsWith(github.ref, 'refs/tags/')
