@@ -5,9 +5,11 @@
   <img src="image/logo-large.png" width="75%" />
 </div>
 
-![Python 3.7+](https://img.shields.io/badge/Python-3.5%2B-brightgreen.svg)
+![Python 3.7+](https://img.shields.io/badge/Python-3.7%2B-brightgreen.svg)
 [![PyPI](https://img.shields.io/pypi/v/torchopt?label=PyPI)](https://pypi.org/project/torchopt)
 ![Status](https://img.shields.io/pypi/status/torchopt?label=Status)
+![Test status](https://github.com/metaopt/TorchOpt/actions/workflows/tests.yml/badge.svg)
+![Build status](https://github.com/metaopt/TorchOpt/actions/workflows/build.yml/badge.svg)
 [![Documentation Status](https://readthedocs.org/projects/torchopt/badge/?version=latest)](https://torchopt.readthedocs.io/en/latest/?badge=latest)
 [![Downloads](https://static.pepy.tech/personalized-badge/torchopt?period=month&left_color=grey&right_color=blue&left_text=Downloads/month)](https://pepy.tech/project/torchopt)
 [![GitHub Repo Stars](https://img.shields.io/github/stars/metaopt/torchopt?label=Stars&logo=github&color=brightgreen)](https://github.com/metaopt/torchopt/stargazers)
