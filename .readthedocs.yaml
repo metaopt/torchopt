@@ -13,7 +13,7 @@ build:
 
 # Optionally declare the Python requirements required to build your docs
 conda:
-  environment: conda-recipe.yaml
+  environment: docs/conda-recipe.yaml
 
 # If using Sphinx, optionally build your docs in additional formats such as PDF
 formats:

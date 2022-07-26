@@ -1,0 +1,65 @@
+# Create virtual environment with command:
+#
+#   $ CONDA_OVERRIDE_CUDA=11.7 conda env create --file docs/conda-recipe.yaml
+#
+
+name: torchopt-docs
+
+channels:
+  - pytorch
+  - defaults
+  - nvidia/label/cuda-11.6.2
+  - nvidia
+  - conda-forge
+
+dependencies:
+  - python = 3.8
+  - pip
+
+  # Learning
+  - pytorch::pytorch = 1.12
+  - pytorch::torchvision
+  - pytorch::pytorch-mutex = *=*cuda*
+  - pip:
+      - '--edit .'  # torchopt
+      - functorch
+      - torchviz
+      - sphinxcontrib-katex  # for documentation
+  - jax
+  - jaxlib >= 0.3
+  - tensorboard
+  - wandb
+
+  # Device select
+  - nvidia::cudatoolkit = 11.6
+  - cudnn
+
+  # Build toolchain
+  - cmake >= 3.4
+  - make
+  - cxx-compiler
+  - gxx = 10
+  - nvidia/label/cuda-11.6.2::cuda-nvcc
+  - nvidia/label/cuda-11.6.2::cuda-cudart-dev
+  - pybind11
+
+  # Misc
+  - typing-extensions
+  - numpy
+  - matplotlib-base
+  - seaborn
+  - python-graphviz
+  - pillow
+
+  # Documentation
+  - sphinx
+  - sphinx_rtd_theme
+  - sphinx-autobuild
+  - sphinx-copybutton
+  - sphinxcontrib-spelling
+  - sphinxcontrib-bibtex
+  - sphinx-autodoc-typehints
+  - myst-nb
+  - ipykernel
+  - pandoc
+  - docutils
