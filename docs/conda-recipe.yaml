@@ -23,8 +23,6 @@ name: torchopt-docs
 channels:
   - pytorch
   - defaults
-  - nvidia/label/cuda-11.6.2
-  - nvidia
   - conda-forge
 
 dependencies:
@@ -34,7 +32,7 @@ dependencies:
   # Learning
   - pytorch::pytorch = 1.12
   - pytorch::torchvision
-  - pytorch::pytorch-mutex = *=*cuda*
+  - pytorch::pytorch-mutex = *=*cpu*
   - pip:
       - jax[cpu] >= 0.3
       - functorch
@@ -42,10 +40,6 @@ dependencies:
       - sphinxcontrib-katex  # for documentation
   - tensorboard
   - wandb
-
-  # Device select
-  - nvidia::cudatoolkit = 11.6
-  - cudnn
 
   # Build toolchain
   - cmake >= 3.4
