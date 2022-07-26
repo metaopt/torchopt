@@ -21,12 +21,10 @@ dependencies:
   - pytorch::torchvision
   - pytorch::pytorch-mutex = *=*cuda*
   - pip:
-      - '--edit .'  # torchopt
+      - jax[cpu] >= 0.3
       - functorch
       - torchviz
       - sphinxcontrib-katex  # for documentation
-  - jax
-  - jaxlib >= 0.3
   - tensorboard
   - wandb
 

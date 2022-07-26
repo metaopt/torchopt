@@ -24,3 +24,9 @@ sphinx:
   builder: html
   configuration: docs/source/conf.py
   fail_on_warning: true
+
+# Optionally declare the Python requirements required to build your docs
+python:
+  install:
+    - method: pip
+      path: .
