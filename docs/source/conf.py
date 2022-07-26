@@ -25,14 +25,11 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-import inspect
 import os
 import pathlib
 import sys
 
 import sphinxcontrib.katex as katex
-
-import torchopt
 
 
 HERE = pathlib.Path(__file__).absolute().parent
@@ -76,11 +73,13 @@ extensions = [
     'sphinx_copybutton',
     'sphinx_rtd_theme',
     'sphinxcontrib.bibtex',
-    'sphinxcontrib.spelling',
     'sphinxcontrib.katex',
     'sphinx_autodoc_typehints',
     'myst_nb',  # This is used for the .ipynb notebooks
 ]
+
+if not os.getenv('READTHEDOCS', None):
+    extensions.append('sphinxcontrib.spelling')
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
