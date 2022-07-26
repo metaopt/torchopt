@@ -66,6 +66,7 @@ dependencies:
   - sphinxcontrib-spelling
   - sphinxcontrib-bibtex
   - sphinx-autodoc-typehints
+  - pyenchant
   - myst-nb
   - ipykernel
   - pandoc

@@ -59,6 +59,7 @@ dependencies:
   - sphinxcontrib-spelling
   - sphinxcontrib-bibtex
   - sphinx-autodoc-typehints
+  - pyenchant
   - myst-nb
   - ipykernel
   - pandoc
@@ -76,7 +77,6 @@ dependencies:
   - flake8-bugbear
   - doc8
   - pydocstyle
-  - pyenchant
   - clang-format
   - clang-tools  # clang-tidy
   - cpplint
