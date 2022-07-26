@@ -173,8 +173,9 @@ jobs:
       - name: Check consistency between the package version and release tag
         if: startsWith(github.ref, 'refs/tags/')
         run: |
+          PYTHON="$(head -n 1 .python-paths)"
+          PACKAGE_VER="v$("${PYTHON}" setup.py --version)"
           RELEASE_TAG="${GITHUB_REF#refs/*/}"
-          PACKAGE_VER="v$(python setup.py --version)"
           if [[ "${PACKAGE_VER}" != "${RELEASE_TAG}" ]]; then
             echo "package ver. (${PACKAGE_VER}) != release tag. (${RELEASE_TAG})"
             exit 1
