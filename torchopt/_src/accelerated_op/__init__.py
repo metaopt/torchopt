@@ -13,12 +13,16 @@
 # limitations under the License.
 # ==============================================================================
 
+from typing import Iterable, Optional, Union
+
 import torch
 
 from torchopt._src.accelerated_op.adam_op import AdamOp
 
 
-def accelerated_op_available(devices=None):
+def accelerated_op_available(
+    devices: Optional[Union[str, torch.device, Iterable[Union[str, torch.device]]]] = None
+) -> bool:
     """Check the availability of accelerated optimizer."""
     op = AdamOp()
 
@@ -31,6 +35,9 @@ def accelerated_op_available(devices=None):
 
     try:
         for device in devices:
+            device = torch.device(device)
+            if device.type == 'cuda' and not torch.cuda.is_available():
+                return False
             updates = torch.tensor(1.0, device=device)
             op(updates, updates, updates, 1)
         return True
