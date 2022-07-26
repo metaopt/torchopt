@@ -124,7 +124,7 @@ jobs:
           while read -r PYTHON; do
             PYVER="cp$("${PYTHON}" --version | cut -d ' ' -f2 | cut -d '.' -f-2 | tr -d '.')"
             echo "Audit and repair wheel for Python: ${PYTHON} (${PYVER})"
-            LIBTORCH_PATH="$("${PYTHON}" -c 'import os, site; print(os.path.join(site.getsitepackages()[0], "torch", "lib"))')"
+            LIBTORCH_PATH="$("${PYTHON}" -c 'import os, sysconfig; print(os.path.join(sysconfig.get_path("purelib"), "torch", "lib"))')"
             "${PYTHON}" -m pip install --upgrade git+https://github.com/XuehaiPan/auditwheel.git@torchopt
             (
               export LD_LIBRARY_PATH="${LIBTORCH_PATH}${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
