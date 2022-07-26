@@ -27,8 +27,8 @@ dependencies:
       - sphinxcontrib-katex  # for documentation
   - jax
   - jaxlib >= 0.3=*cuda*
-  - optax
-  - tensorboard
+  - optax        # for tutorials
+  - tensorboard  # for examples
   - wandb
 
   # Device select
@@ -42,7 +42,7 @@ dependencies:
   - gxx = 10
   - nvidia/label/cuda-11.6.2::cuda-nvcc
   - nvidia/label/cuda-11.6.2::cuda-cudart-dev
-  - patchelf
+  - patchelf >= 0.9
   - pybind11
 
   # Misc
