@@ -1,28 +1,26 @@
+# .readthedocs.yaml
 # Read the Docs configuration file
 # See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
 
-
+# Required
 version: 2
+
+# Set the version of Python and other tools you might need
 build:
-  os: "ubuntu-20.04"
+  os: ubuntu-20.04
   tools:
-    python: "miniconda3-4.7"
-  commands:
-      - CONDA_OVERRIDE_CUDA=11.6 conda env create --file docs/env.yml
-      - conda activate torchopt
-      - pip install -r requirements.txt
-      - pip install -e .
-python:
-  install:
-    - requirements: docs/requirements.txt
-    - method: setuptools
-      path: .
+    python: miniconda3-4.7
+
+# Optionally declare the Python requirements required to build your docs
+conda:
+  environment: conda-recipe.yaml
+
+# If using Sphinx, optionally build your docs in additional formats such as PDF
 formats:
   - pdf
+
+# Build documentation in the docs/ directory with Sphinx
 sphinx:
   builder: html
   configuration: docs/source/conf.py
   fail_on_warning: true
-submodules:
-  include: all
-  recursive: true
