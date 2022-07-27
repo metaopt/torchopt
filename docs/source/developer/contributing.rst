@@ -33,17 +33,17 @@ Then you are ready to rock. Thanks for contributing to TorchOpt!
 Install Develop Version
 -----------------------
 
-To install TorchOpt in an "editable" mode, run
+To install TorchOpt in an "editable" mode, run:
 
 .. code-block:: bash
 
-    pip install -e .
+    pip3 install --no-build-isolation --editable .
 
-in the main directory. This installation is removable by
+in the main directory. This installation is removable by:
 
 .. code-block:: bash
 
-    python setup.py develop --uninstall
+    pip3 uninstall torchopt
 
 
 Lint Check
@@ -75,7 +75,7 @@ To check if everything conforms to the specification, run:
 Test Locally
 ------------
 
-This command will run automatic tests in the main directory
+This command will run automatic tests in the main directory:
 
 .. code-block:: bash
 
