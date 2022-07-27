@@ -82,6 +82,27 @@ This command will run automatic tests in the main directory:
     $ make test
 
 
+Build Wheels
+------------
+
+To build compatible **manylinux2014** (:pep:`599`) wheels for distribution, you can use |cibuildwheel|_. You will need to install |docker|_ first. Then run the following command:
+
+.. code-block:: bash
+
+    pip3 install --upgrade cibuildwheel
+
+    export PIP_EXTRA_INDEX_URL="https://download.pytorch.org/whl/cu116"  # extra index URL for `torch`
+    export CUDA_VERSION="11.6"                                           # version of `nvcc` for compilation
+    python3 -m cibuildwheel --platform=linux --output-dir=wheelhouse --config-file=pyproject.toml
+
+It will installs the CUDA compiler with ``CUDA_VERSION`` in the build container. Then build wheel binaries for all supported CPython versions. The outputs will be placed in the ``wheelhouse`` directory.
+
+.. |cibuildwheel| replace:: ``cibuildwheel``
+.. _cibuildwheel: https://github.com/pypa/cibuildwheel
+
+.. |docker| replace:: ``docker``
+.. _docker: https://www.docker.com
+
 Documentation
 -------------
 
