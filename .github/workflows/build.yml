@@ -20,6 +20,14 @@ on:
       - published
   # Allow to trigger the workflow manually
   workflow_dispatch:
+    inputs:
+      task:
+        description: "Task type"
+        type: choice
+        options:
+          - build-only
+          - build-and-publish
+        required: true
 
 permissions:
   contents: read
@@ -28,9 +36,44 @@ concurrency:
   group: "${{ github.workflow }}-${{ github.ref }}"
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
+env:
+  PIP_EXTRA_INDEX_URL: "https://download.pytorch.org/whl/cu116"
+  CUDA_VERSION: "11.6"
+
 jobs:
-  build:
-    runs-on: ubuntu-18.04
+  build-sdist:
+    runs-on: ubuntu-latest
+    if: github.repository == 'metaopt/TorchOpt' && (github.event_name != 'push' || startsWith(github.ref, 'refs/tags/'))
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: "recursive"
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.7 - 3.10"
+          update-environment: true
+
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip setuptools wheel build
+
+      - name: Build sdist
+        run: python -m build --sdist
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: sdist
+          path: dist/*.tar.gz
+          if-no-files-found: error
+
+  build-wheels:
+    runs-on: ubuntu-latest
+    needs: [build-sdist]
     if: github.repository == 'metaopt/TorchOpt' && (github.event_name != 'push' || startsWith(github.ref, 'refs/tags/'))
     timeout-minutes: 45
     steps:
@@ -40,135 +83,34 @@ jobs:
           submodules: "recursive"
           fetch-depth: 1
 
-      - name: Set up Python 3.7
-        id: py37
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.8.1
+        with:
+          package-dir: .
+          output-dir: wheelhouse
+          config-file: "{package}/pyproject.toml"
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: wheels
+          path: wheelhouse/*.whl
+          if-no-files-found: error
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: [build-sdist, build-wheels]
+    if: |
+      github.repository == 'metaopt/TorchOpt' &&
+      (github.event_name != 'workflow_dispatch' || github.event.inputs.task == 'build-and-publish') &&
+      (github.event_name != 'push' || startsWith(github.ref, 'refs/tags/'))
+    timeout-minutes: 15
+    steps:
+      - name: Set up Python
         uses: actions/setup-python@v4
+        if: startsWith(github.ref, 'refs/tags/')
         with:
-          python-version: "3.7"
-          update-environment: false
-
-      - name: Set up Python 3.8
-        id: py38
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.8"
-          update-environment: false
-
-      - name: Set up Python 3.9
-        id: py39
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.9"
-          update-environment: false
-
-      - name: Set up Python 3.10
-        id: py310
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
-          update-environment: false
-
-      - name: Set up Python executable paths
-        run: |
-          echo "${{ steps.py37.outputs.python-path }}" > .python-paths
-          echo "${{ steps.py38.outputs.python-path }}" >> .python-paths
-          echo "${{ steps.py39.outputs.python-path }}" >> .python-paths
-          echo "${{ steps.py310.outputs.python-path }}" >> .python-paths
-
-      - name: Setup CUDA Toolkit
-        uses: Jimver/cuda-toolkit@v0.2.7
-        id: cuda-toolkit
-        with:
-          cuda: "11.6.2"
-          method: network
-          sub-packages: '["nvcc"]'
-      - run: |
-          CUDA_VERSION="${{steps.cuda-toolkit.outputs.cuda}}"
-          echo "CUDA_VERSION=${CUDA_VERSION}" >> "${GITHUB_ENV}"
-          TORCH_INDEX_URL="https://download.pytorch.org/whl/cu$(echo "${CUDA_VERSION}" | cut -d'.' -f-2  | tr -d '.')"
-          echo "TORCH_INDEX_URL=${TORCH_INDEX_URL}" >> "${GITHUB_ENV}"
-
-          echo "Installed CUDA version is: ${CUDA_VERSION}"
-          echo "CUDA install location: ${{steps.cuda-toolkit.outputs.CUDA_PATH}}"
-          nvcc -V
-          echo "Torch index URL: ${TORCH_INDEX_URL}"
-
-      - name: Build sdist and wheels
-        run: |
-          DEFAULT_PYTHON="$(head -n 1 .python-paths)"
-
-          while read -r PYTHON; do
-            echo "Building wheel with Python: ${PYTHON} ($("${PYTHON}" --version))"
-            "${PYTHON}" -m pip install --upgrade pip setuptools wheel build
-            "${PYTHON}" -m pip install --extra-index-url "${TORCH_INDEX_URL}" \
-              -r requirements.txt
-            if [[ "${PYTHON}" == "${DEFAULT_PYTHON}" ]]; then
-              "${PYTHON}" -m build
-            else
-              "${PYTHON}" -m build --wheel
-            fi
-          done < .python-paths
-
-      - name: List built sdist and wheels
-        run: |
-          if [[ -n "$(find dist -maxdepth 0 -not -empty -print 2>/dev/null)" ]]; then
-            echo "Built sdist and wheels:"
-            ls -lh dist/
-          else
-            echo "No sdist and wheels are built."
-            exit 1
-          fi
-
-      - name: Audit and repair wheels
-        run: |
-          while read -r PYTHON; do
-            PYVER="cp$("${PYTHON}" --version | cut -d ' ' -f2 | cut -d '.' -f-2 | tr -d '.')"
-            echo "Audit and repair wheel for Python: ${PYTHON} (${PYVER})"
-            LIBTORCH_PATH="$("${PYTHON}" -c 'import os, sysconfig; print(os.path.join(sysconfig.get_path("purelib"), "torch", "lib"))')"
-            "${PYTHON}" -m pip install --upgrade git+https://github.com/XuehaiPan/auditwheel.git@torchopt
-            (
-              export LD_LIBRARY_PATH="${LIBTORCH_PATH}${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
-              echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}"
-              "${PYTHON}" -m auditwheel show dist/torchopt-*-${PYVER}-*.whl &&
-              "${PYTHON}" -m auditwheel repair --plat manylinux2014_x86_64 --wheel-dir wheelhouse dist/torchopt-*-${PYVER}-*.whl
-            )
-          done < .python-paths
-
-          rm dist/torchopt-*.whl
-          mv wheelhouse/torchopt-*manylinux*.whl dist/
-
-      - name: List built sdist and wheels
-        run: |
-          if [[ -n "$(find dist -maxdepth 0 -not -empty -print 2>/dev/null)" ]]; then
-            echo "Built sdist and wheels:"
-            ls -lh dist/
-          else
-            echo "No sdist and wheels are built."
-            exit 1
-          fi
-
-      - name: Test sdist and wheels
-        run: |
-          DEFAULT_PYTHON="$(head -n 1 .python-paths)"
-          while read -r PYTHON; do
-            PYVER="cp$("${PYTHON}" --version | cut -d ' ' -f2 | cut -d '.' -f-2 | tr -d '.')"
-            mkdir -p "temp-${PYVER}"
-            pushd "temp-${PYVER}"
-            if [[ "${PYTHON}" == "${DEFAULT_PYTHON}" ]]; then
-              echo "Testing sdist with Python: ${PYTHON} (${PYVER})"
-              "${PYTHON}" -m pip uninstall torch torchopt -y
-              "${PYTHON}" -m pip install --extra-index-url https://download.pytorch.org/whl/cpu \
-                ../dist/torchopt-*.tar.gz
-              "${PYTHON}" -c 'import torchopt'
-            fi
-            echo "Testing wheel with Python: ${PYTHON} (${PYVER})"
-            "${PYTHON}" -m pip uninstall torch torchopt -y
-            "${PYTHON}" -m pip install --extra-index-url https://download.pytorch.org/whl/cpu \
-              ../dist/torchopt-*-${PYVER}-*.whl
-            "${PYTHON}" -c 'import torchopt'
-            "${PYTHON}" -m pip uninstall torch torchopt -y
-            popd
-          done < .python-paths
+          python-version: "3.7 - 3.10"
+          update-environment: true
 
       - name: Check consistency between the package version and release tag
         if: startsWith(github.ref, 'refs/tags/')
@@ -180,6 +122,14 @@ jobs:
             echo "package ver. (${PACKAGE_VER}) != release tag. (${RELEASE_TAG})"
             exit 1
           fi
+
+      - name: Download built sdist and wheels
+        uses: actions/download-artifact@v3
+        with:
+          # unpacks default artifact into dist/
+          # if `name: artifact` is omitted, the action will create extra parent dir
+          name: artifact
+          path: dist
 
       - name: Publish to TestPyPI
         if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'

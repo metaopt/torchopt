@@ -1,3 +1,5 @@
+# Package ######################################################################
+
 [build-system]
 requires = ["setuptools", "torch == 1.12", "numpy", "pybind11"]
 build-backend = "setuptools.build_meta"
@@ -8,13 +10,13 @@ description = "A Jax-style optimizer for PyTorch."
 readme = "README.md"
 requires-python = ">= 3.7"
 authors = [
-    {name = "TorchOpt Contributors"},
-    {name = "Xuehai Pan", email = "XuehaiPan@pku.edu.cn"},
-    {name = "Jie Ren", email = "jieren9806@gmail.com"},
-    {name = "Xidong Feng", email = "xidong.feng.20@ucl.ac.uk"},
-    {name = "Bo Liu", email = "benjaminliu.eecs@gmail.com"},
+    { name = "TorchOpt Contributors" },
+    { name = "Xuehai Pan", email = "XuehaiPan@pku.edu.cn" },
+    { name = "Jie Ren", email = "jieren9806@gmail.com" },
+    { name = "Xidong Feng", email = "xidong.feng.20@ucl.ac.uk" },
+    { name = "Bo Liu", email = "benjaminliu.eecs@gmail.com" },
 ]
-license = {text = "Apache License, Version 2.0"}
+license = { text = "Apache License, Version 2.0" }
 keywords = [
     "PyTorch",
     "functorch",
@@ -48,9 +50,7 @@ dependencies = [
     "graphviz",
     "typing-extensions",
 ]
-dynamic = [
-    "version",
-]
+dynamic = ["version"]
 
 [project.urls]
 Homepage = "https://github.com/metaopt/TorchOpt"
@@ -58,8 +58,81 @@ Repository = "https://github.com/metaopt/TorchOpt"
 Documentation = "https://torchopt.readthedocs.io"
 "Bug Report" = "https://github.com/metaopt/TorchOpt/issues"
 
+[project.optional-dependencies]
+lint = [
+    "isort",
+    "black >= 22.6.0",
+    "pylint",
+    "mypy",
+    "flake8",
+    "flake8-bugbear",
+    "doc8",
+    "pydocstyle",
+    "pyenchant",
+    "cpplint",
+    "pre-commit",
+]
+test = ['torchvision', 'functorch', 'pytest', 'pytest-cov', 'pytest-xdist']
+
 [tool.setuptools.packages.find]
 include = ["torchopt", "torchopt.*"]
+
+# Wheel builder ################################################################
+# Reference: https://cibuildwheel.readthedocs.io
+[tool.cibuildwheel]
+archs = ["x86_64"]
+build = "*manylinux*"
+skip = "pp*"
+build-frontend = "pip"
+build-verbosity = 3
+environment = { CUDACXX = "/usr/local/cuda/bin/nvcc" }
+environment-pass = ["CUDA_VERSION", "PIP_EXTRA_INDEX_URL"]
+container-engine = "docker"
+
+before-all = """
+    if [ -z "${PIP_EXTRA_INDEX_URL}" ]; then
+        echo "ERROR: Empty PIP_EXTRA_INDEX_URL. Please specify a index URL for torch wheels." >&2
+        echo 'HINT: Run cibuildwheel with `PIP_EXTRA_INDEX_URL="https://download.pytorch.org/whl/<spec>" python -m cibuildwheel ...`' >&2
+        exit 1
+    fi
+    CUDA_VERSION="$(echo "${CUDA_VERSION:-11.6}" | cut -d"." -f-2)"
+    CUDA_PKG_SUFFIX="$(echo "${CUDA_VERSION}" | tr "." "-")"
+    echo "PIP_EXTRA_INDEX_URL='${PIP_EXTRA_INDEX_URL}'"
+    echo "CUDA_VERSION=${CUDA_VERSION}"
+    yum-config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel7/x86_64/cuda-rhel7.repo
+    yum clean all
+    yum install -y nvidia-driver-latest-libs "cuda-nvcc-${CUDA_PKG_SUFFIX}" "cuda-cudart-devel-${CUDA_PKG_SUFFIX}"
+    """
+test-extras = ["test"]
+test-command = """
+    SITE_PACKAGES="$(python -c 'print(__import__("sysconfig").get_path("purelib"))')"
+    TORCH_LIB_PATH="${SITE_PACKAGES}/torch/lib"
+    echo "ls \"${TORCH_LIB_PATH}\""; ls -lh "${TORCH_LIB_PATH}"
+    find "${SITE_PACKAGES}/torchopt" -name "*.so" -print0 |
+        xargs -0 -I '{}' bash -c "echo 'ldd \"{}\"'; ldd '{}'; echo 'patchelf --print-rpath \"{}\"'; patchelf --print-rpath '{}'"
+    make -C "{project}" test
+    TORCH_VERSION="$(python -c 'print(__import__("torch").__version__.partition("+")[0])')"
+    python -m pip uninstall -y torch torchvision
+    PIP_EXTRA_INDEX_URL="https://download.pytorch.org/whl/cpu" python -m pip install "torch==${TORCH_VERSION}" torchvision
+    echo "ls \"${TORCH_LIB_PATH}\""; ls -lh "${TORCH_LIB_PATH}"
+    find "${SITE_PACKAGES}/torchopt" -name "*.so" -print0 |
+        xargs -0 -I '{}' bash -c "echo 'ldd \"{}\"'; ldd '{}'; echo 'patchelf --print-rpath \"{}\"'; patchelf --print-rpath '{}'"
+    make -C "{project}" test
+    """
+
+[tool.cibuildwheel.linux]
+repair-wheel-command = """
+    python -m pip install -r requirements.txt
+    SITE_PACKAGES="$(python -c 'print(__import__("sysconfig").get_path("purelib"))')"
+    TORCH_LIB_PATH="${SITE_PACKAGES}/torch/lib"
+    export LD_LIBRARY_PATH="${TORCH_LIB_PATH}:/usr/local/cuda/lib64:/usr/local/cuda/targets/x86_64-linux/lib/stubs${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+    echo "ls \"${TORCH_LIB_PATH}\""; ls -lh "${TORCH_LIB_PATH}"
+    python -m pip install --force-reinstall git+https://github.com/XuehaiPan/auditwheel.git@torchopt
+    python -m auditwheel lddtree "{wheel}"
+    python -m auditwheel repair --wheel-dir="{dest_dir}" "{wheel}"
+    """
+
+# Linter tools #################################################################
 
 [tool.black]
 safe = true
