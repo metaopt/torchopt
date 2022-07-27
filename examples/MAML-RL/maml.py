@@ -106,7 +106,7 @@ def a2c_loss(traj, policy, value_coef):
 def evaluate(env, seed, task_num, policy):
     pre_reward_ls = []
     post_reward_ls = []
-    inner_opt = torchopt.MetaSGD(policy, lr=0.2)
+    inner_opt = torchopt.MetaSGD(policy, lr=0.1)
     env = gym.make(
         'TabularMDP-v0',
         **dict(
@@ -151,7 +151,7 @@ def main(args):
     )
     # Policy
     policy = CategoricalMLPPolicy(input_size=STATE_DIM, output_size=ACTION_DIM)
-    inner_opt = torchopt.MetaSGD(policy, lr=0.2)
+    inner_opt = torchopt.MetaSGD(policy, lr=0.1)
     outer_opt = optim.Adam(policy.parameters(), lr=1e-3)
     train_pre_reward = []
     train_post_reward = []

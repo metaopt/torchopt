@@ -20,9 +20,6 @@ import numpy as np
 import torch
 import torch.optim as optim
 import tqdm
-
-
-torch.autograd.set_detect_anomaly(True)
 from torchrl import timeit
 from torchrl.envs import GymEnv, ParallelEnv, SerialEnv
 from torchrl.envs.utils import set_exploration_mode, step_tensordict
@@ -35,8 +32,8 @@ import torchopt
 from helpers.policy_torchrl import ActorCritic  # isort: skip
 
 
-TASK_NUM = 4
-TRAJ_NUM = 2
+TASK_NUM = 40
+TRAJ_NUM = 20
 TRAJ_LEN = 10
 
 NUM_ENVS = TRAJ_NUM  # number of envs to run in parallel
