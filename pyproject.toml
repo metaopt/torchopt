@@ -1,0 +1,101 @@
+[build-system]
+requires = ["setuptools", "torch == 1.12", "numpy", "pybind11"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "torchopt"
+description = "A Jax-style optimizer for PyTorch."
+readme = "README.md"
+requires-python = ">= 3.7"
+authors = [
+    {name = "TorchOpt Contributors"},
+    {name = "Xuehai Pan", email = "XuehaiPan@pku.edu.cn"},
+    {name = "Jie Ren", email = "jieren9806@gmail.com"},
+    {name = "Xidong Feng", email = "xidong.feng.20@ucl.ac.uk"},
+    {name = "Bo Liu", email = "benjaminliu.eecs@gmail.com"},
+]
+license = {file = "LICENSE"}
+keywords = [
+    "PyTorch",
+    "functorch",
+    "JAX",
+    "Meta-Learning",
+    "Optimizer",
+    "Differentiable Optimizer",
+    "Functional Programming",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Operating System :: POSIX :: Linux",
+    "Environment :: GPU",
+    "Environment :: GPU :: NVIDIA CUDA",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "torch == 1.12",
+    "jax[cpu] >= 0.3",
+    "numpy",
+    "graphviz",
+    "typing-extensions",
+]
+dynamic = [
+    "version",
+]
+
+[project.urls]
+Homepage = "https://github.com/metaopt/TorchOpt"
+Repository = "https://github.com/metaopt/TorchOpt"
+Documentation = "https://torchopt.readthedocs.io"
+"Bug Report" = "https://github.com/metaopt/TorchOpt/issues"
+
+[tool.setuptools.packages.find]
+include = ["torchopt", "torchopt.*"]
+
+[tool.black]
+safe = true
+line-length = 100
+skip-string-normalization = true
+target-version = ["py37", "py38", "py39", "py310"]
+
+[tool.isort]
+profile = "black"
+src_paths = ["torchopt", "examples", "tests"]
+indent = 4
+line_length = 100
+lines_after_imports = 2
+multi_line_output = 3
+
+[tool.mypy]
+allow_redefinition = true
+check_untyped_defs = true
+disallow_incomplete_defs = false
+disallow_untyped_defs = false
+ignore_missing_imports = true
+no_implicit_optional = true
+pretty = true
+show_error_codes = true
+show_error_context = true
+show_traceback = true
+strict_equality = true
+strict_optional = true
+warn_no_return = true
+warn_redundant_casts = true
+warn_unreachable = true
+warn_unused_configs = true
+warn_unused_ignores = true
+
+[tool.pydocstyle]
+convention = "google"
+
+[tool.doc8]
+max-line-length = 500

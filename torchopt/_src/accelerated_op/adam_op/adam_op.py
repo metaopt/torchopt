@@ -19,7 +19,7 @@ from typing import Any
 
 import torch
 
-from torchopt._lib import adam_op
+from torchopt._lib import adam_op  # pylint: disable=no-name-in-module
 
 
 class AdamOp:  # pylint: disable=too-few-public-methods
@@ -30,7 +30,7 @@ class AdamOp:  # pylint: disable=too-few-public-methods
 
         @staticmethod
         def jvp(ctx: Any, *grad_inputs: Any) -> Any:
-            # pylint: disable=line-too-long
+            # pylint: disable-next=line-too-long
             """Defines a formula for differentiating the operation with forward mode automatic differentiation."""
 
         @staticmethod
@@ -44,7 +44,7 @@ class AdamOp:  # pylint: disable=too-few-public-methods
 
         @staticmethod
         def backward(ctx: Any, *args: Any) -> Any:
-            # pylint: disable=line-too-long
+            # pylint: disable-next=line-too-long
             """Defines a formula for differentiating the operation with backward mode automatic differentiation (alias to the :meth:`vjp` method)."""
             dmu = args[0]
             updates, mu = ctx.saved_tensors
@@ -57,7 +57,7 @@ class AdamOp:  # pylint: disable=too-few-public-methods
 
         @staticmethod
         def jvp(ctx: Any, *grad_inputs: Any) -> Any:
-            # pylint: disable=line-too-long
+            # pylint: disable-next=line-too-long
             """Defines a formula for differentiating the operation with forward mode automatic differentiation."""
 
         @staticmethod
@@ -71,7 +71,7 @@ class AdamOp:  # pylint: disable=too-few-public-methods
 
         @staticmethod
         def backward(ctx: Any, *args: Any) -> Any:
-            # pylint: disable=line-too-long
+            # pylint: disable-next=line-too-long
             """Defines a formula for differentiating the operation with backward mode automatic differentiation (alias to the :meth:`vjp` function)."""
             dnu = args[0]
             updates, nu = ctx.saved_tensors
@@ -84,7 +84,7 @@ class AdamOp:  # pylint: disable=too-few-public-methods
 
         @staticmethod
         def jvp(ctx: Any, *grad_inputs: Any) -> Any:
-            # pylint: disable=line-too-long
+            # pylint: disable-next=line-too-long
             """Defines a formula for differentiating the operation with forward mode automatic differentiation."""
 
         @staticmethod
@@ -98,7 +98,7 @@ class AdamOp:  # pylint: disable=too-few-public-methods
 
         @staticmethod
         def backward(ctx: Any, *args: Any) -> Any:
-            # pylint: disable=line-too-long
+            # pylint: disable-next=line-too-long
             """Defines a formula for differentiating the operation with backward mode automatic differentiation (alias to the :meth:`vjp` function)."""
             dupdates = args[0]
             updates, new_mu, new_nu = ctx.saved_tensors
@@ -106,7 +106,7 @@ class AdamOp:  # pylint: disable=too-few-public-methods
             result = adam_op.backwardUpdates(dupdates, updates, new_mu, new_nu, b1, b2, count)
             return result[0], result[1], None
 
-    # pylint: disable=too-many-arguments
+    # pylint: disable-next=too-many-arguments
     def __init__(self, b1=0.9, b2=0.999, eps=1e-8, eps_root=0.0, inplace=True):
         """The :meth:`__init__` function."""
         self.b1 = b1

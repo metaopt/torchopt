@@ -80,51 +80,9 @@ class cmake_build_ext(build_ext):
 
 
 setup(
-    name='torchopt',
     version=version.__version__,
-    author='TorchOpt Contributors',
-    author_email='jieren9806@gmail.com, xidong.feng.20@ucl.ac.uk, benjaminliu.eecs@gmail.com',
-    description='A Jax-style optimizer for PyTorch.',
-    long_description=open('README.md', encoding='utf8').read(),
-    long_description_content_type='text/markdown',
-    license='Apache License Version 2.0',
-    keywords='Meta-Learning, PyTorch, Optimizer',
-    url='https://github.com/metaopt/TorchOpt',
-    packages=find_packages(include=['torchopt', 'torchopt.*']),
     package_data={'sharedlib': ['_lib/*.so']},
     include_package_data=True,
     cmdclass={'build_ext': cmake_build_ext},
     ext_modules=[CMakeExtension('torchopt._lib.adam_op', source_dir=HERE)],
-    setup_requires=[  # for `torch.utils.cpp_extension`
-        'torch == 1.12',
-        'numpy',
-        'pybind11',
-    ],
-    install_requires=[
-        'torch == 1.12',
-        'jax[cpu] >= 0.3',
-        'numpy',
-        'graphviz',
-        'typing-extensions',
-    ],
-    python_requires='>= 3.7',
-    classifiers=[
-        # How mature is this project? Common values are
-        #   3 - Alpha
-        #   4 - Beta
-        #   5 - Production/Stable
-        'Development Status :: 4 - Beta',
-        # Indicate who your project is intended for
-        'Intended Audience :: Science/Research',
-        'Intended Audience :: Developers',
-        'Topic :: Scientific/Engineering :: Artificial Intelligence',
-        # Pick your license as you wish (should match "license" above)
-        'License :: OSI Approved :: Apache Software License',
-        # Specify the Python versions you support here. In particular, ensure
-        # that you indicate whether you support Python 2, Python 3 or both.
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
-        'Programming Language :: Python :: 3.10',
-    ],
 )

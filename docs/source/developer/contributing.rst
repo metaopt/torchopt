@@ -1,6 +1,34 @@
 Contributing to TorchOpt
 ========================
 
+Before contributing to TorchOpt, please follow the instructions below to setup.
+
+1. Fork TorchOpt (`fork <https://github.com/metaopt/TorchOpt/fork>`_) on GitHub and clone the repository.
+
+.. code-block:: bash
+
+    git clone git@github.com:<your username>/TorchOpt.git  # use the SSH protocol
+    cd TorchOpt
+
+    git remote add upstream git@github.com:metaopt/TorchOpt.git
+
+2. Setup a development environment via `conda <https://github.com/conda/conda>`_:
+
+.. code-block:: bash
+
+    # You may need `CONDA_OVERRIDE_CUDA` if conda fails to detect the NVIDIA driver (e.g. in docker or WSL2)
+    CONDA_OVERRIDE_CUDA=11.7 conda env create --file conda-recipe.yaml
+
+    conda activate torchopt
+
+3. Setup the `pre-commit <https://pre-commit.com>`_ hooks:
+
+.. code-block:: bash
+
+    pre-commit install --install-hooks
+
+Then you are ready to rock. Thanks for contributing to TorchOpt!
+
 
 Install Develop Version
 -----------------------
