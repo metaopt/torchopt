@@ -182,6 +182,35 @@ class HighLevelInplace(unittest.TestCase):
                 mse = F.mse_loss(b, b_ref)
                 self.assertAlmostEqual(float(mse), 0)
 
+    def test_adamw(self) -> None:
+        optim = torchopt.RMSProp(
+            self.model.parameters(), self.lr, decay=0.99
+        )  # pytorch uses 0.99 as the default value
+        optim_ref = torch.optim.RMSprop(self.model_ref.parameters(), self.lr)
+        for xs, ys in self.loader:
+            pred = self.model(xs)
+            pred_ref = self.model_ref(xs)
+            loss = F.cross_entropy(pred, ys)
+            loss_ref = F.cross_entropy(pred_ref, ys)
+            optim.zero_grad()
+            loss.backward()
+            optim.step()
+            optim_ref.zero_grad()
+            loss_ref.backward()
+            optim_ref.step()
+
+        with torch.no_grad():
+            for p, p_ref in zip(self.model.parameters(), self.model_ref.parameters()):
+                mse = F.mse_loss(p, p_ref)
+                self.assertAlmostEqual(
+                    float(mse), 0, delta=1e-4
+                )  # Optax and pytorch have different implementation
+            for b, b_ref in zip(self.model.buffers(), self.model_ref.buffers()):
+                b = b.float() if not b.is_floating_point() else b
+                b_ref = b_ref.float() if not b_ref.is_floating_point() else b_ref
+                mse = F.mse_loss(b, b_ref)
+                self.assertAlmostEqual(float(mse), 0)
+
 
 if __name__ == '__main__':
     unittest.main()
