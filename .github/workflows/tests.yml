@@ -16,6 +16,8 @@ on:
       - tests/**
       - torchopt/**
       - .github/workflows/tests.yml
+  # Allow to trigger the workflow manually
+  workflow_dispatch:
 
 permissions:
   contents: read
