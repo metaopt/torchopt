@@ -19,7 +19,7 @@ from ._src import visual
 from ._src import hook
 from ._src import schedule
 from ._src import implicit_diff
-from ._src import linear_solver
+from ._src import linear_solve
 from ._src.MetaOptimizer import MetaOptimizer, MetaSGD, MetaAdam
 from ._src.Optimizer import Optimizer, SGD, Adam
 from ._src.update import apply_updates

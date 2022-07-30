@@ -21,7 +21,7 @@ from typing import Tuple
 
 import jax
 import torch
-from TorchOpt._src import linear_solver
+from TorchOpt._src import linear_solve
 from torch.autograd import Function
 from torch.autograd.functional import jvp, vjp
 import functorch
@@ -33,7 +33,7 @@ def root_vjp(optimality_fun: Callable,
              args: Tuple,
              cotangent: Any,
              mask: Tuple,
-             solve: Callable = linear_solver.solve_normal_cg) -> Any:
+             solve: Callable = linear_solve.solve_normal_cg) -> Any:
     """Vector-Jacobian product of a root.
 
     The invariant is ``optimality_fun(sol, *args) == 0``.
@@ -269,7 +269,7 @@ def custom_root(optimality_fun: Callable,
       ``custom_root(optimality_fun)(solver_fun)``.
     """
     if solve is None:
-        solve = linear_solver.solve_normal_cg
+        solve = linear_solve.solve_normal_cg
 
     def wrapper(solver_fun):
         return _custom_root(solver_fun, optimality_fun, solve, has_aux,
