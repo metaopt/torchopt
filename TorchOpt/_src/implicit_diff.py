@@ -64,7 +64,7 @@ def root_vjp(optimality_fun: Callable,
     # The solution of A^T u = v, where
     # A = jacobian(optimality_fun, argnums=0)
     # v = -cotangent.
-    v = jax.tree_map(torch.neg, cotangent)
+    v = jax.tree_util.tree_map(torch.neg, cotangent)
     u = solve(matvec, v)
 
     class MaskArgs:
@@ -200,7 +200,7 @@ def _custom_root(solver_fun, optimality_fun, solve, has_aux,
                 return res
 
             @staticmethod
-            def backward(ctx, cotangent):
+            def backward(ctx, *cotangent):
                 res, flat_args = ctx.aux
                 ctx.aux = None
                 mask = ctx.mask

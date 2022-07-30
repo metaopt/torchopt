@@ -46,14 +46,16 @@ def _vdot_real_part(x, y):
     #  where M is positive definite and Hermitian, so the result is
     # real valued:
     # https://en.wikipedia.org/wiki/Definiteness_of_a_matrix#Definitions_for_complex_matrices
-    result = torch.matmul(x.real, y.real)
+    x = x.view(-1)
+    y = y.view(-1)
+    result = torch.dot(x.real, y.real)
     if x.is_complex() or y.is_complex():
-        result += torch.matmul(x.imag, y.imag)
+        result += torch.dot(x.imag, y.imag)
     return result
 
 
 def _vdot_real_tree(x, y):
-    return torch.sum(jax.tree_map(_vdot_real_part, x, y))
+    return jax.tree_util.tree_map(_vdot_real_part, x, y)
 
 
 def _identity(x):
@@ -78,7 +80,8 @@ def _normalize_matvec(f):
 def _cg_solve(A, b, x0=None, *, maxiter, tol=1e-5, atol=0.0, M=_identity):
     # tolerance handling uses the "non-legacy" behavior of scipy.sparse.linalg.cg
     bs = _vdot_real_tree(b, b)
-    atol2 = max(tol ** 2 * bs, atol ** 2)
+    # atol2 = max(tol ** 2 * bs, atol ** 2)
+    atol2 = jax.tree_util.tree_map(lambda bs: max(tol ** 2 * bs, atol ** 2), bs)
 
     # https://en.wikipedia.org/wiki/Conjugate_gradient_method#The_preconditioned_conjugate_gradient_method
 
@@ -90,16 +93,18 @@ def _cg_solve(A, b, x0=None, *, maxiter, tol=1e-5, atol=0.0, M=_identity):
     def body_fun(value):
         x, r, gamma, p, k = value
         Ap = A(p)
-        alpha = gamma / _vdot_real_tree(p, Ap)
-        x_ = jax.tree_map(torch.add, x, jax.tree_map(torch.mul, alpha, p))
-        r_ = jax.tree_map(torch.sub, r, jax.tree_map(torch.mul, alpha, Ap))
+        # alpha = gamma / _vdot_real_tree(p, Ap)
+        alpha = jax.tree_util.tree_map(lambda gamma, inner_product: gamma / inner_product, gamma, _vdot_real_tree(p, Ap))
+        x_ = jax.tree_util.tree_map(torch.add, x, jax.tree_util.tree_map(torch.mul, alpha, p))
+        r_ = jax.tree_util.tree_map(torch.sub, r, jax.tree_util.tree_map(torch.mul, alpha, Ap))
         z_ = M(r_)
         gamma_ = _vdot_real_tree(r_, z_)
-        beta_ = gamma_ / gamma
-        p_ = jax.tree_map(torch.add, z_, jax.tree_map(torch.mul, beta_, p))
+        # beta_ = gamma_ / gamma
+        beta_ = jax.tree_util.tree_map(torch.div, gamma_, gamma)
+        p_ = jax.tree_util.tree_map(torch.add, z_, jax.tree_util.tree_map(torch.mul, beta_, p))
         return x_, r_, gamma_, p_, k + 1
 
-    r0 = jax.tree_map(torch.sub, b, A(x0))
+    r0 = jax.tree_util.tree_map(torch.sub, b, A(x0))
     p0 = z0 = M(r0)
     gamma0 = _vdot_real_tree(r0, z0)
     initial_value = (x0, r0, gamma0, p0, 0)
@@ -114,14 +119,14 @@ def _cg_solve(A, b, x0=None, *, maxiter, tol=1e-5, atol=0.0, M=_identity):
 
 
 def _shapes(pytree):
-    flatten_tree, _ = jax.tree_flatten(pytree)
-    return jax.tree_flatten([tuple(term.shape) for term in flatten_tree])[0]
+    flatten_tree, _ = jax.tree_util.tree_flatten(pytree)
+    return jax.tree_util.tree_flatten([tuple(term.shape) for term in flatten_tree])[0]
 
 
 def _isolve(_isolve_solve, A, b, x0=None, *, tol=1e-5, atol=0.0,
             maxiter=None, M=None, check_symmetric=False):
     if x0 is None:
-        x0 = jax.tree_map(torch.zeros_like, b)
+        x0 = jax.tree_util.tree_map(torch.zeros_like, b)
 
     if maxiter is None:
         size = sum(_shapes(b))
@@ -149,8 +154,8 @@ def _isolve(_isolve_solve, A, b, x0=None, *, tol=1e-5, atol=0.0,
     def real_valued(x):
         return not x.is_complex()
     if check_symmetric:
-        complex_mask = jax.tree_map(real_valued, b)
-        flatten_complex_mask, _ = jax.tree_flatten(complex_mask)
+        complex_mask = jax.tree_util.tree_map(real_valued, b)
+        flatten_complex_mask, _ = jax.tree_util.tree_flatten(complex_mask)
         symmetric = all(flatten_complex_mask)
     else:
         sysmmetric = False
