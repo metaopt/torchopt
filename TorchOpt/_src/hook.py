@@ -36,7 +36,7 @@ def register_hook(hook) -> GradientTransformation:
 
     def update_fn(updates, state, inplace=False):
         def f(g): return g.register_hook(hook) if g is not None else None
-        jax.tree_map(f, updates)
+        jax.tree_util.tree_map(f, updates)
         return updates, state
 
     return GradientTransformation(init_fn, update_fn)

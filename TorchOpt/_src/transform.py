@@ -45,7 +45,7 @@ ScaleState = base.EmptyState
 def inc_count(updates, count: List[int]) -> List[int]:
     def f(c, g):
         return c + 1 if g is not None else c
-    return jax.tree_map(f, count, updates)
+    return jax.tree_util.tree_map(f, count, updates)
 
 
 def scale(
@@ -71,7 +71,7 @@ def scale(
         else:
             def f(g):
                 return g.mul(step_size) if g is not None else None
-        updates = jax.tree_map(f, updates)
+        updates = jax.tree_util.tree_map(f, updates)
         return updates, state
 
     return base.GradientTransformation(init_fn, update_fn)
@@ -101,10 +101,10 @@ def scale_by_schedule(
     def update_fn(updates, state, inplace=True):
         step_size = step_size_fn(state.count)
         if inplace:
-            updates = jax.tree_map(
+            updates = jax.tree_util.tree_map(
                 lambda g, step_size: g.mul_(step_size), updates, step_size)
         else:
-            updates = jax.tree_map(
+            updates = jax.tree_util.tree_map(
                 lambda g, step_size: g.mul(step_size), updates, step_size)
         return updates, ScaleByScheduleState(count=inc_count(updates, state.count))
 
@@ -126,7 +126,7 @@ def _update_moment(updates, moments, decay, order, inplace=True):
         def f(g, t):
             return t.mul(decay).add(g ** order, alpha=1 - decay) if g is not None else t
 
-    return jax.tree_map(f, updates, moments)
+    return jax.tree_util.tree_map(f, updates, moments)
 
 
 def _update_moment_per_elem_norm(updates, moments, decay, order, inplace=True):
@@ -139,7 +139,7 @@ def _update_moment_per_elem_norm(updates, moments, decay, order, inplace=True):
         def f(g, t):
             return t.mul(decay).add(g ** order, alpha=1 - decay) if g is not None else t
 
-    return jax.tree_map(f, updates, moments)
+    return jax.tree_util.tree_map(f, updates, moments)
 
 
 class ScaleByAdamState(NamedTuple):
@@ -156,7 +156,7 @@ def _bias_correction(moment, decay, count, inplace=True):
     else:
         def f(t, c): return t.div(1 - decay ** c)
 
-    return jax.tree_map(f, moment, count)
+    return jax.tree_util.tree_map(f, moment, count)
 
 
 def scale_by_adam(
@@ -184,9 +184,9 @@ def scale_by_adam(
   """
 
     def init_fn(params):
-        mu = jax.tree_map(  # First moment
+        mu = jax.tree_util.tree_map(  # First moment
             lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params)
-        nu = jax.tree_map(  # Second moment
+        nu = jax.tree_util.tree_map(  # Second moment
             lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params)
         return ScaleByAdamState(count=tuple(0 for _ in range(len(mu))), mu=tuple(mu), nu=tuple(nu))
 
@@ -204,7 +204,7 @@ def scale_by_adam(
             def f(g, m, v):
                 return m.div(torch.sqrt(v.add(eps_root)).add(eps)) if g is not None else None
 
-        updates = jax.tree_map(f, updates, mu_hat, nu_hat)
+        updates = jax.tree_util.tree_map(f, updates, mu_hat, nu_hat)
         return updates, ScaleByAdamState(count=count_inc, mu=mu, nu=nu)
 
     return base.GradientTransformation(init_fn, update_fn)
@@ -238,16 +238,16 @@ def scale_by_accelerated_adam(
     from .accelerated_op import AdamOp
 
     def init_fn(params):
-        mu = jax.tree_map(  # First moment
+        mu = jax.tree_util.tree_map(  # First moment
             lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params)
-        nu = jax.tree_map(  # Second moment
+        nu = jax.tree_util.tree_map(  # Second moment
             lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params)
         return ScaleByAdamState(count=tuple(0 for _ in range(len(params))), mu=mu, nu=nu)
 
     def update_fn(updates, state, inplace=True):
         count_inc = inc_count(updates, state.count)
         op = AdamOp(b1, b2, eps, eps_root, inplace)
-        out = jax.tree_map(op, state.mu, state.nu, updates, count_inc)
+        out = jax.tree_util.tree_map(op, state.mu, state.nu, updates, count_inc)
         new_mus, new_nus, new_updates = [], [], []
         for new_mu, new_nu, new_update in out:
             new_mus.append(new_mu)
@@ -288,7 +288,7 @@ def trace(
             return TraceState(trace=())
         else:
             return TraceState(
-                trace=jax.tree_map(
+                trace=jax.tree_util.tree_map(
                     lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params))
 
     def update_fn(updates, state, inplace=True):
@@ -296,21 +296,21 @@ def trace(
             if inplace:
                 def f1(g, t): return t.copy_(g.add(t, alpha=decay))
                 def f2(g, t): return g.add_(t, alpha=decay)
-                new_trace = jax.tree_map(f1, updates, state.trace)
-                updates = jax.tree_map(f2, updates, new_trace)
+                new_trace = jax.tree_util.tree_map(f1, updates, state.trace)
+                updates = jax.tree_util.tree_map(f2, updates, new_trace)
             else:
                 def f(g, t): return g.add(t, alpha=decay)
-                new_trace = jax.tree_map(f, updates, state.trace)
-                updates = jax.tree_map(f, updates, new_trace)
+                new_trace = jax.tree_util.tree_map(f, updates, state.trace)
+                updates = jax.tree_util.tree_map(f, updates, new_trace)
         else:
             if inplace:
                 def f(g, t): return g.add_(t, alpha=decay)
-                updates = jax.tree_map(f, updates, state.trace)
+                updates = jax.tree_util.tree_map(f, updates, state.trace)
                 state.trace.copy_(updates)
                 new_trace = state.trace
             else:
                 def f(g, t): return g.add(t, alpha=decay)
-                updates = jax.tree_map(f, updates, state.trace)
+                updates = jax.tree_util.tree_map(f, updates, state.trace)
                 new_trace = updates
 
         return updates, TraceState(trace=new_trace)

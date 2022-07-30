@@ -57,11 +57,11 @@ def stop_gradient(target):
     elif isinstance(target, nn.Module):
         true_target = tuple(target.parameters())
     elif isinstance(target, MetaOptimizer):
-        true_target, _ = jax.tree_flatten(target.state_dict())
+        true_target, _ = jax.tree_util.tree_flatten(target.state_dict())
     else:
         true_target = target
 
-    jax.tree_map(f, true_target)
+    jax.tree_util.tree_map(f, true_target)
 
 
 def extract_state_dict(mod, copy=False, *, with_buffer=True, enable_visual=False, visual_prefix=''):
@@ -126,14 +126,14 @@ def extract_state_dict(mod, copy=False, *, with_buffer=True, enable_visual=False
     elif isinstance(mod, MetaOptimizer):
         state = mod.state_dict()
         if copy:
-            flatten_state, state_tree = jax.tree_flatten(state)
+            flatten_state, state_tree = jax.tree_util.tree_flatten(state)
 
             def get_v(v):
                 if not isinstance(v, torch.Tensor):
                     return v
                 requires_grad = v.requires_grad
                 return v.clone().detach_().requires_grad_(requires_grad)
-            flatten_state = jax.tree_map(get_v, flatten_state)
+            flatten_state = jax.tree_util.tree_map(get_v, flatten_state)
             return state_tree.unflatten(flatten_state)
         else:
             return state

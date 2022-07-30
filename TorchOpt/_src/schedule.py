@@ -76,7 +76,7 @@ def polynomial_schedule(
             count = np.clip(count - transition_begin, 0, transition_steps)
             frac = 1 - count / transition_steps
             return (init_value - end_value) * (frac ** power) + end_value
-        return jax.tree_map(impl, count)
+        return jax.tree_util.tree_map(impl, count)
     return schedule
 
 

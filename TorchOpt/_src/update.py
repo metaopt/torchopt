@@ -62,4 +62,4 @@ def apply_updates(params: base.Params, updates: base.Updates, inplace: bool = Tr
     else:
         def f(p, u):
             return p.add(u) if u is not None else p
-    return jax.tree_map(f, params, updates)
+    return jax.tree_util.tree_map(f, params, updates)

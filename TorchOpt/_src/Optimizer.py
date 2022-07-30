@@ -65,7 +65,7 @@ class Optimizer(object):
                         p.grad.requires_grad_(False)
                     p.grad.zero_()
                     return None
-            jax.tree_map(f, group)
+            jax.tree_util.tree_map(f, group)
 
     def state_dict(self):
         return self.state_groups
@@ -89,14 +89,14 @@ class Optimizer(object):
 
         for param, state in zip(self.param_groups, self.state_groups):
             def f(p): return p.grad
-            grad = jax.tree_map(f, param)
+            grad = jax.tree_util.tree_map(f, param)
             updates, _ = self.impl.update(grad, state)
             apply_updates(param, updates)
 
         return loss
 
     def add_param_group(self, params):
-        params, tree = jax.tree_flatten(params)
+        params, tree = jax.tree_util.tree_flatten(params)
         params = tuple(params)
         self.param_groups.append(params)
         self.param_tree_groups.append(tree)

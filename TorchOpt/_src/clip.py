@@ -73,7 +73,7 @@ def clip_grad_norm(max_norm: float, norm_type: float = 2.,
         else:
             def f(g):
                 return g.mul(clip_coef_clamped) if g is not None else None
-        new_updates = jax.tree_map(f, updates)
+        new_updates = jax.tree_util.tree_map(f, updates)
         return new_updates, state
 
     return base.GradientTransformation(init_fn, update_fn)
