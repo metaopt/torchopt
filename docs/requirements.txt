@@ -1,4 +1,4 @@
---extra-index-url https://download.pytorch.org/whl/cu116
+--extra-index-url https://download.pytorch.org/whl/cpu
 torch == 1.12
 torchvision
 functorch
