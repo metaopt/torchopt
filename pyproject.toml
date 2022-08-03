@@ -85,39 +85,40 @@ build = "*manylinux*"
 skip = "pp*"
 build-frontend = "pip"
 build-verbosity = 3
-environment = { CUDACXX = "/usr/local/cuda/bin/nvcc" }
-environment-pass = ["CUDA_VERSION", "PIP_EXTRA_INDEX_URL"]
+environment.CUDACXX = "/usr/local/cuda/bin/nvcc"
+environment.DEFAULT_CUDA_VERSION = "11.6"
+environment.DEFAULT_TEST_TORCH_SPECS = "cpu cu113 cu116"
+environment-pass = ["CUDA_VERSION", "TEST_TORCH_SPECS"]
 container-engine = "docker"
 
 before-all = """
-    if [ -z "${PIP_EXTRA_INDEX_URL}" ]; then
-        echo "ERROR: Empty PIP_EXTRA_INDEX_URL. Please specify a index URL for torch wheels." >&2
-        echo 'HINT: Run cibuildwheel with `PIP_EXTRA_INDEX_URL="https://download.pytorch.org/whl/<spec>" python -m cibuildwheel ...`' >&2
-        exit 1
-    fi
-    CUDA_VERSION="$(echo "${CUDA_VERSION:-11.6}" | cut -d"." -f-2)"
+    CUDA_VERSION="$(echo "${CUDA_VERSION:-"${DEFAULT_CUDA_VERSION}"}" | cut -d"." -f-2)"
     CUDA_PKG_SUFFIX="$(echo "${CUDA_VERSION}" | tr "." "-")"
-    echo "PIP_EXTRA_INDEX_URL='${PIP_EXTRA_INDEX_URL}'"
     echo "CUDA_VERSION=${CUDA_VERSION}"
     yum-config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel7/x86_64/cuda-rhel7.repo
     yum clean all
-    yum install -y nvidia-driver-latest-libs "cuda-nvcc-${CUDA_PKG_SUFFIX}" "cuda-cudart-devel-${CUDA_PKG_SUFFIX}"
+    yum install -y nvidia-driver-latest-libs "cuda-minimal-build-${CUDA_PKG_SUFFIX}"
     """
 test-extras = ["test"]
 test-command = """
     SITE_PACKAGES="$(python -c 'print(__import__("sysconfig").get_path("purelib"))')"
     TORCH_LIB_PATH="${SITE_PACKAGES}/torch/lib"
-    echo "ls \"${TORCH_LIB_PATH}\""; ls -lh "${TORCH_LIB_PATH}"
+    echo "ls ${TORCH_LIB_PATH}"; ls -lh "${TORCH_LIB_PATH}"
     find "${SITE_PACKAGES}/torchopt" -name "*.so" -print0 |
-        xargs -0 -I '{}' bash -c "echo 'ldd \"{}\"'; ldd '{}'; echo 'patchelf --print-rpath \"{}\"'; patchelf --print-rpath '{}'"
-    make -C "{project}" test
+        xargs -0 -I '{}' bash -c "echo 'ldd {}'; ldd '{}'; echo 'patchelf --print-rpath {}'; patchelf --print-rpath '{}'"
+    make -C "{project}" test || true
     TORCH_VERSION="$(python -c 'print(__import__("torch").__version__.partition("+")[0])')"
-    python -m pip uninstall -y torch torchvision
-    PIP_EXTRA_INDEX_URL="https://download.pytorch.org/whl/cpu" python -m pip install "torch==${TORCH_VERSION}" torchvision
-    echo "ls \"${TORCH_LIB_PATH}\""; ls -lh "${TORCH_LIB_PATH}"
-    find "${SITE_PACKAGES}/torchopt" -name "*.so" -print0 |
-        xargs -0 -I '{}' bash -c "echo 'ldd \"{}\"'; ldd '{}'; echo 'patchelf --print-rpath \"{}\"'; patchelf --print-rpath '{}'"
-    make -C "{project}" test
+    TEST_TORCH_SPECS="${TEST_TORCH_SPECS:-"${DEFAULT_TEST_TORCH_SPECS}"}"
+    for spec in ${TEST_TORCH_SPECS}; do
+        python -m pip uninstall -y torch torchvision
+        export PIP_EXTRA_INDEX_URL="https://download.pytorch.org/whl/${spec}"
+        echo "PIP_EXTRA_INDEX_URL='${PIP_EXTRA_INDEX_URL}'"
+        python -m pip install "torch==${TORCH_VERSION}" torchvision
+        echo "ls ${TORCH_LIB_PATH}"; ls -lh "${TORCH_LIB_PATH}"
+        find "${SITE_PACKAGES}/torchopt" -name "*.so" -print0 |
+            xargs -0 -I '{}' bash -c "echo 'ldd {}'; ldd '{}'; echo 'patchelf --print-rpath {}'; patchelf --print-rpath '{}'"
+        make -C "{project}" test || exit 1
+    done
     """
 
 [tool.cibuildwheel.linux]
@@ -126,7 +127,7 @@ repair-wheel-command = """
     SITE_PACKAGES="$(python -c 'print(__import__("sysconfig").get_path("purelib"))')"
     TORCH_LIB_PATH="${SITE_PACKAGES}/torch/lib"
     export LD_LIBRARY_PATH="${TORCH_LIB_PATH}:/usr/local/cuda/lib64:/usr/local/cuda/targets/x86_64-linux/lib/stubs${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
-    echo "ls \"${TORCH_LIB_PATH}\""; ls -lh "${TORCH_LIB_PATH}"
+    echo "ls ${TORCH_LIB_PATH}"; ls -lh "${TORCH_LIB_PATH}"
     python -m pip install --force-reinstall git+https://github.com/XuehaiPan/auditwheel.git@torchopt
     python -m auditwheel lddtree "{wheel}"
     python -m auditwheel repair --wheel-dir="{dest_dir}" "{wheel}"
