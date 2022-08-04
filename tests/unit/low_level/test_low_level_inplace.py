@@ -103,6 +103,34 @@ class LowLevelInplace(unittest.TestCase):
                 mse = F.mse_loss(b, b_ref)
                 self.assertAlmostEqual(float(mse), 0)
 
+    def test_adamw(self) -> None:
+        fun, params, buffers = functorch.make_functional_with_buffers(self.model)
+        optim = torchopt.adamw(self.lr)
+        optim_state = optim.init(params)
+        optim_ref = torch.optim.AdamW(self.model_ref.parameters(), self.lr)
+        for xs, ys in self.loader:
+            pred = fun(params, buffers, xs)
+            pred_ref = self.model_ref(xs)
+            loss = F.cross_entropy(pred, ys)
+            loss_ref = F.cross_entropy(pred_ref, ys)
+
+            grad = torch.autograd.grad(loss, params)
+            updates, optim_state = optim.update(grad, optim_state, inplace=True, params=params)
+            params = torchopt.apply_updates(params, updates)
+
+            optim_ref.zero_grad()
+            loss_ref.backward()
+            optim_ref.step()
+        with torch.no_grad():
+            for p, p_ref in zip(params, self.model_ref.parameters()):
+                mse = F.mse_loss(p, p_ref)
+                self.assertAlmostEqual(float(mse), 0)
+            for b, b_ref in zip(buffers, self.model_ref.buffers()):
+                b = b.float() if not b.is_floating_point() else b
+                b_ref = b_ref.float() if not b_ref.is_floating_point() else b_ref
+                mse = F.mse_loss(b, b_ref)
+                self.assertAlmostEqual(float(mse), 0)
+
     def test_accelerated_adam_cpu(self) -> None:
         self.model
         self.model_ref

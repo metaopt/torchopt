@@ -103,7 +103,7 @@ class Optimizer:
 
         for param, state in zip(self.param_groups, self.state_groups):
             grad = jax.tree_map(f, param)
-            updates, _ = self.impl.update(grad, state)
+            updates, _ = self.impl.update(grad, state, inplace=True, params=param)
             apply_updates(param, updates)
 
         return loss

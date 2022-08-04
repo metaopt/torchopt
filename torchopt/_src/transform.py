@@ -67,7 +67,7 @@ def scale(step_size: float) -> base.GradientTransformation:
         del params
         return ScaleState()
 
-    def update_fn(updates, state, inplace=True):
+    def update_fn(updates, state, inplace=True, params=None):  # pylint: disable=unused-argument
         if inplace:
 
             def f(g):
@@ -105,7 +105,7 @@ def scale_by_schedule(step_size_fn: Schedule) -> base.GradientTransformation:
     def init_fn(params):
         return ScaleByScheduleState(count=tuple(0 for _ in range(len(params))))
 
-    def update_fn(updates, state, inplace=True):
+    def update_fn(updates, state, inplace=True, params=None):  # pylint: disable=unused-argument
         step_size = step_size_fn(state.count)
         if inplace:
             updates = jax.tree_map(lambda g, step_size: g.mul_(step_size), updates, step_size)
@@ -207,7 +207,7 @@ def scale_by_adam(
         )
         return ScaleByAdamState(count=tuple(0 for _ in range(len(mu))), mu=tuple(mu), nu=tuple(nu))
 
-    def update_fn(updates, state, inplace=True):
+    def update_fn(updates, state, inplace=True, params=None):  # pylint: disable=unused-argument
         mu = _update_moment(updates, state.mu, b1, 1, inplace)
         nu = _update_moment_per_elem_norm(updates, state.nu, b2, 2, inplace)
         count_inc = inc_count(updates, state.count)
@@ -270,7 +270,7 @@ def scale_by_accelerated_adam(
         )
         return ScaleByAdamState(count=tuple(0 for _ in range(len(params))), mu=mu, nu=nu)
 
-    def update_fn(updates, state, inplace=True):
+    def update_fn(updates, state, inplace=True, params=None):  # pylint: disable=unused-argument
         count_inc = inc_count(updates, state.count)
         op = AdamOp(b1, b2, eps, eps_root, inplace)
         out = jax.tree_map(op, state.mu, state.nu, updates, count_inc)
@@ -326,7 +326,7 @@ def trace(
             )
         )
 
-    def update_fn(updates, state, inplace=True):
+    def update_fn(updates, state, inplace=True, params=None):  # pylint: disable=unused-argument
         if nesterov:
             if inplace:
 
@@ -397,7 +397,7 @@ def scale_by_rms(
         nu = jax.tree_map(lambda n: torch.full_like(n, initial_scale), params)  # second moment
         return ScaleByRmsState(nu=nu)
 
-    def update_fn(updates, state, inplace=True):
+    def update_fn(updates, state, inplace=True, params=None):  # pylint: disable=unused-argument
         nu = _update_moment_per_elem_norm(updates, state.nu, decay, 2, inplace)
         if inplace:
 
@@ -454,7 +454,7 @@ def scale_by_stddev(
         nu = jax.tree_map(lambda n: torch.full_like(n, initial_scale), params)  # second moment
         return ScaleByRStdDevState(mu=mu, nu=nu)
 
-    def update_fn(updates, state, inplace=True):
+    def update_fn(updates, state, inplace=True, params=None):  # pylint: disable=unused-argument
         mu = _update_moment(updates, state.mu, decay, 1, inplace)
         nu = _update_moment_per_elem_norm(updates, state.nu, decay, 2, inplace)
         if inplace:
@@ -488,8 +488,9 @@ class MaskedState(NamedTuple):
 
 class MaskedNode(NamedTuple):
     """A node used to mask out unspecified parts of a tree.
+
     This node is ignored when mapping functions across the tree e.g. using
-    `jax.tree_util.tree_map` since it is a container without children. It can
+    `jax.tree_map` since it is a container without children. It can
     therefore be used to mask out parts of a tree.
     """
 
@@ -499,17 +500,19 @@ def masked(
     mask: Union[TensorTree, Callable[[base.Params], TensorTree]],
 ) -> base.GradientTransformation:
     """Mask updates so only some are transformed, the rest are passed through.
+
     For example, it is common to skip weight decay for BatchNorm scale and all
     bias parameters. In many networks, these are the only parameters with only
     one dimension. So, you may create a mask function to mask these out as
     follows::
-      mask_fn = lambda p: jax.tree_util.tree_map(lambda x: x.ndim != 1, p)
-      weight_decay = optax.masked(optax.add_decayed_weights(0.001), mask_fn)
+      mask_fn = lambda p: jax.tree_map(lambda x: x.ndim != 1, p)
+      weight_decay = torchopt.masked(torchopt.add_decayed_weights(0.001), mask_fn)
     You may alternatively create the mask pytree upfront::
-      mask = jax.tree_util.tree_map(lambda x: x.ndim != 1, params)
-      weight_decay = optax.masked(optax.add_decayed_weights(0.001), mask)
+      mask = jax.tree_map(lambda x: x.ndim != 1, params)
+      weight_decay = torchopt.masked(torchopt.add_decayed_weights(0.001), mask)
     For the ``inner`` transform, state will only be stored for the parameters that
     have a mask value of ``True``.
+
     Args:
       inner: Inner transformation to mask.
       mask: a PyTree with same structure as (or a prefix of) the params PyTree, or
@@ -517,6 +520,7 @@ def masked(
         should be booleans, ``True`` for leaves/subtrees you want to apply the
         transformation to, and ``False`` for those you want to skip. The mask must
         be static for the gradient transformation to be jit-compilable.
+
     Returns:
       New GradientTransformation wrapping ``inner``.
     """
@@ -529,13 +533,13 @@ def masked(
         masked_params = mask_pytree(params, mask_tree)
         return MaskedState(inner_state=inner.init(masked_params))
 
-    def update_fn(updates, state, params=None):
+    def update_fn(updates, state, inplace=False, params=None):  # pylint: disable=unused-argument
         mask_tree = mask(updates) if callable(mask) else mask
         masked_updates = mask_pytree(updates, mask_tree)
         masked_params = None if params is None else mask_pytree(params, mask_tree)
 
         new_masked_updates, new_inner_state = inner.update(
-            masked_updates, state.inner_state, masked_params
+            masked_updates, state.inner_state, inplace=False, params=masked_params
         )
 
         new_updates = jax.tree_map(
@@ -548,9 +552,10 @@ def masked(
 
 AddDecayedWeightsState = base.EmptyState
 
-
+# mypy: ignore-errors
 def add_decayed_weights(
-    weight_decay: float = 0.0, mask: Optional[Union[Any, Callable[[base.Params], Any]]] = None
+    weight_decay: float = 0.0,
+    mask: Optional[Union[Any, Callable[[base.Params], Any]]] = None,
 ) -> base.GradientTransformation:
     """Add parameter scaled by `weight_decay`.
 
@@ -569,7 +574,7 @@ def add_decayed_weights(
         del params
         return AddDecayedWeightsState()
 
-    def update_fn(updates, state, params):
+    def update_fn(updates, state, inplace, params):  # pylint: disable=unused-argument
         if params is None:
             raise ValueError(
                 (

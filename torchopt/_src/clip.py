@@ -42,7 +42,7 @@ def clip_grad_norm(
         del params
         return ClipState()
 
-    def update_fn(updates, state, inplace=True):
+    def update_fn(updates, state, inplace=True, params=None):  # pylint: disable=unused-argument
         available_updates = []
         for g in updates:
             if g is not None:

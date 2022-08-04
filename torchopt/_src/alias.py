@@ -223,7 +223,7 @@ def adamw(
     eps_root: float = 0.0,
     moment_requires_grad: bool = False,
     use_accelerated_op: bool = False,
-    weight_decay: float = 1e-4,
+    weight_decay: float = 0.01,
     mask: Optional[Union[Any, Callable[[base.Params], Any]]] = None,
 ) -> base.GradientTransformation:
     """Adam with weight decay regularization.

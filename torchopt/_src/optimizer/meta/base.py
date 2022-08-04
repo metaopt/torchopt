@@ -60,7 +60,7 @@ class MetaOptimizer:
             flatten_params, containers_tree = jax.tree_util.tree_flatten(param_containers)
             flatten_params = tuple(flatten_params)
             grad = torch.autograd.grad(loss, flatten_params, create_graph=True, allow_unused=True)
-            updates, state = self.impl.update(grad, state, False)
+            updates, state = self.impl.update(grad, state, inplace=False, params=flatten_params)
             self.state_groups[idx] = state
             new_params = apply_updates(flatten_params, updates, inplace=False)
             unflatten_new_params = containers_tree.unflatten(new_params)

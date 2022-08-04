@@ -31,7 +31,7 @@
 # ==============================================================================
 
 from abc import abstractmethod
-from typing import Callable, NamedTuple, Tuple
+from typing import Callable, NamedTuple, Optional, Tuple
 
 from typing_extensions import Protocol
 
@@ -76,13 +76,18 @@ class TransformUpdateFn(Protocol):  # pylint: disable=too-few-public-methods
 
     The :func:`update` step takes a tree of candidate parameter ``updates`` (e.g. their gradient
     with respect to some loss), an arbitrary structured ``state``, and the current ``params`` of the
-    model being optimized. The ``params`` argument is optional, it must however be provided when
-    using transformations that require access to the current values of the parameters.
+    model being optimized. The ``inplace`` argument is optional, If :data:`True`, modify updates and
+    state using inplace operations. The ``params`` argument is optional, it must however be provided
+    when using transformations that require access to the current values of the parameters.
     """
 
     @abstractmethod
     def __call__(
-        self, updates: Updates, state: OptState, inplace: bool = True
+        self,
+        updates: Updates,
+        state: OptState,
+        inplace: bool = True,
+        params: Optional[Params] = None,
     ) -> Tuple[Updates, OptState]:
         """The `update` function.
 
@@ -91,6 +96,9 @@ class TransformUpdateFn(Protocol):  # pylint: disable=too-few-public-methods
             state: The state of the gradient transformation.
             inplace: (optional)
                 If :data:`True`, modify updates and state using inplace operations.
+            params: (optional)
+                The current value of the parameters.
+
 
         Returns:
             The transformed ``updates``, and the updated ``state``.
@@ -140,7 +148,7 @@ def identity() -> GradientTransformation:
     def init_fn(_):
         return EmptyState()
 
-    def update_fn(updates, state, inplace=False):  # pylint: disable=unused-argument
+    def update_fn(updates, state, inplace=False, params=None):  # pylint: disable=unused-argument
         return updates, state
 
     return GradientTransformation(init_fn, update_fn)
