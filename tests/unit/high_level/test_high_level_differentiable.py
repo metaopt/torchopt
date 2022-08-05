@@ -16,6 +16,7 @@
 import copy
 import unittest
 
+import functorch
 import pytest
 import torch
 import torch.nn.functional as F
@@ -25,7 +26,7 @@ from torchvision import models
 import torchopt
 
 
-class HighLevelInplace(unittest.TestCase):
+class HighLevelDifferentiable(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         torch.manual_seed(0)
@@ -44,29 +45,30 @@ class HighLevelInplace(unittest.TestCase):
         self.model = copy.deepcopy(self.model_backup)
         self.model_ref = copy.deepcopy(self.model_backup)
 
-    @pytest.mark.skipif(not torch.cuda.is_available(), reason='No CUDA device available.')
     def test_adamw(self) -> None:
-        optim = torchopt.MetaAdamW(
-            self.model.parameters(), self.lr
-        )  # pytorch uses 0.01 as the default value
-        optim_ref = torch.optim.AdamW(self.model_ref.parameters(), self.lr)
+        optim = torchopt.MetaAdamW(self.model, self.lr)
+        model_ref, params_ref, buffers_ref = functorch.make_functional_with_buffers(self.model_ref)
+        optim_ref = torchopt.adamw(self.lr)
+        optim_state = optim_ref.init(params_ref)
         for xs, ys in self.loader:
             pred = self.model(xs)
-            pred_ref = self.model_ref(xs)
+            pred_ref = model_ref(params_ref, buffers_ref, xs)
             loss = F.cross_entropy(pred, ys)
             loss_ref = F.cross_entropy(pred_ref, ys)
-            optim.zero_grad()
-            loss.backward()
-            optim.step()
-            optim_ref.zero_grad()
-            loss_ref.backward()
-            optim_ref.step()
+
+            optim.step(loss)
+
+            grad = torch.autograd.grad(loss_ref, params_ref)
+            updates, optim_state = optim_ref.update(
+                grad, optim_state, inplace=False, params=params_ref
+            )
+            params_ref = torchopt.apply_updates(params_ref, updates)
 
         with torch.no_grad():
-            for p, p_ref in zip(self.model.parameters(), self.model_ref.parameters()):
+            for p, p_ref in zip(self.model.parameters(), params_ref):
                 mse = F.mse_loss(p, p_ref)
                 self.assertAlmostEqual(float(mse), 0)
-            for b, b_ref in zip(self.model.buffers(), self.model_ref.buffers()):
+            for b, b_ref in zip(self.model.buffers(), buffers_ref):
                 b = b.float() if not b.is_floating_point() else b
                 b_ref = b_ref.float() if not b_ref.is_floating_point() else b_ref
                 mse = F.mse_loss(b, b_ref)

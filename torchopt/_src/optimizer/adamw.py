@@ -17,6 +17,7 @@ from typing import Any, Callable, Iterable, Optional, Union
 
 import torch
 
+from torchopt._src import base  # pylint: disable=unused-import
 from torchopt._src.alias import adamw
 from torchopt._src.optimizer.base import Optimizer
 from torchopt._src.typing import ScalarOrSchedule
