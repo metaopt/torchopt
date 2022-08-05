@@ -38,7 +38,7 @@ import jax
 import torch
 
 from torchopt._src import base
-from torchopt._src.typing import Schedule, TensorTree
+from torchopt._src.typing import Schedule
 
 
 ScaleState = base.EmptyState
@@ -497,7 +497,7 @@ class MaskedNode(NamedTuple):
 
 def masked(
     inner: base.GradientTransformation,
-    mask: Union[TensorTree, Callable[[base.Params], TensorTree]],
+    mask: Union[Any, Callable[[base.Params], Any]],
 ) -> base.GradientTransformation:
     """Mask updates so only some are transformed, the rest are passed through.
 

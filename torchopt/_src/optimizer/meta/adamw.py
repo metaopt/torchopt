@@ -17,7 +17,6 @@ from typing import Any, Callable, Optional, Union
 
 import torch.nn as nn
 
-from torchopt._src import base
 from torchopt._src.alias import adamw
 from torchopt._src.optimizer.meta.base import MetaOptimizer
 from torchopt._src.typing import ScalarOrSchedule
@@ -43,21 +42,26 @@ class MetaAdamW(MetaOptimizer):
         moment_requires_grad: bool = False,
         use_accelerated_op: bool = False,
         weight_decay: float = 0.01,
-        mask: Optional[Union[Any, Callable[[base.Params], Any]]] = None,
+        mask: Optional[Union[Any, Callable[['base.Params'], Any]]] = None,
     ):
         r"""The `init` function.
 
         Args:
-            learning_rate: this is a fixed global scaling factor.
+            net (nn.Module): A network whose parameters should be optimized.
+            lr: this is a fixed global scaling factor.
             b1: the exponential decay rate to track the first moment of past gradients.
             b2: the exponential decay rate to track the second moment of past gradients.
-            eps: a small constant applied to denominator outside of the square root
-                (as in the Adam paper) to avoid dividing by zero when rescaling.
-                eps_root: (default `0`), a small constant applied to denominator inside the
-                square root (as in RMSProp), to avoid dividing by zero when rescaling.
-                This is needed for instance when computing (meta-)gradients through Adam.
-            mu_dtype: optional `dtype` to be used for the first order accumulator; if
-                `None` then the `dtype` is inferred from `params` and `updates`.
+            eps: A small constant applied to denominator outside of the square root (as in the Adam
+                paper) to avoid dividing by zero when rescaling.
+            eps_root: (default: :data:`0.0`)
+                A small constant applied to denominator inside the square root (as in RMSProp),
+                to avoid dividing by zero when rescaling. This is needed for example when computing
+                (meta-)gradients through Adam.
+            moment_requires_grad: (default: :data:`False`)
+                If :data:`True` the momentums will be created with flag ``requires_grad=True``, this
+                flag is often used in Meta Learning algorithms.
+            use_accelerated_op: (default: :data:`False`)
+                If :data:`True` use our implemented fused operator.
             weight_decay: strength of the weight decay regularization. Note that this
                 weight decay is multiplied with the learning rate. This is consistent
                 with other frameworks such as PyTorch, but different from

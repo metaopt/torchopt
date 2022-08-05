@@ -32,11 +32,17 @@ Functional Optimizers
     adam
     sgd
     rmsprop
+    adamw
 
 Functional Adam Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autofunction:: adam
+
+Functional AdamW Optimizer
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: adamw
 
 Functional SGD Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -47,6 +53,9 @@ Functional RMSProp Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autofunction:: rmsprop
+
+
+
 
 ------
 
@@ -60,11 +69,17 @@ Classic Optimizers
     Adam
     SGD
     RMSProp
+    AdamW
 
 Classic Adam Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: Adam
+
+Classic AdamW Optimizer
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: AdamW
 
 Classic SGD Optimizer
 ~~~~~~~~~~~~~~~~~~~~~
@@ -88,11 +103,17 @@ Differentiable Meta-Optimizers
     MetaAdam
     MetaSGD
     MetaRMSProp
+    MetaAdamW
 
 Differentiable Meta-Adam Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: MetaAdam
+
+Differentiable Meta-AdamW Optimizer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: MetaAdamW
 
 Differentiable Meta-SGD Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

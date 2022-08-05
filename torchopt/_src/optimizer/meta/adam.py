@@ -44,7 +44,6 @@ class MetaAdam(MetaOptimizer):
 
         Args:
             net (nn.Module): A network whose parameters should be optimized.
-            args: Other arguments see also :func:`torchopt.adam`,
             lr: This is a fixed global scaling factor.
             b1: The exponential decay rate to track the first moment of past gradients.
             b2: The exponential decay rate to track the second moment of past gradients.
