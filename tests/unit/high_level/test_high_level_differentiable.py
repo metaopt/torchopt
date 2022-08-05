@@ -46,28 +46,45 @@ class HighLevelDifferentiable(unittest.TestCase):
         self.model_ref = copy.deepcopy(self.model_backup)
 
     def test_adamw(self) -> None:
-        optim = torchopt.MetaAdamW(self.model, self.lr)
+        outer_optim = torch.optim.AdamW(self.model.parameters(), self.lr)
+        inner_optim = torchopt.MetaAdamW(self.model, self.lr)
         model_ref, params_ref, buffers_ref = functorch.make_functional_with_buffers(self.model_ref)
-        optim_ref = torchopt.adamw(self.lr)
-        optim_state = optim_ref.init(params_ref)
+        outer_optim_ref = torchopt.adamw(self.lr)
+        outer_optim_state = outer_optim_ref.init(params_ref)
+        inner_optim_ref = torchopt.adamw(self.lr)
+        inner_optim_state = inner_optim_ref.init(params_ref)
         for xs, ys in self.loader:
-            pred = self.model(xs)
-            pred_ref = model_ref(params_ref, buffers_ref, xs)
-            loss = F.cross_entropy(pred, ys)
-            loss_ref = F.cross_entropy(pred_ref, ys)
 
-            optim.step(loss)
+            # inner step
+            inner_pred = self.model(xs)
+            inner_loss = F.cross_entropy(inner_pred, ys)
+            inner_optim.step(inner_loss)
+            # outer step
+            outer_pred = self.model(xs)
+            outer_loss = F.cross_entropy(outer_pred, ys)
+            outer_loss.backward()
+            outer_optim.step()
 
-            grad = torch.autograd.grad(loss_ref, params_ref)
-            updates, optim_state = optim_ref.update(
-                grad, optim_state, inplace=False, params=params_ref
+            inner_pred_ref = model_ref(params_ref, buffers_ref, xs)
+            inner_loss_ref = F.cross_entropy(inner_pred_ref, ys)
+            grad = torch.autograd.grad(inner_loss_ref, params_ref)
+            inner_updates, inner_optim_state = inner_optim_ref.update(
+                grad, inner_optim_state, inplace=False, params=params_ref
             )
-            params_ref = torchopt.apply_updates(params_ref, updates)
+            new_params = torchopt.apply_updates(params_ref, inner_updates)
+            outer_pred_ref = model_ref(new_params, buffers_ref, xs)
+            outer_loss_ref = F.cross_entropy(outer_pred_ref, ys)
+
+            meta_grad = torch.autograd.grad(outer_loss_ref, params_ref)
+            meta_updates, outer_optim_state = outer_optim_ref.update(
+                meta_grad, outer_optim_state, inplace=True, params=params_ref
+            )
+            params_ref = torchopt.apply_updates(params_ref, meta_updates)
 
         with torch.no_grad():
             for p, p_ref in zip(self.model.parameters(), params_ref):
                 mse = F.mse_loss(p, p_ref)
-                self.assertAlmostEqual(float(mse), 0)
+                self.assertAlmostEqual(float(mse), 0, delta=1e-5)
             for b, b_ref in zip(self.model.buffers(), buffers_ref):
                 b = b.float() if not b.is_floating_point() else b
                 b_ref = b_ref.float() if not b_ref.is_floating_point() else b_ref
@@ -77,3 +94,19 @@ class HighLevelDifferentiable(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+    # def meta_loss_fn(params_with_buffers, data):
+    #     params, buffers = params_with_buffers
+    #     x_s, y_s = data
+    #     """Computes the loss after one step of AdamW."""
+    #     inner_pred_ref = model_ref(params, buffers, x_s)
+    #     inner_loss_ref = F.cross_entropy(inner_pred_ref, y_s)
+    #     grad = torch.autograd.grad(inner_loss_ref, params)
+    #     inner_updates, inner_optim_state = inner_optim_ref.update(
+    #         grad, inner_optim_state, inplace=False, params=params
+    #     )
+    #     new_params = torchopt.apply_updates(params, inner_updates)
+    #     outer_pred_ref = model_ref(new_params, buffers, x_s)
+    #     outer_loss_ref = F.cross_entropy(outer_pred_ref, y_s)
+    #     return outer_loss_ref
+    # meta_grad = functorch.grad(meta_loss_fn)((params_ref, buffers_ref), (xs, ys))
