@@ -49,8 +49,10 @@ inner_iters = 1
 
 
 def a2c_loss(traj, policy_module, value_module, value_coef):
+    action0 = traj.get('action')
     dist, *_ = policy_module.get_dist(traj)
     action = traj.get('action')
+    assert action is action0
     log_probs = dist.log_prob(action)
 
     traj = traj.exclude('state_value')
@@ -95,11 +97,11 @@ def evaluate(env, dummy_env, seed, task_num, actor_critic, policy, value):
         env.reset_task(tasks[idx])
         for _ in range(inner_iters):
             with set_exploration_mode('random'), torch.no_grad(), timeit('rollout_eval'):
-                pre_traj_td = env.rollout(policy=policy, max_steps=TRAJ_LEN).to(device)
+                pre_traj_td = env.rollout(policy=policy, max_steps=TRAJ_LEN).contiguous().to(device)
             inner_loss = a2c_loss(pre_traj_td, policy, value, value_coef=0.5)
             inner_opt.step(inner_loss)
         with set_exploration_mode('random'), torch.no_grad(), timeit('rollout_eval'):
-            post_traj_td = env.rollout(policy=policy, max_steps=TRAJ_LEN).to(device)
+            post_traj_td = env.rollout(policy=policy, max_steps=TRAJ_LEN).contiguous().to(device)
 
         # Logging
         pre_reward_ls.append(torch.sum(pre_traj_td.get('reward'), dim=1).mean().item())
@@ -121,7 +123,7 @@ def main(args):
         num_states=STATE_DIM,
         num_actions=ACTION_DIM,
         max_episode_steps=TRAJ_LEN,
-        seed=args.seed,
+        device=device,
     )
     if args.parallel:
         env = ParallelEnv(
@@ -135,6 +137,7 @@ def main(args):
             lambda_env,
             selected_keys=['observation', 'next_observation', 'reward', 'action', 'done'],
         ).to(device)
+    env.set_seed(args.seed)
     env.reset()
     # Policy
     obs_key = list(env.observation_spec.keys())[0]
@@ -173,7 +176,7 @@ def main(args):
                         policy=policy_module,
                         max_steps=TRAJ_LEN,
                         auto_reset=True,
-                    ).to(device)
+                    ).contiguous().to(device)
                 inner_loss = a2c_loss(pre_traj_td, policy_module, value_module, value_coef=0.5)
                 inner_opt.step(inner_loss)
 
@@ -182,7 +185,7 @@ def main(args):
                     policy=policy_module,
                     max_steps=TRAJ_LEN,
                     auto_reset=True,
-                ).to(device)
+                ).contiguous().to(device)
             outer_loss = a2c_loss(post_traj_td, policy_module, value_module, value_coef=0.5)
             outer_loss.backward()
 
