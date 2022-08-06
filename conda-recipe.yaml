@@ -17,11 +17,11 @@ dependencies:
   - pip
 
   # Learning
-  - pytorch::pytorch = 1.12
+  - pytorch::pytorch = 1.12.1
   - pytorch::torchvision
   - pytorch::pytorch-mutex = *=*cuda*
   - pip:
-      - functorch
+      - functorch >= 0.2.1
       - torchviz
       - sphinxcontrib-katex  # for documentation
   - jax
