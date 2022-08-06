@@ -18,13 +18,13 @@ import math
 from collections import namedtuple
 from typing import Any, NamedTuple
 
-import functorch
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from functorch import combine_state_for_ensemble, grad_and_value, make_functional, vmap
 
+import functorch
 import torchopt
+from functorch import combine_state_for_ensemble, grad_and_value, make_functional, vmap
 
 
 def make_spirals(n_samples, noise_std=0.0, rotations=1.0):
