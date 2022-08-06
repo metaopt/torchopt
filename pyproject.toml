@@ -115,6 +115,7 @@ test-extras = ["test"]
 test-command = """
     SITE_PACKAGES="$(python -c 'print(__import__("sysconfig").get_path("purelib"))')"
     TORCH_LIB_PATH="${SITE_PACKAGES}/torch/lib"
+    echo "LD_LIBRARY_PATH='${LD_LIBRARY_PATH}'"
     echo "ls ${TORCH_LIB_PATH}"; ls -lh "${TORCH_LIB_PATH}"
     find "${SITE_PACKAGES}/torchopt" -name "*.so" -print0 |
         xargs -0 -I '{}' bash -c "echo 'ldd {}'; ldd '{}'; echo 'patchelf --print-rpath {}'; patchelf --print-rpath '{}'"
@@ -138,11 +139,13 @@ repair-wheel-command = """
     python -m pip install -r requirements.txt
     SITE_PACKAGES="$(python -c 'print(__import__("sysconfig").get_path("purelib"))')"
     TORCH_LIB_PATH="${SITE_PACKAGES}/torch/lib"
-    export LD_LIBRARY_PATH="${TORCH_LIB_PATH}:/usr/local/cuda/lib64:/usr/local/cuda/targets/x86_64-linux/lib/stubs${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
-    echo "ls ${TORCH_LIB_PATH}"; ls -lh "${TORCH_LIB_PATH}"
-    python -m pip install --force-reinstall git+https://github.com/XuehaiPan/auditwheel.git@torchopt
-    python -m auditwheel lddtree "{wheel}"
-    python -m auditwheel repair --no-copy-site-libs --wheel-dir="{dest_dir}" "{wheel}"
+    (
+        export LD_LIBRARY_PATH="${TORCH_LIB_PATH}:/usr/local/cuda/lib64:/usr/local/cuda/targets/x86_64-linux/lib/stubs${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+        echo "ls ${TORCH_LIB_PATH}"; ls -lh "${TORCH_LIB_PATH}"
+        python -m pip install --force-reinstall git+https://github.com/XuehaiPan/auditwheel.git@torchopt
+        python -m auditwheel lddtree "{wheel}"
+        python -m auditwheel repair --no-copy-site-libs --wheel-dir="{dest_dir}" "{wheel}"
+    )
     """
 
 # Linter tools #################################################################
