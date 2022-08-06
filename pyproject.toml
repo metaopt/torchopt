@@ -119,7 +119,7 @@ test-command = """
     echo "ls ${TORCH_LIB_PATH}"; ls -lh "${TORCH_LIB_PATH}"
     find "${SITE_PACKAGES}/torchopt" -name "*.so" -print0 |
         xargs -0 -I '{}' bash -c "echo 'ldd {}'; ldd '{}'; echo 'patchelf --print-rpath {}'; patchelf --print-rpath '{}'"
-    make -C "{project}" test || true
+    make -C "{project}" test || exit 1
     TORCH_VERSION="$(python -c 'print(__import__("torch").__version__.partition("+")[0])')"
     TEST_TORCH_SPECS="${TEST_TORCH_SPECS:-"${DEFAULT_TEST_TORCH_SPECS}"}"
     for spec in ${TEST_TORCH_SPECS}; do
@@ -132,6 +132,7 @@ test-command = """
             xargs -0 -I '{}' bash -c "echo 'ldd {}'; ldd '{}'; echo 'patchelf --print-rpath {}'; patchelf --print-rpath '{}'"
         make -C "{project}" test || exit 1
     done
+    rm -rf ~/.pip/cache ~/.cache/pip
     """
 
 [tool.cibuildwheel.linux]
