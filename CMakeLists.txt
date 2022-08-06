@@ -144,8 +144,7 @@ endif()
 unset(TORCH_LIBRARIES)
 
 foreach(VAR_PATH ${TORCH_LIBRARY_PATH})
-    file(GLOB TORCH_LIBRARY "${VAR_PATH}/*.so")
-    list(APPEND TORCH_LIBRARIES "${TORCH_LIBRARY}")
+    list(APPEND TORCH_LIBRARIES "${VAR_PATH}/libtorch_python.so")
 endforeach()
 
 message(STATUS "Detected Torch libraries: \"${TORCH_LIBRARIES}\"")

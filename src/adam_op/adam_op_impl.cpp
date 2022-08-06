@@ -31,7 +31,7 @@ void adamForwardInplaceCPUKernel(
     const other_t inv_one_minus_pow_b2, const other_t eps,
     const other_t eps_root, const size_t n, scalar_t* __restrict__ updates_ptr,
     scalar_t* __restrict__ mu_ptr, scalar_t* __restrict__ nu_ptr) {
-#pragma omp parallel for num_threads(32)
+#pragma omp parallel for num_threads(omp_get_num_procs())
   for (size_t tid = 0; tid < n; ++tid) {
     const scalar_t updates = updates_ptr[tid];
     const scalar_t mu = mu_ptr[tid];
@@ -76,7 +76,7 @@ void adamForwardMuCPUKernel(const scalar_t* __restrict__ updates_ptr,
                             const scalar_t* __restrict__ mu_ptr,
                             const other_t b1, const size_t n,
                             scalar_t* __restrict__ mu_out_ptr) {
-#pragma omp parallel for num_threads(32)
+#pragma omp parallel for num_threads(omp_get_num_procs())
   for (size_t tid = 0; tid < n; ++tid) {
     const scalar_t updates = updates_ptr[tid];
     const scalar_t mu = mu_ptr[tid];
@@ -108,7 +108,7 @@ void adamForwardNuCPUKernel(const scalar_t* __restrict__ updates_ptr,
                             const scalar_t* __restrict__ nu_ptr,
                             const other_t b2, const size_t n,
                             scalar_t* __restrict__ nu_out_ptr) {
-#pragma omp parallel for num_threads(32)
+#pragma omp parallel for num_threads(omp_get_num_procs())
   for (size_t tid = 0; tid < n; ++tid) {
     const scalar_t updates = updates_ptr[tid];
     const scalar_t nu = nu_ptr[tid];
@@ -144,7 +144,7 @@ void adamForwardUpdatesCPUKernel(const scalar_t* __restrict__ new_mu_ptr,
                                  const other_t eps, const other_t eps_root,
                                  const size_t n,
                                  scalar_t* __restrict__ updates_out_ptr) {
-#pragma omp parallel for num_threads(32)
+#pragma omp parallel for num_threads(omp_get_num_procs())
   for (size_t tid = 0; tid < n; ++tid) {
     const scalar_t new_mu = new_mu_ptr[tid];
     const scalar_t new_nu = new_nu_ptr[tid];
@@ -185,7 +185,7 @@ void adamBackwardMuCPUKernel(const scalar_t* __restrict__ dmu_ptr,
                              const other_t b1, const size_t n,
                              scalar_t* __restrict__ dupdates_out_ptr,
                              scalar_t* __restrict__ dmu_out_ptr) {
-#pragma omp parallel for num_threads(32)
+#pragma omp parallel for num_threads(omp_get_num_procs())
   for (size_t tid = 0; tid < n; ++tid) {
     const scalar_t dmu = dmu_ptr[tid];
 
@@ -220,7 +220,7 @@ void adamBackwardNuCPUKernel(const scalar_t* __restrict__ dnu_ptr,
                              const other_t b2, const size_t n,
                              scalar_t* __restrict__ dupdates_out_ptr,
                              scalar_t* __restrict__ dnu_out_ptr) {
-#pragma omp parallel for num_threads(32)
+#pragma omp parallel for num_threads(omp_get_num_procs())
   for (size_t tid = 0; tid < n; ++tid) {
     const scalar_t dnu = dnu_ptr[tid];
     const scalar_t updates = updates_ptr[tid];
@@ -259,7 +259,7 @@ void adamBackwardUpdatesCPUKernel(const scalar_t* __restrict__ dupdates_ptr,
                                   const size_t n,
                                   scalar_t* __restrict__ dnew_mu_out_ptr,
                                   scalar_t* __restrict__ dnew_nu_out_ptr) {
-#pragma omp parallel for num_threads(32)
+#pragma omp parallel for num_threads(omp_get_num_procs())
   for (size_t tid = 0; tid < n; ++tid) {
     const scalar_t dupdates = dupdates_ptr[tid];
     const scalar_t updates = updates_ptr[tid];

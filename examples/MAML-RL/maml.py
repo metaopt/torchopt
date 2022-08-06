@@ -70,7 +70,7 @@ def sample_traj(env, task, policy):
                 next_obs_buf[step][batch] = next_ob
                 acs_buf[step][batch] = ac
                 rews_buf[step][batch] = rew
-                gammas_buf[step][batch] = done * GAMMA
+                gammas_buf[step][batch] = (1 - done) * GAMMA
                 ob = next_ob
     return Traj(
         obs=obs_buf,
@@ -99,7 +99,6 @@ def a2c_loss(traj, policy, value_coef):
     advs = lambda_returns - torch.squeeze(values, -1)
     action_loss = -(advs.detach() * log_probs).mean()
     value_loss = advs.pow(2).mean()
-
     a2c_loss = action_loss + value_coef * value_loss
     return a2c_loss
 
@@ -107,7 +106,7 @@ def a2c_loss(traj, policy, value_coef):
 def evaluate(env, seed, task_num, policy):
     pre_reward_ls = []
     post_reward_ls = []
-    inner_opt = torchopt.MetaSGD(policy, lr=0.5)
+    inner_opt = torchopt.MetaSGD(policy, lr=0.1)
     env = gym.make(
         'TabularMDP-v0',
         **dict(
@@ -123,7 +122,6 @@ def evaluate(env, seed, task_num, policy):
     for idx in range(task_num):
         for _ in range(inner_iters):
             pre_trajs = sample_traj(env, tasks[idx], policy)
-
             inner_loss = a2c_loss(pre_trajs, policy, value_coef=0.5)
             inner_opt.step(inner_loss)
         post_trajs = sample_traj(env, tasks[idx], policy)
@@ -153,7 +151,7 @@ def main(args):
     )
     # Policy
     policy = CategoricalMLPPolicy(input_size=STATE_DIM, output_size=ACTION_DIM)
-    inner_opt = torchopt.MetaSGD(policy, lr=0.5)
+    inner_opt = torchopt.MetaSGD(policy, lr=0.1)
     outer_opt = optim.Adam(policy.parameters(), lr=1e-3)
     train_pre_reward = []
     train_post_reward = []
@@ -170,7 +168,6 @@ def main(args):
         policy_state_dict = torchopt.extract_state_dict(policy)
         optim_state_dict = torchopt.extract_state_dict(inner_opt)
         for idx in range(TASK_NUM):
-
             for _ in range(inner_iters):
                 pre_trajs = sample_traj(env, tasks[idx], policy)
                 inner_loss = a2c_loss(pre_trajs, policy, value_coef=0.5)
