@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-python maml_torchrl.py --parallel --seed 1
-python maml_torchrl.py --parallel --seed 2
-python maml_torchrl.py --parallel --seed 3
-python maml_torchrl.py --parallel --seed 4
-python maml_torchrl.py --parallel --seed 5
+python maml_torchrl.py --parallel --device 'cpu' --seed 1
+python maml_torchrl.py --parallel --device 'cpu' --seed 2
+python maml_torchrl.py --parallel --device 'cpu' --seed 3
+python maml_torchrl.py --parallel --device 'cpu' --seed 4
+python maml_torchrl.py --parallel --device 'cpu' --seed 5

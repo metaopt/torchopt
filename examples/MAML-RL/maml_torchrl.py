@@ -111,7 +111,7 @@ def evaluate(env, dummy_env, seed, task_num, actor_critic, policy, value):
 
 
 def main(args):
-    device = 'cuda:0' if torch.cuda.device_count() else 'cpu'
+    device = args.device if torch.cuda.device_count() else args.device
     # init training
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed_all(args.seed)
@@ -231,5 +231,6 @@ if __name__ == '__main__':
     )
     parser.add_argument('--seed', type=int, default=1, help='random seed (default: 1)')
     parser.add_argument('--parallel', action='store_true', help='run envs in parallel')
+    parser.add_argument('--device', type=str, default='cpu', help='training device')
     args = parser.parse_args()
     main(args)
