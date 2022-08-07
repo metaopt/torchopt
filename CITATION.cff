@@ -29,6 +29,6 @@ authors:
     affiliation: Peking University
     email: yaodong.yang@pku.edu.cn
 version: 0.4.3
-date-released: "2022-08-06"
+date-released: "2022-08-08"
 license: Apache-2.0
 repository-code: "https://github.com/metaopt/TorchOpt"
