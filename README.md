@@ -252,7 +252,6 @@ pip3 install --no-build-isolation --editable .
 
 - [ ] Support general implicit differentiation with functional programing.
 - [ ] Support more optimizers such as AdamW, RMSProp
-- [ ] CPU-accelerated optimizer
 
 ## Changelog
 
