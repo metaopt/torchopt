@@ -1,7 +1,7 @@
 # Package ######################################################################
 
 [build-system]
-requires = ["setuptools", "torch == 1.12.1", "numpy", "pybind11"]
+requires = ["setuptools", "torch >= 1.12", "numpy", "pybind11"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -44,7 +44,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 dependencies = [
-    "torch == 1.12.1",
+    "torch >= 1.12",
     "jax[cpu] >= 0.3",
     "numpy",
     "graphviz",
@@ -74,7 +74,7 @@ lint = [
 ]
 test = [
     'torchvision',
-    'functorch >= 0.2.1',
+    'functorch >= 0.2',
     'pytest',
     'pytest-cov',
     'pytest-xdist',
