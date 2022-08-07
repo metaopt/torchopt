@@ -26,21 +26,22 @@ dependencies:
       - sphinxcontrib-katex  # for documentation
   - jax
   - jaxlib >= 0.3=*cuda*
-  - optax
-  - tensorboard
+  - optax        # for tutorials
+  - tensorboard  # for examples
   - wandb
 
   # Device select
   - nvidia::cudatoolkit = 11.6
   - cudnn
 
-  # Build toolkit
+  # Build toolchain
   - cmake >= 3.4
   - make
   - cxx-compiler
   - gxx = 10
   - nvidia/label/cuda-11.6.2::cuda-nvcc
   - nvidia/label/cuda-11.6.2::cuda-cudart-dev
+  - patchelf >= 0.9
   - pybind11
 
   # Misc
@@ -59,6 +60,7 @@ dependencies:
   - sphinxcontrib-spelling
   - sphinxcontrib-bibtex
   - sphinx-autodoc-typehints
+  - pyenchant
   - myst-nb
   - ipykernel
   - pandoc
@@ -76,7 +78,6 @@ dependencies:
   - flake8-bugbear
   - doc8
   - pydocstyle
-  - pyenchant
   - clang-format
   - clang-tools  # clang-tidy
   - cpplint

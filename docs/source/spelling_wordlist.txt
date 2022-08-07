@@ -67,3 +67,6 @@ rmsprop
 RMSProp
 sgd
 SGD
+CHANGELOG
+Changelog
+CPython

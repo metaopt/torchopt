@@ -5,6 +5,15 @@
   <img src="image/logo-large.png" width="75%" />
 </div>
 
+![Python 3.7+](https://img.shields.io/badge/Python-3.7%2B-brightgreen.svg)
+[![PyPI](https://img.shields.io/pypi/v/torchopt?label=PyPI)](https://pypi.org/project/torchopt)
+![Status](https://img.shields.io/pypi/status/torchopt?label=Status)
+![GitHub Workflow Status](https://img.shields.io/github/workflow/status/metaopt/TorchOpt/Tests?label=tests&logo=github)
+[![Documentation Status](https://readthedocs.org/projects/torchopt/badge/?version=latest)](https://torchopt.readthedocs.io/en/latest/?badge=latest)
+[![Downloads](https://static.pepy.tech/personalized-badge/torchopt?period=month&left_color=grey&right_color=blue&left_text=Downloads/month)](https://pepy.tech/project/torchopt)
+[![GitHub Repo Stars](https://img.shields.io/github/stars/metaopt/torchopt?label=Stars&logo=github&color=brightgreen)](https://github.com/metaopt/torchopt/stargazers)
+[![License](https://img.shields.io/github/license/metaopt/TorchOpt?label=License)](#license)
+
 **TorchOpt** is a high-performance optimizer library built upon [PyTorch](https://pytorch.org/) for easy implementation of functional optimization and gradient-based meta-learning. It consists of two main features:
 
 - TorchOpt provides functional optimizer which enables [JAX-like](https://github.com/google/jax) composable functional optimizer for PyTorch. With TorchOpt, one can easily conduct neural network optimization in PyTorch with functional style optimizer, similar to  [Optax](https://github.com/deepmind/optax) in JAX.
@@ -25,6 +34,7 @@ The README is organized as follows:
 - [Visualization](#visualization)
 - [Installation](#installation)
 - [Future Plan](#future-plan)
+- [Changelog](#changelog)
 - [The Team](#the-team)
 - [Citing TorchOpt](#citing-torchopt)
 
@@ -209,6 +219,8 @@ Requirements
 - (Optional) For visualizing computation graphs
   - [Graphviz](https://graphviz.org/download/) (for Linux users use `apt/yum install graphviz` or `conda install -c anaconda python-graphviz`)
 
+Please follow the instructions at <https://pytorch.org> to install PyTorch in your Python environment first. Then run the following command to install TorchOpt from PyPI ([![PyPI](https://img.shields.io/pypi/v/torchopt?label=PyPI)](https://pypi.org/project/torchopt) / ![Status](https://img.shields.io/pypi/status/torchopt?label=Status)):
+
 ```bash
 pip3 install torchopt
 ```
@@ -231,7 +243,7 @@ cd TorchOpt
 CONDA_OVERRIDE_CUDA=11.7 conda env create --file conda-recipe.yaml
 
 conda activate torchopt
-pip3 install -e .
+pip3 install --no-build-isolation --editable .
 ```
 
 --------------------------------------------------------------------------------
@@ -242,11 +254,15 @@ pip3 install -e .
 - [ ] Support more optimizers such as AdamW, RMSProp
 - [ ] CPU-accelerated optimizer
 
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md).
+
 --------------------------------------------------------------------------------
 
 ## The Team
 
-TorchOpt is a work by Jie Ren, Xidong Feng, [Bo Liu](https://github.com/Benjamin-eecs/), [Luo Mai](https://luomai.github.io/) and [Yaodong Yang](https://www.yangyaodong.com/).
+TorchOpt is a work by Jie Ren, Xidong Feng, [Bo Liu](https://github.com/Benjamin-eecs), [Xuehai Pan](https://github.com/XuehaiPan), [Luo Mai](https://luomai.github.io/) and [Yaodong Yang](https://www.yangyaodong.com/).
 
 ## Citing TorchOpt
 
@@ -254,7 +270,7 @@ If you find TorchOpt useful, please cite it in your publications.
 
 ```bibtex
 @software{TorchOpt,
-  author = {Jie Ren and Xidong Feng and Bo Liu and Luo Mai and Yaodong Yang},
+  author = {Jie Ren and Xidong Feng and Bo Liu and Xuehai Pan and Luo Mai and Yaodong Yang},
   title = {TorchOpt},
   year = {2022},
   publisher = {GitHub},
