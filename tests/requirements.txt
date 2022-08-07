@@ -14,7 +14,7 @@ pylint
 mypy
 flake8
 flake8-bugbear
-doc8 < 1.0.0a
+doc8 < 1.0.0a0
 pydocstyle
 pyenchant
 cpplint
