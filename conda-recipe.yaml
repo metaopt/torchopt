@@ -19,28 +19,28 @@ dependencies:
   # Learning
   - pytorch::pytorch = 1.12
   - pytorch::torchvision
-  - pytorch::pytorch-mutex
+  - pytorch::pytorch-mutex = *=*cuda*
   - pip:
       - functorch
       - torchviz
       - sphinxcontrib-katex  # for documentation
   - jax
-  - jaxlib >= 0.3
+  - jaxlib >= 0.3=*cuda*
   - optax        # for tutorials
   - tensorboard  # for examples
   - wandb
 
   # Device select
-  # - nvidia::cudatoolkit = 11.6
-  # - cudnn
+  - nvidia::cudatoolkit = 11.6
+  - cudnn
 
   # Build toolchain
   - cmake >= 3.4
   - make
   - cxx-compiler
   - gxx = 10
-  # - nvidia/label/cuda-11.6.2::cuda-nvcc
-  # - nvidia/label/cuda-11.6.2::cuda-cudart-dev
+  - nvidia/label/cuda-11.6.2::cuda-nvcc
+  - nvidia/label/cuda-11.6.2::cuda-cudart-dev
   - patchelf >= 0.9
   - pybind11
 
@@ -76,7 +76,7 @@ dependencies:
   - mypy
   - flake8
   - flake8-bugbear
-  - doc8
+  - doc8 < 1.0.0a0
   - pydocstyle
   - clang-format
   - clang-tools  # clang-tidy
