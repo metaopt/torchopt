@@ -20,7 +20,6 @@ import numpy as np
 import torch
 import torch.optim as optim
 import tqdm
-from torchrl import timeit
 from torchrl.envs import GymEnv, ParallelEnv, SerialEnv
 from torchrl.envs.utils import set_exploration_mode, step_tensordict
 from torchrl.modules import OneHotCategorical
@@ -84,11 +83,13 @@ def a2c_loss(traj, policy_module, value_module, value_coef):
 def evaluate(env, dummy_env, seed, task_num, actor_critic, policy, value):
     pre_reward_ls = []
     post_reward_ls = []
+    env.set_seed(seed)
     env.reset()
     device = next(actor_critic.parameters()).device
 
     inner_opt = torchopt.MetaSGD(actor_critic, lr=0.1)
 
+    dummy_env.set_seed(seed)
     tasks = dummy_env.sample_tasks(num_tasks=task_num)
 
     policy_state_dict = torchopt.extract_state_dict(actor_critic)
@@ -96,11 +97,11 @@ def evaluate(env, dummy_env, seed, task_num, actor_critic, policy, value):
     for idx in range(task_num):
         env.reset_task(tasks[idx])
         for _ in range(inner_iters):
-            with set_exploration_mode('random'), torch.no_grad(), timeit('rollout_eval'):
+            with set_exploration_mode('random'), torch.no_grad():
                 pre_traj_td = env.rollout(policy=policy, max_steps=TRAJ_LEN).contiguous().to(device)
             inner_loss = a2c_loss(pre_traj_td, policy, value, value_coef=0.5)
             inner_opt.step(inner_loss)
-        with set_exploration_mode('random'), torch.no_grad(), timeit('rollout_eval'):
+        with set_exploration_mode('random'), torch.no_grad():
             post_traj_td = env.rollout(policy=policy, max_steps=TRAJ_LEN).contiguous().to(device)
 
         # Logging
@@ -156,6 +157,7 @@ def main(args):
     test_post_reward = []
 
     dummy_env = lambda_env()
+    dummy_env.set_seed(args.seed)
 
     pbar = tqdm.tqdm(range(outer_iters))
     for i in pbar:
@@ -171,7 +173,7 @@ def main(args):
             # print("idx: ", idx)
             env.reset_task(tasks[idx])
             for k in range(inner_iters):
-                with set_exploration_mode('random'), torch.no_grad(), timeit('rollout'):
+                with set_exploration_mode('random'), torch.no_grad():
                     pre_traj_td = env.rollout(
                         policy=policy_module,
                         max_steps=TRAJ_LEN,
@@ -180,7 +182,7 @@ def main(args):
                 inner_loss = a2c_loss(pre_traj_td, policy_module, value_module, value_coef=0.5)
                 inner_opt.step(inner_loss)
 
-            with set_exploration_mode('random'), torch.no_grad(), timeit('rollout'):
+            with set_exploration_mode('random'), torch.no_grad():
                 post_traj_td = env.rollout(
                     policy=policy_module,
                     max_steps=TRAJ_LEN,
@@ -218,7 +220,6 @@ def main(args):
             f'test_pre_reward: {test_pre_reward[-1]: 4.4f}, '
             f'test_post_reward: {test_post_reward[-1]: 4.4f}, '
         )
-        timeit.print()
 
         np.save('train_pre_reward_{}.npy'.format(args.seed), np.array(train_pre_reward))
         np.save('train_post_reward_{}.npy'.format(args.seed), np.array(train_post_reward))
