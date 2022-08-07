@@ -13,33 +13,43 @@
 # limitations under the License.
 # ==============================================================================
 
-cmake_minimum_required(VERSION 3.4)
-project(torchopt LANGUAGES CXX CUDA)
+cmake_minimum_required(VERSION 3.8)
+project(torchopt LANGUAGES CXX)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
 
-find_package(CUDA REQUIRED)
-cuda_select_nvcc_arch_flags(CUDA_ARCH_FLAGS All)
-list(APPEND CUDA_NVCC_FLAGS ${CUDA_ARCH_FLAGS})
-
 set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CUDA_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pthread -fPIC -fopenmp")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
-set(CMAKE_CUDA_FLAGS_RELEASE "${CMAKE_CUDA_FLAGS_RELEASE} -O3")
+
+find_package(CUDA)
+
+if(CUDA_FOUND)
+    message(STATUS "Found CUDA, enabling CUDA support.")
+    enable_language(CUDA)
+
+    cuda_select_nvcc_arch_flags(CUDA_ARCH_FLAGS All)
+    list(APPEND CUDA_NVCC_FLAGS ${CUDA_ARCH_FLAGS})
+    set(CMAKE_CUDA_STANDARD 14)
+    set(CMAKE_CUDA_FLAGS_RELEASE "${CMAKE_CUDA_FLAGS_RELEASE} -O3")
+else()
+    message(STATUS "CUDA not found, build for CPU-only.")
+endif()
 
 function(system)
     set(options STRIP)
     set(oneValueArgs OUTPUT_VARIABLE ERROR_VARIABLE WORKING_DIRECTORY)
     set(multiValueArgs COMMAND)
-    cmake_parse_arguments(SYSTEM
-                          "${options}"
-                          "${oneValueArgs}"
-                          "${multiValueArgs}"
-                          "${ARGN}")
+    cmake_parse_arguments(
+        SYSTEM
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        "${ARGN}"
+    )
 
     if(NOT DEFINED SYSTEM_WORKING_DIRECTORY)
         set(SYSTEM_WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}")
@@ -51,6 +61,7 @@ function(system)
         ERROR_VARIABLE STDERR
         WORKING_DIRECTORY "${SYSTEM_WORKING_DIRECTORY}"
     )
+
     if("${SYSTEM_STRIP}")
         string(STRIP "${STDOUT}" STDOUT)
         string(STRIP "${STDERR}" STDERR)

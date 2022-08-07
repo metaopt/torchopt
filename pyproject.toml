@@ -92,12 +92,18 @@ environment-pass = ["CUDA_VERSION", "TEST_TORCH_SPECS"]
 container-engine = "docker"
 
 before-all = """
-    CUDA_VERSION="$(echo "${CUDA_VERSION:-"${DEFAULT_CUDA_VERSION}"}" | cut -d"." -f-2)"
-    CUDA_PKG_SUFFIX="$(echo "${CUDA_VERSION}" | tr "." "-")"
-    echo "CUDA_VERSION=${CUDA_VERSION}"
-    yum-config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel7/x86_64/cuda-rhel7.repo
-    yum clean all
-    yum install -y nvidia-driver-latest-libs "cuda-minimal-build-${CUDA_PKG_SUFFIX}"
+    CUDA_VERSION="${CUDA_VERSION:-"${DEFAULT_CUDA_VERSION}"}"
+    if [[ "${CUDA_VERSION}" == "None" || "${CUDA_VERSION}" == "none" ]]; then
+        sed -i -E "s/__version__\\s*=\\s*.*$/\\0 + '+cpu'/" torchopt/version.py
+    else
+        CUDA_VERSION="$(echo "${CUDA_VERSION}" | cut -d"." -f-2)"
+        CUDA_PKG_SUFFIX="$(echo "${CUDA_VERSION}" | tr "." "-")"
+        echo "CUDA_VERSION=${CUDA_VERSION}"
+        yum-config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel7/x86_64/cuda-rhel7.repo
+        yum clean all
+        yum install -y nvidia-driver-latest-libs "cuda-minimal-build-${CUDA_PKG_SUFFIX}"
+    fi
+    echo "cat torchopt/version.py"; cat torchopt/version.py
     """
 test-extras = ["test"]
 test-command = """
@@ -130,7 +136,7 @@ repair-wheel-command = """
     echo "ls ${TORCH_LIB_PATH}"; ls -lh "${TORCH_LIB_PATH}"
     python -m pip install --force-reinstall git+https://github.com/XuehaiPan/auditwheel.git@torchopt
     python -m auditwheel lddtree "{wheel}"
-    python -m auditwheel repair --wheel-dir="{dest_dir}" "{wheel}"
+    python -m auditwheel repair --no-copy-site-libs --wheel-dir="{dest_dir}" "{wheel}"
     """
 
 # Linter tools #################################################################
