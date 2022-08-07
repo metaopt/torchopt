@@ -49,22 +49,22 @@ __global__ void adamForwardInplaceCUDAKernel(
 }
 }  // namespace
 
-TensorArray<3> adamForwardInplaceCUDA(const torch::Tensor &updates,
-                                      const torch::Tensor &mu,
-                                      const torch::Tensor &nu, const float b1,
-                                      const float b2, const float eps,
-                                      const float eps_root, const int count) {
-  using other_t = float;
-  const float inv_one_minus_pow_b1 = 1 / (1 - std::pow(b1, count));
-  const float inv_one_minus_pow_b2 = 1 / (1 - std::pow(b2, count));
+TensorArray<3> adamForwardInplaceCUDA(
+    const torch::Tensor &updates, const torch::Tensor &mu,
+    const torch::Tensor &nu, const pyfloat_t b1, const pyfloat_t b2,
+    const pyfloat_t eps, const pyfloat_t eps_root, const pyuint_t count) {
+  using other_t = pyfloat_t;
+  const other_t inv_one_minus_pow_b1 = 1 / (1 - std::pow(b1, count));
+  const other_t inv_one_minus_pow_b2 = 1 / (1 - std::pow(b2, count));
 
   const size_t n = getTensorPlainSize(updates);
   const dim3 block(std::min(n, size_t(256)));
   const dim3 grid((n - 1) / block.x + 1);
   AT_DISPATCH_FLOATING_TYPES(
       updates.scalar_type(), "adamForwardInplaceCUDA", ([&] {
-        adamForwardInplaceCUDAKernel<scalar_t, other_t><<<grid, block>>>(
-            b1, inv_one_minus_pow_b1, b2, inv_one_minus_pow_b2, eps, eps_root,
+        adamForwardInplaceCUDAKernel<scalar_t, scalar_t><<<grid, block>>>(
+            scalar_t(b1), scalar_t(inv_one_minus_pow_b1), scalar_t(b2),
+            scalar_t(inv_one_minus_pow_b2), scalar_t(eps), scalar_t(eps_root),
             n, updates.data_ptr<scalar_t>(), mu.data_ptr<scalar_t>(),
             nu.data_ptr<scalar_t>());
       }));
@@ -89,9 +89,7 @@ __global__ void adamForwardMuCUDAKernel(
 }  // namespace
 
 torch::Tensor adamForwardMuCUDA(const torch::Tensor &updates,
-                                const torch::Tensor &mu, const float b1) {
-  using other_t = float;
-
+                                const torch::Tensor &mu, const pyfloat_t b1) {
   auto mu_out = torch::empty_like(mu);
 
   const size_t n = getTensorPlainSize(updates);
@@ -99,9 +97,9 @@ torch::Tensor adamForwardMuCUDA(const torch::Tensor &updates,
   const dim3 grid((n - 1) / block.x + 1);
   AT_DISPATCH_FLOATING_TYPES(
       updates.scalar_type(), "adamForwardMuCUDA", ([&] {
-        adamForwardMuCUDAKernel<scalar_t, other_t><<<grid, block>>>(
-            updates.data_ptr<scalar_t>(), mu.data_ptr<scalar_t>(), b1, n,
-            mu_out.data_ptr<scalar_t>());
+        adamForwardMuCUDAKernel<scalar_t, scalar_t><<<grid, block>>>(
+            updates.data_ptr<scalar_t>(), mu.data_ptr<scalar_t>(), scalar_t(b1),
+            n, mu_out.data_ptr<scalar_t>());
       }));
   return mu_out;
 }
@@ -126,9 +124,7 @@ __global__ void adamForwardNuCUDAKernel(
 }  // namespace
 
 torch::Tensor adamForwardNuCUDA(const torch::Tensor &updates,
-                                const torch::Tensor &nu, const float b2) {
-  using other_t = float;
-
+                                const torch::Tensor &nu, const pyfloat_t b2) {
   auto nu_out = torch::empty_like(nu);
 
   const size_t n = getTensorPlainSize(updates);
@@ -136,9 +132,9 @@ torch::Tensor adamForwardNuCUDA(const torch::Tensor &updates,
   const dim3 grid((n - 1) / block.x + 1);
   AT_DISPATCH_FLOATING_TYPES(
       updates.scalar_type(), "adamForwardNuCUDA", ([&] {
-        adamForwardNuCUDAKernel<scalar_t, other_t><<<grid, block>>>(
-            updates.data_ptr<scalar_t>(), nu.data_ptr<scalar_t>(), b2, n,
-            nu_out.data_ptr<scalar_t>());
+        adamForwardNuCUDAKernel<scalar_t, scalar_t><<<grid, block>>>(
+            updates.data_ptr<scalar_t>(), nu.data_ptr<scalar_t>(), scalar_t(b2),
+            n, nu_out.data_ptr<scalar_t>());
       }));
   return nu_out;
 }
@@ -166,10 +162,11 @@ __global__ void adamForwardUpdatesCUDAKernel(
 
 torch::Tensor adamForwardUpdatesCUDA(const torch::Tensor &new_mu,
                                      const torch::Tensor &new_nu,
-                                     const float b1, const float b2,
-                                     const float eps, const float eps_root,
-                                     const int count) {
-  using other_t = float;
+                                     const pyfloat_t b1, const pyfloat_t b2,
+                                     const pyfloat_t eps,
+                                     const pyfloat_t eps_root,
+                                     const pyuint_t count) {
+  using other_t = pyfloat_t;
 
   auto updates_out = torch::empty_like(new_mu);
 
@@ -183,9 +180,10 @@ torch::Tensor adamForwardUpdatesCUDA(const torch::Tensor &new_mu,
   const dim3 grid((n - 1) / block.x + 1);
   AT_DISPATCH_FLOATING_TYPES(
       new_mu.scalar_type(), "adamForwardUpdatesCUDA", ([&] {
-        adamForwardUpdatesCUDAKernel<scalar_t, other_t><<<grid, block>>>(
+        adamForwardUpdatesCUDAKernel<scalar_t, scalar_t><<<grid, block>>>(
             new_mu.data_ptr<scalar_t>(), new_nu.data_ptr<scalar_t>(),
-            inv_one_minus_pow_b1, inv_one_minus_pow_b2, eps, eps_root, n,
+            scalar_t(inv_one_minus_pow_b1), scalar_t(inv_one_minus_pow_b2),
+            scalar_t(eps), scalar_t(eps_root), n,
             updates_out.data_ptr<scalar_t>());
       }));
   return updates_out;
@@ -211,9 +209,7 @@ __global__ void adamBackwardMuCUDAKernel(
 
 TensorArray<2> adamBackwardMuCUDA(const torch::Tensor &dmu,
                                   const torch::Tensor &updates,
-                                  const torch::Tensor &mu, const float b1) {
-  using other_t = float;
-
+                                  const torch::Tensor &mu, const pyfloat_t b1) {
   auto dupdates_out = torch::empty_like(updates);
   auto dmu_out = torch::empty_like(mu);
 
@@ -222,9 +218,9 @@ TensorArray<2> adamBackwardMuCUDA(const torch::Tensor &dmu,
   const dim3 grid((n - 1) / block.x + 1);
   AT_DISPATCH_FLOATING_TYPES(
       dmu.scalar_type(), "adamBackwardMuCUDA", ([&] {
-        adamBackwardMuCUDAKernel<scalar_t, other_t><<<grid, block>>>(
-            dmu.data_ptr<scalar_t>(), b1, n, dupdates_out.data_ptr<scalar_t>(),
-            dmu_out.data_ptr<scalar_t>());
+        adamBackwardMuCUDAKernel<scalar_t, scalar_t><<<grid, block>>>(
+            dmu.data_ptr<scalar_t>(), scalar_t(b1), n,
+            dupdates_out.data_ptr<scalar_t>(), dmu_out.data_ptr<scalar_t>());
       }));
   return TensorArray<2>{std::move(dupdates_out), std::move(dmu_out)};
 }
@@ -251,9 +247,7 @@ __global__ void adamBackwardNuCUDAKernel(
 
 TensorArray<2> adamBackwardNuCUDA(const torch::Tensor &dnu,
                                   const torch::Tensor &updates,
-                                  const torch::Tensor &nu, const float b2) {
-  using other_t = float;
-
+                                  const torch::Tensor &nu, const pyfloat_t b2) {
   auto dupdates_out = torch::empty_like(updates);
   auto dnu_out = torch::empty_like(nu);
 
@@ -262,9 +256,10 @@ TensorArray<2> adamBackwardNuCUDA(const torch::Tensor &dnu,
   const dim3 grid((n - 1) / block.x + 1);
   AT_DISPATCH_FLOATING_TYPES(
       dnu.scalar_type(), "adamForwardNuCUDA", ([&] {
-        adamBackwardNuCUDAKernel<scalar_t, other_t><<<grid, block>>>(
-            dnu.data_ptr<scalar_t>(), updates.data_ptr<scalar_t>(), b2, n,
-            dupdates_out.data_ptr<scalar_t>(), dnu_out.data_ptr<scalar_t>());
+        adamBackwardNuCUDAKernel<scalar_t, scalar_t><<<grid, block>>>(
+            dnu.data_ptr<scalar_t>(), updates.data_ptr<scalar_t>(),
+            scalar_t(b2), n, dupdates_out.data_ptr<scalar_t>(),
+            dnu_out.data_ptr<scalar_t>());
       }));
   return TensorArray<2>{std::move(dupdates_out), std::move(dnu_out)};
 }
@@ -307,9 +302,9 @@ TensorArray<2> adamBackwardUpdatesCUDA(const torch::Tensor &dupdates,
                                        const torch::Tensor &updates,
                                        const torch::Tensor &new_mu,
                                        const torch::Tensor &new_nu,
-                                       const float b1, const float b2,
-                                       const int count) {
-  using other_t = float;
+                                       const pyfloat_t b1, const pyfloat_t b2,
+                                       const pyuint_t count) {
+  using other_t = pyfloat_t;
 
   auto dmu_out = torch::empty_like(new_mu);
   auto dnu_out = torch::empty_like(new_nu);
@@ -323,10 +318,11 @@ TensorArray<2> adamBackwardUpdatesCUDA(const torch::Tensor &dupdates,
   const dim3 grid((n - 1) / block.x + 1);
   AT_DISPATCH_FLOATING_TYPES(
       dupdates.scalar_type(), "adamBackwardUpdatesCUDA", ([&] {
-        adamBackwardUpdatesCUDAKernel<scalar_t, other_t><<<grid, block>>>(
+        adamBackwardUpdatesCUDAKernel<scalar_t, scalar_t><<<grid, block>>>(
             dupdates.data_ptr<scalar_t>(), updates.data_ptr<scalar_t>(),
-            new_mu.data_ptr<scalar_t>(), one_minus_pow_b1, inv_one_minus_pow_b2,
-            n, dmu_out.data_ptr<scalar_t>(), dnu_out.data_ptr<scalar_t>());
+            new_mu.data_ptr<scalar_t>(), scalar_t(one_minus_pow_b1),
+            scalar_t(inv_one_minus_pow_b2), n, dmu_out.data_ptr<scalar_t>(),
+            dnu_out.data_ptr<scalar_t>());
       }));
   return TensorArray<2>{std::move(dmu_out), std::move(dnu_out)};
 }
