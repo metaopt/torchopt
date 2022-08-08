@@ -351,7 +351,11 @@ def trace(
                 def f(g, t):
                     return g.add_(t, alpha=decay)
 
-                state.trace.copy_(updates)
+                def copy_(t, g):
+                    t.copy_(g)
+
+                updates = pytree.tree_map(f, updates, state.trace)
+                pytree.tree_map(copy_, state.trace, updates)
                 new_trace = state.trace
             else:
 
