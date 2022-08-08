@@ -13,38 +13,25 @@
 # limitations under the License.
 # ==============================================================================
 
-import unittest
+import numpy as np
 
 import torchopt
 
 
-class TestSchedule(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.init_value = 1.0
-        cls.end_value = 0.0
-        cls.gap_value = cls.init_value - cls.end_value
-        cls.transition_steps = 10
-        cls.transition_begin = 1
+def test_linear_schedule() -> None:
+    init_value = 1.0
+    end_value = 0.0
+    gap_value = init_value - end_value
+    transition_steps = 10
+    transition_begin = 1
 
-    def setUp(self) -> None:
-        pass
-
-    def test_linear(self) -> None:
-        schedule = torchopt.schedule.linear_schedule(
-            init_value=self.init_value,
-            end_value=self.end_value,
-            transition_steps=self.transition_steps,
-            transition_begin=self.transition_begin,
-        )
-        for i in range(self.transition_begin, self.transition_steps):
-            lr = schedule(i)
-            lr_gt = (
-                self.init_value
-                - self.gap_value * (i - self.transition_begin) / self.transition_steps
-            )
-            self.assertEqual(lr, lr_gt)
-
-
-if __name__ == '__main__':
-    unittest.main()
+    schedule = torchopt.schedule.linear_schedule(
+        init_value=init_value,
+        end_value=end_value,
+        transition_steps=transition_steps,
+        transition_begin=transition_begin,
+    )
+    for i in range(transition_begin, transition_steps):
+        lr = schedule(i)
+        lr_gt = init_value - gap_value * (i - transition_begin) / transition_steps
+        assert np.allclose(lr, lr_gt)

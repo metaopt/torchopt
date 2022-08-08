@@ -14,10 +14,14 @@
 # ==============================================================================
 
 import copy
-import unittest
-from unittest.util import safe_repr
+import itertools
+import random
+from typing import Optional, Tuple, Union
 
+import numpy as np
+import pytest
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.utils import clip_grad_norm_
 from torch.utils import data
@@ -26,54 +30,75 @@ from torchvision import models
 import torchopt
 
 
-class HighLevelInplace(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        torch.manual_seed(0)
-        cls.model = models.resnet18()
-        cls.model_backup = copy.deepcopy(cls.model)
-        cls.model_ref = copy.deepcopy(cls.model)
+def get_models(
+    device: Optional[Union[str, torch.device]] = None, dtype: torch.dtype = torch.float32
+) -> Tuple[nn.Module, nn.Module, data.DataLoader]:
+    random.seed(0)
+    np.random.seed(0)
+    torch.manual_seed(0)
+    torch.cuda.manual_seed_all(0)
 
-        cls.batch_size = 2
-        cls.dataset = data.TensorDataset(torch.randn(2, 3, 224, 224), torch.randint(0, 1000, (2,)))
-        cls.loader = data.DataLoader(cls.dataset, cls.batch_size, False)
+    model = models.resnet18().to(dtype=dtype)
+    model_ref = copy.deepcopy(model)
+    if device is not None:
+        model = model.to(device=torch.device(device))
+        model_ref = model_ref.to(device=torch.device(device))
 
-        cls.lr = 1e0
-        cls.max_norm = 10.0
+    batch_size = 8
+    dataset = data.TensorDataset(
+        torch.randn(batch_size * 2, 3, 224, 224), torch.randint(0, 1000, (batch_size * 2,))
+    )
+    loader = data.DataLoader(dataset, batch_size, shuffle=False)
 
-    def setUp(self) -> None:
-        torch.manual_seed(0)
-        self.model = copy.deepcopy(self.model_backup)
-        self.model_ref = copy.deepcopy(self.model_backup)
+    return model, model_ref, loader
 
-    def test_sgd(self) -> None:
-        chain = torchopt.combine.chain(
-            torchopt.clip.clip_grad_norm(max_norm=self.max_norm),
-            torchopt.sgd(lr=self.lr),
+
+@pytest.mark.parametrize(
+    ('dtype', 'max_norm', 'lr', 'momentum', 'nesterov'),
+    list(
+        itertools.product(
+            [torch.float32, torch.float64],
+            [1.0, 10.0],
+            [1e-3, 1e-4, 1e-5],
+            [0.0, 0.1, 0.2],
+            [False, True],
         )
-        optim = torchopt.Optimizer(self.model.parameters(), chain)
-        optim_ref = torch.optim.SGD(self.model_ref.parameters(), self.lr)
-        for xs, ys in self.loader:
-            pred = self.model(xs)
-            pred_ref = self.model_ref(xs)
-            loss = F.cross_entropy(pred, ys)
-            loss_ref = F.cross_entropy(pred_ref, ys)
-            optim.zero_grad()
-            loss.backward()
-            optim.step()
-            optim_ref.zero_grad()
-            loss_ref.backward()
-            clip_grad_norm_(self.model_ref.parameters(), max_norm=self.max_norm)
-            optim_ref.step()
+    ),
+)  # fmt: skip
+def test_sgd(
+    dtype: torch.dtype, max_norm: float, lr: float, momentum: float, nesterov: bool
+) -> None:
+    model, model_ref, loader = get_models(device='cpu', dtype=dtype)
 
-        with torch.no_grad():
-            for p, p_ref in zip(self.model.parameters(), self.model_ref.parameters()):
-                self.assertTrue(torch.allclose(p, p_ref), f'{safe_repr(p)} != {safe_repr(p_ref)}')
-            for b, b_ref in zip(self.model.buffers(), self.model_ref.buffers()):
-                b = b.float() if not b.is_floating_point() else b
-                b_ref = b_ref.float() if not b_ref.is_floating_point() else b_ref
-                self.assertTrue(torch.allclose(b, b_ref), f'{safe_repr(b)} != {safe_repr(b_ref)}')
+    chain = torchopt.combine.chain(
+        torchopt.clip.clip_grad_norm(max_norm=max_norm),
+        torchopt.sgd(lr=lr, momentum=(momentum if momentum != 0.0 else None), nesterov=nesterov),
+    )
+    optim = torchopt.Optimizer(model.parameters(), chain)
+    optim_ref = torch.optim.SGD(
+        model_ref.parameters(), lr, momentum=momentum, nesterov=nesterov, weight_decay=0.0
+    )
 
+    for xs, ys in loader:
+        xs = xs.to(dtype=dtype)
+        pred = model(xs)
+        pred_ref = model_ref(xs)
+        loss = F.cross_entropy(pred, ys)
+        loss_ref = F.cross_entropy(pred_ref, ys)
 
-if __name__ == '__main__':
-    unittest.main()
+        optim.zero_grad()
+        loss.backward()
+        optim.step()
+
+        optim_ref.zero_grad()
+        loss_ref.backward()
+        clip_grad_norm_(model_ref.parameters(), max_norm=max_norm)
+        optim_ref.step()
+
+    with torch.no_grad():
+        for p, p_ref in zip(model.parameters(), model_ref.parameters()):
+            assert torch.allclose(p, p_ref), f'{p!r} != {p_ref!r}'
+        for b, b_ref in zip(model.buffers(), model_ref.buffers()):
+            b = b.to(dtype=dtype) if not b.is_floating_point() else b
+            b_ref = b_ref.to(dtype=dtype) if not b_ref.is_floating_point() else b_ref
+            assert torch.allclose(b, b_ref), f'{b!r} != {b_ref!r}'

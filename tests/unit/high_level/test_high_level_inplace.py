@@ -14,11 +14,14 @@
 # ==============================================================================
 
 import copy
-import unittest
-from unittest.util import safe_repr
+import itertools
+import random
+from typing import Optional, Tuple, Union
 
+import numpy as np
 import pytest
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils import data
 from torchvision import models
@@ -26,152 +29,282 @@ from torchvision import models
 import torchopt
 
 
-class HighLevelInplace(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        torch.manual_seed(0)
-        cls.model = models.resnet18()
-        cls.model_ref = copy.deepcopy(cls.model)
-        cls.model_backup = copy.deepcopy(cls.model)
+def get_models(
+    device: Optional[Union[str, torch.device]] = None, dtype: torch.dtype = torch.float32
+) -> Tuple[nn.Module, nn.Module, data.DataLoader]:
+    random.seed(0)
+    np.random.seed(0)
+    torch.manual_seed(0)
+    torch.cuda.manual_seed_all(0)
 
-        cls.batch_size = 2
-        cls.dataset = data.TensorDataset(torch.randn(2, 3, 224, 224), torch.randint(0, 1000, (2,)))
-        cls.loader = data.DataLoader(cls.dataset, cls.batch_size, False)
+    model = models.resnet18().to(dtype=dtype)
+    model_ref = copy.deepcopy(model)
+    if device is not None:
+        model = model.to(device=torch.device(device))
+        model_ref = model_ref.to(device=torch.device(device))
 
-        cls.lr = 1e-3
+    batch_size = 8
+    dataset = data.TensorDataset(
+        torch.randn(batch_size * 2, 3, 224, 224), torch.randint(0, 1000, (batch_size * 2,))
+    )
+    loader = data.DataLoader(dataset, batch_size, shuffle=False)
 
-    def setUp(self) -> None:
-        torch.manual_seed(0)
-        self.model = copy.deepcopy(self.model_backup)
-        self.model_ref = copy.deepcopy(self.model_backup)
-
-    def test_sgd(self) -> None:
-        optim = torchopt.SGD(self.model.parameters(), self.lr)
-        optim_ref = torch.optim.SGD(self.model_ref.parameters(), self.lr)
-        for xs, ys in self.loader:
-            pred = self.model(xs)
-            pred_ref = self.model_ref(xs)
-            loss = F.cross_entropy(pred, ys)
-            loss_ref = F.cross_entropy(pred_ref, ys)
-            optim.zero_grad()
-            loss.backward()
-            optim.step()
-            optim_ref.zero_grad()
-            loss_ref.backward()
-            optim_ref.step()
-
-        with torch.no_grad():
-            for p, p_ref in zip(self.model.parameters(), self.model_ref.parameters()):
-                self.assertTrue(torch.allclose(p, p_ref), f'{safe_repr(p)} != {safe_repr(p_ref)}')
-            for b, b_ref in zip(self.model.buffers(), self.model_ref.buffers()):
-                b = b.float() if not b.is_floating_point() else b
-                b_ref = b_ref.float() if not b_ref.is_floating_point() else b_ref
-                self.assertTrue(torch.allclose(b, b_ref), f'{safe_repr(b)} != {safe_repr(b_ref)}')
-
-    def test_adam(self) -> None:
-        optim = torchopt.Adam(self.model.parameters(), self.lr)
-        optim_ref = torch.optim.Adam(self.model_ref.parameters(), self.lr)
-        for xs, ys in self.loader:
-            pred = self.model(xs)
-            pred_ref = self.model_ref(xs)
-            loss = F.cross_entropy(pred, ys)
-            loss_ref = F.cross_entropy(pred_ref, ys)
-            optim.zero_grad()
-            loss.backward()
-            optim.step()
-            optim_ref.zero_grad()
-            loss_ref.backward()
-            optim_ref.step()
-
-        with torch.no_grad():
-            for p, p_ref in zip(self.model.parameters(), self.model_ref.parameters()):
-                self.assertTrue(torch.allclose(p, p_ref), f'{safe_repr(p)} != {safe_repr(p_ref)}')
-            for b, b_ref in zip(self.model.buffers(), self.model_ref.buffers()):
-                b = b.float() if not b.is_floating_point() else b
-                b_ref = b_ref.float() if not b_ref.is_floating_point() else b_ref
-                self.assertTrue(torch.allclose(b, b_ref), f'{safe_repr(b)} != {safe_repr(b_ref)}')
-
-    def test_accelerated_adam_cpu(self) -> None:
-        self.model
-        self.model_ref
-        optim = torchopt.Adam(self.model.parameters(), self.lr, use_accelerated_op=True)
-        optim_ref = torch.optim.Adam(self.model_ref.parameters(), self.lr)
-        for xs, ys in self.loader:
-            xs = xs
-            ys = ys
-            pred = self.model(xs)
-            pred_ref = self.model_ref(xs)
-            loss = F.cross_entropy(pred, ys)
-            loss_ref = F.cross_entropy(pred_ref, ys)
-            optim.zero_grad()
-            loss.backward()
-            optim.step()
-            optim_ref.zero_grad()
-            loss_ref.backward()
-            optim_ref.step()
-
-        with torch.no_grad():
-            for p, p_ref in zip(self.model.parameters(), self.model_ref.parameters()):
-                self.assertTrue(torch.allclose(p, p_ref), f'{safe_repr(p)} != {safe_repr(p_ref)}')
-            for b, b_ref in zip(self.model.buffers(), self.model_ref.buffers()):
-                b = b.float() if not b.is_floating_point() else b
-                b_ref = b_ref.float() if not b_ref.is_floating_point() else b_ref
-                self.assertTrue(torch.allclose(b, b_ref), f'{safe_repr(b)} != {safe_repr(b_ref)}')
-
-    @pytest.mark.skipif(not torch.cuda.is_available(), reason='No CUDA device available.')
-    def test_accelerated_adam_cuda(self) -> None:
-        self.model.cuda()
-        self.model_ref.cuda()
-        optim = torchopt.Adam(self.model.parameters(), self.lr, use_accelerated_op=True)
-        optim_ref = torch.optim.Adam(self.model_ref.parameters(), self.lr)
-        for xs, ys in self.loader:
-            xs = xs.cuda()
-            ys = ys.cuda()
-            pred = self.model(xs)
-            pred_ref = self.model_ref(xs)
-            loss = F.cross_entropy(pred, ys)
-            loss_ref = F.cross_entropy(pred_ref, ys)
-            optim.zero_grad()
-            loss.backward()
-            optim.step()
-            optim_ref.zero_grad()
-            loss_ref.backward()
-            optim_ref.step()
-
-        with torch.no_grad():
-            for p, p_ref in zip(self.model.parameters(), self.model_ref.parameters()):
-                self.assertTrue(torch.allclose(p, p_ref), f'{safe_repr(p)} != {safe_repr(p_ref)}')
-            for b, b_ref in zip(self.model.buffers(), self.model_ref.buffers()):
-                b = b.float() if not b.is_floating_point() else b
-                b_ref = b_ref.float() if not b_ref.is_floating_point() else b_ref
-                self.assertTrue(torch.allclose(b, b_ref), f'{safe_repr(b)} != {safe_repr(b_ref)}')
-
-    def test_rmsprop(self) -> None:
-        optim = torchopt.RMSProp(
-            self.model.parameters(), self.lr, decay=0.99
-        )  # pytorch uses 0.99 as the default value
-        optim_ref = torch.optim.RMSprop(self.model_ref.parameters(), self.lr)
-        for xs, ys in self.loader:
-            pred = self.model(xs)
-            pred_ref = self.model_ref(xs)
-            loss = F.cross_entropy(pred, ys)
-            loss_ref = F.cross_entropy(pred_ref, ys)
-            optim.zero_grad()
-            loss.backward()
-            optim.step()
-            optim_ref.zero_grad()
-            loss_ref.backward()
-            optim_ref.step()
-
-        with torch.no_grad():
-            for p, p_ref in zip(self.model.parameters(), self.model_ref.parameters()):
-                # Optax and pytorch have different implementation
-                self.assertTrue(torch.allclose(p, p_ref), f'{safe_repr(p)} != {safe_repr(p_ref)}')
-            for b, b_ref in zip(self.model.buffers(), self.model_ref.buffers()):
-                b = b.float() if not b.is_floating_point() else b
-                b_ref = b_ref.float() if not b_ref.is_floating_point() else b_ref
-                self.assertTrue(torch.allclose(b, b_ref), f'{safe_repr(b)} != {safe_repr(b_ref)}')
+    return model, model_ref, loader
 
 
-if __name__ == '__main__':
-    unittest.main()
+@pytest.mark.parametrize(
+    ('dtype', 'lr', 'momentum', 'nesterov'),
+    list(
+        itertools.product(
+            [torch.float32, torch.float64],
+            [1e-3, 1e-4, 1e-5],
+            [0.0, 0.1, 0.2],
+            [False, True],
+        )
+    ),
+)  # fmt: skip
+def test_sgd(dtype: torch.dtype, lr: float, momentum: float, nesterov: bool) -> None:
+    model, model_ref, loader = get_models(device='cpu', dtype=dtype)
+
+    optim = torchopt.SGD(
+        model.parameters(), lr, momentum=(momentum if momentum != 0.0 else None), nesterov=nesterov
+    )
+    optim_ref = torch.optim.SGD(
+        model_ref.parameters(), lr, momentum=momentum, nesterov=nesterov, weight_decay=0.0
+    )
+
+    for xs, ys in loader:
+        xs = xs.to(dtype=dtype)
+        pred = model(xs)
+        pred_ref = model_ref(xs)
+        loss = F.cross_entropy(pred, ys)
+        loss_ref = F.cross_entropy(pred_ref, ys)
+
+        optim.zero_grad()
+        loss.backward()
+        optim.step()
+
+        optim_ref.zero_grad()
+        loss_ref.backward()
+        optim_ref.step()
+
+    with torch.no_grad():
+        for p, p_ref in zip(model.parameters(), model_ref.parameters()):
+            assert torch.allclose(p, p_ref), f'{p!r} != {p_ref!r}'
+        for b, b_ref in zip(model.buffers(), model_ref.buffers()):
+            b = b.to(dtype=dtype) if not b.is_floating_point() else b
+            b_ref = b_ref.to(dtype=dtype) if not b_ref.is_floating_point() else b_ref
+            assert torch.allclose(b, b_ref), f'{b!r} != {b_ref!r}'
+
+
+@pytest.mark.parametrize(
+    ('dtype', 'lr', 'betas', 'eps'),
+    list(
+        itertools.product(
+            [torch.float32, torch.float64],
+            [1e-3, 1e-4, 1e-5],
+            [(0.9, 0.999), (0.95, 0.9995)],
+            [1e-8, 1e-6],
+        )
+    ),
+)  # fmt: skip
+def test_adam(dtype: torch.dtype, lr: float, betas: Tuple[float, float], eps: float) -> None:
+    model, model_ref, loader = get_models(device='cpu', dtype=dtype)
+
+    optim = torchopt.Adam(model.parameters(), lr, b1=betas[0], b2=betas[1], eps=eps, eps_root=0.0)
+    optim_ref = torch.optim.Adam(
+        model_ref.parameters(), lr, betas=betas, eps=eps, amsgrad=False, weight_decay=0.0
+    )
+
+    for xs, ys in loader:
+        xs = xs.to(dtype=dtype)
+        pred = model(xs)
+        pred_ref = model_ref(xs)
+        loss = F.cross_entropy(pred, ys)
+        loss_ref = F.cross_entropy(pred_ref, ys)
+
+        optim.zero_grad()
+        loss.backward()
+        optim.step()
+
+        optim_ref.zero_grad()
+        loss_ref.backward()
+        optim_ref.step()
+
+    with torch.no_grad():
+        for p, p_ref in zip(model.parameters(), model_ref.parameters()):
+            assert torch.allclose(p, p_ref), f'{p!r} != {p_ref!r}'
+        for b, b_ref in zip(model.buffers(), model_ref.buffers()):
+            b = b.to(dtype=dtype) if not b.is_floating_point() else b
+            b_ref = b_ref.to(dtype=dtype) if not b_ref.is_floating_point() else b_ref
+            assert torch.allclose(b, b_ref), f'{b!r} != {b_ref!r}'
+
+
+@pytest.mark.parametrize(
+    ('dtype', 'lr', 'betas', 'eps'),
+    list(
+        itertools.product(
+            [torch.float32, torch.float64],
+            [1e-3, 1e-4, 1e-5],
+            [(0.9, 0.999), (0.95, 0.9995)],
+            [1e-8, 1e-6],
+        )
+    ),
+)  # fmt: skip
+def test_accelerated_adam_cpu(
+    dtype: torch.dtype, lr: float, betas: Tuple[float, float], eps: float
+) -> None:
+    model, model_ref, loader = get_models(device='cpu', dtype=dtype)
+
+    optim = torchopt.Adam(
+        model.parameters(),
+        lr,
+        b1=betas[0],
+        b2=betas[1],
+        eps=eps,
+        eps_root=0.0,
+        use_accelerated_op=True,
+    )
+    optim_ref = torch.optim.Adam(
+        model_ref.parameters(), lr, betas=betas, eps=eps, amsgrad=False, weight_decay=0.0
+    )
+
+    for xs, ys in loader:
+        xs = xs.to(dtype=dtype)
+        pred = model(xs)
+        pred_ref = model_ref(xs)
+        loss = F.cross_entropy(pred, ys)
+        loss_ref = F.cross_entropy(pred_ref, ys)
+
+        optim.zero_grad()
+        loss.backward()
+        optim.step()
+
+        optim_ref.zero_grad()
+        loss_ref.backward()
+        optim_ref.step()
+
+    with torch.no_grad():
+        for p, p_ref in zip(model.parameters(), model_ref.parameters()):
+            assert torch.allclose(p, p_ref), f'{p!r} != {p_ref!r}'
+        for b, b_ref in zip(model.buffers(), model_ref.buffers()):
+            b = b.to(dtype=dtype) if not b.is_floating_point() else b
+            b_ref = b_ref.to(dtype=dtype) if not b_ref.is_floating_point() else b_ref
+            assert torch.allclose(b, b_ref), f'{b!r} != {b_ref!r}'
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason='No CUDA device available.')
+@pytest.mark.parametrize(
+    ('dtype', 'lr', 'betas', 'eps'),
+    list(
+        itertools.product(
+            [torch.float32, torch.float64],
+            [1e-3, 1e-4, 1e-5],
+            [(0.9, 0.999), (0.95, 0.9995)],
+            [1e-8, 1e-6],
+        )
+    ),
+)  # fmt: skip
+def test_accelerated_adam_cuda(
+    dtype: torch.dtype, lr: float, betas: Tuple[float, float], eps: float
+) -> None:
+    device = 'cuda'
+    model, model_ref, loader = get_models(device=device, dtype=dtype)
+
+    optim = torchopt.Adam(
+        model.parameters(),
+        lr,
+        b1=betas[0],
+        b2=betas[1],
+        eps=eps,
+        eps_root=0.0,
+        use_accelerated_op=True,
+    )
+    optim_ref = torch.optim.Adam(
+        model_ref.parameters(), lr, betas=betas, eps=eps, amsgrad=False, weight_decay=0.0
+    )
+
+    for xs, ys in loader:
+        xs = xs.to(device=device, dtype=dtype)
+        ys = ys.to(device=device)
+        pred = model(xs)
+        pred_ref = model_ref(xs)
+        loss = F.cross_entropy(pred, ys)
+        loss_ref = F.cross_entropy(pred_ref, ys)
+
+        optim.zero_grad()
+        loss.backward()
+        optim.step()
+
+        optim_ref.zero_grad()
+        loss_ref.backward()
+        optim_ref.step()
+
+    with torch.no_grad():
+        for p, p_ref in zip(model.parameters(), model_ref.parameters()):
+            assert torch.allclose(p, p_ref), f'{p!r} != {p_ref!r}'
+        for b, b_ref in zip(model.buffers(), model_ref.buffers()):
+            b = b.to(dtype=dtype) if not b.is_floating_point() else b
+            b_ref = b_ref.to(dtype=dtype) if not b_ref.is_floating_point() else b_ref
+            assert torch.allclose(b, b_ref), f'{b!r} != {b_ref!r}'
+
+
+@pytest.mark.parametrize(
+    ('dtype', 'lr', 'alpha', 'eps', 'momentum', 'centered'),
+    list(
+        itertools.product(
+            [torch.float32, torch.float64],
+            [1e-3, 1e-4, 1e-5],
+            [0.9, 0.99],
+            [1e-8, 1e-6],
+            [0.0, 0.1, 0.2],
+            [False, True],
+        )
+    ),
+)  # fmt: skip
+def test_rmsprop(
+    dtype: torch.dtype, lr: float, alpha: float, eps: float, momentum: float, centered: bool
+) -> None:
+    model, model_ref, loader = get_models(device='cpu', dtype=dtype)
+
+    optim = torchopt.RMSProp(
+        model.parameters(),
+        lr,
+        decay=alpha,
+        eps=eps,
+        momentum=(momentum if momentum != 0.0 else None),
+        centered=centered,
+        nesterov=False,
+    )
+    optim_ref = torch.optim.RMSprop(
+        model_ref.parameters(),
+        lr,
+        alpha=alpha,
+        eps=eps,
+        momentum=momentum,
+        centered=centered,
+        weight_decay=0.0,
+    )
+
+    for xs, ys in loader:
+        xs = xs.to(dtype=dtype)
+        pred = model(xs)
+        pred_ref = model_ref(xs)
+        loss = F.cross_entropy(pred, ys)
+        loss_ref = F.cross_entropy(pred_ref, ys)
+
+        optim.zero_grad()
+        loss.backward()
+        optim.step()
+
+        optim_ref.zero_grad()
+        loss_ref.backward()
+        optim_ref.step()
+
+    with torch.no_grad():
+        for p, p_ref in zip(model.parameters(), model_ref.parameters()):
+            assert torch.allclose(p, p_ref), f'{p!r} != {p_ref!r}'
+        for b, b_ref in zip(model.buffers(), model_ref.buffers()):
+            b = b.to(dtype=dtype) if not b.is_floating_point() else b
+            b_ref = b_ref.to(dtype=dtype) if not b_ref.is_floating_point() else b_ref
+            assert torch.allclose(b, b_ref), f'{b!r} != {b_ref!r}'
