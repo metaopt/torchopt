@@ -15,6 +15,7 @@
 
 import copy
 import unittest
+from unittest.util import safe_repr
 
 import torch
 import torch.nn.functional as F
@@ -67,13 +68,11 @@ class HighLevelInplace(unittest.TestCase):
 
         with torch.no_grad():
             for p, p_ref in zip(self.model.parameters(), self.model_ref.parameters()):
-                mse = F.mse_loss(p, p_ref)
-                self.assertAlmostEqual(float(mse), 0)
+                self.assertTrue(torch.allclose(p, p_ref), f'{safe_repr(p)} != {safe_repr(p_ref)}')
             for b, b_ref in zip(self.model.buffers(), self.model_ref.buffers()):
                 b = b.float() if not b.is_floating_point() else b
                 b_ref = b_ref.float() if not b_ref.is_floating_point() else b_ref
-                mse = F.mse_loss(b, b_ref)
-                self.assertAlmostEqual(float(mse), 0)
+                self.assertTrue(torch.allclose(b, b_ref), f'{safe_repr(b)} != {safe_repr(b_ref)}')
 
 
 if __name__ == '__main__':

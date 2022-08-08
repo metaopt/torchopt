@@ -15,6 +15,7 @@
 
 import copy
 import unittest
+from unittest.util import safe_repr
 
 import pytest
 import torch
@@ -61,13 +62,11 @@ class HighLevelInplace(unittest.TestCase):
 
         with torch.no_grad():
             for p, p_ref in zip(self.model.parameters(), self.model_ref.parameters()):
-                mse = F.mse_loss(p, p_ref)
-                self.assertAlmostEqual(float(mse), 0)
+                self.assertTrue(torch.allclose(p, p_ref), f'{safe_repr(p)} != {safe_repr(p_ref)}')
             for b, b_ref in zip(self.model.buffers(), self.model_ref.buffers()):
                 b = b.float() if not b.is_floating_point() else b
                 b_ref = b_ref.float() if not b_ref.is_floating_point() else b_ref
-                mse = F.mse_loss(b, b_ref)
-                self.assertAlmostEqual(float(mse), 0)
+                self.assertTrue(torch.allclose(b, b_ref), f'{safe_repr(b)} != {safe_repr(b_ref)}')
 
     def test_adam(self) -> None:
         optim = torchopt.Adam(self.model.parameters(), self.lr)
@@ -86,13 +85,11 @@ class HighLevelInplace(unittest.TestCase):
 
         with torch.no_grad():
             for p, p_ref in zip(self.model.parameters(), self.model_ref.parameters()):
-                mse = F.mse_loss(p, p_ref)
-                self.assertAlmostEqual(float(mse), 0)
+                self.assertTrue(torch.allclose(p, p_ref), f'{safe_repr(p)} != {safe_repr(p_ref)}')
             for b, b_ref in zip(self.model.buffers(), self.model_ref.buffers()):
                 b = b.float() if not b.is_floating_point() else b
                 b_ref = b_ref.float() if not b_ref.is_floating_point() else b_ref
-                mse = F.mse_loss(b, b_ref)
-                self.assertAlmostEqual(float(mse), 0)
+                self.assertTrue(torch.allclose(b, b_ref), f'{safe_repr(b)} != {safe_repr(b_ref)}')
 
     def test_accelerated_adam_cpu(self) -> None:
         self.model
@@ -115,13 +112,11 @@ class HighLevelInplace(unittest.TestCase):
 
         with torch.no_grad():
             for p, p_ref in zip(self.model.parameters(), self.model_ref.parameters()):
-                mse = F.mse_loss(p, p_ref)
-                self.assertAlmostEqual(float(mse), 0)
+                self.assertTrue(torch.allclose(p, p_ref), f'{safe_repr(p)} != {safe_repr(p_ref)}')
             for b, b_ref in zip(self.model.buffers(), self.model_ref.buffers()):
                 b = b.float() if not b.is_floating_point() else b
                 b_ref = b_ref.float() if not b_ref.is_floating_point() else b_ref
-                mse = F.mse_loss(b, b_ref)
-                self.assertAlmostEqual(float(mse), 0)
+                self.assertTrue(torch.allclose(b, b_ref), f'{safe_repr(b)} != {safe_repr(b_ref)}')
 
     @pytest.mark.skipif(not torch.cuda.is_available(), reason='No CUDA device available.')
     def test_accelerated_adam_cuda(self) -> None:
@@ -145,13 +140,11 @@ class HighLevelInplace(unittest.TestCase):
 
         with torch.no_grad():
             for p, p_ref in zip(self.model.parameters(), self.model_ref.parameters()):
-                mse = F.mse_loss(p, p_ref)
-                self.assertAlmostEqual(float(mse), 0)
+                self.assertTrue(torch.allclose(p, p_ref), f'{safe_repr(p)} != {safe_repr(p_ref)}')
             for b, b_ref in zip(self.model.buffers(), self.model_ref.buffers()):
                 b = b.float() if not b.is_floating_point() else b
                 b_ref = b_ref.float() if not b_ref.is_floating_point() else b_ref
-                mse = F.mse_loss(b, b_ref)
-                self.assertAlmostEqual(float(mse), 0)
+                self.assertTrue(torch.allclose(b, b_ref), f'{safe_repr(b)} != {safe_repr(b_ref)}')
 
     def test_rmsprop(self) -> None:
         optim = torchopt.RMSProp(
@@ -172,15 +165,12 @@ class HighLevelInplace(unittest.TestCase):
 
         with torch.no_grad():
             for p, p_ref in zip(self.model.parameters(), self.model_ref.parameters()):
-                mse = F.mse_loss(p, p_ref)
-                self.assertAlmostEqual(
-                    float(mse), 0, delta=1e-4
-                )  # Optax and pytorch have different implementation
+                # Optax and pytorch have different implementation
+                self.assertTrue(torch.allclose(p, p_ref), f'{safe_repr(p)} != {safe_repr(p_ref)}')
             for b, b_ref in zip(self.model.buffers(), self.model_ref.buffers()):
                 b = b.float() if not b.is_floating_point() else b
                 b_ref = b_ref.float() if not b_ref.is_floating_point() else b_ref
-                mse = F.mse_loss(b, b_ref)
-                self.assertAlmostEqual(float(mse), 0)
+                self.assertTrue(torch.allclose(b, b_ref), f'{safe_repr(b)} != {safe_repr(b_ref)}')
 
 
 if __name__ == '__main__':
