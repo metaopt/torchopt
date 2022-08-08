@@ -15,11 +15,11 @@
 
 from typing import Iterable
 
-import jax
 import torch
 
 from torchopt._src.base import GradientTransformation
 from torchopt._src.update import apply_updates
+from torchopt._src.utils import pytree
 
 
 class Optimizer:
@@ -70,7 +70,7 @@ class Optimizer:
                         p.grad.requires_grad_(False)
                     p.grad.zero_()
 
-            jax.tree_map(f, group)
+            pytree.tree_map(f, group)
 
     def state_dict(self):
         """Returns the state of the optimizer."""
@@ -102,7 +102,7 @@ class Optimizer:
             return p.grad
 
         for param, state in zip(self.param_groups, self.state_groups):
-            grad = jax.tree_map(f, param)
+            grad = pytree.tree_map(f, param)
             updates, _ = self.impl.update(grad, state)
             apply_updates(param, updates)
 
@@ -110,8 +110,8 @@ class Optimizer:
 
     def add_param_group(self, params):
         """Add a param group to the optimizer's :attr:`param_groups`."""
-        params, tree = jax.tree_flatten(params)
+        params, params_tree = pytree.tree_flatten(params)
         params = tuple(params)
         self.param_groups.append(params)
-        self.param_tree_groups.append(tree)
+        self.param_tree_groups.append(params_tree)
         self.state_groups.append(self.impl.init(params))
