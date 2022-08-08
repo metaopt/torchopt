@@ -88,20 +88,10 @@ def get_models(
 def assert_all_close(
     input: torch.Tensor,
     other: torch.Tensor,
-    rtol: Optional[float] = None,
-    atol: Optional[float] = None,
+    rtol: float = 1e-05,
+    atol: float = 1e-08,
     equal_nan: bool = False,
-    dtype: Optional[torch.dtype] = None,
 ) -> None:
-
-    if dtype is None:
-        dtype = input.dtype
-    finfo = torch.finfo(input.dtype)
-
-    if rtol is None:
-        rtol = 2.0 * finfo.eps
-    if atol is None:
-        atol = 2.0 * finfo.resolution
 
     assert torch.allclose(input, other, rtol=rtol, atol=atol, equal_nan=equal_nan), (
         f'L_inf = {(input - other).abs().max()}, '

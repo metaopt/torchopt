@@ -65,11 +65,11 @@ def test_sgd(dtype: torch.dtype, lr: float, momentum: float, nesterov: bool) -> 
 
         with torch.no_grad():
             for p, p_ref in zip(model.parameters(), model_ref.parameters()):
-                helpers.assert_all_close(p, p_ref, dtype=dtype)
+                helpers.assert_all_close(p, p_ref)
             for b, b_ref in zip(model.buffers(), model_ref.buffers()):
                 b = b.to(dtype=dtype) if not b.is_floating_point() else b
                 b_ref = b_ref.to(dtype=dtype) if not b_ref.is_floating_point() else b_ref
-                helpers.assert_all_close(b, b_ref, dtype=dtype)
+                helpers.assert_all_close(b, b_ref)
 
 
 @helpers.parametrize(
@@ -104,11 +104,11 @@ def test_adam(dtype: torch.dtype, lr: float, betas: Tuple[float, float], eps: fl
 
         with torch.no_grad():
             for p, p_ref in zip(model.parameters(), model_ref.parameters()):
-                helpers.assert_all_close(p, p_ref, dtype=dtype)
+                helpers.assert_all_close(p, p_ref)
             for b, b_ref in zip(model.buffers(), model_ref.buffers()):
                 b = b.to(dtype=dtype) if not b.is_floating_point() else b
                 b_ref = b_ref.to(dtype=dtype) if not b_ref.is_floating_point() else b_ref
-                helpers.assert_all_close(b, b_ref, dtype=dtype)
+                helpers.assert_all_close(b, b_ref)
 
 
 @helpers.parametrize(
@@ -153,11 +153,11 @@ def test_accelerated_adam_cpu(
 
         with torch.no_grad():
             for p, p_ref in zip(model.parameters(), model_ref.parameters()):
-                helpers.assert_all_close(p, p_ref, dtype=dtype)
+                helpers.assert_all_close(p, p_ref)
             for b, b_ref in zip(model.buffers(), model_ref.buffers()):
                 b = b.to(dtype=dtype) if not b.is_floating_point() else b
                 b_ref = b_ref.to(dtype=dtype) if not b_ref.is_floating_point() else b_ref
-                helpers.assert_all_close(b, b_ref, dtype=dtype)
+                helpers.assert_all_close(b, b_ref)
 
 
 @pytest.mark.skipif(not torch.cuda.is_available(), reason='No CUDA device available.')
@@ -205,11 +205,11 @@ def test_accelerated_adam_cuda(
 
         with torch.no_grad():
             for p, p_ref in zip(model.parameters(), model_ref.parameters()):
-                helpers.assert_all_close(p, p_ref, dtype=dtype)
+                helpers.assert_all_close(p, p_ref)
             for b, b_ref in zip(model.buffers(), model_ref.buffers()):
                 b = b.to(dtype=dtype) if not b.is_floating_point() else b
                 b_ref = b_ref.to(dtype=dtype) if not b_ref.is_floating_point() else b_ref
-                helpers.assert_all_close(b, b_ref, dtype=dtype)
+                helpers.assert_all_close(b, b_ref)
 
 
 @helpers.parametrize(
@@ -262,8 +262,8 @@ def test_rmsprop(
 
         with torch.no_grad():
             for p, p_ref in zip(model.parameters(), model_ref.parameters()):
-                helpers.assert_all_close(p, p_ref, dtype=dtype)
+                helpers.assert_all_close(p, p_ref)
             for b, b_ref in zip(model.buffers(), model_ref.buffers()):
                 b = b.to(dtype=dtype) if not b.is_floating_point() else b
                 b_ref = b_ref.to(dtype=dtype) if not b_ref.is_floating_point() else b_ref
-                helpers.assert_all_close(b, b_ref, dtype=dtype)
+                helpers.assert_all_close(b, b_ref)

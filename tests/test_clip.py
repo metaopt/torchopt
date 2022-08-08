@@ -70,8 +70,8 @@ def test_sgd(
 
         with torch.no_grad():
             for p, p_ref in zip(model.parameters(), model_ref.parameters()):
-                helpers.assert_all_close(p, p_ref, dtype=dtype)
+                helpers.assert_all_close(p, p_ref)
             for b, b_ref in zip(model.buffers(), model_ref.buffers()):
                 b = b.to(dtype=dtype) if not b.is_floating_point() else b
                 b_ref = b_ref.to(dtype=dtype) if not b_ref.is_floating_point() else b_ref
-                helpers.assert_all_close(b, b_ref, dtype=dtype)
+                helpers.assert_all_close(b, b_ref)
