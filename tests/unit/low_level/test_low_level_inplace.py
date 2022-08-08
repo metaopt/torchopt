@@ -16,7 +16,7 @@
 import copy
 import itertools
 import random
-from typing import Any, Optional, Sequence, Tuple, Union
+from typing import Optional, Tuple, Union
 
 import functorch
 import numpy as np
@@ -30,9 +30,9 @@ from torchvision import models
 import torchopt
 
 
-def parametrize(arguments: Tuple[str], argvalues: Sequence[Tuple[Any, ...]]) -> None:
-    arguments = tuple(arguments)
-    argvalues = tuple(argvalues)
+def parametrize(**argvalues) -> pytest.mark.parametrize:
+    arguments = tuple(argvalues)
+    argvalues = tuple(itertools.product(*tuple(map(argvalues.get, arguments))))
     ids = tuple(
         '-'.join(f'{arg}({val})' for arg, val in zip(arguments, values)) for values in argvalues
     )
@@ -64,16 +64,11 @@ def get_models(
 
 
 @parametrize(
-    ('dtype', 'lr', 'momentum', 'nesterov'),
-    list(
-        itertools.product(
-            [torch.float32, torch.float64],
-            [1e-3, 1e-4, 1e-5],
-            [0.0, 0.1, 0.2],
-            [False, True],
-        )
-    ),
-)  # fmt: skip
+    dtype=[torch.float32, torch.float64],
+    lr=[1e-3, 1e-4, 1e-5],
+    momentum=[0.0, 0.1, 0.2],
+    nesterov=[False, True],
+)
 def test_sgd(dtype: torch.dtype, lr: float, momentum: float, nesterov: bool) -> None:
     model, model_ref, loader = get_models(device='cpu', dtype=dtype)
 
@@ -109,16 +104,11 @@ def test_sgd(dtype: torch.dtype, lr: float, momentum: float, nesterov: bool) -> 
 
 
 @parametrize(
-    ('dtype', 'lr', 'betas', 'eps'),
-    list(
-        itertools.product(
-            [torch.float32, torch.float64],
-            [1e-3, 1e-4, 1e-5],
-            [(0.9, 0.999), (0.95, 0.9995)],
-            [1e-8, 1e-6],
-        )
-    ),
-)  # fmt: skip
+    dtype=[torch.float32, torch.float64],
+    lr=[1e-3, 1e-4, 1e-5],
+    betas=[(0.9, 0.999), (0.95, 0.9995)],
+    eps=[1e-8, 1e-6],
+)
 def test_adam(dtype: torch.dtype, lr: float, betas: Tuple[float, float], eps: float) -> None:
     model, model_ref, loader = get_models(device='cpu', dtype=dtype)
 
@@ -154,16 +144,11 @@ def test_adam(dtype: torch.dtype, lr: float, betas: Tuple[float, float], eps: fl
 
 
 @parametrize(
-    ('dtype', 'lr', 'betas', 'eps'),
-    list(
-        itertools.product(
-            [torch.float32, torch.float64],
-            [1e-3, 1e-4, 1e-5],
-            [(0.9, 0.999), (0.95, 0.9995)],
-            [1e-8, 1e-6],
-        )
-    ),
-)  # fmt: skip
+    dtype=[torch.float32, torch.float64],
+    lr=[1e-3, 1e-4, 1e-5],
+    betas=[(0.9, 0.999), (0.95, 0.9995)],
+    eps=[1e-8, 1e-6],
+)
 def test_accelerated_adam_cpu(
     dtype: torch.dtype, lr: float, betas: Tuple[float, float], eps: float
 ) -> None:
@@ -204,16 +189,11 @@ def test_accelerated_adam_cpu(
 
 @pytest.mark.skipif(not torch.cuda.is_available(), reason='No CUDA device available.')
 @parametrize(
-    ('dtype', 'lr', 'betas', 'eps'),
-    list(
-        itertools.product(
-            [torch.float32, torch.float64],
-            [1e-3, 1e-4, 1e-5],
-            [(0.9, 0.999), (0.95, 0.9995)],
-            [1e-8, 1e-6],
-        )
-    ),
-)  # fmt: skip
+    dtype=[torch.float32, torch.float64],
+    lr=[1e-3, 1e-4, 1e-5],
+    betas=[(0.9, 0.999), (0.95, 0.9995)],
+    eps=[1e-8, 1e-6],
+)
 def test_accelerated_adam_cuda(
     dtype: torch.dtype, lr: float, betas: Tuple[float, float], eps: float
 ) -> None:
@@ -255,18 +235,13 @@ def test_accelerated_adam_cuda(
 
 
 @parametrize(
-    ('dtype', 'lr', 'alpha', 'eps', 'momentum', 'centered'),
-    list(
-        itertools.product(
-            [torch.float32, torch.float64],
-            [1e-3, 1e-4, 1e-5],
-            [0.9, 0.99],
-            [1e-8, 1e-6],
-            [0.0, 0.1, 0.2],
-            [False, True],
-        )
-    ),
-)  # fmt: skip
+    dtype=[torch.float32, torch.float64],
+    lr=[1e-3, 1e-4, 1e-5],
+    alpha=[0.9, 0.99],
+    eps=[1e-8, 1e-6],
+    momentum=[0.0, 0.1, 0.2],
+    centered=[False, True],
+)
 def test_rmsprop(
     dtype: torch.dtype, lr: float, alpha: float, eps: float, momentum: float, centered: bool
 ) -> None:

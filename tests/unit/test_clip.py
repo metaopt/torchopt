@@ -16,7 +16,7 @@
 import copy
 import itertools
 import random
-from typing import Any, Optional, Sequence, Tuple, Union
+from typing import Optional, Tuple, Union
 
 import numpy as np
 import pytest
@@ -30,9 +30,9 @@ from torchvision import models
 import torchopt
 
 
-def parametrize(arguments: Tuple[str], argvalues: Sequence[Tuple[Any, ...]]) -> None:
-    arguments = tuple(arguments)
-    argvalues = tuple(argvalues)
+def parametrize(**argvalues) -> pytest.mark.parametrize:
+    arguments = tuple(argvalues)
+    argvalues = tuple(itertools.product(*tuple(map(argvalues.get, arguments))))
     ids = tuple(
         '-'.join(f'{arg}({val})' for arg, val in zip(arguments, values)) for values in argvalues
     )
@@ -64,17 +64,12 @@ def get_models(
 
 
 @parametrize(
-    ('dtype', 'max_norm', 'lr', 'momentum', 'nesterov'),
-    list(
-        itertools.product(
-            [torch.float32, torch.float64],
-            [1.0, 10.0],
-            [1e-3, 1e-4, 1e-5],
-            [0.0, 0.1, 0.2],
-            [False, True],
-        )
-    ),
-)  # fmt: skip
+    dtype=[torch.float32, torch.float64],
+    max_norm=[1.0, 10.0],
+    lr=[1e-3, 1e-4, 1e-5],
+    momentum=[0.0, 0.1, 0.2],
+    nesterov=[False, True],
+)
 def test_sgd(
     dtype: torch.dtype, max_norm: float, lr: float, momentum: float, nesterov: bool
 ) -> None:
