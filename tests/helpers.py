@@ -27,6 +27,10 @@ from torch.utils import data
 from torchvision import models
 
 
+BATCH_SIZE = 4
+NUM_UPDATES = 3
+
+
 def parametrize(**argvalues) -> pytest.mark.parametrize:
     arguments = tuple(argvalues)
     argvalues = tuple(itertools.product(*tuple(map(argvalues.get, arguments))))
@@ -63,11 +67,10 @@ def get_models(
         model = model.to(device=torch.device(device))
         model_ref = model_ref.to(device=torch.device(device))
 
-    batch_size = 8
     dataset = data.TensorDataset(
-        torch.randn(batch_size * 2, 3, 224, 224), torch.randint(0, 1000, (batch_size * 2,))
+        torch.randn(BATCH_SIZE, 3, 224, 224), torch.randint(0, 1000, (BATCH_SIZE,))
     )
-    loader = data.DataLoader(dataset, batch_size, shuffle=False)
+    loader = data.DataLoader(dataset, BATCH_SIZE, shuffle=False)
 
     return model, model_ref, loader
 
@@ -86,9 +89,9 @@ def assert_all_close(
     finfo = torch.finfo(input.dtype)
 
     if rtol is None:
-        rtol = finfo.eps
+        rtol = 2.0 * finfo.eps
     if atol is None:
-        atol = finfo.resolution
+        atol = 2.0 * finfo.resolution
 
     assert torch.allclose(input, other, rtol=rtol, atol=atol, equal_nan=equal_nan), (
         f'L_inf = {(input - other).abs().max()}, '
