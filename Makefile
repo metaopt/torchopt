@@ -83,8 +83,10 @@ addlicense-install: go-install
 
 pytest: pytest-install
 	cd tests && \
-	$(PYTHON) -m pytest . --verbose --color=yes --durations=0 \
+	$(PYTHON) -m pytest --verbose --color=yes --maxfail=8 \
+		--numprocesses=logical --maxprocesses=8 --durations=0 \
 		--cov="$(PROJECT_PATH)" --cov-report=xml --cov-report=term-missing
+		.
 
 test: pytest
 
