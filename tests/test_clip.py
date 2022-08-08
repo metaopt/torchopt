@@ -13,57 +13,16 @@
 # limitations under the License.
 # ==============================================================================
 
-import copy
-import itertools
-import random
-from typing import Optional, Tuple, Union
-
-import numpy as np
 import pytest
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.utils import clip_grad_norm_
-from torch.utils import data
-from torchvision import models
 
+import helpers
 import torchopt
 
 
-def parametrize(**argvalues) -> pytest.mark.parametrize:
-    arguments = tuple(argvalues)
-    argvalues = tuple(itertools.product(*tuple(map(argvalues.get, arguments))))
-    ids = tuple(
-        '-'.join(f'{arg}({val})' for arg, val in zip(arguments, values)) for values in argvalues
-    )
-
-    return pytest.mark.parametrize(arguments, argvalues, ids=ids)
-
-
-def get_models(
-    device: Optional[Union[str, torch.device]] = None, dtype: torch.dtype = torch.float32
-) -> Tuple[nn.Module, nn.Module, data.DataLoader]:
-    random.seed(0)
-    np.random.seed(0)
-    torch.manual_seed(0)
-    torch.cuda.manual_seed_all(0)
-
-    model = models.resnet18().to(dtype=dtype)
-    model_ref = copy.deepcopy(model)
-    if device is not None:
-        model = model.to(device=torch.device(device))
-        model_ref = model_ref.to(device=torch.device(device))
-
-    batch_size = 8
-    dataset = data.TensorDataset(
-        torch.randn(batch_size * 2, 3, 224, 224), torch.randint(0, 1000, (batch_size * 2,))
-    )
-    loader = data.DataLoader(dataset, batch_size, shuffle=False)
-
-    return model, model_ref, loader
-
-
-@parametrize(
+@helpers.parametrize(
     dtype=[torch.float32, torch.float64],
     max_norm=[1.0, 10.0],
     lr=[1e-3, 1e-4, 1e-5],
@@ -73,7 +32,7 @@ def get_models(
 def test_sgd(
     dtype: torch.dtype, max_norm: float, lr: float, momentum: float, nesterov: bool
 ) -> None:
-    model, model_ref, loader = get_models(device='cpu', dtype=dtype)
+    model, model_ref, loader = helpers.get_models(device='cpu', dtype=dtype)
 
     chain = torchopt.combine.chain(
         torchopt.clip.clip_grad_norm(max_norm=max_norm),
