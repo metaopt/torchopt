@@ -25,8 +25,8 @@ import torchopt
 @helpers.parametrize(
     dtype=[torch.float32, torch.float64],
     max_norm=[1.0, 10.0],
-    lr=[1e-3, 1e-4, 1e-5],
-    momentum=[0.0, 0.1, 0.2],
+    lr=[1e-3, 1e-4],
+    momentum=[0.0, 0.1],
     nesterov=[False, True],
 )
 def test_sgd(
