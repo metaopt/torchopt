@@ -16,7 +16,7 @@
 import copy
 import itertools
 import random
-from typing import Optional, Tuple, Union
+from typing import Any, Optional, Sequence, Tuple, Union
 
 import functorch
 import numpy as np
@@ -28,6 +28,16 @@ from torch.utils import data
 from torchvision import models
 
 import torchopt
+
+
+def parametrize(arguments: Tuple[str], argvalues: Sequence[Tuple[Any, ...]]) -> None:
+    arguments = tuple(arguments)
+    argvalues = tuple(argvalues)
+    ids = tuple(
+        '-'.join(f'{arg}({val})' for arg, val in zip(arguments, values)) for values in argvalues
+    )
+
+    return pytest.mark.parametrize(arguments, argvalues, ids=ids)
 
 
 def get_models(
@@ -53,7 +63,7 @@ def get_models(
     return model, model_ref, loader
 
 
-@pytest.mark.parametrize(
+@parametrize(
     ('dtype', 'lr', 'momentum', 'nesterov'),
     list(
         itertools.product(
@@ -98,7 +108,7 @@ def test_sgd(dtype: torch.dtype, lr: float, momentum: float, nesterov: bool) -> 
             assert torch.allclose(b, b_ref), f'{b!r} != {b_ref!r}'
 
 
-@pytest.mark.parametrize(
+@parametrize(
     ('dtype', 'lr', 'betas', 'eps'),
     list(
         itertools.product(
@@ -143,7 +153,7 @@ def test_adam(dtype: torch.dtype, lr: float, betas: Tuple[float, float], eps: fl
             assert torch.allclose(b, b_ref), f'{b!r} != {b_ref!r}'
 
 
-@pytest.mark.parametrize(
+@parametrize(
     ('dtype', 'lr', 'betas', 'eps'),
     list(
         itertools.product(
@@ -193,7 +203,7 @@ def test_accelerated_adam_cpu(
 
 
 @pytest.mark.skipif(not torch.cuda.is_available(), reason='No CUDA device available.')
-@pytest.mark.parametrize(
+@parametrize(
     ('dtype', 'lr', 'betas', 'eps'),
     list(
         itertools.product(
@@ -244,7 +254,7 @@ def test_accelerated_adam_cuda(
             assert torch.allclose(b, b_ref), f'{b!r} != {b_ref!r}'
 
 
-@pytest.mark.parametrize(
+@parametrize(
     ('dtype', 'lr', 'alpha', 'eps', 'momentum', 'centered'),
     list(
         itertools.product(

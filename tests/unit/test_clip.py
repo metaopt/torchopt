@@ -16,7 +16,7 @@
 import copy
 import itertools
 import random
-from typing import Optional, Tuple, Union
+from typing import Any, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import pytest
@@ -28,6 +28,16 @@ from torch.utils import data
 from torchvision import models
 
 import torchopt
+
+
+def parametrize(arguments: Tuple[str], argvalues: Sequence[Tuple[Any, ...]]) -> None:
+    arguments = tuple(arguments)
+    argvalues = tuple(argvalues)
+    ids = tuple(
+        '-'.join(f'{arg}({val})' for arg, val in zip(arguments, values)) for values in argvalues
+    )
+
+    return pytest.mark.parametrize(arguments, argvalues, ids=ids)
 
 
 def get_models(
@@ -53,7 +63,7 @@ def get_models(
     return model, model_ref, loader
 
 
-@pytest.mark.parametrize(
+@parametrize(
     ('dtype', 'max_norm', 'lr', 'momentum', 'nesterov'),
     list(
         itertools.product(
