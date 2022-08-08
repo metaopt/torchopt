@@ -31,13 +31,21 @@ import torchopt
     nesterov=[False, True],
 )
 def test_sgd(dtype: torch.dtype, lr: float, momentum: float, nesterov: bool) -> None:
+    if nesterov and momentum <= 0.0:
+        pytest.skip('Nesterov momentum requires a momentum and zero dampening.')
+
     model, model_ref, loader = helpers.get_models(device='cpu', dtype=dtype)
 
     fun, params, buffers = functorch.make_functional_with_buffers(model)
     optim = torchopt.sgd(lr, momentum=(momentum if momentum != 0.0 else None), nesterov=nesterov)
     optim_state = optim.init(params)
     optim_ref = torch.optim.SGD(
-        model_ref.parameters(), lr, momentum=momentum, nesterov=nesterov, weight_decay=0.0
+        model_ref.parameters(),
+        lr,
+        momentum=momentum,
+        dampening=0.0,
+        nesterov=nesterov,
+        weight_decay=0.0,
     )
 
     for xs, ys in loader:
@@ -57,11 +65,11 @@ def test_sgd(dtype: torch.dtype, lr: float, momentum: float, nesterov: bool) -> 
 
     with torch.no_grad():
         for p, p_ref in zip(params, model_ref.parameters()):
-            assert torch.allclose(p, p_ref), f'{p!r} != {p_ref!r}'
+            helpers.assert_all_close(p, p_ref, dtype=dtype)
         for b, b_ref in zip(buffers, model_ref.buffers()):
             b = b.to(dtype=dtype) if not b.is_floating_point() else b
             b_ref = b_ref.to(dtype=dtype) if not b_ref.is_floating_point() else b_ref
-            assert torch.allclose(b, b_ref), f'{b!r} != {b_ref!r}'
+            helpers.assert_all_close(b, b_ref, dtype=dtype)
 
 
 @helpers.parametrize(
@@ -97,11 +105,11 @@ def test_adam(dtype: torch.dtype, lr: float, betas: Tuple[float, float], eps: fl
 
     with torch.no_grad():
         for p, p_ref in zip(params, model_ref.parameters()):
-            assert torch.allclose(p, p_ref), f'{p!r} != {p_ref!r}'
+            helpers.assert_all_close(p, p_ref, dtype=dtype)
         for b, b_ref in zip(buffers, model_ref.buffers()):
             b = b.to(dtype=dtype) if not b.is_floating_point() else b
             b_ref = b_ref.to(dtype=dtype) if not b_ref.is_floating_point() else b_ref
-            assert torch.allclose(b, b_ref), f'{b!r} != {b_ref!r}'
+            helpers.assert_all_close(b, b_ref, dtype=dtype)
 
 
 @helpers.parametrize(
@@ -141,11 +149,11 @@ def test_accelerated_adam_cpu(
 
     with torch.no_grad():
         for p, p_ref in zip(params, model_ref.parameters()):
-            assert torch.allclose(p, p_ref), f'{p!r} != {p_ref!r}'
+            helpers.assert_all_close(p, p_ref, dtype=dtype)
         for b, b_ref in zip(buffers, model_ref.buffers()):
             b = b.to(dtype=dtype) if not b.is_floating_point() else b
             b_ref = b_ref.to(dtype=dtype) if not b_ref.is_floating_point() else b_ref
-            assert torch.allclose(b, b_ref), f'{b!r} != {b_ref!r}'
+            helpers.assert_all_close(b, b_ref, dtype=dtype)
 
 
 @pytest.mark.skipif(not torch.cuda.is_available(), reason='No CUDA device available.')
@@ -188,11 +196,11 @@ def test_accelerated_adam_cuda(
 
     with torch.no_grad():
         for p, p_ref in zip(params, model_ref.parameters()):
-            assert torch.allclose(p, p_ref), f'{p!r} != {p_ref!r}'
+            helpers.assert_all_close(p, p_ref, dtype=dtype)
         for b, b_ref in zip(buffers, model_ref.buffers()):
             b = b.to(dtype=dtype) if not b.is_floating_point() else b
             b_ref = b_ref.to(dtype=dtype) if not b_ref.is_floating_point() else b_ref
-            assert torch.allclose(b, b_ref), f'{b!r} != {b_ref!r}'
+            helpers.assert_all_close(b, b_ref, dtype=dtype)
 
 
 @helpers.parametrize(
@@ -245,8 +253,8 @@ def test_rmsprop(
 
     with torch.no_grad():
         for p, p_ref in zip(params, model_ref.parameters()):
-            assert torch.allclose(p, p_ref), f'{p!r} != {p_ref!r}'
+            helpers.assert_all_close(p, p_ref, dtype=dtype)
         for b, b_ref in zip(buffers, model_ref.buffers()):
             b = b.to(dtype=dtype) if not b.is_floating_point() else b
             b_ref = b_ref.to(dtype=dtype) if not b_ref.is_floating_point() else b_ref
-            assert torch.allclose(b, b_ref), f'{b!r} != {b_ref!r}'
+            helpers.assert_all_close(b, b_ref, dtype=dtype)

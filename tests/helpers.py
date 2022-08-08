@@ -70,3 +70,27 @@ def get_models(
     loader = data.DataLoader(dataset, batch_size, shuffle=False)
 
     return model, model_ref, loader
+
+
+def assert_all_close(
+    input: torch.Tensor,
+    other: torch.Tensor,
+    rtol: Optional[float] = None,
+    atol: Optional[float] = None,
+    equal_nan: bool = False,
+    dtype: Optional[torch.dtype] = None,
+) -> None:
+
+    if dtype is None:
+        dtype = input.dtype
+    finfo = torch.finfo(input.dtype)
+
+    if rtol is None:
+        rtol = finfo.eps
+    if atol is None:
+        atol = finfo.resolution
+
+    assert torch.allclose(input, other, rtol=rtol, atol=atol, equal_nan=equal_nan), (
+        f'L_inf = {(input - other).abs().max()}, '
+        f'fail_rate = {torch.logical_not((input - other).abs() <= atol + rtol * other.abs()).float().mean()}'
+    )

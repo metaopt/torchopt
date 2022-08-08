@@ -32,6 +32,9 @@ import torchopt
 def test_sgd(
     dtype: torch.dtype, max_norm: float, lr: float, momentum: float, nesterov: bool
 ) -> None:
+    if nesterov and momentum <= 0.0:
+        pytest.skip('Nesterov momentum requires a momentum and zero dampening.')
+
     model, model_ref, loader = helpers.get_models(device='cpu', dtype=dtype)
 
     chain = torchopt.combine.chain(
@@ -40,7 +43,12 @@ def test_sgd(
     )
     optim = torchopt.Optimizer(model.parameters(), chain)
     optim_ref = torch.optim.SGD(
-        model_ref.parameters(), lr, momentum=momentum, nesterov=nesterov, weight_decay=0.0
+        model_ref.parameters(),
+        lr,
+        momentum=momentum,
+        dampening=0.0,
+        nesterov=nesterov,
+        weight_decay=0.0,
     )
 
     for xs, ys in loader:
@@ -61,8 +69,8 @@ def test_sgd(
 
     with torch.no_grad():
         for p, p_ref in zip(model.parameters(), model_ref.parameters()):
-            assert torch.allclose(p, p_ref), f'{p!r} != {p_ref!r}'
+            helpers.assert_all_close(p, p_ref, dtype=dtype)
         for b, b_ref in zip(model.buffers(), model_ref.buffers()):
             b = b.to(dtype=dtype) if not b.is_floating_point() else b
             b_ref = b_ref.to(dtype=dtype) if not b_ref.is_floating_point() else b_ref
-            assert torch.allclose(b, b_ref), f'{b!r} != {b_ref!r}'
+            helpers.assert_all_close(b, b_ref, dtype=dtype)
