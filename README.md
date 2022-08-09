@@ -2,7 +2,7 @@
 <!-- markdownlint-disable html -->
 
 <div align="center">
-  <img src="https://github.com/metaopt/TorchOpt/raw/main/image/logo-large.png" width="75%" />
+  <img src="https://github.com/metaopt/TorchOpt/raw/HEAD/image/logo-large.png" width="75%" />
 </div>
 
 ![Python 3.7+](https://img.shields.io/badge/Python-3.7%2B-brightgreen.svg)
