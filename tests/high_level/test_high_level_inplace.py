@@ -47,7 +47,7 @@ def test_sgd(dtype: torch.dtype, lr: float, momentum: float, nesterov: bool) -> 
         weight_decay=0.0,
     )
 
-    for _ in range(helpers.NUM_UPDATES):
+    for i in range(helpers.NUM_UPDATES):
         for xs, ys in loader:
             xs = xs.to(dtype=dtype)
             pred = model(xs)
@@ -86,7 +86,7 @@ def test_adam(dtype: torch.dtype, lr: float, betas: Tuple[float, float], eps: fl
         model_ref.parameters(), lr, betas=betas, eps=eps, amsgrad=False, weight_decay=0.0
     )
 
-    for _ in range(helpers.NUM_UPDATES):
+    for i in range(helpers.NUM_UPDATES):
         for xs, ys in loader:
             xs = xs.to(dtype=dtype)
             pred = model(xs)
@@ -135,7 +135,7 @@ def test_accelerated_adam_cpu(
         model_ref.parameters(), lr, betas=betas, eps=eps, amsgrad=False, weight_decay=0.0
     )
 
-    for _ in range(helpers.NUM_UPDATES):
+    for i in range(helpers.NUM_UPDATES):
         for xs, ys in loader:
             xs = xs.to(dtype=dtype)
             pred = model(xs)
@@ -186,7 +186,7 @@ def test_accelerated_adam_cuda(
         model_ref.parameters(), lr, betas=betas, eps=eps, amsgrad=False, weight_decay=0.0
     )
 
-    for _ in range(helpers.NUM_UPDATES):
+    for i in range(helpers.NUM_UPDATES):
         for xs, ys in loader:
             xs = xs.to(device=device, dtype=dtype)
             ys = ys.to(device=device)
@@ -244,7 +244,7 @@ def test_rmsprop(
         weight_decay=0.0,
     )
 
-    for _ in range(helpers.NUM_UPDATES):
+    for i in range(helpers.NUM_UPDATES):
         for xs, ys in loader:
             xs = xs.to(dtype=dtype)
             pred = model(xs)

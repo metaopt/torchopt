@@ -51,7 +51,7 @@ def test_sgd(
         weight_decay=0.0,
     )
 
-    for _ in range(helpers.NUM_UPDATES):
+    for i in range(helpers.NUM_UPDATES):
         for xs, ys in loader:
             xs = xs.to(dtype=dtype)
             pred = model(xs)
