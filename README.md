@@ -2,7 +2,7 @@
 <!-- markdownlint-disable html -->
 
 <div align="center">
-  <img src="image/logo-large.png" width="75%" />
+  <img src="https://github.com/metaopt/TorchOpt/raw/main/image/logo-large.png" width="75%" />
 </div>
 
 ![Python 3.7+](https://img.shields.io/badge/Python-3.7%2B-brightgreen.svg)
@@ -113,7 +113,7 @@ params = torchopt.apply_updates(params, updates, inplace=False)
 Meta-Learning has gained enormous attention in both Supervised Learning and Reinforcement Learning. Meta-Learning algorithms often contain a bi-level optimization process with *inner loop* updating the network parameters and *outer loop* updating meta parameters. The figure below illustrates the basic formulation for meta-optimization in Meta-Learning. The main feature is that the gradients of *outer loss* will back-propagate through all `inner.step` operations.
 
 <div align="center">
-  <img src="/image/TorchOpt.png" width="85%" />
+  <img src="https://github.com/metaopt/TorchOpt/raw/main/image/TorchOpt.png" width="85%" />
 </div>
 
 Since network parameters become a node of computation graph, a flexible Meta-Learning library should enable users manually control the gradient graph connection which means that users should have access to the network parameters and optimizer states for manually detaching or connecting the computation graph. In PyTorch designing, the network parameters or optimizer states are members of network (a.k.a. `torch.nn.Module`) or optimizer (a.k.a. `torch.optim.Optimizer`), this design significantly introducing difficulty for user control network parameters or optimizer states. Previous differentiable optimizer Repo [`higher`](https://github.com/facebookresearch/higher), [`learn2learn`](https://github.com/learnables/learn2learn) follows the PyTorch designing which leads to inflexible API.
@@ -191,7 +191,7 @@ One can think of the scale procedures on gradients of optimizer algorithms as a 
 Here we evaluate the performance using the MAML-Omniglot code with the inner-loop Adam optimizer on GPU. We comparable the run time of the overall algorithm and the meta-optimization (outer-loop optimization) under different network architecture/inner-step numbers. We choose [`higher`](https://github.com/facebookresearch/higher) as our baseline. The figure below illustrate that our accelerated Adam can achieve at least $1/3$ efficiency improvement over the baseline.
 
 <div align="center">
-  <img src="image/time.png" width="80%" />
+  <img src="https://github.com/metaopt/TorchOpt/raw/main/image/time.png" width="80%" />
 </div>
 
 Notably, the operator fusion not only increases performance but also help simplify the computation graph, which will be discussed in the next section.
@@ -205,7 +205,7 @@ Complex gradient flow in meta-learning brings in a great challenge for managing 
 The figure below show the visualization result. Compared with [`torchviz`](https://github.com/szagoruyko/pytorchviz), TorchOpt fuses the operations within the `Adam` together (orange) to reduce the complexity and provide simpler visualization.
 
 <div align="center">
-  <img src="image/torchviz_torchopt.jpg" width="80%" />
+  <img src="https://github.com/metaopt/TorchOpt/raw/main/image/torchviz_torchopt.jpg" width="80%" />
 </div>
 
 --------------------------------------------------------------------------------
@@ -258,6 +258,7 @@ pip3 install --no-build-isolation --editable .
 
 ## Future Plan
 
+- [x] CPU-acclerated optimizer
 - [ ] Support general implicit differentiation with functional programing.
 - [ ] Support more optimizers such as AdamW, RMSProp
 

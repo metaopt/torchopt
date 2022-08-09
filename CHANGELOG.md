@@ -11,11 +11,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add question/help/support issue template [@Benjamin-eecs](https://github.com/Benjamin-eecs) [#43](https://github.com/metaopt/TorchOpt/pull/43).
+
 ### Changed
+
+- Update image link to support pypi rendering in README [@Benjamin-eecs](https://github.com/Benjamin-eecs)
 
 ### Fixed
 
 - Fix CUDA build for accelerated OP [@XuehaiPan](https://github.com/XuehaiPan) in [#53](https://github.com/metaopt/TorchOpt/pull/53).
+- Fix gamma error in MAML-RL implementation [@Benjamin-eecs](https://github.com/Benjamin-eecs) [#47](https://github.com/metaopt/TorchOpt/pull/47).
+
 
 ### Removed
 
