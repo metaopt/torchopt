@@ -94,6 +94,6 @@ def assert_all_close(
 ) -> None:
 
     assert torch.allclose(input, other, rtol=rtol, atol=atol, equal_nan=equal_nan), (
-        f'L_inf = {(input - other).abs().max()}, '
+        f'L_inf = {(input - other).abs().max():.5g}, '
         f'fail_rate = {torch.logical_not((input - other).abs() <= atol + rtol * other.abs()).float().mean()}'
     )
