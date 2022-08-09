@@ -73,7 +73,7 @@ def root_vjp(optimality_fun: Callable,
             pre_filled = []
             post_filled = []
             for idx, arg in enumerate(args):
-                if idx + 1 in argnums:
+                if idx + 1 in argnums:  # plus 1 because we exclude the first argument
                     post_filled.append(arg)
                 else:
                     pre_filled.append(arg)
@@ -84,11 +84,13 @@ def root_vjp(optimality_fun: Callable,
         def __call__(self, *args) -> Any:
             args = list(args)
             true_args = []
+            pre_filled_counter = 0
             for idx in range(self.len_args):
-                if idx + 1 in self.argnums:
-                    arg = args.pop(0)
+                if idx + 1 in self.argnums:  # plus 1 because we exclude the first argument
+                    arg = args[idx]
                 else:
-                    arg = self.pre_filled.pop(0)
+                    arg = self.pre_filled[pre_filled_counter]
+                    pre_filled_counter += 1
                 true_args.append(arg)
             return optimality_fun(sol, *true_args)
 
@@ -104,8 +106,8 @@ def root_vjp(optimality_fun: Callable,
     result = list(result)
     true_result = [None]
     for idx in range(fun_args.len_args):
-        if idx + 1 in argnums:
-            true_result.append(result.pop(0))
+        if idx + 1 in argnums:  # plus 1 because we exclude the first argument
+            true_result.append(result[idx])
         else:
             true_result.append(None)
 
@@ -159,6 +161,35 @@ def _signature_bind_and_match(signature, *args, **kwargs):
     return out_args, out_kwargs, map_back
 
 
+def _split_tensor_and_others(mixed_tuple):
+    flat_tuple, tree = jax.tree_flatten(mixed_tuple)
+    tensor_tuple = []
+    non_tensor_tuple = []
+    tensor_mask = []
+    for item in flat_tuple:
+        if isinstance(item, torch.Tensor):
+            tensor_tuple.append(item)
+            tensor_mask.append(True)
+        else:
+            non_tensor_tuple.append(item)
+            tensor_mask.append(False)
+    return tree, tuple(tensor_mask), tuple(tensor_tuple), tuple(non_tensor_tuple)
+
+
+def _merge_tensor_and_others(tree, tensor_mask, tensor_tuple, non_tensor_tuple):
+    tensor_counter = 0
+    non_tensor_counter = 0
+    result_tuple = []
+    for is_tensor in tensor_mask:
+        if is_tensor:
+            result_tuple.append(tensor_tuple[tensor_counter])
+            tensor_counter += 1
+        else:
+            result_tuple.append(non_tensor_tuple[non_tensor_counter])
+            non_tensor_counter += 1
+    result_tuple = tuple(result_tuple)
+    return tree.unflatten(result_tuple)
+
 def _custom_root(solver_fun, optimality_fun, solve, argnums, has_aux,
                  reference_signature=None):
     # When caling through `jax.custom_vjp`, jax attempts to resolve all
@@ -205,24 +236,39 @@ def _custom_root(solver_fun, optimality_fun, solve, argnums, has_aux,
 
                 args, kwargs = _extract_kwargs(kwarg_keys, args)
                 res = solver_fun(*args, **kwargs)
+                args_tree, args_tensor_mask, args_tensor, args_non_tensor = _split_tensor_and_others(args)
+                ctx.args_tree = args_tree
+                ctx.args_tensor_mask = args_tensor_mask
+                ctx.args_non_tensor = args_non_tensor
                 if has_aux:
                     aux = res[1]
                     res = res[0]
-                    ctx.aux = (res, args)
+                    if isinstance(res, torch.Tensor):
+                        ctx.save_for_backward(res, *args_tensor)
+                    else:
+                        ctx.save_for_backward(*res, *args_tensor)
                     return *res, aux
                 else:
-                    ctx.aux = (res, args)
+                    if isinstance(res, torch.Tensor):
+                        ctx.save_for_backward(res, *args_tensor)
+                    else:
+                        ctx.save_for_backward(*res, *args_tensor)
                     return res
 
             @staticmethod
             def backward(ctx, *cotangent):
-                res, flat_args = ctx.aux
-                ctx.aux = None
-                args, kwargs = _extract_kwargs(kwarg_keys, flat_args)
-
-                # solver_fun can return auxiliary data if has_aux = True.
                 if has_aux:
                     cotangent = cotangent[:-1]
+
+                saved_tensors = ctx.saved_tensors
+                res, args_tensor = saved_tensors[:len(cotangent)], saved_tensors[len(cotangent):]
+                args_tree = ctx.args_tree
+                args_tensor_mask = ctx.args_tensor_mask
+                args_non_tensor = ctx.args_non_tensor
+                args = _merge_tensor_and_others(args_tree, args_tensor_mask, args_tensor, args_non_tensor)
+
+                args, kwargs = _extract_kwargs(kwarg_keys, args)
+
                 sol = res
                 ba_args, ba_kwargs, map_back = _signature_bind_and_match(
                     reference_signature, *args, **kwargs)
