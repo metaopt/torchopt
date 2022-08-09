@@ -191,7 +191,7 @@ One can think of the scale procedures on gradients of optimizer algorithms as a 
 Here we evaluate the performance using the MAML-Omniglot code with the inner-loop Adam optimizer on GPU. We comparable the run time of the overall algorithm and the meta-optimization (outer-loop optimization) under different network architecture/inner-step numbers. We choose [`higher`](https://github.com/facebookresearch/higher) as our baseline. The figure below illustrate that our accelerated Adam can achieve at least $1/3$ efficiency improvement over the baseline.
 
 <div align="center">
-  <img src="https://github.com/metaopt/TorchOpt/raw/main/image/time.png" width="80%" />
+  <img src="https://github.com/metaopt/TorchOpt/raw/HEAD/image/time.png" width="80%" />
 </div>
 
 Notably, the operator fusion not only increases performance but also help simplify the computation graph, which will be discussed in the next section.
