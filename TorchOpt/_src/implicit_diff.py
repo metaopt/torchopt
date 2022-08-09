@@ -209,7 +209,7 @@ def _custom_root(solver_fun, optimality_fun, solve, argnums, has_aux,
                     aux = res[1]
                     res = res[0]
                     ctx.aux = (res, args)
-                    return res, aux
+                    return *res, aux
                 else:
                     ctx.aux = (res, args)
                     return res
@@ -222,7 +222,7 @@ def _custom_root(solver_fun, optimality_fun, solve, argnums, has_aux,
 
                 # solver_fun can return auxiliary data if has_aux = True.
                 if has_aux:
-                    cotangent = cotangent[0]
+                    cotangent = cotangent[:-1]
                 sol = res
                 ba_args, ba_kwargs, map_back = _signature_bind_and_match(
                     reference_signature, *args, **kwargs)
@@ -280,7 +280,11 @@ def _custom_root(solver_fun, optimality_fun, solve, argnums, has_aux,
         args_sign = tuple(args_sign)
         flatten_args = tuple(flatten_args)
 
-        return make_custom_vjp_solver_fun(solver_fun, keys, args_sign).apply(*flatten_args, *vals)
+        result = make_custom_vjp_solver_fun(solver_fun, keys, args_sign).apply(*flatten_args, *vals)
+        if has_aux:
+            return tuple(result[:-1]), result[-1]
+        else:
+            return result
 
     return wrapped_solver_fun
 
