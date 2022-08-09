@@ -52,6 +52,7 @@ def root_vjp(optimality_fun: Callable,
       each argument. Each ``vjps[i]`` has the same pytree structure as
       ``args[i]``.
     """
+
     def fun_sol(sol):
         # We close over the arguments.
         return optimality_fun(sol, *args)
@@ -59,7 +60,8 @@ def root_vjp(optimality_fun: Callable,
     _, vjp_fun_sol = functorch.vjp(fun_sol, sol)
 
     # Compute the multiplication A^T u = (u^T A)^T.
-    def matvec(u): return vjp_fun_sol(u)[0]
+    def matvec(u):
+        return vjp_fun_sol(u)[0]
 
     # The solution of A^T u = v, where
     # A = jacobian(optimality_fun, argnums=0)
@@ -190,6 +192,7 @@ def _merge_tensor_and_others(tree, tensor_mask, tensor_tuple, non_tensor_tuple):
     result_tuple = tuple(result_tuple)
     return tree.unflatten(result_tuple)
 
+
 def _custom_root(solver_fun, optimality_fun, solve, argnums, has_aux,
                  reference_signature=None):
     # When caling through `jax.custom_vjp`, jax attempts to resolve all
@@ -229,7 +232,7 @@ def _custom_root(solver_fun, optimality_fun, solve, argnums, has_aux,
                 args = []
                 for idx, (start_point, is_tuple) in enumerate(args_sign):
                     if is_tuple:
-                        args.append(tuple(flat_args[start_point:args_sign[idx+1][0]]))
+                        args.append(tuple(flat_args[start_point:args_sign[idx + 1][0]]))
                     else:
                         args.append(flat_args[start_point])
                 args = tuple(args)
@@ -296,6 +299,7 @@ def _custom_root(solver_fun, optimality_fun, solve, argnums, has_aux,
                     else:
                         true_vjps.append(vjp)
                 return tuple(true_vjps)
+
         return ImplicitMetaGradient
 
     def wrapped_solver_fun(*args, **kwargs):
@@ -363,7 +367,10 @@ def custom_root(optimality_fun: Callable,
       ``custom_root(optimality_fun)(solver_fun)``.
     """
     if isinstance(argnums, int):
+        assert argnums != 0
         argnums = (argnums,)
+    else:
+        assert 0 not in argnums
 
     if solve is None:
         solve = linear_solve.solve_normal_cg
@@ -373,7 +380,6 @@ def custom_root(optimality_fun: Callable,
                             reference_signature)
 
     return wrapper
-
 
 # def custom_root(F, linear_solver=linear_solver.solve_cg):
 #     def custom_root_impl(inner_fn):
