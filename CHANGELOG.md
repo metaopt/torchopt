@@ -11,11 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add question/help/support issue template [@Benjamin-eecs](https://github.com/Benjamin-eecs) [#43](https://github.com/metaopt/TorchOpt/pull/43).
+- Add question/help/support issue template [@Benjamin-eecs](https://github.com/Benjamin-eecs) in [#43](https://github.com/metaopt/TorchOpt/pull/43).
 
 ### Changed
 
-- Update image link to support pypi rendering in README [@Benjamin-eecs](https://github.com/Benjamin-eecs)
+- Update image link in README to support pypi rendering [@Benjamin-eecs](https://github.com/Benjamin-eecs) in [#56](https://github.com/metaopt/TorchOpt/pull/56).
 
 ### Fixed
 
