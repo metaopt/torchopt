@@ -16,11 +16,11 @@
 # https://github.com/pytorch/pytorch/blob/master/torch/nn/utils/clip_grad.py
 # ==============================================================================
 
-import jax
 import torch
 from torch._six import inf
 
 from torchopt._src import base
+from torchopt._src.utils import pytree
 
 
 ClipState = base.EmptyState
@@ -80,7 +80,7 @@ def clip_grad_norm(
             def f(g):
                 return g.mul(clip_coef_clamped) if g is not None else None
 
-        new_updates = jax.tree_map(f, updates)
+        new_updates = pytree.tree_map(f, updates)
         return new_updates, state
 
     return base.GradientTransformation(init_fn, update_fn)

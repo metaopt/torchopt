@@ -1,3 +1,7 @@
+##### Project specific #####
+!torchopt/_src/
+!torchopt/_lib/
+
 ##### Python.gitignore #####
 # Byte-compiled / optimized / DLL files
 __pycache__/

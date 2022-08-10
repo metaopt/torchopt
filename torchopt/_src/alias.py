@@ -34,10 +34,9 @@
 
 from typing import Optional
 
-import jax
-
 from torchopt._src import base, combine, transform
 from torchopt._src.typing import ScalarOrSchedule
+from torchopt._src.utils import pytree
 
 
 def _scale_by_lr(lr: ScalarOrSchedule, flip_sign=True):
@@ -48,13 +47,13 @@ def _scale_by_lr(lr: ScalarOrSchedule, flip_sign=True):
             def f(scaled_lr):
                 return sign * scaled_lr
 
-            return jax.tree_map(f, lr(count))  # type: ignore
+            return pytree.tree_map(f, lr(count))  # type: ignore
 
         return transform.scale_by_schedule(schedule_wrapper)
     return transform.scale(sign * lr)
 
 
-# pylint: disable=too-many-arguments
+# pylint: disable-next=too-many-arguments
 def adam(
     lr: ScalarOrSchedule,
     b1: float = 0.9,
@@ -151,7 +150,7 @@ def sgd(
     )
 
 
-# pylint: disable=too-many-arguments
+# pylint: disable-next=too-many-arguments
 def rmsprop(
     lr: ScalarOrSchedule,
     decay: float = 0.9,
