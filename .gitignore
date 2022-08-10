@@ -1,3 +1,7 @@
+##### Project specific #####
+!torchopt/_src/
+!torchopt/_lib/
+
 ##### Python.gitignore #####
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -21,6 +25,7 @@ parts/
 sdist/
 var/
 wheels/
+wheelhouse/
 share/python-wheels/
 *.egg-info/
 .installed.cfg

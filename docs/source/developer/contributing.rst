@@ -1,21 +1,49 @@
 Contributing to TorchOpt
 ========================
 
+Before contributing to TorchOpt, please follow the instructions below to setup.
+
+1. Fork TorchOpt (`fork <https://github.com/metaopt/TorchOpt/fork>`_) on GitHub and clone the repository.
+
+.. code-block:: bash
+
+    git clone git@github.com:<your username>/TorchOpt.git  # use the SSH protocol
+    cd TorchOpt
+
+    git remote add upstream git@github.com:metaopt/TorchOpt.git
+
+2. Setup a development environment via `conda <https://github.com/conda/conda>`_:
+
+.. code-block:: bash
+
+    # You may need `CONDA_OVERRIDE_CUDA` if conda fails to detect the NVIDIA driver (e.g. in docker or WSL2)
+    CONDA_OVERRIDE_CUDA=11.7 conda env create --file conda-recipe.yaml
+
+    conda activate torchopt
+
+3. Setup the `pre-commit <https://pre-commit.com>`_ hooks:
+
+.. code-block:: bash
+
+    pre-commit install --install-hooks
+
+Then you are ready to rock. Thanks for contributing to TorchOpt!
+
 
 Install Develop Version
 -----------------------
 
-To install TorchOpt in an "editable" mode, run
+To install TorchOpt in an "editable" mode, run:
 
 .. code-block:: bash
 
-    pip install -e .
+    pip3 install --no-build-isolation --editable .
 
-in the main directory. This installation is removable by
+in the main directory. This installation is removable by:
 
 .. code-block:: bash
 
-    python setup.py develop --uninstall
+    pip3 uninstall torchopt
 
 
 Lint Check
@@ -47,12 +75,45 @@ To check if everything conforms to the specification, run:
 Test Locally
 ------------
 
-This command will run automatic tests in the main directory
+This command will run automatic tests in the main directory:
 
 .. code-block:: bash
 
     $ make test
 
+
+Build Wheels
+------------
+
+To build compatible **manylinux2014** (:pep:`599`) wheels for distribution, you can use |cibuildwheel|_. You will need to install |docker|_ first. Then run the following command:
+
+.. code-block:: bash
+
+    pip3 install --upgrade cibuildwheel
+
+    export TEST_TORCH_SPECS="cpu cu113 cu116"  # `torch` builds for testing
+    export CUDA_VERSION="11.6"                 # version of `nvcc` for compilation
+    python3 -m cibuildwheel --platform=linux --output-dir=wheelhouse --config-file=pyproject.toml
+
+It will install the CUDA compiler with ``CUDA_VERSION`` in the build container. Then build wheel binaries for all supported CPython versions. The outputs will be placed in the ``wheelhouse`` directory.
+
+To build a wheel for a specific CPython version, you can use the |CIBW_BUILD|_ environment variable.
+For example, the following command will build a wheel for Python 3.7:
+
+.. code-block:: bash
+
+    CIBW_BUILD="cp37*manylinux*" python3 -m cibuildwheel --platform=linux --output-dir=wheelhouse --config-file=pyproject.toml
+
+You can change ``cp37*`` to ``cp310*`` to build for Python 3.10. See https://cibuildwheel.readthedocs.io/en/stable/options for more options.
+
+.. |cibuildwheel| replace:: ``cibuildwheel``
+.. _cibuildwheel: https://github.com/pypa/cibuildwheel
+
+.. |CIBW_BUILD| replace:: ``CIBW_BUILD``
+.. _CIBW_BUILD: https://cibuildwheel.readthedocs.io/en/stable/options/#build-skip
+
+.. |docker| replace:: ``docker``
+.. _docker: https://www.docker.com
 
 Documentation
 -------------

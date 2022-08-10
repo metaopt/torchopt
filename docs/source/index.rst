@@ -11,10 +11,14 @@ TorchOpt
 Installation
 ------------
 
-Requirements
+Requirements:
 
-(Optional) For visualizing computation graphs
-`Graphviz <https://graphviz.org/download/>`_ (for Linux users use ``apt/yum install graphviz`` or ``conda install -c anaconda python-graphviz``)
+* PyTorch
+* JAX
+* (Optional) For visualizing computation graphs
+  * `Graphviz <https://graphviz.org/download/>`_ (for Linux users use ``apt/yum install graphviz`` or ``conda install -c anaconda python-graphviz``)
+
+Please follow the instructions at https://pytorch.org to install PyTorch in your Python environment first. Then run the following command to install TorchOpt from PyPI:
 
 .. code-block:: bash
 
@@ -39,7 +43,6 @@ We provide a `conda <https://github.com/conda/conda>`_ environment recipe to ins
     CONDA_OVERRIDE_CUDA=11.7 conda env create --file conda-recipe.yaml
 
     conda activate torchopt
-    pip3 install -e .
 
 
 .. toctree::
@@ -77,6 +80,7 @@ TorchOpt is a work by
 * Jie Ren (`JieRen98 <https://github.com/JieRen98>`_)
 * Xidong Feng (`waterhorse1 <https://github.com/waterhorse1>`_)
 * Bo Liu (`Benjamin-eecs <https://github.com/Benjamin-eecs>`_)
+* Xuehai Pan (`XuehaiPan <https://github.com/XuehaiPan>`_)
 * Luo Mai (`luomai <https://luomai.github.io/>`_)
 * Yaodong Yang (`PKU-YYang <https://www.yangyaodong.com/>`_).
 
@@ -85,6 +89,11 @@ Support
 
 If you are having issues, please let us know by filing an issue on our
 `issue tracker <https://github.com/metaopt/TorchOpt/issues>`_.
+
+Changelog
+---------
+
+See :gitcode:`CHANGELOG.md`.
 
 License
 -------

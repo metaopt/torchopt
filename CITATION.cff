@@ -16,6 +16,10 @@ authors:
     email: benjaminliu.eecs@gmail.com
     affiliation: Peking University
     orcid: 'https://orcid.org/0000-0001-5426-515X'
+  - given-names: Xuehai
+    family-names: Pan
+    email: xuehaipan@pku.edu.cn
+    affiliation: Peking University
   - given-names: Luo
     family-names: Mai
     email: luo.mai@ed.ac.uk
@@ -24,7 +28,7 @@ authors:
     family-names: Yang
     affiliation: Peking University
     email: yaodong.yang@pku.edu.cn
-version: 0.4.1
-date-released: "2022-04-09"
+version: 0.4.3
+date-released: "2022-08-08"
 license: Apache-2.0
 repository-code: "https://github.com/metaopt/TorchOpt"

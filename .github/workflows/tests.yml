@@ -5,20 +5,32 @@ on:
     branches:
       - main
   pull_request:
+    paths:
+      - setup.py
+      - setup.cfg
+      - pyproject.toml
+      - MANIFEST.in
+      - CMakeLists.txt
+      - include/**
+      - src/**
+      - tests/**
+      - torchopt/**
+      - .github/workflows/tests.yml
+  # Allow to trigger the workflow manually
+  workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - name: Cancel previous run
-        uses: styfle/cancel-workflow-action@0.10.0
-        with:
-          access_token: ${{ github.token }}
-
       - name: Checkout
         uses: actions/checkout@v3
         with:
@@ -40,9 +52,9 @@ jobs:
           sub-packages: '["nvcc"]'
       - run: |
           CUDA_VERSION="${{steps.cuda-toolkit.outputs.cuda}}"
-          echo "CUDA_VERSION='${CUDA_VERSION}'" >> "${GITHUB_ENV}"
+          echo "CUDA_VERSION=${CUDA_VERSION}" >> "${GITHUB_ENV}"
           TORCH_INDEX_URL="https://download.pytorch.org/whl/cu$(echo "${CUDA_VERSION}" | cut -d'.' -f-2  | tr -d '.')"
-          echo "TORCH_INDEX_URL='${TORCH_INDEX_URL}'" >> "${GITHUB_ENV}"
+          echo "TORCH_INDEX_URL=${TORCH_INDEX_URL}" >> "${GITHUB_ENV}"
 
           echo "Installed CUDA version is: ${CUDA_VERSION}"
           echo "CUDA install location: ${{steps.cuda-toolkit.outputs.CUDA_PATH}}"
@@ -60,7 +72,7 @@ jobs:
 
       - name: Install TorchOpt
         run: |
-          python -m pip install -e .
+          python -m pip install -vvv -e .
 
       - name: Test with pytest
         run: |

@@ -64,7 +64,7 @@ def get_fn_name(fn, show_attrs, max_attr_chars):
 
 
 # mypy: ignore-errors
-# pylint: disable=too-many-branches,too-many-statements,too-many-locals
+# pylint: disable-next=too-many-branches,too-many-statements,too-many-locals
 def make_dot(
     var: torch.Tensor, params=None, show_attrs=False, show_saved=False, max_attr_chars=50
 ) -> Digraph:
