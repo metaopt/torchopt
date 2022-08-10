@@ -113,7 +113,7 @@ def scale_by_schedule(step_size_fn: Schedule) -> base.GradientTransformation:
     """
 
     def init_fn(params):
-        zero = pytree.tree_map(  # First moment
+        zero = pytree.tree_map(  # Count init
             lambda t: torch.zeros(1, dtype=torch.int32, device=t.device), params
         )
         return ScaleByScheduleState(count=tuple(zero))
@@ -212,7 +212,7 @@ def scale_by_adam(
     """
 
     def init_fn(params):
-        zero = pytree.tree_map(  # First moment
+        zero = pytree.tree_map(  # Count init
             lambda t: torch.zeros(1, dtype=torch.int32, device=t.device), params
         )
         mu = pytree.tree_map(  # First moment
@@ -278,7 +278,7 @@ def scale_by_accelerated_adam(
     from torchopt._src.accelerated_op import AdamOp  # pylint: disable=import-outside-toplevel
 
     def init_fn(params):
-        zero = pytree.tree_map(  # First moment
+        zero = pytree.tree_map(  # Count init
             lambda t: torch.zeros(1, dtype=torch.int32, device=t.device), params
         )
         mu = pytree.tree_map(  # First moment
