@@ -85,7 +85,7 @@ pytest: pytest-install
 	cd tests && \
 	$(PYTHON) -m pytest --verbose --color=yes --maxfail=32 \
 		--numprocesses=logical --maxprocesses=8 --durations=0 \
-		--cov="$(PROJECT_PATH)" --cov-report=xml --cov-report=term-missing
+		--cov="$(PROJECT_NAME)" --cov-report=xml --cov-report=term-missing
 		.
 
 test: pytest
