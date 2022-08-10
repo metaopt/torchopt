@@ -34,11 +34,11 @@
 
 from typing import NamedTuple, Tuple
 
-import jax
 import torch
 
 from torchopt._src import base
 from torchopt._src.typing import Schedule
+from torchopt._src.utils import pytree
 
 
 ScaleState = base.EmptyState
@@ -60,7 +60,7 @@ def inc_count(updates, count: Tuple[torch.Tensor, ...]) -> Tuple[torch.Tensor, .
             else c
         )
 
-    return jax.tree_map(f, count, updates)
+    return pytree.tree_map(f, count, updates)
 
 
 def scale(step_size: float) -> base.GradientTransformation:
@@ -88,7 +88,7 @@ def scale(step_size: float) -> base.GradientTransformation:
             def f(g):
                 return g.mul(step_size) if g is not None else None
 
-        updates = jax.tree_map(f, updates)
+        updates = pytree.tree_map(f, updates)
         return updates, state
 
     return base.GradientTransformation(init_fn, update_fn)
@@ -113,7 +113,7 @@ def scale_by_schedule(step_size_fn: Schedule) -> base.GradientTransformation:
     """
 
     def init_fn(params):
-        zero = jax.tree_map(  # First moment
+        zero = pytree.tree_map(  # First moment
             lambda t: torch.zeros(1, dtype=torch.int32, device=t.device), params
         )
         return ScaleByScheduleState(count=tuple(zero))
@@ -121,9 +121,9 @@ def scale_by_schedule(step_size_fn: Schedule) -> base.GradientTransformation:
     def update_fn(updates, state, inplace=True):
         step_size = step_size_fn(state.count)
         if inplace:
-            updates = jax.tree_map(lambda g, step_size: g.mul_(step_size), updates, step_size)
+            updates = pytree.tree_map(lambda g, step_size: g.mul_(step_size), updates, step_size)
         else:
-            updates = jax.tree_map(lambda g, step_size: g.mul(step_size), updates, step_size)
+            updates = pytree.tree_map(lambda g, step_size: g.mul(step_size), updates, step_size)
         return updates, ScaleByScheduleState(count=inc_count(updates, state.count))
 
     return base.GradientTransformation(init_fn, update_fn)
@@ -141,7 +141,7 @@ def _update_moment(updates, moments, decay, order, inplace=True):
         def f(g, t):
             return t.mul(decay).add(g**order, alpha=1 - decay) if g is not None else t
 
-    return jax.tree_map(f, updates, moments)
+    return pytree.tree_map(f, updates, moments)
 
 
 def _update_moment_per_elem_norm(updates, moments, decay, order, inplace=True):
@@ -156,7 +156,7 @@ def _update_moment_per_elem_norm(updates, moments, decay, order, inplace=True):
         def f(g, t):
             return t.mul(decay).add(g**order, alpha=1 - decay) if g is not None else t
 
-    return jax.tree_map(f, updates, moments)
+    return pytree.tree_map(f, updates, moments)
 
 
 class ScaleByAdamState(NamedTuple):
@@ -179,7 +179,7 @@ def _bias_correction(moment, decay, count, inplace=True):
         def f(t, c):
             return t.div(1 - decay**c)
 
-    return jax.tree_map(f, moment, count)
+    return pytree.tree_map(f, moment, count)
 
 
 def scale_by_adam(
@@ -212,13 +212,13 @@ def scale_by_adam(
     """
 
     def init_fn(params):
-        zero = jax.tree_map(  # First moment
+        zero = pytree.tree_map(  # First moment
             lambda t: torch.zeros(1, dtype=torch.int32, device=t.device), params
         )
-        mu = jax.tree_map(  # First moment
+        mu = pytree.tree_map(  # First moment
             lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params
         )
-        nu = jax.tree_map(  # Second moment
+        nu = pytree.tree_map(  # Second moment
             lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params
         )
         return ScaleByAdamState(count=tuple(zero), mu=tuple(mu), nu=tuple(nu))
@@ -239,7 +239,7 @@ def scale_by_adam(
             def f(g, m, v):
                 return m.div(torch.sqrt(v.add(eps_root)).add(eps)) if g is not None else None
 
-        updates = jax.tree_map(f, updates, mu_hat, nu_hat)
+        updates = pytree.tree_map(f, updates, mu_hat, nu_hat)
         return updates, ScaleByAdamState(count=count_inc, mu=mu, nu=nu)
 
     return base.GradientTransformation(init_fn, update_fn)
@@ -278,13 +278,13 @@ def scale_by_accelerated_adam(
     from torchopt._src.accelerated_op import AdamOp  # pylint: disable=import-outside-toplevel
 
     def init_fn(params):
-        zero = jax.tree_map(  # First moment
+        zero = pytree.tree_map(  # First moment
             lambda t: torch.zeros(1, dtype=torch.int32, device=t.device), params
         )
-        mu = jax.tree_map(  # First moment
+        mu = pytree.tree_map(  # First moment
             lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params
         )
-        nu = jax.tree_map(  # Second moment
+        nu = pytree.tree_map(  # Second moment
             lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params
         )
         return ScaleByAdamState(count=tuple(zero), mu=mu, nu=nu)
@@ -292,7 +292,7 @@ def scale_by_accelerated_adam(
     def update_fn(updates, state, inplace=True):
         count_inc = inc_count(updates, state.count)
         op = AdamOp(b1, b2, eps, eps_root, inplace)
-        out = jax.tree_map(op, state.mu, state.nu, updates, count_inc)
+        out = pytree.tree_map(op, state.mu, state.nu, updates, count_inc)
         new_mus, new_nus, new_updates = [], [], []
         for new_mu, new_nu, new_update in out:
             new_mus.append(new_mu)
@@ -339,7 +339,7 @@ def trace(
             return TraceState(trace=())
 
         return TraceState(
-            trace=jax.tree_map(
+            trace=pytree.tree_map(
                 lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad),
                 params,
             )
@@ -355,30 +355,33 @@ def trace(
                 def f2(g, t):
                     return g.add_(t, alpha=decay)
 
-                new_trace = jax.tree_map(f1, updates, state.trace)
-                updates = jax.tree_map(f2, updates, new_trace)
+                new_trace = pytree.tree_map(f1, updates, state.trace)
+                updates = pytree.tree_map(f2, updates, new_trace)
             else:
 
                 def f(g, t):
                     return g.add(t, alpha=decay)
 
-                new_trace = jax.tree_map(f, updates, state.trace)
-                updates = jax.tree_map(f, updates, new_trace)
+                new_trace = pytree.tree_map(f, updates, state.trace)
+                updates = pytree.tree_map(f, updates, new_trace)
         else:
             if inplace:
 
                 def f(g, t):
                     return g.add_(t, alpha=decay)
 
-                updates = jax.tree_map(f, updates, state.trace)
-                state.trace.copy_(updates)
+                def copy_(t, g):
+                    t.copy_(g)
+
+                updates = pytree.tree_map(f, updates, state.trace)
+                pytree.tree_map(copy_, state.trace, updates)
                 new_trace = state.trace
             else:
 
                 def f(g, t):
                     return g.add(t, alpha=decay)
 
-                updates = jax.tree_map(f, updates, state.trace)
+                updates = pytree.tree_map(f, updates, state.trace)
                 new_trace = updates
 
         return updates, TraceState(trace=new_trace)
@@ -413,7 +416,7 @@ def scale_by_rms(
     """
 
     def init_fn(params):
-        nu = jax.tree_map(lambda n: torch.full_like(n, initial_scale), params)  # second moment
+        nu = pytree.tree_map(lambda n: torch.full_like(n, initial_scale), params)  # second moment
         return ScaleByRmsState(nu=nu)
 
     def update_fn(updates, state, inplace=True):
@@ -435,7 +438,7 @@ def scale_by_rms(
         # else:
         #     def f(g, n): return g.div(torch.sqrt(n).add(eps))
         #
-        updates = jax.tree_map(f, updates, nu)
+        updates = pytree.tree_map(f, updates, nu)
         return updates, ScaleByRmsState(nu=nu)
 
     return base.GradientTransformation(init_fn, update_fn)
@@ -469,8 +472,8 @@ def scale_by_stddev(
     """
 
     def init_fn(params):
-        mu = jax.tree_map(torch.zeros_like, params)  # First moment
-        nu = jax.tree_map(lambda n: torch.full_like(n, initial_scale), params)  # second moment
+        mu = pytree.tree_map(torch.zeros_like, params)  # First moment
+        nu = pytree.tree_map(lambda n: torch.full_like(n, initial_scale), params)  # second moment
         return ScaleByRStdDevState(mu=mu, nu=nu)
 
     def update_fn(updates, state, inplace=True):
@@ -493,7 +496,7 @@ def scale_by_stddev(
         # else:
         #     def f(g, m, n): return g.div(torch.sqrt(n.sub(m ** 2)).add(eps))
         #
-        updates = jax.tree_map(f, updates, mu, nu)
+        updates = pytree.tree_map(f, updates, mu, nu)
         return updates, ScaleByRStdDevState(mu=mu, nu=nu)
 
     return base.GradientTransformation(init_fn, update_fn)

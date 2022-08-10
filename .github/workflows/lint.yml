@@ -54,16 +54,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip setuptools
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --extra-index-url "${TORCH_INDEX_URL}" \
-            -r tests/requirements.txt
-          python -m pip install --extra-index-url "${TORCH_INDEX_URL}" \
-            -r docs/requirements.txt
-
       - name: Install TorchOpt
         run: |
-          python -m pip install -e .
+          python -m pip install -vvv -e '.[lint]'
 
       - name: pre-commit
         run: |
@@ -96,6 +89,11 @@ jobs:
       - name: mypy
         run: |
           make mypy
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --extra-index-url "${TORCH_INDEX_URL}" \
+            -r docs/requirements.txt
 
       - name: docstyle
         run: |
