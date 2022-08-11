@@ -79,7 +79,7 @@ This command will run automatic tests in the main directory:
 
 .. code-block:: bash
 
-    $ make test
+    make test
 
 
 Build Wheels
@@ -126,7 +126,7 @@ To compile documentation into webpage, run
 
 .. code-block:: bash
 
-    $ make docs
+    make docs
 
 The generated webpage locates under directory ``docs/build`` and will open the browser after building documentation.
 
