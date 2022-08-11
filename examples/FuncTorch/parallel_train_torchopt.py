@@ -18,24 +18,23 @@ import math
 from collections import namedtuple
 from typing import Any, NamedTuple
 
+import functorch
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-import functorch
 import torchopt
-from functorch import combine_state_for_ensemble, grad_and_value, make_functional, vmap
 
 
-def make_spirals(n_samples, noise_std=0.0, rotations=1.0):
-    ts = torch.linspace(0, 1, n_samples, device=DEVICE)
+def make_spirals(n_samples, noise_std=0.0, rotations=1.0, device='cpu'):
+    ts = torch.linspace(0, 1, n_samples, device=device)
     rs = ts**0.5
     thetas = rs * rotations * 2 * math.pi
-    signs = torch.randint(0, 2, (n_samples,), device=DEVICE) * 2 - 1
-    labels = (signs > 0).to(torch.long).to(DEVICE)
+    signs = torch.randint(0, 2, (n_samples,), device=device) * 2 - 1
+    labels = (signs > 0).to(torch.long).to(device)
 
-    xs = rs * signs * torch.cos(thetas) + torch.randn(n_samples, device=DEVICE) * noise_std
-    ys = rs * signs * torch.sin(thetas) + torch.randn(n_samples, device=DEVICE) * noise_std
+    xs = rs * signs * torch.cos(thetas) + torch.randn(n_samples, device=device) * noise_std
+    ys = rs * signs * torch.sin(thetas) + torch.randn(n_samples, device=device) * noise_std
     points = torch.stack([xs, ys], dim=1)
     return points, labels
 
@@ -58,14 +57,15 @@ class MLPClassifier(nn.Module):
 
 
 class ParallelTrainFunctorchOriginal:
-    def __init__(self, loss_fn, lr):
+    def __init__(self, loss_fn, lr, device):
+        self.device = device
         self.loss_fn = loss_fn
         self.lr = lr
-        self.func_model, _ = make_functional(MLPClassifier().to(DEVICE))
+        self.func_model, _ = functorch.make_functional(MLPClassifier().to(self.device))
 
     def init_fn(self, num_models):
-        models = [MLPClassifier().to(DEVICE) for _ in range(num_models)]
-        _, batched_weights, _ = combine_state_for_ensemble(models)
+        models = [MLPClassifier().to(self.device) for _ in range(num_models)]
+        _, batched_weights, _ = functorch.combine_state_for_ensemble(models)
         return batched_weights
 
     def train_step_fn(self, weights, batch, targets):
@@ -74,7 +74,7 @@ class ParallelTrainFunctorchOriginal:
             loss = self.loss_fn(output, targets)
             return loss
 
-        grad_weights, loss = grad_and_value(compute_loss)(weights, batch, targets)
+        grad_weights, loss = functorch.grad_and_value(compute_loss)(weights, batch, targets)
         # NB: PyTorch is missing a "functional optimizer API" (possibly coming soon)
         # so we are going to re-implement SGD here.
         new_weights = []
@@ -91,7 +91,7 @@ class ParallelTrainFunctorchOriginal:
                 print(loss)
 
     def test_parallel_train_step_fn(self, num_models):
-        parallel_train_step_fn = vmap(self.train_step_fn, in_dims=(0, None, None))
+        parallel_train_step_fn = functorch.vmap(self.train_step_fn, in_dims=(0, None, None))
         batched_weights = self.init_fn(num_models=num_models)
         for i in range(2000):
             loss, batched_weights = parallel_train_step_fn(batched_weights, points, labels)
@@ -100,13 +100,14 @@ class ParallelTrainFunctorchOriginal:
 
 
 class ParallelTrainFunctorchTorchOpt:
-    def __init__(self, loss_fn, optimizer):
+    def __init__(self, loss_fn, optimizer, device):
+        self.device = device
         self.loss_fn = loss_fn
         self.optimizer = optimizer
-        self.func_model, _ = make_functional(MLPClassifier().to(DEVICE))
+        self.func_model, _ = functorch.make_functional(MLPClassifier().to(self.device))
 
     def init_fn(self, model_idx):
-        _, weights = make_functional(MLPClassifier().to(DEVICE))
+        _, weights = functorch.make_functional(MLPClassifier().to(self.device))
         opt_state = self.optimizer.init(weights)
         return weights, opt_state
 
@@ -118,7 +119,7 @@ class ParallelTrainFunctorchTorchOpt:
             loss = self.loss_fn(output, targets)
             return loss
 
-        grads, loss = grad_and_value(compute_loss)(weights, batch, targets)
+        grads, loss = functorch.grad_and_value(compute_loss)(weights, batch, targets)
         # functional optimizer API is here now
         updates, new_opt_state = optimizer.update(grads, opt_state, inplace=False)
         new_weights = torchopt.apply_updates(weights, updates, inplace=False)
@@ -131,8 +132,8 @@ class ParallelTrainFunctorchTorchOpt:
                 print(loss)
 
     def test_parallel_train_step_fn(self, num_models):
-        parallel_init_fn = vmap(self.init_fn, randomness='same')
-        parallel_train_step_fn = vmap(self.train_step_fn, in_dims=(0, None, None))
+        parallel_init_fn = functorch.vmap(self.init_fn, randomness='same')
+        parallel_train_step_fn = functorch.vmap(self.train_step_fn, in_dims=(0, None, None))
         weights, opt_state = parallel_init_fn(torch.ones(num_models, 1))
         for i in range(2000):
             loss, (weights, opt_states) = parallel_train_step_fn(
@@ -171,10 +172,10 @@ if __name__ == '__main__':
     # Step 2: Define two-layer MLP and loss function
     loss_fn = nn.NLLLoss()
     # Step 3: Make the model functional(!!) and define a training function.
-    func_model, weights = make_functional(MLPClassifier().to(DEVICE))
+    func_model, weights = functorch.make_functional(MLPClassifier().to(DEVICE))
 
     # original functorch implementation
-    functorch_original = ParallelTrainFunctorchOriginal(loss_fn=loss_fn, lr=0.2)
+    functorch_original = ParallelTrainFunctorchOriginal(loss_fn=loss_fn, lr=0.2, device=DEVICE)
     # Step 4: Let's verify this actually trains.
     # We should see the loss decrease.
     functorch_original.test_train_step_fn(weights, points, labels)
@@ -186,7 +187,9 @@ if __name__ == '__main__':
     # functorch + torchopt implementation
     optimizer = torchopt.adam(lr=0.2)
     opt_state = optimizer.init(weights)
-    functorch_original = ParallelTrainFunctorchTorchOpt(loss_fn=loss_fn, optimizer=optimizer)
+    functorch_original = ParallelTrainFunctorchTorchOpt(
+        loss_fn=loss_fn, optimizer=optimizer, device=DEVICE
+    )
     # Step 4: Let's verify this actually trains.
     # We should see the loss decrease.
     functorch_original.test_train_step_fn(weights, opt_state, points, labels)
