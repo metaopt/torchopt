@@ -42,7 +42,7 @@ from torchopt._src.utils import pytree
 
 
 ScaleState = base.EmptyState
-MaxInt32Value = torch.iinfo(torch.int32).max
+INT32_MAX = torch.iinfo(torch.int32).max
 
 
 def inc_count(updates, count: Tuple[torch.Tensor, ...]) -> Tuple[torch.Tensor, ...]:
