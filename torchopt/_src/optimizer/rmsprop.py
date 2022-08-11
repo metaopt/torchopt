@@ -30,7 +30,7 @@ class RMSProp(Optimizer):
         - The differentiable meta-RMSProp optimizer: :class:`torchopt.MetaRMSProp`.
     """
 
-    # pylint: disable=too-many-arguments
+    # pylint: disable-next=too-many-arguments
     def __init__(
         self,
         params: Iterable[torch.Tensor],

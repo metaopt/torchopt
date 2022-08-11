@@ -1,4 +1,4 @@
-torch == 1.12
+torch >= 1.12
 jax[cpu] >= 0.3
 numpy
 graphviz

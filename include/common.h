@@ -17,6 +17,10 @@
 #include <torch/extension.h>
 
 #include <array>
+#include <cstddef>
+
+using pyfloat_t = double;
+using pyuint_t = std::size_t;
 
 namespace torchopt {
 template <size_t _Nm>

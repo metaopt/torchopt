@@ -21,35 +21,36 @@
 #include "include/common.h"
 
 namespace torchopt {
-TensorArray<3> adamForwardInplaceCPU(const torch::Tensor& updates,
-                                     const torch::Tensor& mu,
-                                     const torch::Tensor& nu, const float b1,
-                                     const float b2, const float eps,
-                                     const float eps_root, const int count);
+TensorArray<3> adamForwardInplaceCPU(
+    const torch::Tensor& updates, const torch::Tensor& mu,
+    const torch::Tensor& nu, const pyfloat_t b1, const pyfloat_t b2,
+    const pyfloat_t eps, const pyfloat_t eps_root, const pyuint_t count);
 
 torch::Tensor adamForwardMuCPU(const torch::Tensor& updates,
-                               const torch::Tensor& mu, const float b1);
+                               const torch::Tensor& mu, const pyfloat_t b1);
 
 torch::Tensor adamForwardNuCPU(const torch::Tensor& updates,
-                               const torch::Tensor& nu, const float b2);
+                               const torch::Tensor& nu, const pyfloat_t b2);
 
 torch::Tensor adamForwardUpdatesCPU(const torch::Tensor& new_mu,
-                                    const torch::Tensor& new_nu, const float b1,
-                                    const float b2, const float eps,
-                                    const float eps_root, const int count);
+                                    const torch::Tensor& new_nu,
+                                    const pyfloat_t b1, const pyfloat_t b2,
+                                    const pyfloat_t eps,
+                                    const pyfloat_t eps_root,
+                                    const pyuint_t count);
 
 TensorArray<2> adamBackwardMuCPU(const torch::Tensor& dmu,
                                  const torch::Tensor& updates,
-                                 const torch::Tensor& mu, const float b1);
+                                 const torch::Tensor& mu, const pyfloat_t b1);
 
 TensorArray<2> adamBackwardNuCPU(const torch::Tensor& dnu,
                                  const torch::Tensor& updates,
-                                 const torch::Tensor& nu, const float b2);
+                                 const torch::Tensor& nu, const pyfloat_t b2);
 
 TensorArray<2> adamBackwardUpdatesCPU(const torch::Tensor& dupdates,
                                       const torch::Tensor& updates,
                                       const torch::Tensor& new_mu,
                                       const torch::Tensor& new_nu,
-                                      const float b1, const float b2,
-                                      const int count);
+                                      const pyfloat_t b1, const pyfloat_t b2,
+                                      const pyuint_t count);
 }  // namespace torchopt
