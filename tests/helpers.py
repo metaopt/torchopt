@@ -78,7 +78,8 @@ def get_models(
         model_ref = model_ref.to(device=torch.device(device))
 
     dataset = data.TensorDataset(
-        torch.randn(BATCH_SIZE, 3, 224, 224), torch.randint(0, 1000, (BATCH_SIZE,))
+        torch.randn(BATCH_SIZE * NUM_UPDATES, 3, 224, 224),
+        torch.randint(0, 1000, (BATCH_SIZE * NUM_UPDATES,)),
     )
     loader = data.DataLoader(dataset, BATCH_SIZE, shuffle=False)
 
@@ -88,8 +89,8 @@ def get_models(
 def assert_all_close(
     input: torch.Tensor,
     other: torch.Tensor,
-    rtol: float = 1e-05,
-    atol: float = 1e-08,
+    rtol: float = NUM_UPDATES * 1e-05,
+    atol: float = NUM_UPDATES * 1e-07,
     equal_nan: bool = False,
 ) -> None:
 

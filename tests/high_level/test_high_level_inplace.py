@@ -47,29 +47,28 @@ def test_sgd(dtype: torch.dtype, lr: float, momentum: float, nesterov: bool) -> 
         weight_decay=0.0,
     )
 
-    for i in range(helpers.NUM_UPDATES):
-        for xs, ys in loader:
-            xs = xs.to(dtype=dtype)
-            pred = model(xs)
-            pred_ref = model_ref(xs)
-            loss = F.cross_entropy(pred, ys)
-            loss_ref = F.cross_entropy(pred_ref, ys)
+    for xs, ys in loader:
+        xs = xs.to(dtype=dtype)
+        pred = model(xs)
+        pred_ref = model_ref(xs)
+        loss = F.cross_entropy(pred, ys)
+        loss_ref = F.cross_entropy(pred_ref, ys)
 
-            optim.zero_grad()
-            loss.backward()
-            optim.step()
+        optim.zero_grad()
+        loss.backward()
+        optim.step()
 
-            optim_ref.zero_grad()
-            loss_ref.backward()
-            optim_ref.step()
+        optim_ref.zero_grad()
+        loss_ref.backward()
+        optim_ref.step()
 
-        with torch.no_grad():
-            for p, p_ref in zip(model.parameters(), model_ref.parameters()):
-                helpers.assert_all_close(p, p_ref)
-            for b, b_ref in zip(model.buffers(), model_ref.buffers()):
-                b = b.to(dtype=dtype) if not b.is_floating_point() else b
-                b_ref = b_ref.to(dtype=dtype) if not b_ref.is_floating_point() else b_ref
-                helpers.assert_all_close(b, b_ref)
+    with torch.no_grad():
+        for p, p_ref in zip(model.parameters(), model_ref.parameters()):
+            helpers.assert_all_close(p, p_ref)
+        for b, b_ref in zip(model.buffers(), model_ref.buffers()):
+            b = b.to(dtype=dtype) if not b.is_floating_point() else b
+            b_ref = b_ref.to(dtype=dtype) if not b_ref.is_floating_point() else b_ref
+            helpers.assert_all_close(b, b_ref)
 
 
 @helpers.parametrize(
@@ -86,29 +85,28 @@ def test_adam(dtype: torch.dtype, lr: float, betas: Tuple[float, float], eps: fl
         model_ref.parameters(), lr, betas=betas, eps=eps, amsgrad=False, weight_decay=0.0
     )
 
-    for i in range(helpers.NUM_UPDATES):
-        for xs, ys in loader:
-            xs = xs.to(dtype=dtype)
-            pred = model(xs)
-            pred_ref = model_ref(xs)
-            loss = F.cross_entropy(pred, ys)
-            loss_ref = F.cross_entropy(pred_ref, ys)
+    for xs, ys in loader:
+        xs = xs.to(dtype=dtype)
+        pred = model(xs)
+        pred_ref = model_ref(xs)
+        loss = F.cross_entropy(pred, ys)
+        loss_ref = F.cross_entropy(pred_ref, ys)
 
-            optim.zero_grad()
-            loss.backward()
-            optim.step()
+        optim.zero_grad()
+        loss.backward()
+        optim.step()
 
-            optim_ref.zero_grad()
-            loss_ref.backward()
-            optim_ref.step()
+        optim_ref.zero_grad()
+        loss_ref.backward()
+        optim_ref.step()
 
-        with torch.no_grad():
-            for p, p_ref in zip(model.parameters(), model_ref.parameters()):
-                helpers.assert_all_close(p, p_ref)
-            for b, b_ref in zip(model.buffers(), model_ref.buffers()):
-                b = b.to(dtype=dtype) if not b.is_floating_point() else b
-                b_ref = b_ref.to(dtype=dtype) if not b_ref.is_floating_point() else b_ref
-                helpers.assert_all_close(b, b_ref)
+    with torch.no_grad():
+        for p, p_ref in zip(model.parameters(), model_ref.parameters()):
+            helpers.assert_all_close(p, p_ref)
+        for b, b_ref in zip(model.buffers(), model_ref.buffers()):
+            b = b.to(dtype=dtype) if not b.is_floating_point() else b
+            b_ref = b_ref.to(dtype=dtype) if not b_ref.is_floating_point() else b_ref
+            helpers.assert_all_close(b, b_ref)
 
 
 @helpers.parametrize(
@@ -135,29 +133,28 @@ def test_accelerated_adam_cpu(
         model_ref.parameters(), lr, betas=betas, eps=eps, amsgrad=False, weight_decay=0.0
     )
 
-    for i in range(helpers.NUM_UPDATES):
-        for xs, ys in loader:
-            xs = xs.to(dtype=dtype)
-            pred = model(xs)
-            pred_ref = model_ref(xs)
-            loss = F.cross_entropy(pred, ys)
-            loss_ref = F.cross_entropy(pred_ref, ys)
+    for xs, ys in loader:
+        xs = xs.to(dtype=dtype)
+        pred = model(xs)
+        pred_ref = model_ref(xs)
+        loss = F.cross_entropy(pred, ys)
+        loss_ref = F.cross_entropy(pred_ref, ys)
 
-            optim.zero_grad()
-            loss.backward()
-            optim.step()
+        optim.zero_grad()
+        loss.backward()
+        optim.step()
 
-            optim_ref.zero_grad()
-            loss_ref.backward()
-            optim_ref.step()
+        optim_ref.zero_grad()
+        loss_ref.backward()
+        optim_ref.step()
 
-        with torch.no_grad():
-            for p, p_ref in zip(model.parameters(), model_ref.parameters()):
-                helpers.assert_all_close(p, p_ref)
-            for b, b_ref in zip(model.buffers(), model_ref.buffers()):
-                b = b.to(dtype=dtype) if not b.is_floating_point() else b
-                b_ref = b_ref.to(dtype=dtype) if not b_ref.is_floating_point() else b_ref
-                helpers.assert_all_close(b, b_ref)
+    with torch.no_grad():
+        for p, p_ref in zip(model.parameters(), model_ref.parameters()):
+            helpers.assert_all_close(p, p_ref)
+        for b, b_ref in zip(model.buffers(), model_ref.buffers()):
+            b = b.to(dtype=dtype) if not b.is_floating_point() else b
+            b_ref = b_ref.to(dtype=dtype) if not b_ref.is_floating_point() else b_ref
+            helpers.assert_all_close(b, b_ref)
 
 
 @pytest.mark.skipif(not torch.cuda.is_available(), reason='No CUDA device available.')
@@ -186,30 +183,29 @@ def test_accelerated_adam_cuda(
         model_ref.parameters(), lr, betas=betas, eps=eps, amsgrad=False, weight_decay=0.0
     )
 
-    for i in range(helpers.NUM_UPDATES):
-        for xs, ys in loader:
-            xs = xs.to(device=device, dtype=dtype)
-            ys = ys.to(device=device)
-            pred = model(xs)
-            pred_ref = model_ref(xs)
-            loss = F.cross_entropy(pred, ys)
-            loss_ref = F.cross_entropy(pred_ref, ys)
+    for xs, ys in loader:
+        xs = xs.to(device=device, dtype=dtype)
+        ys = ys.to(device=device)
+        pred = model(xs)
+        pred_ref = model_ref(xs)
+        loss = F.cross_entropy(pred, ys)
+        loss_ref = F.cross_entropy(pred_ref, ys)
 
-            optim.zero_grad()
-            loss.backward()
-            optim.step()
+        optim.zero_grad()
+        loss.backward()
+        optim.step()
 
-            optim_ref.zero_grad()
-            loss_ref.backward()
-            optim_ref.step()
+        optim_ref.zero_grad()
+        loss_ref.backward()
+        optim_ref.step()
 
-        with torch.no_grad():
-            for p, p_ref in zip(model.parameters(), model_ref.parameters()):
-                helpers.assert_all_close(p, p_ref)
-            for b, b_ref in zip(model.buffers(), model_ref.buffers()):
-                b = b.to(dtype=dtype) if not b.is_floating_point() else b
-                b_ref = b_ref.to(dtype=dtype) if not b_ref.is_floating_point() else b_ref
-                helpers.assert_all_close(b, b_ref)
+    with torch.no_grad():
+        for p, p_ref in zip(model.parameters(), model_ref.parameters()):
+            helpers.assert_all_close(p, p_ref)
+        for b, b_ref in zip(model.buffers(), model_ref.buffers()):
+            b = b.to(dtype=dtype) if not b.is_floating_point() else b
+            b_ref = b_ref.to(dtype=dtype) if not b_ref.is_floating_point() else b_ref
+            helpers.assert_all_close(b, b_ref)
 
 
 @helpers.parametrize(
@@ -244,26 +240,25 @@ def test_rmsprop(
         weight_decay=0.0,
     )
 
-    for i in range(helpers.NUM_UPDATES):
-        for xs, ys in loader:
-            xs = xs.to(dtype=dtype)
-            pred = model(xs)
-            pred_ref = model_ref(xs)
-            loss = F.cross_entropy(pred, ys)
-            loss_ref = F.cross_entropy(pred_ref, ys)
+    for xs, ys in loader:
+        xs = xs.to(dtype=dtype)
+        pred = model(xs)
+        pred_ref = model_ref(xs)
+        loss = F.cross_entropy(pred, ys)
+        loss_ref = F.cross_entropy(pred_ref, ys)
 
-            optim.zero_grad()
-            loss.backward()
-            optim.step()
+        optim.zero_grad()
+        loss.backward()
+        optim.step()
 
-            optim_ref.zero_grad()
-            loss_ref.backward()
-            optim_ref.step()
+        optim_ref.zero_grad()
+        loss_ref.backward()
+        optim_ref.step()
 
-        with torch.no_grad():
-            for p, p_ref in zip(model.parameters(), model_ref.parameters()):
-                helpers.assert_all_close(p, p_ref)
-            for b, b_ref in zip(model.buffers(), model_ref.buffers()):
-                b = b.to(dtype=dtype) if not b.is_floating_point() else b
-                b_ref = b_ref.to(dtype=dtype) if not b_ref.is_floating_point() else b_ref
-                helpers.assert_all_close(b, b_ref)
+    with torch.no_grad():
+        for p, p_ref in zip(model.parameters(), model_ref.parameters()):
+            helpers.assert_all_close(p, p_ref)
+        for b, b_ref in zip(model.buffers(), model_ref.buffers()):
+            b = b.to(dtype=dtype) if not b.is_floating_point() else b
+            b_ref = b_ref.to(dtype=dtype) if not b_ref.is_floating_point() else b_ref
+            helpers.assert_all_close(b, b_ref)
