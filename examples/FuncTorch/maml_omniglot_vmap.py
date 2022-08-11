@@ -51,6 +51,7 @@ import argparse
 import functools
 import time
 
+import functorch
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
@@ -58,12 +59,11 @@ import pandas as pd
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
+from functorch import grad, make_functional_with_buffers, vmap
 from support.omniglot_loaders import OmniglotNShot
 from torch import nn
 
-import functorch
 import torchopt
-from functorch import grad, make_functional_with_buffers, vmap
 
 
 mpl.use('Agg')
