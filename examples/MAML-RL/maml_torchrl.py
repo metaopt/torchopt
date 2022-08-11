@@ -174,20 +174,28 @@ def main(args):
             env.reset_task(tasks[idx])
             for k in range(inner_iters):
                 with set_exploration_mode('random'), torch.no_grad():
-                    pre_traj_td = env.rollout(
-                        policy=policy_module,
-                        max_steps=TRAJ_LEN,
-                        auto_reset=True,
-                    ).contiguous().to(device)
+                    pre_traj_td = (
+                        env.rollout(
+                            policy=policy_module,
+                            max_steps=TRAJ_LEN,
+                            auto_reset=True,
+                        )
+                        .contiguous()
+                        .to(device)
+                    )
                 inner_loss = a2c_loss(pre_traj_td, policy_module, value_module, value_coef=0.5)
                 inner_opt.step(inner_loss)
 
             with set_exploration_mode('random'), torch.no_grad():
-                post_traj_td = env.rollout(
-                    policy=policy_module,
-                    max_steps=TRAJ_LEN,
-                    auto_reset=True,
-                ).contiguous().to(device)
+                post_traj_td = (
+                    env.rollout(
+                        policy=policy_module,
+                        max_steps=TRAJ_LEN,
+                        auto_reset=True,
+                    )
+                    .contiguous()
+                    .to(device)
+                )
             outer_loss = a2c_loss(post_traj_td, policy_module, value_module, value_coef=0.5)
             outer_loss.backward()
 
