@@ -91,11 +91,7 @@ def main():
         device=device,
     )
 
-    # Create a vanilla PyTorch neural network that will be
-    # automatically monkey-patched by higher later.
-    # Before higher, models could *not* be created like this
-    # and the parameters needed to be manually updated and copied
-    # for the updates.
+    # Create a vanilla PyTorch neural network.
     net = nn.Sequential(
         nn.Conv2d(1, 64, 3),
         nn.BatchNorm2d(64, momentum=1.0, affine=True),

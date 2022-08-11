@@ -29,7 +29,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-This example shows how to use higher to do Model Agnostic Meta Learning (MAML)
+This example shows how to use TorchOpt to do Model Agnostic Meta Learning (MAML)
 for few-shot Omniglot classification.
 For more details see the original MAML paper:
 https://arxiv.org/abs/1703.03400
@@ -59,7 +59,6 @@ import pandas as pd
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
-from functorch import grad, make_functional_with_buffers, vmap
 from support.omniglot_loaders import OmniglotNShot
 from torch import nn
 
@@ -129,7 +128,7 @@ def main():
     # Given this module we've created, rip out the parameters and buffers
     # and return a functional version of the module. `fnet` is stateless
     # and can be called with `fnet(params, buffers, args, kwargs)`
-    fnet, params, buffers = make_functional_with_buffers(net)
+    fnet, params, buffers = functorch.make_functional_with_buffers(net)
 
     # We will use Adam to (meta-)optimize the initial parameters
     # to be adapted.
@@ -159,7 +158,7 @@ def loss_for_task(net, n_inner_iter, x_spt, y_spt, x_qry, y_qry):
     new_params = params
     # change sgd implementation with torchopt
     for _ in range(n_inner_iter):
-        grads = grad(compute_loss)(new_params, buffers, x_spt, y_spt)
+        grads = functorch.grad(compute_loss)(new_params, buffers, x_spt, y_spt)
         updates, opt_state = opt.update(grads, opt_state, inplace=False)
         new_params = torchopt.apply_updates(new_params, updates, inplace=False)
 
@@ -190,7 +189,7 @@ def train(db, net, device, meta_opt, epoch, log):
         # In parallel, trains one model per task. There is a support (x, y)
         # for each task and a query (x, y) for each task.
         compute_loss_for_task = functools.partial(loss_for_task, net, n_inner_iter)
-        qry_losses, qry_accs = vmap(compute_loss_for_task)(x_spt, y_spt, x_qry, y_qry)
+        qry_losses, qry_accs = functorch.vmap(compute_loss_for_task)(x_spt, y_spt, x_qry, y_qry)
 
         # Compute the maml loss by summing together the returned losses.
         qry_losses.sum().backward()
