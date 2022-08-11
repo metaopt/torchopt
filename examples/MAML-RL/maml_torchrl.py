@@ -14,7 +14,6 @@
 # ==============================================================================
 
 import argparse
-import copy
 
 import numpy as np
 import torch
@@ -22,7 +21,6 @@ import torch.optim as optim
 import tqdm
 from torchrl.envs import GymEnv, ParallelEnv, SerialEnv
 from torchrl.envs.utils import set_exploration_mode, step_tensordict
-from torchrl.modules import OneHotCategorical
 from torchrl.objectives.returns.functional import vec_td_lambda_advantage_estimate
 
 import torchopt

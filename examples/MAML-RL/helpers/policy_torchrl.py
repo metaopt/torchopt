@@ -13,7 +13,6 @@
 # limitations under the License.
 # ==============================================================================
 
-
 import torch
 import torch.nn as nn
 from torch.distributions import Categorical
@@ -27,12 +26,8 @@ from torchrl.modules import (
 
 
 class Backbone(nn.Module):
-    def __init__(
-        self,
-        input_size,
-        output_size,
-    ):
-        super(Backbone, self).__init__()
+    def __init__(self, input_size, output_size):
+        super().__init__()
         self.torso = nn.Sequential(
             nn.Linear(input_size, 32),
             nn.ReLU(),
@@ -46,11 +41,7 @@ class Backbone(nn.Module):
 
 
 class CategoricalSubNet(nn.Module):
-    def __init__(
-        self,
-        input_size,
-        output_size,
-    ):
+    def __init__(self, input_size, output_size):
         super().__init__()
         self.policy_head = nn.Linear(32, output_size)
 
@@ -60,11 +51,7 @@ class CategoricalSubNet(nn.Module):
 
 
 class ValueSubNet(nn.Module):
-    def __init__(
-        self,
-        input_size,
-        output_size,
-    ):
+    def __init__(self, input_size, output_size):
         super().__init__()
         self.value_head = nn.Linear(32, 1)
 
