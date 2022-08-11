@@ -42,6 +42,7 @@ from torchopt._src.utils import pytree
 
 
 ScaleState = base.EmptyState
+MaxInt32Value = torch.iinfo(torch.int32).max
 
 
 def inc_count(updates, count: Tuple[torch.Tensor, ...]) -> Tuple[torch.Tensor, ...]:
@@ -50,12 +51,11 @@ def inc_count(updates, count: Tuple[torch.Tensor, ...]) -> Tuple[torch.Tensor, .
     Returns:
         A counter incremeted by one, or max_int if the maximum precision is reached.
     """
-    max_int32_value = torch.iinfo(torch.int32).max
     one = torch.ones(1, dtype=torch.int32, device=count[0].device)
 
     def f(c, g):
         return (
-            c + (1 - torch.div(c, max_int32_value, rounding_mode='trunc')) * one
+            c + (1 - torch.div(c, MaxInt32Value, rounding_mode='trunc')) * one
             if g is not None
             else c
         )

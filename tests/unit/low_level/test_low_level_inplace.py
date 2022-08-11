@@ -16,13 +16,13 @@
 import copy
 import unittest
 
+import functorch
 import pytest
 import torch
 import torch.nn.functional as F
 from torch.utils import data
 from torchvision import models
 
-import functorch
 import torchopt
 
 
