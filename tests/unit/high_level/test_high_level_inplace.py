@@ -13,14 +13,16 @@
 # limitations under the License.
 # ==============================================================================
 
+import copy
 import unittest
 
-import copy
+import pytest
 import torch
+import torch.nn.functional as F
 from torch.utils import data
-from torch.nn import functional as F
 from torchvision import models
-from TorchOpt import SGD, Adam
+
+import torchopt
 
 
 class HighLevelInplace(unittest.TestCase):
@@ -32,8 +34,7 @@ class HighLevelInplace(unittest.TestCase):
         cls.model_backup = copy.deepcopy(cls.model)
 
         cls.batch_size = 2
-        cls.dataset = data.TensorDataset(torch.randn(
-            2, 3, 224, 224), torch.randint(0, 1000, (2,)))
+        cls.dataset = data.TensorDataset(torch.randn(2, 3, 224, 224), torch.randint(0, 1000, (2,)))
         cls.loader = data.DataLoader(cls.dataset, cls.batch_size, False)
 
         cls.lr = 1e-3
@@ -44,7 +45,7 @@ class HighLevelInplace(unittest.TestCase):
         self.model_ref = copy.deepcopy(self.model_backup)
 
     def test_sgd(self) -> None:
-        optim = SGD(self.model.parameters(), self.lr)
+        optim = torchopt.SGD(self.model.parameters(), self.lr)
         optim_ref = torch.optim.SGD(self.model_ref.parameters(), self.lr)
         for xs, ys in self.loader:
             pred = self.model(xs)
@@ -69,7 +70,7 @@ class HighLevelInplace(unittest.TestCase):
                 self.assertAlmostEqual(float(mse), 0)
 
     def test_adam(self) -> None:
-        optim = Adam(self.model.parameters(), self.lr)
+        optim = torchopt.Adam(self.model.parameters(), self.lr)
         optim_ref = torch.optim.Adam(self.model_ref.parameters(), self.lr)
         for xs, ys in self.loader:
             pred = self.model(xs)
@@ -96,7 +97,7 @@ class HighLevelInplace(unittest.TestCase):
     def test_accelerated_adam_cpu(self) -> None:
         self.model
         self.model_ref
-        optim = Adam(self.model.parameters(), self.lr, use_accelerated_op=True)
+        optim = torchopt.Adam(self.model.parameters(), self.lr, use_accelerated_op=True)
         optim_ref = torch.optim.Adam(self.model_ref.parameters(), self.lr)
         for xs, ys in self.loader:
             xs = xs
@@ -122,10 +123,11 @@ class HighLevelInplace(unittest.TestCase):
                 mse = F.mse_loss(b, b_ref)
                 self.assertAlmostEqual(float(mse), 0)
 
+    @pytest.mark.skipif(not torch.cuda.is_available(), reason='No CUDA device available.')
     def test_accelerated_adam_cuda(self) -> None:
         self.model.cuda()
         self.model_ref.cuda()
-        optim = Adam(self.model.parameters(), self.lr, use_accelerated_op=True)
+        optim = torchopt.Adam(self.model.parameters(), self.lr, use_accelerated_op=True)
         optim_ref = torch.optim.Adam(self.model_ref.parameters(), self.lr)
         for xs, ys in self.loader:
             xs = xs.cuda()
@@ -145,6 +147,35 @@ class HighLevelInplace(unittest.TestCase):
             for p, p_ref in zip(self.model.parameters(), self.model_ref.parameters()):
                 mse = F.mse_loss(p, p_ref)
                 self.assertAlmostEqual(float(mse), 0)
+            for b, b_ref in zip(self.model.buffers(), self.model_ref.buffers()):
+                b = b.float() if not b.is_floating_point() else b
+                b_ref = b_ref.float() if not b_ref.is_floating_point() else b_ref
+                mse = F.mse_loss(b, b_ref)
+                self.assertAlmostEqual(float(mse), 0)
+
+    def test_rmsprop(self) -> None:
+        optim = torchopt.RMSProp(
+            self.model.parameters(), self.lr, decay=0.99
+        )  # pytorch uses 0.99 as the default value
+        optim_ref = torch.optim.RMSprop(self.model_ref.parameters(), self.lr)
+        for xs, ys in self.loader:
+            pred = self.model(xs)
+            pred_ref = self.model_ref(xs)
+            loss = F.cross_entropy(pred, ys)
+            loss_ref = F.cross_entropy(pred_ref, ys)
+            optim.zero_grad()
+            loss.backward()
+            optim.step()
+            optim_ref.zero_grad()
+            loss_ref.backward()
+            optim_ref.step()
+
+        with torch.no_grad():
+            for p, p_ref in zip(self.model.parameters(), self.model_ref.parameters()):
+                mse = F.mse_loss(p, p_ref)
+                self.assertAlmostEqual(
+                    float(mse), 0, delta=1e-4
+                )  # Optax and pytorch have different implementation
             for b, b_ref in zip(self.model.buffers(), self.model_ref.buffers()):
                 b = b.float() if not b.is_floating_point() else b
                 b_ref = b_ref.float() if not b_ref.is_floating_point() else b_ref

@@ -1,0 +1,84 @@
+# Create virtual environment with command:
+#
+#   $ CONDA_OVERRIDE_CUDA=11.7 conda env create --file conda-recipe.yaml
+#
+
+name: torchopt
+
+channels:
+  - pytorch
+  - defaults
+  - nvidia/label/cuda-11.6.2
+  - nvidia
+  - conda-forge
+
+dependencies:
+  - python = 3.8
+  - pip
+
+  # Learning
+  - pytorch::pytorch >= 1.12
+  - pytorch::torchvision
+  - pytorch::pytorch-mutex = *=*cuda*
+  - pip:
+      - functorch >= 0.2
+      - torchviz
+      - sphinxcontrib-katex  # for documentation
+  - jax
+  - jaxlib >= 0.3=*cuda*
+  - optax        # for tutorials
+  - tensorboard  # for examples
+  - wandb
+
+  # Device select
+  - nvidia::cudatoolkit = 11.6
+  - cudnn
+
+  # Build toolchain
+  - cmake >= 3.4
+  - make
+  - cxx-compiler
+  - gxx = 10
+  - nvidia/label/cuda-11.6.2::cuda-nvcc
+  - nvidia/label/cuda-11.6.2::cuda-cudart-dev
+  - patchelf >= 0.9
+  - pybind11
+
+  # Misc
+  - typing-extensions
+  - numpy
+  - matplotlib-base
+  - seaborn
+  - python-graphviz
+  - pillow
+
+  # Documentation
+  - sphinx
+  - sphinx_rtd_theme
+  - sphinx-autobuild
+  - sphinx-copybutton
+  - sphinxcontrib-spelling
+  - sphinxcontrib-bibtex
+  - sphinx-autodoc-typehints
+  - pyenchant
+  - myst-nb
+  - ipykernel
+  - pandoc
+  - docutils
+
+  # Testing
+  - pytest
+  - pytest-cov
+  - pytest-xdist
+  - isort
+  - conda-forge::black >= 22.6.0
+  - pylint
+  - mypy
+  - flake8
+  - flake8-bugbear
+  - doc8 < 1.0.0a0
+  - pydocstyle
+  - clang-format
+  - clang-tools  # clang-tidy
+  - cpplint
+  - pre-commit

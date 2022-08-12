@@ -13,16 +13,16 @@
 # limitations under the License.
 # ==============================================================================
 
+import copy
 import unittest
 
-import copy
 import torch
-from torch.utils import data
-from torch.nn import functional as F
+import torch.nn.functional as F
 from torch.nn.utils import clip_grad_norm_
+from torch.utils import data
 from torchvision import models
-from TorchOpt import Optimizer, sgd
-import TorchOpt
+
+import torchopt
 
 
 class HighLevelInplace(unittest.TestCase):
@@ -34,12 +34,11 @@ class HighLevelInplace(unittest.TestCase):
         cls.model_ref = copy.deepcopy(cls.model)
 
         cls.batch_size = 2
-        cls.dataset = data.TensorDataset(torch.randn(
-            2, 3, 224, 224), torch.randint(0, 1000, (2,)))
+        cls.dataset = data.TensorDataset(torch.randn(2, 3, 224, 224), torch.randint(0, 1000, (2,)))
         cls.loader = data.DataLoader(cls.dataset, cls.batch_size, False)
 
         cls.lr = 1e0
-        cls.max_norm = 10.
+        cls.max_norm = 10.0
 
     def setUp(self) -> None:
         torch.manual_seed(0)
@@ -47,11 +46,11 @@ class HighLevelInplace(unittest.TestCase):
         self.model_ref = copy.deepcopy(self.model_backup)
 
     def test_sgd(self) -> None:
-        chain = TorchOpt.combine.chain(
-            TorchOpt.clip.clip_grad_norm(max_norm=self.max_norm),
-            sgd(lr=self.lr)
+        chain = torchopt.combine.chain(
+            torchopt.clip.clip_grad_norm(max_norm=self.max_norm),
+            torchopt.sgd(lr=self.lr),
         )
-        optim = Optimizer(self.model.parameters(), chain)
+        optim = torchopt.Optimizer(self.model.parameters(), chain)
         optim_ref = torch.optim.SGD(self.model_ref.parameters(), self.lr)
         for xs, ys in self.loader:
             pred = self.model(xs)
@@ -63,8 +62,7 @@ class HighLevelInplace(unittest.TestCase):
             optim.step()
             optim_ref.zero_grad()
             loss_ref.backward()
-            clip_grad_norm_(self.model_ref.parameters(),
-                            max_norm=self.max_norm)
+            clip_grad_norm_(self.model_ref.parameters(), max_norm=self.max_norm)
             optim_ref.step()
 
         with torch.no_grad():

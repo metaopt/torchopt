@@ -1,7 +1,5 @@
-jax
-jaxlib
+torch >= 1.12
+jax[cpu] >= 0.3
+numpy
 graphviz
-torch
-typing
-typing_extensions
-gym==0.15.3
+typing-extensions

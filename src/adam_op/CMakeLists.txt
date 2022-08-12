@@ -13,38 +13,15 @@
 # limitations under the License.
 # ==============================================================================
 
-# add_library(
-#     adam_op_CUDA SHARED
-#     adam_op_impl.cu
-#     )
+set(adam_op_src adam_op.cpp adam_op_impl_cpu.cpp)
 
-# target_link_libraries(
-#     adam_op_CUDA
-#     ${TORCH_LIBRARIES}
-#     )
+if(CUDA_FOUND)
+    list(APPEND adam_op_src adam_op_impl_cuda.cu)
+endif()
 
-# add_library(
-#     adam_op_CPU SHARED
-#     adam_op_impl.cpp
-#     )
-
-# target_link_libraries(
-#     adam_op_CPU
-#     ${TORCH_LIBRARIES}
-#     )
-
-# pybind11_add_module(adam_op adam_op.cpp)
-
-# target_link_libraries(
-#     adam_op PRIVATE
-#     adam_op_CPU
-#     adam_op_CUDA
-#     ${TORCH_LIBRARIES}
-#     )
-
-pybind11_add_module(adam_op adam_op.cpp adam_op_impl.cpp adam_op_impl.cu)
+pybind11_add_module(adam_op "${adam_op_src}")
 
 target_link_libraries(
     adam_op PRIVATE
     ${TORCH_LIBRARIES}
-    )
+)

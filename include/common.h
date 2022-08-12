@@ -17,8 +17,12 @@
 #include <torch/extension.h>
 
 #include <array>
+#include <cstddef>
 
-namespace TorchOpt {
+using pyfloat_t = double;
+using pyuint_t = std::size_t;
+
+namespace torchopt {
 template <size_t _Nm>
 using TensorArray = std::array<torch::Tensor, _Nm>;
 }

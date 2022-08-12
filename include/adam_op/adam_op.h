@@ -18,36 +18,40 @@
 
 #include <vector>
 
-#include "common.h"
+#include "include/common.h"
 
-namespace TorchOpt {
-TensorArray<3> adamForwardInplace(torch::Tensor &updates, torch::Tensor &mu,
-                                  torch::Tensor &nu, const float b1,
-                                  const float b2, const float eps,
-                                  const float eps_root, const int count);
+namespace torchopt {
+TensorArray<3> adamForwardInplace(const torch::Tensor& updates,
+                                  const torch::Tensor& mu,
+                                  const torch::Tensor& nu, const pyfloat_t b1,
+                                  const pyfloat_t b2, const pyfloat_t eps,
+                                  const pyfloat_t eps_root,
+                                  const pyuint_t count);
 
-torch::Tensor adamForwardMu(const torch::Tensor &updates,
-                            const torch::Tensor &mu, const float b1);
+torch::Tensor adamForwardMu(const torch::Tensor& updates,
+                            const torch::Tensor& mu, const pyfloat_t b1);
 
-torch::Tensor adamForwardNu(const torch::Tensor &updates,
-                            const torch::Tensor &nu, const float b2);
+torch::Tensor adamForwardNu(const torch::Tensor& updates,
+                            const torch::Tensor& nu, const pyfloat_t b2);
 
-torch::Tensor adamForwardUpdates(const torch::Tensor &new_mu,
-                                 const torch::Tensor &new_nu, const float b1,
-                                 const float b2, const float eps,
-                                 const float eps_root, const int count);
+torch::Tensor adamForwardUpdates(const torch::Tensor& new_mu,
+                                 const torch::Tensor& new_nu,
+                                 const pyfloat_t b1, const pyfloat_t b2,
+                                 const pyfloat_t eps, const pyfloat_t eps_root,
+                                 const pyuint_t count);
 
-TensorArray<2> adamBackwardMu(const torch::Tensor &dmu,
-                              const torch::Tensor &updates,
-                              const torch::Tensor &mu, const float b1);
+TensorArray<2> adamBackwardMu(const torch::Tensor& dmu,
+                              const torch::Tensor& updates,
+                              const torch::Tensor& mu, const pyfloat_t b1);
 
-TensorArray<2> adamBackwardNu(const torch::Tensor &dnu,
-                              const torch::Tensor &updates,
-                              const torch::Tensor &nu, const float b2);
+TensorArray<2> adamBackwardNu(const torch::Tensor& dnu,
+                              const torch::Tensor& updates,
+                              const torch::Tensor& nu, const pyfloat_t b2);
 
-TensorArray<2> adamBackwardUpdates(const torch::Tensor &dupdates,
-                                   const torch::Tensor &updates,
-                                   const torch::Tensor &new_mu,
-                                   const torch::Tensor &new_nu, const float b1,
-                                   const float b2, const int count);
-}  // namespace TorchOpt
+TensorArray<2> adamBackwardUpdates(const torch::Tensor& dupdates,
+                                   const torch::Tensor& updates,
+                                   const torch::Tensor& new_mu,
+                                   const torch::Tensor& new_nu,
+                                   const pyfloat_t b1, const pyfloat_t b2,
+                                   const pyuint_t count);
+}  // namespace torchopt
