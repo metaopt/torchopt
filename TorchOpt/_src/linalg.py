@@ -78,9 +78,14 @@ def _normalize_matvec(f):
             f'linear operator must be either a function or ndarray: {f}')
 
 
+def safe_sum(obj):
+    if isinstance(obj, tuple):
+        return sum(obj)
+    return obj
+
 def _cg_solve(A, b, x0=None, *, maxiter, tol=1e-5, atol=0.0, M=_identity):
     # tolerance handling uses the "non-legacy" behavior of scipy.sparse.linalg.cg
-    bs = torch.sum(_vdot_real_tree(b, b))
+    bs = safe_sum(_vdot_real_tree(b, b))
     atol2 = max(tol ** 2 * bs, atol ** 2)
 
     # https://en.wikipedia.org/wiki/Conjugate_gradient_method#The_preconditioned_conjugate_gradient_method
@@ -88,24 +93,24 @@ def _cg_solve(A, b, x0=None, *, maxiter, tol=1e-5, atol=0.0, M=_identity):
     min_rs = math.inf
     def cond_fun(value, min_rs):
         _, r, gamma, _, k = value
-        rs = gamma if M is _identity else sum(_vdot_real_tree(r, r))
+        rs = gamma if M is _identity else safe_sum(_vdot_real_tree(r, r))
         return (rs > atol2) & (k < maxiter) & (rs <= min_rs), rs
 
     def body_fun(value):
         x, r, gamma, p, k = value
         Ap = A(p)
-        alpha = gamma / torch.sum(_vdot_real_tree(p, Ap))
+        alpha = gamma / safe_sum(_vdot_real_tree(p, Ap))
         x_ = jax.tree_util.tree_map(lambda a, b: a.add(b, alpha=alpha), x, p)
         r_ = jax.tree_util.tree_map(lambda a, b: a.sub(b, alpha=alpha), r, Ap)
         z_ = M(r_)
-        gamma_ = torch.sum(_vdot_real_tree(r_, z_))
+        gamma_ = safe_sum(_vdot_real_tree(r_, z_))
         beta_ = gamma_ / gamma
         p_ = jax.tree_util.tree_map(lambda a, b: a.add(b, alpha=beta_), z_, p)
         return x_, r_, gamma_, p_, k + 1
 
     r0 = jax.tree_util.tree_map(torch.sub, b, A(x0))
     p0 = z0 = M(r0)
-    gamma0 = torch.sum(_vdot_real_tree(r0, z0))
+    gamma0 = safe_sum(_vdot_real_tree(r0, z0))
     initial_value = (x0, r0, gamma0, p0, 0)
 
     value = initial_value
