@@ -118,8 +118,6 @@ Define the ``train`` function:
                 # Optimize the likelihood of the support set by taking
                 # gradient steps w.r.t. the model's parameters.
                 # This adapts the model's meta-parameters to the task.
-                # higher is able to automatically keep copies of
-                # your network's parameters as they are being updated.
                 for _ in range(n_inner_iter):
                     spt_logits = net(x_spt[i])
                     spt_loss = F.cross_entropy(spt_logits, y_spt[i])
