@@ -24,7 +24,7 @@ from torchopt._src import base
 # from torchopt._src.base import EmptyState
 # from torchopt._src.typing import ScalarOrSchedule
 
-
+# mypy: ignore-errors
 class FuncOptimizer:  # pylint: disable=too-few-public-methods
     """A high-level functional optimizer base class."""
 
