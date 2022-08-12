@@ -16,16 +16,16 @@
 from typing import List
 
 import torch
-from torch import nn
 
 import torchopt
 from torchopt._src import base
-from torchopt._src.alias import adam, sgd
-from torchopt._src.base import EmptyState
-from torchopt._src.typing import ScalarOrSchedule
 
 
-class FuncOptimizer:
+# from torchopt._src.base import EmptyState
+# from torchopt._src.typing import ScalarOrSchedule
+
+
+class FuncOptimizer:  # pylint: disable=too-few-public-methods
     """A high-level functional optimizer base class."""
 
     def __init__(self, impl: base.GradientTransformation):
@@ -42,12 +42,12 @@ class FuncOptimizer:
     def step(self, loss: torch.Tensor, params: List[torch.Tensor]):
         """Compute the gradients of loss to the network parameters and update network parameters.
 
-        Graph of the derivative will be constructed, allowing to compute higher order derivative products.
-        We use the differentiable optimizer (pass argument inplace=False) to scale the gradients and update
-        the network parameters without modifying tensors in-place.
+        Graph of the derivative will be constructed, allowing to compute higher order derivative
+        products. We use the differentiable optimizer (pass argument inplace=False) to scale the
+        gradients and update the network parameters without modifying tensors in-place.
 
         Args:
-          loss (torch.Tensor): the loss that is used to compute the gradients to the network parameters.
+          loss (torch.Tensor): loss that is used to compute the gradients to network parameters.
         """
         if self.optim_state is None:
             self.optim_state = self.impl.init(params)
@@ -57,34 +57,3 @@ class FuncOptimizer:
         updates, self.optim_state = self.impl.update(grad, self.optim_state, False)
         new_params = torchopt.apply_updates(list(params), list(updates), inplace=False)
         return new_params
-
-
-class FuncAdam(FuncOptimizer):
-    """The functional Adam optimiser."""
-
-    def __init__(
-        self,
-        lr: ScalarOrSchedule,
-        b1: float = 0.9,
-        b2: float = 0.999,
-        eps: float = 1e-8,
-        eps_root: float = 0.0,
-        moment_requires_grad: bool = True,
-        use_accelerated_op: bool = False,
-    ):
-        """
-        Args:
-          args: other arguments see `alias.adam`, here we set `moment_requires_grad=True`
-            to make tensors like momentum be differentiable.
-        """
-        super().__init__(
-            adam(
-                lr=lr,
-                b1=b1,
-                b2=b2,
-                eps=eps,
-                eps_root=eps_root,
-                moment_requires_grad=moment_requires_grad,
-                use_accelerated_op=use_accelerated_op,
-            )
-        )
