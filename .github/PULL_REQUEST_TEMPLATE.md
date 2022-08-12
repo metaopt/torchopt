@@ -16,7 +16,6 @@ What types of changes does your code introduce? Put an `x` in all the boxes that
 
 - [ ] Bug fix (non-breaking change which fixes an issue)
 - [ ] New feature (non-breaking change which adds core functionality)
-- [ ] New environment (non-breaking change which adds 3rd-party environment)
 - [ ] Breaking change (fix or feature that would cause existing functionality to change)
 - [ ] Documentation (update in the documentation)
 - [ ] Example (update in the folder of example)
