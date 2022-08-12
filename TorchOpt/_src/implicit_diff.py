@@ -164,7 +164,7 @@ def _signature_bind_and_match(signature, *args, **kwargs):
 
 
 def _split_tensor_and_others(mixed_tuple):
-    flat_tuple, tree = jax.tree_flatten(mixed_tuple)
+    flat_tuple, tree = jax.tree_util.tree_flatten(mixed_tuple)
     tensor_tuple = []
     non_tensor_tuple = []
     tensor_mask = []

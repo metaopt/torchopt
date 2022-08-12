@@ -29,6 +29,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
+import math
 
 import torch
 import jax
@@ -79,39 +80,44 @@ def _normalize_matvec(f):
 
 def _cg_solve(A, b, x0=None, *, maxiter, tol=1e-5, atol=0.0, M=_identity):
     # tolerance handling uses the "non-legacy" behavior of scipy.sparse.linalg.cg
-    bs = _vdot_real_tree(b, b)
-    # atol2 = max(tol ** 2 * bs, atol ** 2)
-    atol2 = jax.tree_util.tree_map(lambda bs: max(tol ** 2 * bs, atol ** 2), bs)
+    bs = sum(_vdot_real_tree(b, b))
+    atol2 = max(tol ** 2 * bs, atol ** 2)
+    # atol2 = jax.tree_util.tree_map(lambda bs: max(tol ** 2 * bs, atol ** 2), bs)
 
     # https://en.wikipedia.org/wiki/Conjugate_gradient_method#The_preconditioned_conjugate_gradient_method
 
-    def cond_fun(value):
+    min_rs = math.inf
+    def cond_fun(value, min_rs):
         _, r, gamma, _, k = value
-        rs = gamma if M is _identity else _vdot_real_tree(r, r)
-        return (rs > atol2) & (k < maxiter)
+        rs = gamma if M is _identity else sum(_vdot_real_tree(r, r))
+        return (rs > atol2) & (k < maxiter) & (rs <= min_rs), rs
 
     def body_fun(value):
         x, r, gamma, p, k = value
         Ap = A(p)
         # alpha = gamma / _vdot_real_tree(p, Ap)
-        alpha = jax.tree_util.tree_map(lambda gamma, inner_product: gamma / inner_product, gamma, _vdot_real_tree(p, Ap))
-        x_ = jax.tree_util.tree_map(torch.add, x, jax.tree_util.tree_map(torch.mul, alpha, p))
-        r_ = jax.tree_util.tree_map(torch.sub, r, jax.tree_util.tree_map(torch.mul, alpha, Ap))
+        alpha = gamma / sum(_vdot_real_tree(p, Ap))
+        # alpha = jax.tree_util.tree_map(lambda gamma, inner_product: gamma / inner_product, gamma, _vdot_real_tree(p, Ap))
+        x_ = jax.tree_util.tree_map(lambda a, b: a.add(b, alpha=alpha), x, p)
+        r_ = jax.tree_util.tree_map(lambda a, b: a.sub(b, alpha=alpha), r, Ap)
         z_ = M(r_)
-        gamma_ = _vdot_real_tree(r_, z_)
+        gamma_ = sum(_vdot_real_tree(r_, z_))
         # beta_ = gamma_ / gamma
-        beta_ = jax.tree_util.tree_map(torch.div, gamma_, gamma)
-        p_ = jax.tree_util.tree_map(torch.add, z_, jax.tree_util.tree_map(torch.mul, beta_, p))
+        beta_ = gamma_ / gamma
+        p_ = jax.tree_util.tree_map(lambda a, b: a.add(b, alpha=beta_), z_, p)
         return x_, r_, gamma_, p_, k + 1
 
     r0 = jax.tree_util.tree_map(torch.sub, b, A(x0))
     p0 = z0 = M(r0)
-    gamma0 = _vdot_real_tree(r0, z0)
+    gamma0 = sum(_vdot_real_tree(r0, z0))
     initial_value = (x0, r0, gamma0, p0, 0)
 
     value = initial_value
-    while cond_fun(value):
+    not_stop, min_rs = cond_fun(value, min_rs)
+    while not_stop:
         value = body_fun(value)
+        not_stop, rs = cond_fun(value, min_rs)
+        min_rs = min(rs, min_rs)
 
     x_final, *_ = value
 
@@ -130,7 +136,7 @@ def _isolve(_isolve_solve, A, b, x0=None, *, tol=1e-5, atol=0.0,
 
     if maxiter is None:
         size = sum(_shapes(b))
-        maxiter = 10 * size  # copied from scipy
+        maxiter = size  # copied from scipy
 
     if M is None:
         M = _identity
