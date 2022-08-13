@@ -32,6 +32,7 @@ def root_vjp(optimality_fun: Callable,
              sol: Any,
              args: Tuple,
              cotangent: Any,
+             res_is_tensor,
              argnums: Tuple,
              solve: Callable = linear_solve.solve_normal_cg) -> Any:
     """Vector-Jacobian product of a root.
@@ -55,13 +56,19 @@ def root_vjp(optimality_fun: Callable,
 
     def fun_sol(sol):
         # We close over the arguments.
-        return optimality_fun(sol, *args)
+        if res_is_tensor:
+            return optimality_fun(sol[0], *args)
+        else:
+            return optimality_fun(sol, *args)
 
     _, vjp_fun_sol = functorch.vjp(fun_sol, sol)
 
     # Compute the multiplication A^T u = (u^T A)^T.
     def matvec(u):
-        return vjp_fun_sol(u)[0]
+        if res_is_tensor:
+            return vjp_fun_sol(u[0])[0]
+        else:
+            return vjp_fun_sol(u)[0]
 
     # The solution of A^T u = v, where
     # A = jacobian(optimality_fun, argnums=0)
@@ -94,7 +101,10 @@ def root_vjp(optimality_fun: Callable,
                     arg = self.pre_filled[pre_filled_counter]
                     pre_filled_counter += 1
                 true_args.append(arg)
-            return optimality_fun(sol, *true_args)
+            if res_is_tensor:
+                return optimality_fun(sol[0], *true_args)
+            else:
+                return optimality_fun(sol, *true_args)
 
     # def fun_args(*args):
     #     # We close over the solution.
@@ -104,8 +114,11 @@ def root_vjp(optimality_fun: Callable,
 
     _, vjp_fun_args = functorch.vjp(fun_args, *fun_args.post_filled)
 
-    result = vjp_fun_args(u)
-    result = list(result)
+    if res_is_tensor:
+        result = vjp_fun_args(u[0])
+    else:
+        result = vjp_fun_args(u)
+
     true_result = [None]
     for idx in range(fun_args.len_args):
         if idx + 1 in argnums:  # plus 1 because we exclude the first argument
@@ -250,12 +263,14 @@ def _custom_root(solver_fun, optimality_fun, solve, argnums, has_aux,
                         ctx.save_for_backward(res, *args_tensor)
                     else:
                         ctx.save_for_backward(*res, *args_tensor)
+                    ctx.res_is_tensor = isinstance(res, torch.Tensor)
                     return *res, aux
                 else:
                     if isinstance(res, torch.Tensor):
                         ctx.save_for_backward(res, *args_tensor)
                     else:
                         ctx.save_for_backward(*res, *args_tensor)
+                    ctx.res_is_tensor = isinstance(res, torch.Tensor)
                     return res
 
             @staticmethod
@@ -286,7 +301,9 @@ def _custom_root(solver_fun, optimality_fun, solve, argnums, has_aux,
 
                 # Compute VJPs w.r.t. args.
                 vjps = root_vjp(optimality_fun=optimality_fun, sol=sol,
-                                args=ba_args[1:], cotangent=cotangent, argnums=argnums, solve=solve)
+                                args=ba_args[1:], cotangent=cotangent,
+                                res_is_tensor=ctx.res_is_tensor,
+                                argnums=argnums, solve=solve)
                 # Prepend None as the vjp for init_params.
 
                 arg_vjps, kws_vjps = map_back(vjps)
