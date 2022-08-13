@@ -264,7 +264,7 @@ def _custom_root(solver_fun, optimality_fun, solve, argnums, has_aux,
                     else:
                         ctx.save_for_backward(*res, *args_tensor)
                     ctx.res_is_tensor = isinstance(res, torch.Tensor)
-                    return *res, aux
+                    return *res, (aux,)
                 else:
                     if isinstance(res, torch.Tensor):
                         ctx.save_for_backward(res, *args_tensor)
@@ -349,7 +349,7 @@ def _custom_root(solver_fun, optimality_fun, solve, argnums, has_aux,
 
         result = make_custom_vjp_solver_fun(solver_fun, keys, args_sign).apply(*flatten_args, *vals)
         if has_aux:
-            return tuple(result[:-1]), result[-1]
+            return tuple(result[:-1]), *result[-1]
         else:
             return result
 
