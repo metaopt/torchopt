@@ -65,6 +65,11 @@ def apply_updates(
     else:
 
         def f(p, u):
-            return p.add(u) if u is not None else p
+            if u is not None:
+                old_class = p.__class__  # might be `torch.nn.Parameter`
+                p = p.add(u)  # the return type is `torch.Tensor`
+                if p.__class__ is not old_class:
+                    p.__class__ = old_class
+            return p
 
     return pytree.tree_map(f, params, updates)
