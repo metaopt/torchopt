@@ -93,9 +93,9 @@ def assert_model_all_close(
     model: nn.Module,
     model_ref: nn.Module,
     model_base: nn.Module,
-    dtype=torch.float32,
-    rtol: float = NUM_UPDATES * 1e-05,
-    atol: float = NUM_UPDATES * 1e-07,
+    dtype: torch.dtype = torch.float32,
+    rtol: Optional[float] = None,
+    atol: Optional[float] = None,
     equal_nan: bool = False,
 ):
 
@@ -115,10 +115,18 @@ def assert_all_close(
     input: torch.Tensor,
     other: torch.Tensor,
     base: torch.Tensor = None,
-    rtol: float = NUM_UPDATES * 1e-05,
-    atol: float = NUM_UPDATES * 1e-07,
+    dtype: torch.dtype = torch.float32,
+    rtol: Optional[float] = None,
+    atol: Optional[float] = None,
     equal_nan: bool = False,
 ) -> None:
+
+    finfo = torch.finfo(dtype)
+
+    if rtol is None:
+        rtol = NUM_UPDATES * max(1e-05, 5 * finfo.eps)
+    if atol is None:
+        atol = NUM_UPDATES * max(1e-08, 5 * finfo.resolution)
 
     if base is not None:
         input = input - base
