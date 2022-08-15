@@ -133,6 +133,7 @@ def assert_all_close(
         other = other - base
 
     assert torch.allclose(input, other, rtol=rtol, atol=atol, equal_nan=equal_nan), (
-        f'L_inf = {(input - other).abs().max():.5g}, '
-        f'fail_rate = {torch.logical_not((input - other).abs() <= atol + rtol * other.abs()).float().mean()}'
+        f'L_inf = {(input - other).abs().max():.5e}, '
+        f'fail_rate = {torch.logical_not((input - other).abs() <= atol + rtol * other.abs()).float().mean()} '
+        f'(atol = {atol:.5e}, rtol = {rtol:.5e})'
     )
