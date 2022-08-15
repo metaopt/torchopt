@@ -23,7 +23,7 @@ import torchopt
 
 
 @helpers.parametrize(
-    dtype=[torch.float32, torch.float64],
+    dtype=[torch.float64, torch.float32],
     max_norm=[1.0, 10.0],
     lr=[1e-3, 1e-4],
     momentum=[0.0, 0.1],
@@ -35,7 +35,7 @@ def test_sgd(
     if nesterov and momentum <= 0.0:
         pytest.skip('Nesterov momentum requires a momentum and zero dampening.')
 
-    model, model_ref, loader = helpers.get_models(device='cpu', dtype=dtype)
+    model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
 
     chain = torchopt.combine.chain(
         torchopt.clip.clip_grad_norm(max_norm=max_norm),
@@ -67,10 +67,4 @@ def test_sgd(
         clip_grad_norm_(model_ref.parameters(), max_norm=max_norm)
         optim_ref.step()
 
-    with torch.no_grad():
-        for p, p_ref in zip(model.parameters(), model_ref.parameters()):
-            helpers.assert_all_close(p, p_ref)
-        for b, b_ref in zip(model.buffers(), model_ref.buffers()):
-            b = b.to(dtype=dtype) if not b.is_floating_point() else b
-            b_ref = b_ref.to(dtype=dtype) if not b_ref.is_floating_point() else b_ref
-            helpers.assert_all_close(b, b_ref)
+    helpers.assert_model_all_close(model, model_ref, model_base, dtype=dtype)

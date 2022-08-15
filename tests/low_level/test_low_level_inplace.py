@@ -25,7 +25,7 @@ import torchopt
 
 
 @helpers.parametrize(
-    dtype=[torch.float32, torch.float64],
+    dtype=[torch.float64, torch.float32],
     lr=[1e-3, 1e-4],
     momentum=[0.0, 0.1],
     nesterov=[False, True],
@@ -34,7 +34,7 @@ def test_sgd(dtype: torch.dtype, lr: float, momentum: float, nesterov: bool) -> 
     if nesterov and momentum <= 0.0:
         pytest.skip('Nesterov momentum requires a momentum and zero dampening.')
 
-    model, model_ref, loader = helpers.get_models(device='cpu', dtype=dtype)
+    model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
 
     fun, params, buffers = functorch.make_functional_with_buffers(model)
     optim = torchopt.sgd(lr, momentum=(momentum if momentum != 0.0 else None), nesterov=nesterov)
@@ -63,23 +63,17 @@ def test_sgd(dtype: torch.dtype, lr: float, momentum: float, nesterov: bool) -> 
         loss_ref.backward()
         optim_ref.step()
 
-    with torch.no_grad():
-        for p, p_ref in zip(params, model_ref.parameters()):
-            helpers.assert_all_close(p, p_ref)
-        for b, b_ref in zip(buffers, model_ref.buffers()):
-            b = b.to(dtype=dtype) if not b.is_floating_point() else b
-            b_ref = b_ref.to(dtype=dtype) if not b_ref.is_floating_point() else b_ref
-            helpers.assert_all_close(b, b_ref)
+    helpers.assert_model_all_close(model, model_ref, model_base, dtype=dtype)
 
 
 @helpers.parametrize(
-    dtype=[torch.float32, torch.float64],
+    dtype=[torch.float64, torch.float32],
     lr=[1e-3, 1e-4],
     betas=[(0.9, 0.999), (0.95, 0.9995)],
     eps=[1e-8],
 )
 def test_adam(dtype: torch.dtype, lr: float, betas: Tuple[float, float], eps: float) -> None:
-    model, model_ref, loader = helpers.get_models(device='cpu', dtype=dtype)
+    model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
 
     fun, params, buffers = functorch.make_functional_with_buffers(model)
     optim = torchopt.adam(lr, b1=betas[0], b2=betas[1], eps=eps, eps_root=0.0)
@@ -103,17 +97,11 @@ def test_adam(dtype: torch.dtype, lr: float, betas: Tuple[float, float], eps: fl
         loss_ref.backward()
         optim_ref.step()
 
-    with torch.no_grad():
-        for p, p_ref in zip(params, model_ref.parameters()):
-            helpers.assert_all_close(p, p_ref)
-        for b, b_ref in zip(buffers, model_ref.buffers()):
-            b = b.to(dtype=dtype) if not b.is_floating_point() else b
-            b_ref = b_ref.to(dtype=dtype) if not b_ref.is_floating_point() else b_ref
-            helpers.assert_all_close(b, b_ref)
+    helpers.assert_model_all_close(model, model_ref, model_base, dtype=dtype)
 
 
 @helpers.parametrize(
-    dtype=[torch.float32, torch.float64],
+    dtype=[torch.float64, torch.float32],
     lr=[1e-3, 1e-4],
     betas=[(0.9, 0.999), (0.95, 0.9995)],
     eps=[1e-8],
@@ -121,7 +109,7 @@ def test_adam(dtype: torch.dtype, lr: float, betas: Tuple[float, float], eps: fl
 def test_accelerated_adam_cpu(
     dtype: torch.dtype, lr: float, betas: Tuple[float, float], eps: float
 ) -> None:
-    model, model_ref, loader = helpers.get_models(device='cpu', dtype=dtype)
+    model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
 
     fun, params, buffers = functorch.make_functional_with_buffers(model)
     optim = torchopt.adam(
@@ -147,18 +135,12 @@ def test_accelerated_adam_cpu(
         loss_ref.backward()
         optim_ref.step()
 
-    with torch.no_grad():
-        for p, p_ref in zip(params, model_ref.parameters()):
-            helpers.assert_all_close(p, p_ref)
-        for b, b_ref in zip(buffers, model_ref.buffers()):
-            b = b.to(dtype=dtype) if not b.is_floating_point() else b
-            b_ref = b_ref.to(dtype=dtype) if not b_ref.is_floating_point() else b_ref
-            helpers.assert_all_close(b, b_ref)
+    helpers.assert_model_all_close(model, model_ref, model_base, dtype=dtype)
 
 
 @pytest.mark.skipif(not torch.cuda.is_available(), reason='No CUDA device available.')
 @helpers.parametrize(
-    dtype=[torch.float32, torch.float64],
+    dtype=[torch.float64, torch.float32],
     lr=[1e-3, 1e-4],
     betas=[(0.9, 0.999), (0.95, 0.9995)],
     eps=[1e-8],
@@ -167,7 +149,7 @@ def test_accelerated_adam_cuda(
     dtype: torch.dtype, lr: float, betas: Tuple[float, float], eps: float
 ) -> None:
     device = 'cuda'
-    model, model_ref, loader = helpers.get_models(device=device, dtype=dtype)
+    model, model_ref, model_base, loader = helpers.get_models(device=device, dtype=dtype)
 
     fun, params, buffers = functorch.make_functional_with_buffers(model)
     optim = torchopt.adam(
@@ -194,17 +176,11 @@ def test_accelerated_adam_cuda(
         loss_ref.backward()
         optim_ref.step()
 
-    with torch.no_grad():
-        for p, p_ref in zip(params, model_ref.parameters()):
-            helpers.assert_all_close(p, p_ref)
-        for b, b_ref in zip(buffers, model_ref.buffers()):
-            b = b.to(dtype=dtype) if not b.is_floating_point() else b
-            b_ref = b_ref.to(dtype=dtype) if not b_ref.is_floating_point() else b_ref
-            helpers.assert_all_close(b, b_ref)
+    helpers.assert_model_all_close(model, model_ref, model_base, dtype=dtype)
 
 
 @helpers.parametrize(
-    dtype=[torch.float32, torch.float64],
+    dtype=[torch.float64, torch.float32],
     lr=[1e-3, 1e-4],
     alpha=[0.9, 0.99],
     eps=[1e-8],
@@ -214,7 +190,7 @@ def test_accelerated_adam_cuda(
 def test_rmsprop(
     dtype: torch.dtype, lr: float, alpha: float, eps: float, momentum: float, centered: bool
 ) -> None:
-    model, model_ref, loader = helpers.get_models(device='cpu', dtype=dtype)
+    model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
 
     fun, params, buffers = functorch.make_functional_with_buffers(model)
     optim = torchopt.rmsprop(
@@ -251,10 +227,4 @@ def test_rmsprop(
         loss_ref.backward()
         optim_ref.step()
 
-    with torch.no_grad():
-        for p, p_ref in zip(params, model_ref.parameters()):
-            helpers.assert_all_close(p, p_ref)
-        for b, b_ref in zip(buffers, model_ref.buffers()):
-            b = b.to(dtype=dtype) if not b.is_floating_point() else b
-            b_ref = b_ref.to(dtype=dtype) if not b_ref.is_floating_point() else b_ref
-            helpers.assert_all_close(b, b_ref)
+    helpers.assert_model_all_close(model, model_ref, model_base, dtype=dtype)

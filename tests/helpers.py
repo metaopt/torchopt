@@ -68,12 +68,14 @@ def seed_everything(seed: int) -> None:
 
 def get_models(
     device: Optional[Union[str, torch.device]] = None, dtype: torch.dtype = torch.float32
-) -> Tuple[nn.Module, nn.Module, data.DataLoader]:
+) -> Tuple[nn.Module, nn.Module, nn.Module, data.DataLoader]:
     seed_everything(seed=42)
 
-    model = models.resnet18().to(dtype=dtype)
-    model_ref = copy.deepcopy(model)
+    model_base = models.resnet18().to(dtype=dtype)
+    model = copy.deepcopy(model_base)
+    model_ref = copy.deepcopy(model_base)
     if device is not None:
+        model_base = model_base.to(device=torch.device(device))
         model = model.to(device=torch.device(device))
         model_ref = model_ref.to(device=torch.device(device))
 
@@ -83,16 +85,44 @@ def get_models(
     )
     loader = data.DataLoader(dataset, BATCH_SIZE, shuffle=False)
 
-    return model, model_ref, loader
+    return model, model_ref, model_base, loader
 
 
+@torch.no_grad()
+def assert_model_all_close(
+    model: nn.Module,
+    model_ref: nn.Module,
+    model_base: nn.Module,
+    dtype=torch.float32,
+    rtol: float = NUM_UPDATES * 1e-05,
+    atol: float = NUM_UPDATES * 1e-07,
+    equal_nan: bool = False,
+):
+
+    for p, p_ref, p_base in zip(
+        model.parameters(), model_ref.parameters(), model_base.parameters()
+    ):
+        assert_all_close(p, p_ref, base=p_base, rtol=rtol, atol=atol, equal_nan=equal_nan)
+    for b, b_ref, b_base in zip(model.buffers(), model_ref.buffers(), model_base.buffers()):
+        b = b.to(dtype=dtype) if not b.is_floating_point() else b
+        b_ref = b_ref.to(dtype=dtype) if not b_ref.is_floating_point() else b_ref
+        b_base = b_base.to(dtype=dtype) if not b_base.is_floating_point() else b_base
+        assert_all_close(b, b_ref, base=b_base, rtol=rtol, atol=atol, equal_nan=equal_nan)
+
+
+@torch.no_grad()
 def assert_all_close(
     input: torch.Tensor,
     other: torch.Tensor,
+    base: torch.Tensor = None,
     rtol: float = NUM_UPDATES * 1e-05,
     atol: float = NUM_UPDATES * 1e-07,
     equal_nan: bool = False,
 ) -> None:
+
+    if base is not None:
+        input = input - base
+        other = other - base
 
     assert torch.allclose(input, other, rtol=rtol, atol=atol, equal_nan=equal_nan), (
         f'L_inf = {(input - other).abs().max():.5g}, '
