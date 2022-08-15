@@ -23,7 +23,7 @@ import torchopt
 
 
 @helpers.parametrize(
-    dtype=[torch.float64, torch.float32],
+    dtype=[torch.float32, torch.float64],
     max_norm=[1.0, 10.0],
     lr=[1e-3, 1e-4],
     momentum=[0.0, 0.1],
