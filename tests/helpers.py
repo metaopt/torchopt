@@ -24,11 +24,14 @@ import pytest
 import torch
 import torch.nn as nn
 from torch.utils import data
-from torchvision import models
 
 
 BATCH_SIZE = 4
 NUM_UPDATES = 3
+
+MODEL_NUM_INPUTS = 28 * 28  # MNIST
+MODEL_NUM_CLASSES = 10
+MODEL_HIDDEN_SIZE = 64
 
 
 def parametrize(**argvalues) -> pytest.mark.parametrize:
@@ -66,12 +69,32 @@ def seed_everything(seed: int) -> None:
         pass
 
 
+@torch.no_grad()
 def get_models(
     device: Optional[Union[str, torch.device]] = None, dtype: torch.dtype = torch.float32
 ) -> Tuple[nn.Module, nn.Module, nn.Module, data.DataLoader]:
     seed_everything(seed=42)
 
-    model_base = models.resnet18().to(dtype=dtype)
+    model_base = nn.Sequential(
+        nn.Linear(
+            in_features=MODEL_NUM_INPUTS, out_features=MODEL_HIDDEN_SIZE, bias=True, dtype=dtype
+        ),
+        nn.ReLU(),
+        nn.Linear(
+            in_features=MODEL_HIDDEN_SIZE, out_features=MODEL_HIDDEN_SIZE, bias=True, dtype=dtype
+        ),
+        nn.ReLU(),
+        nn.Linear(
+            in_features=MODEL_HIDDEN_SIZE, out_features=MODEL_NUM_CLASSES, bias=True, dtype=dtype
+        ),
+        nn.Softmax(),
+    )
+    for name, param in model_base.named_parameters(recurse=True):
+        if name.endswith('weight'):
+            nn.init.orthogonal_(param)
+        if name.endswith('bias'):
+            param.data.normal_(0, 0.1)
+
     model = copy.deepcopy(model_base)
     model_ref = copy.deepcopy(model_base)
     if device is not None:
@@ -80,8 +103,8 @@ def get_models(
         model_ref = model_ref.to(device=torch.device(device))
 
     dataset = data.TensorDataset(
-        torch.randn(BATCH_SIZE * NUM_UPDATES, 3, 224, 224),
-        torch.randint(0, 1000, (BATCH_SIZE * NUM_UPDATES,)),
+        torch.randint(0, 1, (BATCH_SIZE * NUM_UPDATES, MODEL_NUM_INPUTS)),
+        torch.randint(0, MODEL_NUM_CLASSES, (BATCH_SIZE * NUM_UPDATES,)),
     )
     loader = data.DataLoader(dataset, BATCH_SIZE, shuffle=False)
 
@@ -124,9 +147,9 @@ def assert_all_close(
     finfo = torch.finfo(dtype)
 
     if rtol is None:
-        rtol = NUM_UPDATES * max(1e-05, 5 * finfo.eps)
+        rtol = max(1e-05, 2 * NUM_UPDATES * finfo.eps)
     if atol is None:
-        atol = NUM_UPDATES * max(1e-08, 5 * finfo.resolution)
+        atol = max(1e-08, 2 * NUM_UPDATES * finfo.resolution)
 
     if base is not None:
         input = input - base

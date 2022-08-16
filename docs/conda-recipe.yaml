@@ -31,7 +31,6 @@ dependencies:
 
   # Learning
   - pytorch::pytorch >= 1.12
-  - pytorch::torchvision
   - pytorch::pytorch-mutex = *=*cpu*
   - pip:
       - jax[cpu] >= 0.3

@@ -25,7 +25,7 @@ import torchopt
 
 
 @helpers.parametrize(
-    dtype=[torch.float32, torch.float64],
+    dtype=[torch.float64, torch.float32],
     lr=[1e-3, 1e-4],
     momentum=[0.0, 0.1],
     nesterov=[False, True],
@@ -36,7 +36,7 @@ def test_sgd(dtype: torch.dtype, lr: float, momentum: float, nesterov: bool) -> 
 
     model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
 
-    fun, params, buffers = functorch.make_functional_with_buffers(model)
+    fmodel, params, buffers = functorch.make_functional_with_buffers(model)
     optim = torchopt.sgd(lr, momentum=(momentum if momentum != 0.0 else None), nesterov=nesterov)
     optim_state = optim.init(params)
     optim_ref = torch.optim.SGD(
@@ -50,7 +50,7 @@ def test_sgd(dtype: torch.dtype, lr: float, momentum: float, nesterov: bool) -> 
 
     for xs, ys in loader:
         xs = xs.to(dtype=dtype)
-        pred = fun(params, buffers, xs)
+        pred = fmodel(params, buffers, xs)
         pred_ref = model_ref(xs)
         loss = F.cross_entropy(pred, ys)
         loss_ref = F.cross_entropy(pred_ref, ys)
@@ -67,7 +67,7 @@ def test_sgd(dtype: torch.dtype, lr: float, momentum: float, nesterov: bool) -> 
 
 
 @helpers.parametrize(
-    dtype=[torch.float32, torch.float64],
+    dtype=[torch.float64, torch.float32],
     lr=[1e-3, 1e-4],
     betas=[(0.9, 0.999), (0.95, 0.9995)],
     eps=[1e-8],
@@ -75,7 +75,7 @@ def test_sgd(dtype: torch.dtype, lr: float, momentum: float, nesterov: bool) -> 
 def test_adam(dtype: torch.dtype, lr: float, betas: Tuple[float, float], eps: float) -> None:
     model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
 
-    fun, params, buffers = functorch.make_functional_with_buffers(model)
+    fmodel, params, buffers = functorch.make_functional_with_buffers(model)
     optim = torchopt.adam(lr, b1=betas[0], b2=betas[1], eps=eps, eps_root=0.0)
     optim_state = optim.init(params)
     optim_ref = torch.optim.Adam(
@@ -84,7 +84,7 @@ def test_adam(dtype: torch.dtype, lr: float, betas: Tuple[float, float], eps: fl
 
     for xs, ys in loader:
         xs = xs.to(dtype=dtype)
-        pred = fun(params, buffers, xs)
+        pred = fmodel(params, buffers, xs)
         pred_ref = model_ref(xs)
         loss = F.cross_entropy(pred, ys)
         loss_ref = F.cross_entropy(pred_ref, ys)
@@ -101,7 +101,7 @@ def test_adam(dtype: torch.dtype, lr: float, betas: Tuple[float, float], eps: fl
 
 
 @helpers.parametrize(
-    dtype=[torch.float32, torch.float64],
+    dtype=[torch.float64, torch.float32],
     lr=[1e-3, 1e-4],
     betas=[(0.9, 0.999), (0.95, 0.9995)],
     eps=[1e-8],
@@ -111,7 +111,7 @@ def test_accelerated_adam_cpu(
 ) -> None:
     model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
 
-    fun, params, buffers = functorch.make_functional_with_buffers(model)
+    fmodel, params, buffers = functorch.make_functional_with_buffers(model)
     optim = torchopt.adam(
         lr, b1=betas[0], b2=betas[1], eps=eps, eps_root=0.0, use_accelerated_op=True
     )
@@ -122,7 +122,7 @@ def test_accelerated_adam_cpu(
 
     for xs, ys in loader:
         xs = xs.to(dtype=dtype)
-        pred = fun(params, buffers, xs)
+        pred = fmodel(params, buffers, xs)
         pred_ref = model_ref(xs)
         loss = F.cross_entropy(pred, ys)
         loss_ref = F.cross_entropy(pred_ref, ys)
@@ -140,7 +140,7 @@ def test_accelerated_adam_cpu(
 
 @pytest.mark.skipif(not torch.cuda.is_available(), reason='No CUDA device available.')
 @helpers.parametrize(
-    dtype=[torch.float32, torch.float64],
+    dtype=[torch.float64, torch.float32],
     lr=[1e-3, 1e-4],
     betas=[(0.9, 0.999), (0.95, 0.9995)],
     eps=[1e-8],
@@ -151,7 +151,7 @@ def test_accelerated_adam_cuda(
     device = 'cuda'
     model, model_ref, model_base, loader = helpers.get_models(device=device, dtype=dtype)
 
-    fun, params, buffers = functorch.make_functional_with_buffers(model)
+    fmodel, params, buffers = functorch.make_functional_with_buffers(model)
     optim = torchopt.adam(
         lr, b1=betas[0], b2=betas[1], eps=eps, eps_root=0.0, use_accelerated_op=True
     )
@@ -163,7 +163,7 @@ def test_accelerated_adam_cuda(
     for xs, ys in loader:
         xs = xs.to(device=device, dtype=dtype)
         ys = ys.to(device=device)
-        pred = fun(params, buffers, xs)
+        pred = fmodel(params, buffers, xs)
         pred_ref = model_ref(xs)
         loss = F.cross_entropy(pred, ys)
         loss_ref = F.cross_entropy(pred_ref, ys)
@@ -180,7 +180,7 @@ def test_accelerated_adam_cuda(
 
 
 @helpers.parametrize(
-    dtype=[torch.float32, torch.float64],
+    dtype=[torch.float64, torch.float32],
     lr=[1e-3, 1e-4],
     alpha=[0.9, 0.99],
     eps=[1e-8],
@@ -192,7 +192,7 @@ def test_rmsprop(
 ) -> None:
     model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
 
-    fun, params, buffers = functorch.make_functional_with_buffers(model)
+    fmodel, params, buffers = functorch.make_functional_with_buffers(model)
     optim = torchopt.rmsprop(
         lr,
         decay=alpha,
@@ -214,7 +214,7 @@ def test_rmsprop(
 
     for xs, ys in loader:
         xs = xs.to(dtype=dtype)
-        pred = fun(params, buffers, xs)
+        pred = fmodel(params, buffers, xs)
         pred_ref = model_ref(xs)
         loss = F.cross_entropy(pred, ys)
         loss_ref = F.cross_entropy(pred_ref, ys)
