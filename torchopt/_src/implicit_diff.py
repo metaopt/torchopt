@@ -25,7 +25,7 @@ import jax
 import torch
 from torch.autograd import Function
 
-from TorchOpt._src import linear_solve
+from torchopt._src import linear_solve
 
 
 def root_vjp(optimality_fun: Callable,

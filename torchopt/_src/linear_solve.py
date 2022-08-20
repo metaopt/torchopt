@@ -35,7 +35,7 @@ from typing import Callable
 from typing import Optional
 import jax
 import functorch
-from TorchOpt._src import linalg
+from torchopt._src import linalg
 
 
 def tree_add_scalar_mul(tree_x, scalar, tree_y):
