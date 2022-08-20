@@ -11,44 +11,45 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+# ==============================================================================
 # These Omniglot loaders are from Jackie Loong's PyTorch MAML implementation:
 #     https://github.com/dragen1860/MAML-Pytorch
 #     https://github.com/dragen1860/MAML-Pytorch/blob/master/omniglot.py
 #     https://github.com/dragen1860/MAML-Pytorch/blob/master/omniglotNShot.py
+# ==============================================================================
 
-import  torchvision.transforms as transforms
-from    PIL import Image
-import  numpy as np
+import errno
+import os
 
+import numpy as np
 import torch
-import  torch.utils.data as data
-import  os
-import  os.path
-import  errno
+import torch.utils.data as data
+import torchvision.transforms as transforms
+from PIL import Image
 
 
 class Omniglot(data.Dataset):
+    """
+    The items are ``(filename, category)``. The index of all the categories can be found in
+    :attr:`idx_classes`.
+
+    Args:
+        root: the directory where the dataset will be stored
+        transform: how to transform the input
+        target_transform: how to transform the target
+        download: need to download the dataset
+    """
+
     urls = [
         'https://github.com/brendenlake/omniglot/raw/master/python/images_background.zip',
-        'https://github.com/brendenlake/omniglot/raw/master/python/images_evaluation.zip'
+        'https://github.com/brendenlake/omniglot/raw/master/python/images_evaluation.zip',
     ]
     raw_folder = 'raw'
     processed_folder = 'processed'
     training_file = 'training.pt'
     test_file = 'test.pt'
 
-    '''
-    The items are (filename,category). The index of all the categories can be found in self.idx_classes
-    Args:
-    - root: the directory where the dataset will be stored
-    - transform: how to transform the input
-    - target_transform: how to transform the target
-    - download: need to download the dataset
-    '''
-
-    def __init__(self, root, transform=None, target_transform=None,
-                 download=False):
+    def __init__(self, root, transform=None, target_transform=None, download=False):
         self.root = root
         self.transform = transform
         self.target_transform = target_transform
@@ -57,7 +58,7 @@ class Omniglot(data.Dataset):
             if download:
                 self.download()
             else:
-                raise RuntimeError('Dataset not found.' + ' You can use download=True to download it')
+                raise RuntimeError('Dataset not found. You can use download=True to download it')
 
         self.all_items = find_classes(os.path.join(self.root, self.processed_folder))
         self.idx_classes = index_classes(self.all_items)
@@ -78,12 +79,14 @@ class Omniglot(data.Dataset):
         return len(self.all_items)
 
     def _check_exists(self):
-        return os.path.exists(os.path.join(self.root, self.processed_folder, "images_evaluation")) and \
-               os.path.exists(os.path.join(self.root, self.processed_folder, "images_background"))
+        return os.path.exists(
+            os.path.join(self.root, self.processed_folder, 'images_evaluation')
+        ) and os.path.exists(os.path.join(self.root, self.processed_folder, 'images_background'))
 
     def download(self):
-        from six.moves import urllib
         import zipfile
+
+        from six.moves import urllib
 
         if self._check_exists():
             return
@@ -106,22 +109,22 @@ class Omniglot(data.Dataset):
             with open(file_path, 'wb') as f:
                 f.write(data.read())
             file_processed = os.path.join(self.root, self.processed_folder)
-            print("== Unzip from " + file_path + " to " + file_processed)
+            print('== Unzip from ' + file_path + ' to ' + file_processed)
             zip_ref = zipfile.ZipFile(file_path, 'r')
             zip_ref.extractall(file_processed)
             zip_ref.close()
-        print("Download finished.")
+        print('Download finished.')
 
 
 def find_classes(root_dir):
     retour = []
     for (root, dirs, files) in os.walk(root_dir):
         for f in files:
-            if (f.endswith("png")):
+            if f.endswith('png'):
                 r = root.split('/')
                 lr = len(r)
-                retour.append((f, r[lr - 2] + "/" + r[lr - 1], root))
-    print("== Found %d items " % len(retour))
+                retour.append((f, r[lr - 2] + '/' + r[lr - 1], root))
+    print('== Found %d items ' % len(retour))
     return retour
 
 
@@ -130,12 +133,11 @@ def index_classes(items):
     for i in items:
         if i[1] not in idx:
             idx[i[1]] = len(idx)
-    print("== Found %d classes" % len(idx))
+    print('== Found %d classes' % len(idx))
     return idx
 
 
 class OmniglotNShot:
-
     def __init__(self, root, batchsz, n_way, k_shot, k_query, imgsz, rng, device=None):
         """
         Different from mnistNShot, the
@@ -153,16 +155,21 @@ class OmniglotNShot:
         if not os.path.isfile(os.path.join(root, 'omniglot.npy')):
             # if root/data.npy does not exist, just download it
             self.x = Omniglot(
-                root, download=True,
+                root,
+                download=True,
                 transform=transforms.Compose(
-                    [lambda x: Image.open(x).convert('L'),
-                     lambda x: x.resize((imgsz, imgsz)),
-                     lambda x: np.reshape(x, (imgsz, imgsz, 1)),
-                     lambda x: np.transpose(x, [2, 0, 1]),
-                     lambda x: x/255.]),
+                    [
+                        lambda x: Image.open(x).convert('L'),
+                        lambda x: x.resize((imgsz, imgsz)),
+                        lambda x: np.reshape(x, (imgsz, imgsz, 1)),
+                        lambda x: np.transpose(x, [2, 0, 1]),
+                        lambda x: x / 255.0,
+                    ]
+                ),
             )
 
-            temp = dict()  # {label:img1, img2..., 20 imgs, label2: img1, img2,... in total, 1623 label}
+            # {label: [img1, img2..., img20], label2: [img1, img2, ...], ... 1623 labels in total}
+            temp = {}
             for (img, label) in self.x:
                 if label in temp.keys():
                     temp[label].append(img)
@@ -170,7 +177,10 @@ class OmniglotNShot:
                     temp[label] = [img]
 
             self.x = []
-            for label, imgs in temp.items():  # labels info deserted , each label contains 20imgs
+            for (
+                label,
+                imgs,
+            ) in temp.items():  # labels info deserted , each label contains 20imgs
                 self.x.append(np.array(imgs))
 
             # as different class may have different number of imgs
@@ -197,15 +207,20 @@ class OmniglotNShot:
         self.n_way = n_way  # n way
         self.k_shot = k_shot  # k shot
         self.k_query = k_query  # k query
-        assert (k_shot + k_query) <=20
+        assert (k_shot + k_query) <= 20
 
         # save pointer of current read batch in total cache
-        self.indexes = {"train": 0, "test": 0}
-        self.datasets = {"train": self.x_train, "test": self.x_test}  # original data cached
-        print("DB: train", self.x_train.shape, "test", self.x_test.shape)
+        self.indexes = {'train': 0, 'test': 0}
+        self.datasets = {
+            'train': self.x_train,
+            'test': self.x_test,
+        }  # original data cached
+        print('DB: train', self.x_train.shape, 'test', self.x_test.shape)
 
-        self.datasets_cache = {"train": self.load_data_cache(self.datasets["train"]),  # current epoch data cached
-                               "test": self.load_data_cache(self.datasets["test"])}
+        self.datasets_cache = {
+            'train': self.load_data_cache(self.datasets['train']),  # current epoch data cached
+            'test': self.load_data_cache(self.datasets['test']),
+        }
 
     def normalization(self):
         """
@@ -232,6 +247,7 @@ class OmniglotNShot:
         :param data_pack: [cls_num, 20, 84, 84, 1]
         :return: A list with [support_set_x, support_set_y, target_x, target_y] ready to be fed to our networks
         """
+
         #  take 5 way 1 shot as example: 5 * 1
         setsz = self.k_shot * self.n_way
         querysz = self.k_query * self.n_way
@@ -251,17 +267,21 @@ class OmniglotNShot:
                     selected_img = self.rng.choice(20, self.k_shot + self.k_query, False)
 
                     # meta-training and meta-test
-                    x_spt.append(data_pack[cur_class][selected_img[:self.k_shot]])
-                    x_qry.append(data_pack[cur_class][selected_img[self.k_shot:]])
+                    x_spt.append(data_pack[cur_class][selected_img[: self.k_shot]])
+                    x_qry.append(data_pack[cur_class][selected_img[self.k_shot :]])
                     y_spt.append([j for _ in range(self.k_shot)])
                     y_qry.append([j for _ in range(self.k_query)])
 
                 # shuffle inside a batch
                 perm = self.rng.permutation(self.n_way * self.k_shot)
-                x_spt = np.array(x_spt).reshape(self.n_way * self.k_shot, 1, self.resize, self.resize)[perm]
+                x_spt = np.array(x_spt).reshape(
+                    self.n_way * self.k_shot, 1, self.resize, self.resize
+                )[perm]
                 y_spt = np.array(y_spt).reshape(self.n_way * self.k_shot)[perm]
                 perm = self.rng.permutation(self.n_way * self.k_query)
-                x_qry = np.array(x_qry).reshape(self.n_way * self.k_query, 1, self.resize, self.resize)[perm]
+                x_qry = np.array(x_qry).reshape(
+                    self.n_way * self.k_query, 1, self.resize, self.resize
+                )[perm]
                 y_qry = np.array(y_qry).reshape(self.n_way * self.k_query)[perm]
 
                 # append [sptsz, 1, 84, 84] => [b, setsz, 1, 84, 84]
@@ -270,17 +290,19 @@ class OmniglotNShot:
                 x_qrys.append(x_qry)
                 y_qrys.append(y_qry)
 
-
             # [b, setsz, 1, 84, 84]
-            x_spts = np.array(x_spts).astype(np.float32).reshape(self.batchsz, setsz, 1, self.resize, self.resize)
-            y_spts = np.array(y_spts).astype(np.int).reshape(self.batchsz, setsz)
+            x_spts = np.array(x_spts, dtype=np.float32).reshape(
+                self.batchsz, setsz, 1, self.resize, self.resize
+            )
+            y_spts = np.array(y_spts, dtype=np.int).reshape(self.batchsz, setsz)
             # [b, qrysz, 1, 84, 84]
-            x_qrys = np.array(x_qrys).astype(np.float32).reshape(self.batchsz, querysz, 1, self.resize, self.resize)
-            y_qrys = np.array(y_qrys).astype(np.int).reshape(self.batchsz, querysz)
+            x_qrys = np.array(x_qrys, dtype=np.float32).reshape(
+                self.batchsz, querysz, 1, self.resize, self.resize
+            )
+            y_qrys = np.array(y_qrys, dtype=np.int).reshape(self.batchsz, querysz)
 
             x_spts, y_spts, x_qrys, y_qrys = [
-                torch.from_numpy(z).to(self.device) for z in
-                [x_spts, y_spts, x_qrys, y_qrys]
+                torch.from_numpy(z).to(self.device) for z in [x_spts, y_spts, x_qrys, y_qrys]
             ]
 
             data_cache.append([x_spts, y_spts, x_qrys, y_qrys])
@@ -293,6 +315,7 @@ class OmniglotNShot:
         :param mode: The name of the splitting (one of "train", "val", "test")
         :return:
         """
+
         # update cache if indexes is larger cached num
         if self.indexes[mode] >= len(self.datasets_cache[mode]):
             self.indexes[mode] = 0

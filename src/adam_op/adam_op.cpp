@@ -13,109 +13,137 @@
 // limitations under the License.
 // ==============================================================================
 
+#include "include/adam_op/adam_op.h"
+
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-#include "adam_op/adam_op.h"
-#include "adam_op/adam_op_impl.cuh"
-#include "adam_op/adam_op_impl.h"
+#include "include/adam_op/adam_op_impl_cpu.h"
+#if defined(__CUDA_ENABLED__)
+#include "include/adam_op/adam_op_impl_cuda.cuh"
+#endif
 
-namespace TorchOpt {
-TensorArray<3> adamForwardInplace(torch::Tensor &updates, torch::Tensor &mu,
-                                  torch::Tensor &nu, const float b1,
-                                  const float b2, const float eps,
-                                  const float eps_root, const int count) {
+namespace torchopt {
+TensorArray<3> adamForwardInplace(const torch::Tensor& updates,
+                                  const torch::Tensor& mu,
+                                  const torch::Tensor& nu, const pyfloat_t b1,
+                                  const pyfloat_t b2, const pyfloat_t eps,
+                                  const pyfloat_t eps_root,
+                                  const pyuint_t count) {
+#if defined(__CUDA_ENABLED__)
   if (updates.device().is_cuda()) {
     return adamForwardInplaceCUDA(updates, mu, nu, b1, b2, eps, eps_root,
                                   count);
-  } else if (updates.device().is_cpu()) {
+  }
+#endif
+  if (updates.device().is_cpu()) {
     return adamForwardInplaceCPU(updates, mu, nu, b1, b2, eps, eps_root, count);
   } else {
     throw std::runtime_error("Not implemented");
   }
-};
-torch::Tensor adamForwardMu(const torch::Tensor &updates,
-                            const torch::Tensor &mu, const float b1) {
+}
+torch::Tensor adamForwardMu(const torch::Tensor& updates,
+                            const torch::Tensor& mu, const pyfloat_t b1) {
+#if defined(__CUDA_ENABLED__)
   if (updates.device().is_cuda()) {
     return adamForwardMuCUDA(updates, mu, b1);
-  } else if (updates.device().is_cpu()) {
+  }
+#endif
+  if (updates.device().is_cpu()) {
     return adamForwardMuCPU(updates, mu, b1);
   } else {
     throw std::runtime_error("Not implemented");
   }
-};
+}
 
-torch::Tensor adamForwardNu(const torch::Tensor &updates,
-                            const torch::Tensor &nu, const float b2) {
+torch::Tensor adamForwardNu(const torch::Tensor& updates,
+                            const torch::Tensor& nu, const pyfloat_t b2) {
+#if defined(__CUDA_ENABLED__)
   if (updates.device().is_cuda()) {
     return adamForwardNuCUDA(updates, nu, b2);
-  } else if (updates.device().is_cpu()) {
+  }
+#endif
+  if (updates.device().is_cpu()) {
     return adamForwardNuCPU(updates, nu, b2);
   } else {
     throw std::runtime_error("Not implemented");
   }
-};
+}
 
-torch::Tensor adamForwardUpdates(const torch::Tensor &new_mu,
-                                 const torch::Tensor &new_nu, const float b1,
-                                 const float b2, const float eps,
-                                 const float eps_root, const int count) {
+torch::Tensor adamForwardUpdates(const torch::Tensor& new_mu,
+                                 const torch::Tensor& new_nu,
+                                 const pyfloat_t b1, const pyfloat_t b2,
+                                 const pyfloat_t eps, const pyfloat_t eps_root,
+                                 const pyuint_t count) {
+#if defined(__CUDA_ENABLED__)
   if (new_mu.device().is_cuda()) {
     return adamForwardUpdatesCUDA(new_mu, new_nu, b1, b2, eps, eps_root, count);
-  } else if (new_mu.device().is_cpu()) {
+  }
+#endif
+  if (new_mu.device().is_cpu()) {
     return adamForwardUpdatesCPU(new_mu, new_nu, b1, b2, eps, eps_root, count);
   } else {
     throw std::runtime_error("Not implemented");
   }
-};
+}
 
-TensorArray<2> adamBackwardMu(const torch::Tensor &dmu,
-                              const torch::Tensor &updates,
-                              const torch::Tensor &mu, const float b1) {
+TensorArray<2> adamBackwardMu(const torch::Tensor& dmu,
+                              const torch::Tensor& updates,
+                              const torch::Tensor& mu, const pyfloat_t b1) {
+#if defined(__CUDA_ENABLED__)
   if (dmu.device().is_cuda()) {
     return adamBackwardMuCUDA(dmu, updates, mu, b1);
-  } else if (dmu.device().is_cpu()) {
+  }
+#endif
+  if (dmu.device().is_cpu()) {
     return adamBackwardMuCPU(dmu, updates, mu, b1);
   } else {
     throw std::runtime_error("Not implemented");
   }
-};
+}
 
-TensorArray<2> adamBackwardNu(const torch::Tensor &dnu,
-                              const torch::Tensor &updates,
-                              const torch::Tensor &nu, const float b2) {
+TensorArray<2> adamBackwardNu(const torch::Tensor& dnu,
+                              const torch::Tensor& updates,
+                              const torch::Tensor& nu, const pyfloat_t b2) {
+#if defined(__CUDA_ENABLED__)
   if (dnu.device().is_cuda()) {
     return adamBackwardNuCUDA(dnu, updates, nu, b2);
-  } else if (dnu.device().is_cpu()) {
+  }
+#endif
+  if (dnu.device().is_cpu()) {
     return adamBackwardNuCPU(dnu, updates, nu, b2);
   } else {
     throw std::runtime_error("Not implemented");
   }
-};
+}
 
-TensorArray<2> adamBackwardUpdates(const torch::Tensor &dupdates,
-                                   const torch::Tensor &updates,
-                                   const torch::Tensor &new_mu,
-                                   const torch::Tensor &new_nu, const float b1,
-                                   const float b2, const int count) {
+TensorArray<2> adamBackwardUpdates(const torch::Tensor& dupdates,
+                                   const torch::Tensor& updates,
+                                   const torch::Tensor& new_mu,
+                                   const torch::Tensor& new_nu,
+                                   const pyfloat_t b1, const pyfloat_t b2,
+                                   const pyuint_t count) {
+#if defined(__CUDA_ENABLED__)
   if (dupdates.device().is_cuda()) {
     return adamBackwardUpdatesCUDA(dupdates, updates, new_mu, new_nu, b1, b2,
                                    count);
-  } else if (dupdates.device().is_cpu()) {
+  }
+#endif
+  if (dupdates.device().is_cpu()) {
     return adamBackwardUpdatesCPU(dupdates, updates, new_mu, new_nu, b1, b2,
                                   count);
   } else {
     throw std::runtime_error("Not implemented");
   }
-};
-}  // namespace TorchOpt
+}
+}  // namespace torchopt
 
 PYBIND11_MODULE(adam_op, m) {
-  m.def("forward_", &TorchOpt::adamForwardInplace);
-  m.def("forwardMu", &TorchOpt::adamForwardMu);
-  m.def("forwardNu", &TorchOpt::adamForwardNu);
-  m.def("forwardUpdates", &TorchOpt::adamForwardUpdates);
-  m.def("backwardMu", &TorchOpt::adamBackwardMu);
-  m.def("backwardNu", &TorchOpt::adamBackwardNu);
-  m.def("backwardUpdates", &TorchOpt::adamBackwardUpdates);
+  m.def("forward_", &torchopt::adamForwardInplace);
+  m.def("forwardMu", &torchopt::adamForwardMu);
+  m.def("forwardNu", &torchopt::adamForwardNu);
+  m.def("forwardUpdates", &torchopt::adamForwardUpdates);
+  m.def("backwardMu", &torchopt::adamBackwardMu);
+  m.def("backwardNu", &torchopt::adamBackwardNu);
+  m.def("backwardUpdates", &torchopt::adamBackwardUpdates);
 }

@@ -22,8 +22,8 @@
 #define __forceinline__ __inline__ __attribute__((always_inline))
 #endif
 
-namespace TorchOpt {
-__forceinline__ size_t getTensorPlainSize(const torch::Tensor &tensor) {
+namespace torchopt {
+__forceinline__ size_t getTensorPlainSize(const torch::Tensor& tensor) {
   const auto dim = tensor.dim();
   size_t n = 1;
   for (std::decay_t<decltype(dim)> i = 0; i < dim; ++i) {
@@ -31,4 +31,4 @@ __forceinline__ size_t getTensorPlainSize(const torch::Tensor &tensor) {
   }
   return n;
 }
-}  // namespace TorchOpt
+}  // namespace torchopt
