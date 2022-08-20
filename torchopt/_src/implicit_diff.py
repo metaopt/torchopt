@@ -371,7 +371,7 @@ def custom_root(
     optimality_fun: Callable,
     argnums: Union[tuple, int] = 0,
     has_aux: bool = False,
-    solve: Callable = None,
+    solve: Optional[Callable] = None,
     reference_signature: Optional[Callable] = None,
 ):
     """Decorator for adding implicit differentiation to a root solver.
