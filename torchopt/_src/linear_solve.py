@@ -30,11 +30,11 @@
 # limitations under the License.
 # ==============================================================================
 
-from typing import Any
-from typing import Callable
-from typing import Optional
-import jax
+from typing import Any, Callable, Optional
+
 import functorch
+import jax
+
 from torchopt._src import linalg
 
 
@@ -46,14 +46,13 @@ def tree_add_scalar_mul(tree_x, scalar, tree_y):
 def _make_ridge_matvec(matvec: Callable, ridge: float = 0.0):
     def ridge_matvec(v: Any) -> Any:
         return tree_add_scalar_mul(matvec(v), ridge, v)
+
     return ridge_matvec
 
 
-def solve_cg(matvec: Callable,
-             b: Any,
-             ridge: Optional[float] = None,
-             init: Optional[Any] = None,
-             **kwargs) -> Any:
+def solve_cg(
+    matvec: Callable, b: Any, ridge: Optional[float] = None, init: Optional[Any] = None, **kwargs
+) -> Any:
     """Solves ``A x = b`` using conjugate gradient.
 
     It assumes that ``A`` is  a Hermitian, positive definite matrix.
@@ -86,11 +85,9 @@ def _normal_matvec(matvec, x):
     return vjp(matvec_x)[0]
 
 
-def solve_normal_cg(matvec: Callable,
-                    b: Any,
-                    ridge: Optional[float] = None,
-                    init: Optional[Any] = None,
-                    **kwargs) -> Any:
+def solve_normal_cg(
+    matvec: Callable, b: Any, ridge: Optional[float] = None, init: Optional[Any] = None, **kwargs
+) -> Any:
     """Solves the normal equation ``A^T A x = A^T b`` using conjugate gradient.
 
     This can be used to solve Ax=b using conjugate gradient when A is not
@@ -114,10 +111,12 @@ def solve_normal_cg(matvec: Callable,
     try:
         rmatvec = _make_rmatvec(matvec, example_x)
     except TypeError:
-        raise TypeError("The initialization `init` of solve_normal_cg is "
-                        "compulsory when `matvec` is nonsquare. It should "
-                        "have the same pytree structure as a solution. "
-                        "Typically, a pytree filled with zeros should work.")
+        raise TypeError(
+            "The initialization `init` of solve_normal_cg is "
+            "compulsory when `matvec` is nonsquare. It should "
+            "have the same pytree structure as a solution. "
+            "Typically, a pytree filled with zeros should work."
+        )
 
     def normal_matvec(x):
         return _normal_matvec(matvec, x)

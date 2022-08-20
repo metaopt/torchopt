@@ -30,17 +30,17 @@
 # limitations under the License.
 # ==============================================================================
 import math
-
-import torch
-import jax
 from functools import partial
+
+import jax
+import torch
 
 
 # aliases for working with pytrees
 def _vdot_real_part(x, y):
     """Vector dot-product guaranteed to have a real valued result despite
-       possibly complex input. Thus neglects the real-imaginary cross-terms.
-       The result is a real float.
+    possibly complex input. Thus neglects the real-imaginary cross-terms.
+    The result is a real float.
     """
     # all our uses of vdot() in CG are for computing an operator of the form
     #  z^H M z
@@ -69,13 +69,11 @@ def _normalize_matvec(f):
         return f
     elif isinstance(f, torch.Tensor):
         if f.ndim != 2 or f.shape[0] != f.shape[1]:
-            raise ValueError(
-                f'linear operator must be a square matrix, but has shape: {f.shape}')
+            raise ValueError(f'linear operator must be a square matrix, but has shape: {f.shape}')
         return partial(torch.matmul, f)
     else:
         # TODO(shoyer): handle sparse arrays?
-        raise TypeError(
-            f'linear operator must be either a function or ndarray: {f}')
+        raise TypeError(f'linear operator must be either a function or ndarray: {f}')
 
 
 def safe_sum(obj):
@@ -83,14 +81,16 @@ def safe_sum(obj):
         return sum(obj)
     return obj
 
+
 def _cg_solve(A, b, x0=None, *, maxiter, tol=1e-5, atol=0.0, M=_identity):
     # tolerance handling uses the "non-legacy" behavior of scipy.sparse.linalg.cg
     bs = safe_sum(_vdot_real_tree(b, b))
-    atol2 = max(tol ** 2 * bs, atol ** 2)
+    atol2 = max(tol**2 * bs, atol**2)
 
     # https://en.wikipedia.org/wiki/Conjugate_gradient_method#The_preconditioned_conjugate_gradient_method
 
     min_rs = math.inf
+
     def cond_fun(value, min_rs):
         _, r, gamma, _, k = value
         rs = gamma if M is _identity else safe_sum(_vdot_real_tree(r, r))
@@ -130,8 +130,9 @@ def _shapes(pytree):
     return jax.tree_util.tree_flatten([tuple(term.shape) for term in flatten_tree])[0]
 
 
-def _isolve(_isolve_solve, A, b, x0=None, *, tol=1e-5, atol=0.0,
-            maxiter=None, M=None, check_symmetric=False):
+def _isolve(
+    _isolve_solve, A, b, x0=None, *, tol=1e-5, atol=0.0, maxiter=None, M=None, check_symmetric=False
+):
     if x0 is None:
         x0 = jax.tree_util.tree_map(torch.zeros_like, b)
 
@@ -151,15 +152,15 @@ def _isolve(_isolve_solve, A, b, x0=None, *, tol=1e-5, atol=0.0,
 
     if _shapes(x0) != _shapes(b):
         raise ValueError(
-            'arrays in x0 and b must have matching shapes: '
-            f'{_shapes(x0)} vs {_shapes(b)}')
+            'arrays in x0 and b must have matching shapes: ' f'{_shapes(x0)} vs {_shapes(b)}'
+        )
 
-    isolve_solve = partial(
-        _isolve_solve, x0=x0, tol=tol, atol=atol, maxiter=maxiter, M=M)
+    isolve_solve = partial(_isolve_solve, x0=x0, tol=tol, atol=atol, maxiter=maxiter, M=M)
 
     # real-valued positive-definite linear operators are symmetric
     def real_valued(x):
         return not x.is_complex()
+
     if check_symmetric:
         complex_mask = jax.tree_util.tree_map(real_valued, b)
         flatten_complex_mask, _ = jax.tree_util.tree_flatten(complex_mask)
@@ -227,6 +228,6 @@ def cg(A, b, x0=None, *, tol=1e-5, atol=0.0, maxiter=None, M=None):
     scipy.sparse.linalg.cg
     jax.lax.custom_linear_solve
     """
-    return _isolve(_cg_solve,
-                   A=A, b=b, x0=x0, tol=tol, atol=atol,
-                   maxiter=maxiter, M=M, check_symmetric=True)
+    return _isolve(
+        _cg_solve, A=A, b=b, x0=x0, tol=tol, atol=atol, maxiter=maxiter, M=M, check_symmetric=True
+    )

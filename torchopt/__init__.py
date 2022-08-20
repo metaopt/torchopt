@@ -14,7 +14,16 @@
 # ==============================================================================
 """TorchOpt: a high-performance optimizer library built upon PyTorch."""
 
-from torchopt._src import accelerated_op_available, clip, combine, hook, schedule, visual, implicit_diff, linear_solve
+from torchopt._src import (
+    accelerated_op_available,
+    clip,
+    combine,
+    hook,
+    implicit_diff,
+    linear_solve,
+    schedule,
+    visual,
+)
 from torchopt._src.alias import adam, rmsprop, sgd
 from torchopt._src.optimizer import SGD, Adam, Optimizer, RMSProp, meta
 from torchopt._src.optimizer.meta import MetaAdam, MetaOptimizer, MetaRMSProp, MetaSGD
