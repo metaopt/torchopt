@@ -17,5 +17,4 @@ IPython
 ipykernel
 pandoc
 myst_nb
-docutils
 matplotlib

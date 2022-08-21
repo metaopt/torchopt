@@ -14,7 +14,6 @@ Installation
 Requirements:
 
 * PyTorch
-* JAX
 * (Optional) For visualizing computation graphs
   * `Graphviz <https://graphviz.org/download/>`_ (for Linux users use ``apt/yum install graphviz`` or ``conda install -c anaconda python-graphviz``)
 
