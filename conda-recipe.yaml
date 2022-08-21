@@ -24,10 +24,10 @@ dependencies:
       - functorch >= 0.2
       - torchviz
       - sphinxcontrib-katex  # for documentation
-  - jax
-  - jaxlib >= 0.3=*cuda*
-  - optax        # for tutorials
-  - tensorboard  # for examples
+  - jax                      # for tutorials
+  - jaxlib >= 0.3=*cuda*     # for tutorials
+  - optax                    # for tutorials
+  - tensorboard              # for examples
   - wandb
 
   # Device select

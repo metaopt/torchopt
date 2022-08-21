@@ -15,7 +15,7 @@
 
 from typing import Dict, List, NamedTuple, Union
 
-import jax.tree_util as pytree
+import optree as pytree
 import torch
 import torch.nn as nn
 

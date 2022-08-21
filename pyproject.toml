@@ -45,7 +45,7 @@ classifiers = [
 ]
 dependencies = [
     "torch >= 1.12",
-    "jax[cpu] >= 0.3",
+    "optree",
     "numpy",
     "graphviz",
     "typing-extensions",
