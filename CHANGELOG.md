@@ -20,7 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Update image link in README to support pypi rendering [@Benjamin-eecs](https://github.com/Benjamin-eecs) in [#56](https://github.com/metaopt/TorchOpt/pull/56).
+- Replace JAX PyTrees with OpTree by [@XuehaiPan](https://github.com/XuehaiPan) in [#62](https://github.com/metaopt/TorchOpt/pull/62).
+- Update image link in README to support PyPI rendering by [@Benjamin-eecs](https://github.com/Benjamin-eecs) in [#56](https://github.com/metaopt/TorchOpt/pull/56).
 
 ### Fixed
 

@@ -33,7 +33,6 @@ dependencies:
   - pytorch::pytorch >= 1.12
   - pytorch::pytorch-mutex = *=*cpu*
   - pip:
-      - jax[cpu] >= 0.3
       - functorch >= 0.2
       - torchviz
       - sphinxcontrib-katex  # for documentation
