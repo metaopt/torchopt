@@ -13,9 +13,8 @@ Installation
 
 Requirements:
 
-* PyTorch
-* (Optional) For visualizing computation graphs
-  * `Graphviz <https://graphviz.org/download/>`_ (for Linux users use ``apt/yum install graphviz`` or ``conda install -c anaconda python-graphviz``)
+* `PyTorch <https://pytorch.org/>`_
+* (Optional) `Graphviz <https://graphviz.org/download/>`_
 
 Please follow the instructions at https://pytorch.org to install PyTorch in your Python environment first. Then run the following command to install TorchOpt from PyPI:
 
