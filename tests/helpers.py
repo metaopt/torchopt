@@ -75,6 +75,8 @@ def get_models(
 ) -> Tuple[nn.Module, nn.Module, nn.Module, data.DataLoader]:
     seed_everything(seed=42)
 
+    # model_base = models.resnet18().to(dtype=dtype)
+
     model_base = nn.Sequential(
         nn.Linear(
             in_features=MODEL_NUM_INPUTS, out_features=MODEL_HIDDEN_SIZE, bias=True, dtype=dtype
