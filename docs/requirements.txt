@@ -17,4 +17,5 @@ IPython
 ipykernel
 pandoc
 myst_nb
+docutils == 0.16
 matplotlib

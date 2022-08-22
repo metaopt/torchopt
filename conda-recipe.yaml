@@ -64,6 +64,7 @@ dependencies:
   - myst-nb
   - ipykernel
   - pandoc
+  - docutils = 0.16
 
   # Testing
   - pytest
