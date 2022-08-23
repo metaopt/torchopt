@@ -97,7 +97,7 @@ def test_adam(dtype: torch.dtype, lr: float, betas: Tuple[float, float], eps: fl
         loss_ref.backward()
         optim_ref.step()
 
-    helpers.assert_model_all_close(model, model_ref, model_base, dtype=dtype)
+    helpers.assert_model_all_close((params, buffers), model_ref, model_base, dtype=dtype)
 
 
 @helpers.parametrize(
@@ -135,7 +135,7 @@ def test_accelerated_adam_cpu(
         loss_ref.backward()
         optim_ref.step()
 
-    helpers.assert_model_all_close(model, model_ref, model_base, dtype=dtype)
+    helpers.assert_model_all_close((params, buffers), model_ref, model_base, dtype=dtype)
 
 
 @pytest.mark.skipif(not torch.cuda.is_available(), reason='No CUDA device available.')
@@ -176,7 +176,7 @@ def test_accelerated_adam_cuda(
         loss_ref.backward()
         optim_ref.step()
 
-    helpers.assert_model_all_close(model, model_ref, model_base, dtype=dtype)
+    helpers.assert_model_all_close((params, buffers), model_ref, model_base, dtype=dtype)
 
 
 @helpers.parametrize(
@@ -227,4 +227,4 @@ def test_rmsprop(
         loss_ref.backward()
         optim_ref.step()
 
-    helpers.assert_model_all_close(model, model_ref, model_base, dtype=dtype)
+    helpers.assert_model_all_close((params, buffers), model_ref, model_base, dtype=dtype)
