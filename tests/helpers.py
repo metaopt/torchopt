@@ -173,7 +173,7 @@ def assert_all_close(
 
 @torch.no_grad()
 def testing_assert_all_close(
-    input: torch.Tensor,
+    inputs: torch.Tensor,
     other: torch.Tensor,
     base: torch.Tensor = None,
     dtype: torch.dtype = torch.float32,
@@ -183,7 +183,7 @@ def testing_assert_all_close(
 ) -> None:
 
     if base is not None:
-        input = input - base
+        inputs = inputs - base
         other = other - base
 
-    torch.testing.assert_close(input, other)
+    torch.testing.assert_close(inputs, other)
