@@ -51,5 +51,10 @@ class SGD(Optimizer):
         """
         super().__init__(
             params,
-            sgd(lr=lr, momentum=momentum, nesterov=nesterov, moment_requires_grad=False),
+            sgd(
+                lr=lr,
+                momentum=momentum,
+                nesterov=nesterov,
+                moment_requires_grad=False,
+            ),
         )

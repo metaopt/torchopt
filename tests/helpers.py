@@ -182,13 +182,6 @@ def testing_assert_all_close(
     equal_nan: bool = False,
 ) -> None:
 
-    finfo = torch.finfo(dtype)
-
-    if rtol is None:
-        rtol = max(1e-05, 2 * NUM_UPDATES * finfo.eps)
-    if atol is None:
-        atol = max(1e-08, 2 * NUM_UPDATES * finfo.resolution)
-
     if base is not None:
         input = input - base
         other = other - base
