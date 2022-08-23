@@ -197,7 +197,7 @@ def rmsprop(
             _scale_by_lr(lr),
             (
                 transform.trace(decay=momentum, nesterov=nesterov)
-                if momentum is not None
+                if (momentum is not None) or (momentum == 0.0)
                 else base.identity()
             ),
         )

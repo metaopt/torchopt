@@ -115,7 +115,7 @@ def get_models(
 
 @torch.no_grad()
 def assert_model_all_close(
-    model: nn.Module,
+    model: Union[nn.Module, Tuple],
     model_ref: nn.Module,
     model_base: nn.Module,
     dtype: torch.dtype = torch.float32,
@@ -124,15 +124,22 @@ def assert_model_all_close(
     equal_nan: bool = False,
 ):
 
-    for p, p_ref, p_base in zip(
-        model.parameters(), model_ref.parameters(), model_base.parameters()
-    ):
-        assert_all_close(p, p_ref, base=p_base, rtol=rtol, atol=atol, equal_nan=equal_nan)
-    for b, b_ref, b_base in zip(model.buffers(), model_ref.buffers(), model_base.buffers()):
+    if isinstance(model, Tuple):
+        model_ = model[0]
+        buffer_ = model[1]
+    elif isinstance(model, nn.Module):
+        model_ = model.parameters()
+        buffer_ = model.buffers()
+
+    for p, p_ref, p_base in zip(model_, model_ref.parameters(), model_base.parameters()):
+        # assert_all_close(p, p_ref, base=p_base, rtol=rtol, atol=atol, equal_nan=equal_nan)
+        testing_assert_all_close(p, p_ref, base=p_base)
+    for b, b_ref, b_base in zip(buffer_, model_ref.buffers(), model_base.buffers()):
         b = b.to(dtype=dtype) if not b.is_floating_point() else b
         b_ref = b_ref.to(dtype=dtype) if not b_ref.is_floating_point() else b_ref
         b_base = b_base.to(dtype=dtype) if not b_base.is_floating_point() else b_base
-        assert_all_close(b, b_ref, base=b_base, rtol=rtol, atol=atol, equal_nan=equal_nan)
+        # assert_all_close(b, b_ref, base=b_base, rtol=rtol, atol=atol, equal_nan=equal_nan)
+        testing_assert_all_close(b, b_ref, base=b_base)
 
 
 @torch.no_grad()
@@ -162,3 +169,28 @@ def assert_all_close(
         f'fail_rate = {torch.logical_not((input - other).abs() <= atol + rtol * other.abs()).float().mean()} '
         f'(atol = {atol:.5e}, rtol = {rtol:.5e})'
     )
+
+
+@torch.no_grad()
+def testing_assert_all_close(
+    input: torch.Tensor,
+    other: torch.Tensor,
+    base: torch.Tensor = None,
+    dtype: torch.dtype = torch.float32,
+    rtol: Optional[float] = None,
+    atol: Optional[float] = None,
+    equal_nan: bool = False,
+) -> None:
+
+    finfo = torch.finfo(dtype)
+
+    if rtol is None:
+        rtol = max(1e-05, 2 * NUM_UPDATES * finfo.eps)
+    if atol is None:
+        atol = max(1e-08, 2 * NUM_UPDATES * finfo.resolution)
+
+    if base is not None:
+        input = input - base
+        other = other - base
+
+    torch.testing.assert_close(input, other)

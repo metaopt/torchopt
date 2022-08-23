@@ -348,7 +348,7 @@ def trace(
             if inplace:
 
                 def f1(g, t):
-                    return t.copy_(t.mul_(decay).add_(g))
+                    return t.copy_(t.mul_(decay).add_(g, alpha=1.0))
 
                 def f2(g, t):
                     return g.add_(t, alpha=decay)
@@ -369,7 +369,7 @@ def trace(
             if inplace:
 
                 def f(g, t):
-                    return t.mul_(decay).add_(g)
+                    return t.mul_(decay).add_(g, alpha=1.0)
 
                 def copy_(t, g):
                     t.copy_(g)

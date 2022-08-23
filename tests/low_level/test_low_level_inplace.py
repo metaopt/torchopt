@@ -63,7 +63,7 @@ def test_sgd(dtype: torch.dtype, lr: float, momentum: float, nesterov: bool) -> 
         loss_ref.backward()
         optim_ref.step()
 
-    helpers.assert_model_all_close(model, model_ref, model_base, dtype=dtype)
+    helpers.assert_model_all_close((params, buffers), model_ref, model_base, dtype=dtype)
 
 
 @helpers.parametrize(
