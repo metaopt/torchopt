@@ -1,7 +1,6 @@
 --extra-index-url https://download.pytorch.org/whl/cpu
-torch == 1.12
-torchvision
-functorch
+torch >= 1.12
+functorch >= 0.2
 
 --requirement ../requirements.txt
 
@@ -17,5 +16,5 @@ IPython
 ipykernel
 pandoc
 myst_nb
-docutils
+docutils == 0.16
 matplotlib

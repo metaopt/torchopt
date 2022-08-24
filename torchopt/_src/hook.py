@@ -13,10 +13,10 @@
 # limitations under the License.
 # ==============================================================================
 
-import jax
 import torch
 
 from torchopt._src.base import EmptyState, GradientTransformation
+from torchopt._src.utils import pytree
 
 
 def zero_nan_hook(g: torch.Tensor) -> torch.Tensor:
@@ -36,11 +36,11 @@ def register_hook(hook) -> GradientTransformation:
     def init_fn(_):
         return EmptyState()
 
-    def update_fn(updates, state, inplace=False, params=None):  # pylint: disable=unused-argument
+    def update_fn(updates, state, inplace=True, params=None):  # pylint: disable=unused-argument
         def f(g):
             return g.register_hook(hook) if g is not None else None
 
-        jax.tree_map(f, updates)
+        pytree.tree_map(f, updates)
         return updates, state
 
     return GradientTransformation(init_fn, update_fn)

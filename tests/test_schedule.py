@@ -13,15 +13,25 @@
 # limitations under the License.
 # ==============================================================================
 
-set(adam_op_src adam_op.cpp adam_op_impl_cpu.cpp)
+import numpy as np
 
-if(CUDA_FOUND)
-    list(APPEND adam_op_src adam_op_impl_cuda.cu)
-endif()
+import torchopt
 
-pybind11_add_module(adam_op "${adam_op_src}")
 
-target_link_libraries(
-    adam_op PRIVATE
-    ${TORCH_LIBRARIES}
-)
+def test_linear_schedule() -> None:
+    init_value = 1.0
+    end_value = 0.0
+    gap_value = init_value - end_value
+    transition_steps = 10
+    transition_begin = 1
+
+    schedule = torchopt.schedule.linear_schedule(
+        init_value=init_value,
+        end_value=end_value,
+        transition_steps=transition_steps,
+        transition_begin=transition_begin,
+    )
+    for i in range(transition_begin, transition_steps):
+        lr = schedule(i)
+        lr_gt = init_value - gap_value * (i - transition_begin) / transition_steps
+        assert np.allclose(lr, lr_gt)

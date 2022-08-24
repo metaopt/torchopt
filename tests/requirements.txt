@@ -1,7 +1,6 @@
 --extra-index-url https://download.pytorch.org/whl/cu116
-torch == 1.12
-torchvision
-functorch
+torch >= 1.12
+functorch >= 0.2
 
 --requirement ../requirements.txt
 
@@ -14,7 +13,7 @@ pylint
 mypy
 flake8
 flake8-bugbear
-doc8 < 1.0.0a
+doc8 < 1.0.0a0
 pydocstyle
 pyenchant
 cpplint

@@ -17,17 +17,17 @@ dependencies:
   - pip
 
   # Learning
-  - pytorch::pytorch = 1.12
+  - pytorch::pytorch >= 1.12
   - pytorch::torchvision
   - pytorch::pytorch-mutex = *=*cuda*
   - pip:
-      - functorch
+      - functorch >= 0.2
       - torchviz
       - sphinxcontrib-katex  # for documentation
-  - jax
-  - jaxlib >= 0.3=*cuda*
-  - optax        # for tutorials
-  - tensorboard  # for examples
+  - jax                      # for tutorials
+  - jaxlib >= 0.3=*cuda*     # for tutorials
+  - optax                    # for tutorials
+  - tensorboard              # for examples
   - wandb
 
   # Device select
@@ -64,7 +64,7 @@ dependencies:
   - myst-nb
   - ipykernel
   - pandoc
-  - docutils
+  - docutils = 0.16
 
   # Testing
   - pytest
@@ -76,7 +76,7 @@ dependencies:
   - mypy
   - flake8
   - flake8-bugbear
-  - doc8
+  - doc8 < 1.0.0a0
   - pydocstyle
   - clang-format
   - clang-tools  # clang-tidy

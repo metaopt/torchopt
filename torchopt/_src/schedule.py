@@ -30,12 +30,13 @@
 # limitations under the License.
 # ==============================================================================
 
-import jax
+import logging
+
 import numpy as np
-from absl import logging
 
 from torchopt._src import base
 from torchopt._src.typing import Scalar
+from torchopt._src.utils import pytree
 
 
 def polynomial_schedule(
@@ -85,7 +86,7 @@ def polynomial_schedule(
             frac = 1 - count / transition_steps
             return (init_value - end_value) * (frac**power) + end_value
 
-        return jax.tree_map(impl, count)
+        return pytree.tree_map(impl, count)
 
     return schedule
 

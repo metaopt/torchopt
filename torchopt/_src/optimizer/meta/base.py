@@ -13,12 +13,12 @@
 # limitations under the License.
 # ==============================================================================
 
-import jax
 import torch
 import torch.nn as nn
 
 from torchopt._src.base import GradientTransformation
 from torchopt._src.update import apply_updates
+from torchopt._src.utils import pytree
 
 
 class MetaOptimizer:
@@ -57,7 +57,7 @@ class MetaOptimizer:
         for idx, (state, param_containers) in enumerate(
             zip(self.state_groups, self.param_containers_groups)
         ):
-            flatten_params, containers_tree = jax.tree_flatten(param_containers)
+            flatten_params, containers_tree = pytree.tree_flatten(param_containers)
             flatten_params = tuple(flatten_params)
             grad = torch.autograd.grad(loss, flatten_params, create_graph=True, allow_unused=True)
             updates, state = self.impl.update(grad, state, inplace=False, params=flatten_params)
@@ -69,11 +69,11 @@ class MetaOptimizer:
 
     def add_param_group(self, net):
         """Add a param group to the optimizer's :attr:`state_groups`."""
-        # pylint: disable=import-outside-toplevel,cyclic-import
+        # pylint: disable-next=import-outside-toplevel,cyclic-import
         from torchopt._src.utils import _extract_container
 
         net_container = _extract_container(net, with_buffer=False)
-        flatten_param, _ = jax.tree_util.tree_flatten(net_container)
+        flatten_param = pytree.tree_leaves(net_container)
         flatten_param = tuple(flatten_param)
         optim_state = self.impl.init(flatten_param)
         self.state_groups.append(optim_state)

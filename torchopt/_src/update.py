@@ -30,9 +30,8 @@
 # limitations under the License.
 # ==============================================================================
 
-import jax
-
 from torchopt._src import base  # pylint: disable=unused-import
+from torchopt._src.utils import pytree
 
 
 def apply_updates(
@@ -68,4 +67,4 @@ def apply_updates(
         def f(p, u):
             return p.add(u) if u is not None else p
 
-    return jax.tree_map(f, params, updates)
+    return pytree.tree_map(f, params, updates)

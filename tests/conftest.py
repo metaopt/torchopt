@@ -13,15 +13,8 @@
 # limitations under the License.
 # ==============================================================================
 
-set(adam_op_src adam_op.cpp adam_op_impl_cpu.cpp)
+import os
 
-if(CUDA_FOUND)
-    list(APPEND adam_op_src adam_op_impl_cuda.cu)
-endif()
 
-pybind11_add_module(adam_op "${adam_op_src}")
-
-target_link_libraries(
-    adam_op PRIVATE
-    ${TORCH_LIBRARIES}
-)
+os.environ['PYTHONHASHSEED'] = '0'
+os.environ['CUBLAS_WORKSPACE_CONFIG'] = ':16:8'

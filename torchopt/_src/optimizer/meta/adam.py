@@ -28,7 +28,7 @@ class MetaAdam(MetaOptimizer):
         - The classic Adam optimizer: :class:`torchopt.Adam`.
     """
 
-    # pylint: disable=too-many-arguments
+    # pylint: disable-next=too-many-arguments
     def __init__(
         self,
         net: nn.Module,
@@ -38,6 +38,7 @@ class MetaAdam(MetaOptimizer):
         eps: float = 1e-8,
         eps_root: float = 0.0,
         moment_requires_grad: bool = True,
+        maximize: bool = False,
         use_accelerated_op: bool = False,
     ):
         """The :meth:`init` function.
@@ -56,6 +57,8 @@ class MetaAdam(MetaOptimizer):
             moment_requires_grad: (default: :data:`True`)
                 Here we set ``moment_requires_grad=True`` to make tensors like momentum be
                 differentiable.
+            maximize: (default: :data:`False`)
+                Maximize the params based on the objective, instead of minimizing.
             use_accelerated_op: (default: :data:`False`)
                 If :data:`True` use our implemented fused operator.
         """
@@ -68,6 +71,7 @@ class MetaAdam(MetaOptimizer):
                 eps=eps,
                 eps_root=eps_root,
                 moment_requires_grad=moment_requires_grad,
+                maximize=maximize,
                 use_accelerated_op=use_accelerated_op,
             ),
         )

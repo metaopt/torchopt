@@ -15,7 +15,7 @@
 
 from typing import Dict, List, NamedTuple, Union
 
-import jax
+import optree as pytree
 import torch
 import torch.nn as nn
 
@@ -44,7 +44,7 @@ def stop_gradient(target):
             function will return a detached copy of the target. The in-place operation is fast and
             memory efficient but may raise back-propagation error.
     """
-    # pylint: disable=import-outside-toplevel
+    # pylint: disable-next=import-outside-toplevel,cyclic-import
     from torchopt._src.optimizer.meta.base import MetaOptimizer
 
     def f(obj):
@@ -57,14 +57,14 @@ def stop_gradient(target):
     elif isinstance(target, nn.Module):
         true_target = tuple(target.parameters())
     elif isinstance(target, MetaOptimizer):
-        true_target, _ = jax.tree_flatten(target.state_dict())
+        true_target = pytree.tree_leaves(target.state_dict())
     else:
         true_target = target
 
-    jax.tree_map(f, true_target)
+    pytree.tree_map(f, true_target)
 
 
-# pylint: disable=too-many-branches,too-many-locals
+# pylint: disable-next=too-many-branches,too-many-locals
 def extract_state_dict(mod, copy=False, *, with_buffer=True, enable_visual=False, visual_prefix=''):
     """Extract target state.
 
@@ -90,7 +90,7 @@ def extract_state_dict(mod, copy=False, *, with_buffer=True, enable_visual=False
     Returns:
         State extracted of the input object.
     """
-    # pylint: disable=import-outside-toplevel
+    # pylint: disable=import-outside-toplevel,cyclic-import
     from torchopt._src.optimizer.meta.base import MetaOptimizer
 
     if isinstance(mod, nn.Module):  # pylint: disable=no-else-return
@@ -107,16 +107,15 @@ def extract_state_dict(mod, copy=False, *, with_buffer=True, enable_visual=False
 
         params = []
 
-        def get_v(v):  # pylint: disable=invalid-name
+        def get_variable(t):
             if copy:
-                requires_grad = v.requires_grad
-                return v.clone().detach_().requires_grad_(requires_grad)
-
-            return v
+                requires_grad = t.requires_grad
+                return t.clone().detach_().requires_grad_(requires_grad)
+            return t
 
         def _update(term):
             if len(term) != 0:
-                params.append({k: get_v(v) for k, v in term.items()})
+                params.append({k: get_variable(v) for k, v in term.items()})
 
         # pylint: disable=protected-access
         _update(mod._parameters)
@@ -133,16 +132,14 @@ def extract_state_dict(mod, copy=False, *, with_buffer=True, enable_visual=False
     elif isinstance(mod, MetaOptimizer):
         state = mod.state_dict()
         if copy:
-            flatten_state, state_tree = jax.tree_flatten(state)
 
-            def get_v(v):  # pylint: disable=invalid-name
-                if not isinstance(v, torch.Tensor):
-                    return v
-                requires_grad = v.requires_grad
-                return v.clone().detach_().requires_grad_(requires_grad)
+            def get_variable(t):
+                if not isinstance(t, torch.Tensor):
+                    return t
+                requires_grad = t.requires_grad
+                return t.clone().detach_().requires_grad_(requires_grad)
 
-            flatten_state = jax.tree_map(get_v, flatten_state)
-            return state_tree.unflatten(flatten_state)
+            return pytree.tree_map(get_variable, state)
 
         return state
 
@@ -184,7 +181,7 @@ def recover_state_dict(mod, state):
         mod: Target that need to recover.
         state: The recovering state.
     """
-    # pylint: disable=import-outside-toplevel
+    # pylint: disable-next=import-outside-toplevel,cyclic-import
     from torchopt._src.optimizer.meta.base import MetaOptimizer
 
     if isinstance(mod, nn.Module):

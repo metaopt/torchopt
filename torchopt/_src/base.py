@@ -148,7 +148,7 @@ def identity() -> GradientTransformation:
     def init_fn(_):
         return EmptyState()
 
-    def update_fn(updates, state, inplace=False, params=None):  # pylint: disable=unused-argument
+    def update_fn(updates, state, inplace=True, params=None):  # pylint: disable=unused-argument
         return updates, state
 
     return GradientTransformation(init_fn, update_fn)

@@ -34,27 +34,26 @@
 
 from typing import Any, Callable, Optional, Union
 
-import jax
-
 from torchopt._src import base, combine, transform
 from torchopt._src.typing import ScalarOrSchedule
+from torchopt._src.utils import pytree
 
 
-def _scale_by_lr(lr: ScalarOrSchedule, flip_sign=True):
-    sign = -1 if flip_sign else 1
+def _scale_by_lr(lr: ScalarOrSchedule, maximize=False):
+    sign = -1 if not maximize else 1
     if callable(lr):
 
         def schedule_wrapper(count):
             def f(scaled_lr):
                 return sign * scaled_lr
 
-            return jax.tree_map(f, lr(count))  # type: ignore
+            return pytree.tree_map(f, lr(count))  # type: ignore
 
         return transform.scale_by_schedule(schedule_wrapper)
     return transform.scale(sign * lr)
 
 
-# pylint: disable=too-many-arguments
+# pylint: disable-next=too-many-arguments
 def adam(
     lr: ScalarOrSchedule,
     b1: float = 0.9,
@@ -62,6 +61,7 @@ def adam(
     eps: float = 1e-8,
     eps_root: float = 0.0,
     moment_requires_grad: bool = False,
+    maximize: bool = False,
     use_accelerated_op: bool = False,
 ) -> base.GradientTransformation:
     """The functional Adam optimizer.
@@ -87,6 +87,8 @@ def adam(
         moment_requires_grad: (default: :data:`False`)
             If :data:`True` the momentums will be created with flag ``requires_grad=True``, this
             flag is often used in Meta Learning algorithms.
+        maximize: (default: :data:`False`)
+            Maximize the params based on the objective, instead of minimizing.
         use_accelerated_op: (default: :data:`False`)
             If :data:`True` use our implemented fused operator.
 
@@ -104,7 +106,7 @@ def adam(
             eps_root=eps_root,
             moment_requires_grad=moment_requires_grad,
         ),
-        _scale_by_lr(lr),
+        _scale_by_lr(lr, maximize=maximize),
     )
 
 
@@ -113,6 +115,7 @@ def sgd(
     momentum: Optional[float] = None,
     nesterov: bool = False,
     moment_requires_grad: bool = False,
+    maximize: bool = False,
 ) -> base.GradientTransformation:
     """The functional version of the canonical Stochastic Gradient Descent optimizer.
 
@@ -133,6 +136,8 @@ def sgd(
         moment_requires_grad: (default: :data:`False`)
             If :data:`True` the momentums will be created with flag ``requires_grad=True``, this
             flag is often used in Meta-Learning algorithms.
+        maximize: (default: :data:`False`)
+            Maximize the params based on the objective, instead of minimizing.
 
     Returns:
         A :class:`GradientTransformation` instance.
@@ -144,14 +149,14 @@ def sgd(
                 nesterov=nesterov,
                 moment_requires_grad=moment_requires_grad,
             )
-            if momentum is not None
+            if momentum is not None and momentum != 0.0
             else base.identity()
         ),
-        _scale_by_lr(lr),
+        _scale_by_lr(lr, maximize=maximize),
     )
 
 
-# pylint: disable=too-many-arguments
+# pylint: disable-next=too-many-arguments
 def rmsprop(
     lr: ScalarOrSchedule,
     decay: float = 0.9,
@@ -160,6 +165,7 @@ def rmsprop(
     centered: bool = False,
     momentum: Optional[float] = None,
     nesterov: bool = False,
+    maximize: bool = False,
 ) -> base.GradientTransformation:
     """The functional version of the RMSProp optimizer.
 
@@ -188,6 +194,8 @@ def rmsprop(
             momentum is not used at all.
         nesterov: (default: :data:`False`)
             Whether the nesterov momentum is used.
+        maximize: (default: :data:`False`)
+            Maximize the params based on the objective, instead of minimizing.
 
     Returns:
         The corresponding :class:`GradientTransformation` instance.
@@ -195,22 +203,22 @@ def rmsprop(
     if centered:
         return combine.chain(
             transform.scale_by_stddev(decay=decay, eps=eps, initial_scale=initial_scale),
-            _scale_by_lr(lr),
             (
                 transform.trace(decay=momentum, nesterov=nesterov)
-                if momentum is not None
+                if momentum is not None and momentum != 0.0
                 else base.identity()
             ),
+            _scale_by_lr(lr, maximize=maximize),
         )
 
     return combine.chain(
         transform.scale_by_rms(decay=decay, eps=eps, initial_scale=initial_scale),
-        _scale_by_lr(lr),
         (
             transform.trace(decay=momentum, nesterov=nesterov)
-            if momentum is not None
+            if momentum is not None and momentum != 0.0
             else base.identity()
         ),
+        _scale_by_lr(lr, maximize=maximize),
     )
 
 

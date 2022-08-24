@@ -79,7 +79,7 @@ This command will run automatic tests in the main directory:
 
 .. code-block:: bash
 
-    $ make test
+    make test
 
 
 Build Wheels
@@ -95,10 +95,22 @@ To build compatible **manylinux2014** (:pep:`599`) wheels for distribution, you 
     export CUDA_VERSION="11.6"                 # version of `nvcc` for compilation
     python3 -m cibuildwheel --platform=linux --output-dir=wheelhouse --config-file=pyproject.toml
 
-It will installs the CUDA compiler with ``CUDA_VERSION`` in the build container. Then build wheel binaries for all supported CPython versions. The outputs will be placed in the ``wheelhouse`` directory.
+It will install the CUDA compiler with ``CUDA_VERSION`` in the build container. Then build wheel binaries for all supported CPython versions. The outputs will be placed in the ``wheelhouse`` directory.
+
+To build a wheel for a specific CPython version, you can use the |CIBW_BUILD|_ environment variable.
+For example, the following command will build a wheel for Python 3.7:
+
+.. code-block:: bash
+
+    CIBW_BUILD="cp37*manylinux*" python3 -m cibuildwheel --platform=linux --output-dir=wheelhouse --config-file=pyproject.toml
+
+You can change ``cp37*`` to ``cp310*`` to build for Python 3.10. See https://cibuildwheel.readthedocs.io/en/stable/options for more options.
 
 .. |cibuildwheel| replace:: ``cibuildwheel``
 .. _cibuildwheel: https://github.com/pypa/cibuildwheel
+
+.. |CIBW_BUILD| replace:: ``CIBW_BUILD``
+.. _CIBW_BUILD: https://cibuildwheel.readthedocs.io/en/stable/options/#build-skip
 
 .. |docker| replace:: ``docker``
 .. _docker: https://www.docker.com
@@ -114,7 +126,7 @@ To compile documentation into webpage, run
 
 .. code-block:: bash
 
-    $ make docs
+    make docs
 
 The generated webpage locates under directory ``docs/build`` and will open the browser after building documentation.
 
