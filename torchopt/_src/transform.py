@@ -127,32 +127,35 @@ def scale_by_schedule(step_size_fn: Schedule) -> base.GradientTransformation:
 
 def _update_moment(updates, moments, decay, order, inplace=True):
     """Compute the exponential moving average of the ``order``-th moment."""
+
+    assert order in (1, 2)
+
     if inplace:
 
-        def f(g, t):
-            return t.mul_(decay).add_(g**order, alpha=1 - decay) if g is not None else t
+        if order == 2:
+
+            def f(g, t):
+                return t.mul_(decay).addcmul_(g, g, value=1 - decay) if g is not None else t
+
+        else:
+
+            def f(g, t):
+                return t.mul_(decay).add_(g, alpha=1 - decay) if g is not None else t
 
     else:
 
-        def f(g, t):
-            return t.mul(decay).add(g**order, alpha=1 - decay) if g is not None else t
+        if order == 2:
 
-    return pytree.tree_map(f, updates, moments)
+            def f(g, t):
+                return t.mul(decay).addcmul_(g, g, value=1 - decay) if g is not None else t
 
+        else:
 
-def _update_moment_per_elem_norm(updates, moments, decay, order, inplace=True):
-    """Compute the EMA of the `order`-th moment of the element-wise norm."""
-    if inplace:
+            def f(g, t):
+                return t.mul(decay).add_(g, alpha=1 - decay) if g is not None else t
 
-        def f(g, t):
-            return t.mul_(decay).add_(g**order, alpha=1 - decay) if g is not None else t
-
-    else:
-
-        def f(g, t):
-            return t.mul(decay).add(g**order, alpha=1 - decay) if g is not None else t
-
-    return pytree.tree_map(f, updates, moments)
+    new_moments = pytree.tree_map(f, updates, moments)
+    return new_moments
 
 
 class ScaleByAdamState(NamedTuple):
@@ -221,19 +224,19 @@ def scale_by_adam(
 
     def update_fn(updates, state, inplace=True):
         mu = _update_moment(updates, state.mu, b1, order=1, inplace=inplace)
-        nu = _update_moment_per_elem_norm(updates, state.nu, b2, order=2, inplace=inplace)
+        nu = _update_moment(updates, state.nu, b2, order=2, inplace=inplace)
         count_inc = inc_count(updates, state.count)
         mu_hat = _bias_correction(mu, b1, count_inc, False)
         nu_hat = _bias_correction(nu, b2, count_inc, False)
         if inplace:
 
             def f(g, m, v):
-                return m.div_(torch.sqrt_(v.add_(eps_root)).add_(eps)) if g is not None else None
+                return m.div_(v.add_(eps_root).sqrt_().add_(eps)) if g is not None else None
 
         else:
 
             def f(g, m, v):
-                return m.div(torch.sqrt(v.add(eps_root)).add(eps)) if g is not None else None
+                return m.div(v.add(eps_root).sqrt_().add_(eps)) if g is not None else None
 
         updates = pytree.tree_map(f, updates, mu_hat, nu_hat)
         return updates, ScaleByAdamState(mu=mu, nu=nu, count=count_inc)
@@ -353,7 +356,7 @@ def trace(
             else:
 
                 def f1(g, t):
-                    return t.mul(decay).add(g)
+                    return t.mul(decay).add_(g)
 
                 def f2(g, t):
                     return g.add(t, alpha=decay)
@@ -374,7 +377,7 @@ def trace(
             else:
 
                 def f(g, t):
-                    return t.mul(decay).add(g)
+                    return t.mul(decay).add_(g)
 
                 new_trace = pytree.tree_map(f, updates, state.trace)
                 updates = new_trace
@@ -415,24 +418,18 @@ def scale_by_rms(
         return ScaleByRmsState(nu=nu)
 
     def update_fn(updates, state, inplace=True):
-        nu = _update_moment_per_elem_norm(updates, state.nu, decay, order=2, inplace=inplace)
+        nu = _update_moment(updates, state.nu, decay, order=2, inplace=inplace)
+
         if inplace:
 
             def f(g, n):
-                return g.mul_(torch.rsqrt(n.add(eps)))
+                return g.div_(n.sqrt().add_(eps))
 
         else:
 
             def f(g, n):
-                return g.mul(torch.rsqrt(n.add(eps)))
+                return g.div(n.sqrt().add_(eps))
 
-        # """The followings are pytorch style"""
-        #
-        # if inplace:
-        #     def f(g, n): return g.div_(torch.sqrt_(n).add_(eps))
-        # else:
-        #     def f(g, n): return g.div(torch.sqrt(n).add(eps))
-        #
         updates = pytree.tree_map(f, updates, nu)
         return updates, ScaleByRmsState(nu=nu)
 
@@ -473,24 +470,18 @@ def scale_by_stddev(
 
     def update_fn(updates, state, inplace=True):
         mu = _update_moment(updates, state.mu, decay, order=1, inplace=inplace)
-        nu = _update_moment_per_elem_norm(updates, state.nu, decay, order=2, inplace=inplace)
+        nu = _update_moment(updates, state.nu, decay, order=2, inplace=inplace)
+
         if inplace:
 
             def f(g, m, n):
-                return g.mul_(torch.rsqrt(n.sub(m**2).add(eps)))
+                return g.div_(n.addcmul(m, m, value=-1.0).sqrt_().add_(eps))
 
         else:
 
             def f(g, m, n):
-                return g.mul(torch.rsqrt(n.sub(m**2).add(eps)))
+                return g.div(n.addcmul(m, m, value=-1.0).sqrt_().add_(eps))
 
-        # """The followings are pytorch style"""
-        #
-        # if inplace:
-        #     def f(g, m, n): return g.div_(torch.sqrt_(n.sub_(m ** 2)).add(eps))
-        # else:
-        #     def f(g, m, n): return g.div(torch.sqrt(n.sub(m ** 2)).add(eps))
-        #
         updates = pytree.tree_map(f, updates, mu, nu)
         return updates, ScaleByRStdDevState(mu=mu, nu=nu)
 

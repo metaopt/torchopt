@@ -202,7 +202,7 @@ def test_rmsprop(
         lr,
         decay=alpha,
         eps=eps,
-        momentum=(momentum if momentum != 0.0 else None),
+        momentum=momentum,
         centered=centered,
         nesterov=False,
     )

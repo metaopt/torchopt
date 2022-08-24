@@ -96,7 +96,7 @@ def get_models(
             bias=True,
             dtype=dtype,
         ),
-        nn.Softmax(),
+        nn.Softmax(dim=-1),
     )
     for name, param in model_base.named_parameters(recurse=True):
         if name.endswith('weight'):
