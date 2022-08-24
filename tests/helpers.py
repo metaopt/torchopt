@@ -17,7 +17,7 @@ import copy
 import itertools
 import os
 import random
-from typing import Optional, Tuple, Union
+from typing import Iterable, Optional, Tuple, Union
 
 import numpy as np
 import pytest
@@ -75,19 +75,26 @@ def get_models(
 ) -> Tuple[nn.Module, nn.Module, nn.Module, data.DataLoader]:
     seed_everything(seed=42)
 
-    # model_base = models.resnet18().to(dtype=dtype)
-
     model_base = nn.Sequential(
         nn.Linear(
-            in_features=MODEL_NUM_INPUTS, out_features=MODEL_HIDDEN_SIZE, bias=True, dtype=dtype
+            in_features=MODEL_NUM_INPUTS,
+            out_features=MODEL_HIDDEN_SIZE,
+            bias=True,
+            dtype=dtype,
         ),
         nn.ReLU(),
         nn.Linear(
-            in_features=MODEL_HIDDEN_SIZE, out_features=MODEL_HIDDEN_SIZE, bias=True, dtype=dtype
+            in_features=MODEL_HIDDEN_SIZE,
+            out_features=MODEL_HIDDEN_SIZE,
+            bias=True,
+            dtype=dtype,
         ),
         nn.ReLU(),
         nn.Linear(
-            in_features=MODEL_HIDDEN_SIZE, out_features=MODEL_NUM_CLASSES, bias=True, dtype=dtype
+            in_features=MODEL_HIDDEN_SIZE,
+            out_features=MODEL_NUM_CLASSES,
+            bias=True,
+            dtype=dtype,
         ),
         nn.Softmax(),
     )
@@ -115,7 +122,7 @@ def get_models(
 
 @torch.no_grad()
 def assert_model_all_close(
-    model: Union[nn.Module, Tuple],
+    model: Union[nn.Module, Tuple[Iterable[torch.Tensor], Iterable[torch.Tensor]]],
     model_ref: nn.Module,
     model_base: nn.Module,
     dtype: torch.dtype = torch.float32,
@@ -124,66 +131,40 @@ def assert_model_all_close(
     equal_nan: bool = False,
 ):
 
-    if isinstance(model, Tuple):
-        model_ = model[0]
-        buffer_ = model[1]
+    if isinstance(model, tuple):
+        params, buffers = model
     elif isinstance(model, nn.Module):
-        model_ = model.parameters()
-        buffer_ = model.buffers()
+        params = model.parameters()
+        buffers = model.buffers()
 
-    for p, p_ref, p_base in zip(model_, model_ref.parameters(), model_base.parameters()):
-        # assert_all_close(p, p_ref, base=p_base, rtol=rtol, atol=atol, equal_nan=equal_nan)
-        testing_assert_all_close(p, p_ref, base=p_base)
-    for b, b_ref, b_base in zip(buffer_, model_ref.buffers(), model_base.buffers()):
+    for p, p_ref, p_base in zip(params, model_ref.parameters(), model_base.parameters()):
+        assert_all_close(p, p_ref, base=p_base, rtol=rtol, atol=atol, equal_nan=equal_nan)
+    for b, b_ref, b_base in zip(buffers, model_ref.buffers(), model_base.buffers()):
         b = b.to(dtype=dtype) if not b.is_floating_point() else b
         b_ref = b_ref.to(dtype=dtype) if not b_ref.is_floating_point() else b_ref
         b_base = b_base.to(dtype=dtype) if not b_base.is_floating_point() else b_base
-        # assert_all_close(b, b_ref, base=b_base, rtol=rtol, atol=atol, equal_nan=equal_nan)
-        testing_assert_all_close(b, b_ref, base=b_base)
+        assert_all_close(b, b_ref, base=b_base, rtol=rtol, atol=atol, equal_nan=equal_nan)
 
 
 @torch.no_grad()
 def assert_all_close(
-    input: torch.Tensor,
-    other: torch.Tensor,
+    actual: torch.Tensor,
+    expected: torch.Tensor,
     base: torch.Tensor = None,
-    dtype: torch.dtype = torch.float32,
     rtol: Optional[float] = None,
     atol: Optional[float] = None,
     equal_nan: bool = False,
 ) -> None:
 
-    finfo = torch.finfo(dtype)
-
-    if rtol is None:
-        rtol = max(1e-05, 2 * NUM_UPDATES * finfo.eps)
-    if atol is None:
-        atol = max(1e-08, 2 * NUM_UPDATES * finfo.resolution)
-
     if base is not None:
-        input = input - base
-        other = other - base
+        actual = actual - base
+        expected = expected - base
 
-    assert torch.allclose(input, other, rtol=rtol, atol=atol, equal_nan=equal_nan), (
-        f'L_inf = {(input - other).abs().max():.5e}, '
-        f'fail_rate = {torch.logical_not((input - other).abs() <= atol + rtol * other.abs()).float().mean()} '
-        f'(atol = {atol:.5e}, rtol = {rtol:.5e})'
+    torch.testing.assert_close(
+        actual,
+        expected,
+        rtol=rtol,
+        atol=atol,
+        equal_nan=equal_nan,
+        check_dtype=True,
     )
-
-
-@torch.no_grad()
-def testing_assert_all_close(
-    inputs: torch.Tensor,
-    other: torch.Tensor,
-    base: torch.Tensor = None,
-    dtype: torch.dtype = torch.float32,
-    rtol: Optional[float] = None,
-    atol: Optional[float] = None,
-    equal_nan: bool = False,
-) -> None:
-
-    if base is not None:
-        inputs = inputs - base
-        other = other - base
-
-    torch.testing.assert_close(inputs, other)
