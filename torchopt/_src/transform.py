@@ -127,7 +127,6 @@ def scale_by_schedule(step_size_fn: Schedule) -> base.GradientTransformation:
 
 def _update_moment(updates, moments, decay, order, inplace=True):
     """Compute the exponential moving average of the ``order``-th moment."""
-
     assert order in (1, 2)
 
     if inplace:
