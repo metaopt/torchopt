@@ -31,7 +31,6 @@ dependencies:
 
   # Learning
   - pytorch::pytorch >= 1.12
-  - pytorch::torchvision
   - pytorch::pytorch-mutex = *=*cpu*
   - pip:
       - functorch >= 0.2

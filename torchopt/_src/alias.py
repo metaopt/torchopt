@@ -143,7 +143,7 @@ def sgd(
                 nesterov=nesterov,
                 moment_requires_grad=moment_requires_grad,
             )
-            if momentum is not None
+            if momentum is not None and momentum != 0.0
             else base.identity()
         ),
         _scale_by_lr(lr),
@@ -194,20 +194,20 @@ def rmsprop(
     if centered:
         return combine.chain(
             transform.scale_by_stddev(decay=decay, eps=eps, initial_scale=initial_scale),
-            _scale_by_lr(lr),
             (
                 transform.trace(decay=momentum, nesterov=nesterov)
-                if momentum is not None
+                if momentum is not None and momentum != 0.0
                 else base.identity()
             ),
+            _scale_by_lr(lr),
         )
 
     return combine.chain(
         transform.scale_by_rms(decay=decay, eps=eps, initial_scale=initial_scale),
-        _scale_by_lr(lr),
         (
             transform.trace(decay=momentum, nesterov=nesterov)
-            if momentum is not None
+            if momentum is not None and momentum != 0.0
             else base.identity()
         ),
+        _scale_by_lr(lr),
     )
