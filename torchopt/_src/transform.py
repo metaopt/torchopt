@@ -348,7 +348,7 @@ def trace(
             if inplace:
 
                 def f1(g, t):
-                    return t.copy_(t.mul_(decay).add_(g, alpha=1.0))
+                    return t.mul_(decay).add_(g)
 
                 def f2(g, t):
                     return g.add_(t, alpha=decay)
@@ -369,21 +369,20 @@ def trace(
             if inplace:
 
                 def f(g, t):
-                    return t.mul_(decay).add_(g, alpha=1.0)
+                    return t.mul_(decay).add_(g)
 
-                def copy_(t, g):
-                    t.copy_(g)
+                def copy_(g, t):
+                    return g.copy_(t)
 
-                updates = pytree.tree_map(f, updates, state.trace)
-                pytree.tree_map(copy_, state.trace, updates)
-                new_trace = state.trace
+                new_trace = pytree.tree_map(f, updates, state.trace)
+                updates = pytree.tree_map(copy_, updates, state.trace)
             else:
 
                 def f(g, t):
                     return t.mul(decay).add(g)
 
-                updates = pytree.tree_map(f, updates, state.trace)
-                new_trace = updates
+                new_trace = pytree.tree_map(f, updates, state.trace)
+                updates = new_trace
 
         return updates, TraceState(trace=new_trace)
 
