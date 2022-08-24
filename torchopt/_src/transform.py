@@ -43,6 +43,7 @@ from torchopt._src.utils import pytree
 
 ScaleState = base.EmptyState
 INT32_MAX = torch.iinfo(torch.int32).max
+TRIPLE_PYTREEDEF = pytree.tree_structure((0, 1, 2))
 
 
 def inc_count(updates, count: Tuple[torch.Tensor, ...]) -> Tuple[torch.Tensor, ...]:
@@ -51,12 +52,9 @@ def inc_count(updates, count: Tuple[torch.Tensor, ...]) -> Tuple[torch.Tensor, .
     Returns:
         A counter incremeted by one, or max_int if the maximum precision is reached.
     """
-    one = torch.ones(1, dtype=torch.int32, device=count[0].device)
 
     def f(c, g):
-        return (
-            c + (1 - torch.div(c, INT32_MAX, rounding_mode='trunc')) * one if g is not None else c
-        )
+        return c + (c != INT32_MAX).to(torch.int32) if g is not None else c
 
     return pytree.tree_map(f, count, updates)
 
@@ -114,7 +112,7 @@ def scale_by_schedule(step_size_fn: Schedule) -> base.GradientTransformation:
         zero = pytree.tree_map(  # Count init
             lambda t: torch.zeros(1, dtype=torch.int32, device=t.device), params
         )
-        return ScaleByScheduleState(count=tuple(zero))
+        return ScaleByScheduleState(count=zero)
 
     def update_fn(updates, state, inplace=True):
         step_size = step_size_fn(state.count)
@@ -160,9 +158,9 @@ def _update_moment_per_elem_norm(updates, moments, decay, order, inplace=True):
 class ScaleByAdamState(NamedTuple):
     """State for the Adam algorithm."""
 
-    count: Tuple[torch.Tensor, ...]  # type: ignore
     mu: base.Updates
     nu: base.Updates
+    count: Tuple[torch.Tensor, ...]  # type: ignore
 
 
 def _bias_correction(moment, decay, count, inplace=True):
@@ -210,20 +208,20 @@ def scale_by_adam(
     """
 
     def init_fn(params):
-        zero = pytree.tree_map(  # Count init
+        zero = pytree.tree_map(  # count init
             lambda t: torch.zeros(1, dtype=torch.int32, device=t.device), params
         )
-        mu = pytree.tree_map(  # First moment
+        mu = pytree.tree_map(  # first moment
             lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params
         )
-        nu = pytree.tree_map(  # Second moment
+        nu = pytree.tree_map(  # second moment
             lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params
         )
-        return ScaleByAdamState(count=tuple(zero), mu=tuple(mu), nu=tuple(nu))
+        return ScaleByAdamState(mu=mu, nu=nu, count=zero)
 
     def update_fn(updates, state, inplace=True):
-        mu = _update_moment(updates, state.mu, b1, 1, inplace)
-        nu = _update_moment_per_elem_norm(updates, state.nu, b2, 2, inplace)
+        mu = _update_moment(updates, state.mu, b1, order=1, inplace=inplace)
+        nu = _update_moment_per_elem_norm(updates, state.nu, b2, order=2, inplace=inplace)
         count_inc = inc_count(updates, state.count)
         mu_hat = _bias_correction(mu, b1, count_inc, False)
         nu_hat = _bias_correction(nu, b2, count_inc, False)
@@ -238,7 +236,7 @@ def scale_by_adam(
                 return m.div(torch.sqrt(v.add(eps_root)).add(eps)) if g is not None else None
 
         updates = pytree.tree_map(f, updates, mu_hat, nu_hat)
-        return updates, ScaleByAdamState(count=count_inc, mu=mu, nu=nu)
+        return updates, ScaleByAdamState(mu=mu, nu=nu, count=count_inc)
 
     return base.GradientTransformation(init_fn, update_fn)
 
@@ -276,29 +274,27 @@ def scale_by_accelerated_adam(
     from torchopt._src.accelerated_op import AdamOp  # pylint: disable=import-outside-toplevel
 
     def init_fn(params):
-        zero = pytree.tree_map(  # Count init
+        zero = pytree.tree_map(  # count init
             lambda t: torch.zeros(1, dtype=torch.int32, device=t.device), params
         )
-        mu = pytree.tree_map(  # First moment
+        mu = pytree.tree_map(  # first moment
             lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params
         )
-        nu = pytree.tree_map(  # Second moment
+        nu = pytree.tree_map(  # second moment
             lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params
         )
-        return ScaleByAdamState(count=tuple(zero), mu=mu, nu=nu)
+        return ScaleByAdamState(mu=mu, nu=nu, count=zero)
 
     def update_fn(updates, state, inplace=True):
         count_inc = inc_count(updates, state.count)
+
+        treedef = pytree.tree_structure(updates)
+
         op = AdamOp(b1, b2, eps, eps_root, inplace)
         out = pytree.tree_map(op, state.mu, state.nu, updates, count_inc)
-        new_mus, new_nus, new_updates = [], [], []
-        for new_mu, new_nu, new_update in out:
-            new_mus.append(new_mu)
-            new_nus.append(new_nu)
-            new_updates.append(new_update)
-        return tuple(new_updates), ScaleByAdamState(
-            count=count_inc, mu=tuple(new_mus), nu=tuple(new_nus)
-        )
+
+        new_mu, new_nu, new_updates = pytree.tree_transpose(treedef, TRIPLE_PYTREEDEF, out)
+        return new_updates, ScaleByAdamState(mu=new_mu, nu=new_nu, count=count_inc)
 
     return base.GradientTransformation(init_fn, update_fn)
 
@@ -338,8 +334,7 @@ def trace(
 
         return TraceState(
             trace=pytree.tree_map(
-                lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad),
-                params,
+                lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params
             )
         )
 
@@ -420,7 +415,7 @@ def scale_by_rms(
         return ScaleByRmsState(nu=nu)
 
     def update_fn(updates, state, inplace=True):
-        nu = _update_moment_per_elem_norm(updates, state.nu, decay, 2, inplace)
+        nu = _update_moment_per_elem_norm(updates, state.nu, decay, order=2, inplace=inplace)
         if inplace:
 
             def f(g, n):
@@ -472,13 +467,13 @@ def scale_by_stddev(
     """
 
     def init_fn(params):
-        mu = pytree.tree_map(torch.zeros_like, params)  # First moment
+        mu = pytree.tree_map(torch.zeros_like, params)  # first moment
         nu = pytree.tree_map(lambda n: torch.full_like(n, initial_scale), params)  # second moment
         return ScaleByRStdDevState(mu=mu, nu=nu)
 
     def update_fn(updates, state, inplace=True):
-        mu = _update_moment(updates, state.mu, decay, 1, inplace)
-        nu = _update_moment_per_elem_norm(updates, state.nu, decay, 2, inplace)
+        mu = _update_moment(updates, state.mu, decay, order=1, inplace=inplace)
+        nu = _update_moment_per_elem_norm(updates, state.nu, decay, order=2, inplace=inplace)
         if inplace:
 
             def f(g, m, n):
