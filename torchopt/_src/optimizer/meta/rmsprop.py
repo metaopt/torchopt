@@ -41,6 +41,7 @@ class MetaRMSProp(MetaOptimizer):
         centered: bool = False,
         momentum: Optional[float] = None,
         nesterov: bool = False,
+        maximize: bool = False,
     ):
         """The :meth:`init` function.
 
@@ -61,6 +62,8 @@ class MetaRMSProp(MetaOptimizer):
                 differentiable.
             nesterov: (default: :data:`False`)
                 Whether the nesterov momentum is used.
+            maximize: (default: :data:`False`)
+                Maximize the params based on the objective, instead of minimizing.
         """
         super().__init__(
             net,
@@ -72,5 +75,6 @@ class MetaRMSProp(MetaOptimizer):
                 centered=centered,
                 momentum=momentum,
                 nesterov=nesterov,
+                maximize=maximize,
             ),
         )
