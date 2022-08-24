@@ -39,7 +39,7 @@ def test_sgd(
 
     chain = torchopt.combine.chain(
         torchopt.clip.clip_grad_norm(max_norm=max_norm),
-        torchopt.sgd(lr=lr, momentum=(momentum if momentum != 0.0 else None), nesterov=nesterov),
+        torchopt.sgd(lr=lr, momentum=momentum, nesterov=nesterov),
     )
     optim = torchopt.Optimizer(model.parameters(), chain)
     optim_ref = torch.optim.SGD(
