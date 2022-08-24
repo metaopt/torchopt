@@ -29,8 +29,9 @@ import torchopt
     lr=[1e-3, 1e-4],
     momentum=[0.0, 0.1],
     nesterov=[False, True],
+    inplace=[True, False],
 )
-def test_sgd(dtype: torch.dtype, lr: float, momentum: float, nesterov: bool) -> None:
+def test_sgd(dtype: torch.dtype, lr: float, momentum: float, nesterov: bool, inplace: bool) -> None:
     if nesterov and momentum <= 0.0:
         pytest.skip('Nesterov momentum requires a momentum and zero dampening.')
 
@@ -56,7 +57,7 @@ def test_sgd(dtype: torch.dtype, lr: float, momentum: float, nesterov: bool) -> 
         loss_ref = F.cross_entropy(pred_ref, ys)
 
         grad = torch.autograd.grad(loss, params)
-        updates, optim_state = optim.update(grad, optim_state)
+        updates, optim_state = optim.update(grad, optim_state, inplace=inplace)
         params = torchopt.apply_updates(params, updates)
 
         optim_ref.zero_grad()
@@ -71,8 +72,11 @@ def test_sgd(dtype: torch.dtype, lr: float, momentum: float, nesterov: bool) -> 
     lr=[1e-3, 1e-4],
     betas=[(0.9, 0.999), (0.95, 0.9995)],
     eps=[1e-8],
+    inplace=[True, False],
 )
-def test_adam(dtype: torch.dtype, lr: float, betas: Tuple[float, float], eps: float) -> None:
+def test_adam(
+    dtype: torch.dtype, lr: float, betas: Tuple[float, float], eps: float, inplace: bool
+) -> None:
     model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
 
     fmodel, params, buffers = functorch.make_functional_with_buffers(model)
@@ -90,7 +94,7 @@ def test_adam(dtype: torch.dtype, lr: float, betas: Tuple[float, float], eps: fl
         loss_ref = F.cross_entropy(pred_ref, ys)
 
         grad = torch.autograd.grad(loss, params)
-        updates, optim_state = optim.update(grad, optim_state)
+        updates, optim_state = optim.update(grad, optim_state, inplace=inplace)
         params = torchopt.apply_updates(params, updates)
 
         optim_ref.zero_grad()
@@ -105,9 +109,10 @@ def test_adam(dtype: torch.dtype, lr: float, betas: Tuple[float, float], eps: fl
     lr=[1e-3, 1e-4],
     betas=[(0.9, 0.999), (0.95, 0.9995)],
     eps=[1e-8],
+    inplace=[True, False],
 )
 def test_accelerated_adam_cpu(
-    dtype: torch.dtype, lr: float, betas: Tuple[float, float], eps: float
+    dtype: torch.dtype, lr: float, betas: Tuple[float, float], eps: float, inplace: bool
 ) -> None:
     model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
 
@@ -128,7 +133,7 @@ def test_accelerated_adam_cpu(
         loss_ref = F.cross_entropy(pred_ref, ys)
 
         grad = torch.autograd.grad(loss, params)
-        updates, optim_state = optim.update(grad, optim_state)
+        updates, optim_state = optim.update(grad, optim_state, inplace=inplace)
         params = torchopt.apply_updates(params, updates)
 
         optim_ref.zero_grad()
@@ -144,9 +149,10 @@ def test_accelerated_adam_cpu(
     lr=[1e-3, 1e-4],
     betas=[(0.9, 0.999), (0.95, 0.9995)],
     eps=[1e-8],
+    inplace=[True, False],
 )
 def test_accelerated_adam_cuda(
-    dtype: torch.dtype, lr: float, betas: Tuple[float, float], eps: float
+    dtype: torch.dtype, lr: float, betas: Tuple[float, float], eps: float, inplace: bool
 ) -> None:
     device = 'cuda'
     model, model_ref, model_base, loader = helpers.get_models(device=device, dtype=dtype)
@@ -169,7 +175,7 @@ def test_accelerated_adam_cuda(
         loss_ref = F.cross_entropy(pred_ref, ys)
 
         grad = torch.autograd.grad(loss, params)
-        updates, optim_state = optim.update(grad, optim_state)
+        updates, optim_state = optim.update(grad, optim_state, inplace=inplace)
         params = torchopt.apply_updates(params, updates)
 
         optim_ref.zero_grad()
@@ -186,9 +192,16 @@ def test_accelerated_adam_cuda(
     eps=[1e-8],
     momentum=[0.0, 0.1],
     centered=[False, True],
+    inplace=[True, False],
 )
 def test_rmsprop(
-    dtype: torch.dtype, lr: float, alpha: float, eps: float, momentum: float, centered: bool
+    dtype: torch.dtype,
+    lr: float,
+    alpha: float,
+    eps: float,
+    momentum: float,
+    centered: bool,
+    inplace: bool,
 ) -> None:
     model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
 
@@ -220,7 +233,7 @@ def test_rmsprop(
         loss_ref = F.cross_entropy(pred_ref, ys)
 
         grad = torch.autograd.grad(loss, params)
-        updates, optim_state = optim.update(grad, optim_state)
+        updates, optim_state = optim.update(grad, optim_state, inplace=inplace)
         params = torchopt.apply_updates(params, updates)
 
         optim_ref.zero_grad()
