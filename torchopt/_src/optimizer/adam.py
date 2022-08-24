@@ -39,6 +39,7 @@ class Adam(Optimizer):
         b2: float = 0.999,
         eps: float = 1e-8,
         eps_root: float = 0.0,
+        maximize: bool = False,
         use_accelerated_op: bool = False,
     ):
         r"""The :meth:`init` function.
@@ -55,6 +56,8 @@ class Adam(Optimizer):
                 A small constant applied to denominator inside the square root (as in RMSProp), to
                 avoid dividing by zero when rescaling. This is needed for example when computing
                 (meta-)gradients through Adam.
+            maximize: (default: :data:`False`)
+                Maximize the params based on the objective, instead of minimizing.
             use_accelerated_op: (default: :data:`False`)
                 If :data:`True` use our implemented fused operator.
         """
@@ -67,6 +70,7 @@ class Adam(Optimizer):
                 eps=eps,
                 eps_root=eps_root,
                 moment_requires_grad=False,
+                maximize=maximize,
                 use_accelerated_op=use_accelerated_op,
             ),
         )

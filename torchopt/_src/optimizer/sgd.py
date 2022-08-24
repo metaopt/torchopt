@@ -30,12 +30,14 @@ class SGD(Optimizer):
         - The differentiable meta-SGD optimizer: :class:`torchopt.MetaSGD`.
     """
 
+    # pylint: disable-next=too-many-arguments
     def __init__(
         self,
         params: Iterable[torch.Tensor],
         lr: ScalarOrSchedule,
         momentum: Optional[float] = None,
         nesterov: bool = False,
+        maximize: bool = False,
     ):
         r"""The :meth:`init` function.
 
@@ -48,6 +50,8 @@ class SGD(Optimizer):
                 momentum is not used at all.
             nesterov: (default: :data:`False`)
                 Whether the nesterov momentum is used.
+            maximize: (default: :data:`False`)
+                Maximize the params based on the objective, instead of minimizing.
         """
         super().__init__(
             params,
@@ -56,5 +60,6 @@ class SGD(Optimizer):
                 momentum=momentum,
                 nesterov=nesterov,
                 moment_requires_grad=False,
+                maximize=maximize,
             ),
         )

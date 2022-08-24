@@ -41,6 +41,7 @@ class RMSProp(Optimizer):
         centered: bool = False,
         momentum: Optional[float] = None,
         nesterov: bool = False,
+        maximize: bool = False,
     ):
         r"""The `init` function.
 
@@ -62,6 +63,8 @@ class RMSProp(Optimizer):
                 momentum is not used at all.
             nesterov: (default: :data:`False`)
                 Whether the nesterov momentum is used.
+            maximize: (default: :data:`False`)
+                Maximize the params based on the objective, instead of minimizing.
         """
         super().__init__(
             params,
@@ -73,5 +76,6 @@ class RMSProp(Optimizer):
                 centered=centered,
                 momentum=momentum,
                 nesterov=nesterov,
+                maximize=maximize,
             ),
         )
