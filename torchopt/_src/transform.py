@@ -165,17 +165,11 @@ class ScaleByAdamState(NamedTuple):
     count: Tuple[torch.Tensor, ...]  # type: ignore
 
 
-def _bias_correction(moment, decay, count, inplace=True):
+def _bias_correction(moment, decay, count):
     """Perform bias correction. This becomes a no-op as count goes to infinity."""
-    if inplace:
 
-        def f(t, c):
-            return t.div_(1 - decay**c)
-
-    else:
-
-        def f(t, c):
-            return t.div(1 - decay**c)
+    def f(t, c):
+        return t.div(1 - decay**c)
 
     return pytree.tree_map(f, moment, count)
 
@@ -225,8 +219,8 @@ def scale_by_adam(
         mu = _update_moment(updates, state.mu, b1, order=1, inplace=inplace)
         nu = _update_moment(updates, state.nu, b2, order=2, inplace=inplace)
         count_inc = inc_count(updates, state.count)
-        mu_hat = _bias_correction(mu, b1, count_inc, False)
-        nu_hat = _bias_correction(nu, b2, count_inc, False)
+        mu_hat = _bias_correction(mu, b1, count_inc)
+        nu_hat = _bias_correction(nu, b2, count_inc)
         if inplace:
 
             def f(g, m, v):
