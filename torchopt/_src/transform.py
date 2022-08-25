@@ -187,17 +187,17 @@ def scale_by_adam(
         [Kingma et al, 2014](https://arxiv.org/abs/1412.6980)
 
     Args:
-        b1:
+        b1: (float, default: :const:`0.9`)
             Decay rate for the exponentially weighted average of grads.
-        b2:
+        b2: (float, default: :const:`0.999`)
             Decay rate for the exponentially weighted average of squared grads.
-        eps:
+        eps: (float, default: :const:`1e-8`)
             Term added to the denominator to improve numerical stability.
-        eps_root:
+        eps_root: (float, default: :const:`0.0`)
             Term added to the denominator inside the square-root to improve
             numerical stability when back-propagating gradients through the rescaling.
-        moment_requires_grad:
-            If true, states will be created with flag `requires_grad = True`.
+        moment_requires_grad: (bool, default: :data:`False`)
+            if :data:`True`, states will be created with flag `requires_grad = True`.
 
     Returns:
         An (init_fn, update_fn) tuple.
@@ -252,17 +252,17 @@ def scale_by_accelerated_adam(
         [Kingma et al, 2014](https://arxiv.org/abs/1412.6980)
 
     Args:
-        b1:
+        b1: (float, default: :const:`0.9`)
             Decay rate for the exponentially weighted average of grads.
-        b2:
+        b2: (float, default: :const:`0.999`)
             Decay rate for the exponentially weighted average of squared grads.
-        eps:
+        eps: (float, default: :const:`1e-8`)
             Term added to the denominator to improve numerical stability.
-        eps_root:
+        eps_root: (float, default: :const:`0.0`)
             Term added to the denominator inside the square-root to improve
             numerical stability when back-propagating gradients through the rescaling.
-        moment_requires_grad:
-            If true, states will be created with flag `requires_grad = True`.
+        moment_requires_grad: (bool, default: :data:`False`)
+            if :data:`True`, states will be created with flag `requires_grad = True`.
 
     Returns:
         An (init_fn, update_fn) tuple.

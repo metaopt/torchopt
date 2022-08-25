@@ -13,6 +13,8 @@
 # limitations under the License.
 # ==============================================================================
 
+from typing import Tuple
+
 import torch.nn as nn
 
 from torchopt._src.alias import adam
@@ -32,10 +34,10 @@ class MetaAdam(MetaOptimizer):
     def __init__(
         self,
         net: nn.Module,
-        lr: ScalarOrSchedule,
-        b1: float = 0.9,
-        b2: float = 0.999,
+        lr: ScalarOrSchedule = 1e-3,
+        betas: Tuple[float, float] = (0.9, 0.999),
         eps: float = 1e-8,
+        *,
         eps_root: float = 0.0,
         moment_requires_grad: bool = True,
         maximize: bool = False,
@@ -44,31 +46,32 @@ class MetaAdam(MetaOptimizer):
         """The :meth:`init` function.
 
         Args:
-            net (nn.Module): A network whose parameters should be optimized.
-            args: Other arguments see also :func:`torchopt.adam`,
-            lr: This is a fixed global scaling factor.
-            b1: The exponential decay rate to track the first moment of past gradients.
-            b2: The exponential decay rate to track the second moment of past gradients.
-            eps: A small constant applied to denominator outside of the square root (as in the Adam
+            net: (nn.Module)
+                A network whose parameters should be optimized.
+            lr: (float, default: :const:`1e-3`)
+                This is a fixed global scaling factor.
+            betas: (Tuple[float, float], default: :const:`1e-3`)
+                Coefficients used for computing running averages of gradient and its square.
+            eps: (float, default: :const:`1e-8`)
+                A small constant applied to denominator outside of the square root (as in the Adam
                 paper) to avoid dividing by zero when rescaling.
-            eps_root: (default: :data:`0.0`)
+            eps_root: (float, default: :data:`0.0`)
                 A small constant applied to denominator inside the square root (as in RMSProp), to
                 avoid dividing by zero when rescaling. This is needed for example when computing
                 (meta-)gradients through Adam.
-            moment_requires_grad: (default: :data:`True`)
+            moment_requires_grad: (bool, default: :data:`True`)
                 Here we set ``moment_requires_grad=True`` to make tensors like momentum be
                 differentiable.
-            maximize: (default: :data:`False`)
+            maximize: (bool, default: :data:`False`)
                 Maximize the params based on the objective, instead of minimizing.
-            use_accelerated_op: (default: :data:`False`)
+            use_accelerated_op: (bool, default: :data:`False`)
                 If :data:`True` use our implemented fused operator.
         """
         super().__init__(
             net,
             adam(
                 lr=lr,
-                b1=b1,
-                b2=b2,
+                betas=betas,
                 eps=eps,
                 eps_root=eps_root,
                 moment_requires_grad=moment_requires_grad,

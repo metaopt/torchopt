@@ -102,8 +102,7 @@ def test_adam(
     fmodel, params, buffers = functorch.make_functional_with_buffers(model)
     optim = torchopt.adam(
         lr,
-        b1=betas[0],
-        b2=betas[1],
+        betas=betas,
         eps=eps,
         eps_root=0.0,
         maximize=maximize,
@@ -158,8 +157,7 @@ def test_accelerated_adam_cpu(
     fmodel, params, buffers = functorch.make_functional_with_buffers(model)
     optim = torchopt.adam(
         lr,
-        b1=betas[0],
-        b2=betas[1],
+        betas=betas,
         eps=eps,
         eps_root=0.0,
         use_accelerated_op=True,
@@ -217,8 +215,7 @@ def test_accelerated_adam_cuda(
     fmodel, params, buffers = functorch.make_functional_with_buffers(model)
     optim = torchopt.adam(
         lr,
-        b1=betas[0],
-        b2=betas[1],
+        betas=betas,
         eps=eps,
         eps_root=0.0,
         maximize=maximize,

@@ -32,7 +32,7 @@
 
 # pylint: disable=invalid-name
 
-from typing import Optional
+from typing import Optional, Tuple
 
 from torchopt._src import base, combine, transform
 from torchopt._src.typing import ScalarOrSchedule
@@ -55,10 +55,10 @@ def _scale_by_lr(lr: ScalarOrSchedule, maximize=False):
 
 # pylint: disable-next=too-many-arguments
 def adam(
-    lr: ScalarOrSchedule,
-    b1: float = 0.9,
-    b2: float = 0.999,
+    lr: ScalarOrSchedule = 1e-3,
+    betas: Tuple[float, float] = (0.9, 0.999),
     eps: float = 1e-8,
+    *,
     eps_root: float = 0.0,
     moment_requires_grad: bool = False,
     maximize: bool = False,
@@ -74,22 +74,23 @@ def adam(
         - Kingma et al, 2014: https://arxiv.org/abs/1412.6980
 
     Args:
-        lr: This is a fixed global scaling factor.
-        b1: The exponential decay rate to track the first moment of past gradients.
-        b2: The exponential decay rate to track the second moment of past gradients.
-        eps:
+        lr: (float, default: :const:`1e-3`)
+            This is a fixed global scaling factor.
+        betas: (Tuple[float, float], default: :const:`1e-3`)
+            Coefficients used for computing running averages of gradient and its square.
+        eps: (float, default: :const:`1e-8`)
             A small constant applied to denominator outside of the square root (as in the Adam
             paper) to avoid dividing by zero when rescaling.
-        eps_root: (default: :data:`0.0`)
+        eps_root: (float, default: :data:`0.0`)
             A small constant applied to denominator inside the square root (as in RMSProp), to avoid
             dividing by zero when rescaling. This is needed for example when computing
             (meta-)gradients through Adam.
-        moment_requires_grad: (default: :data:`False`)
+        moment_requires_grad: (bool, default: :data:`True`)
             If :data:`True` the momentums will be created with flag ``requires_grad=True``, this
             flag is often used in Meta Learning algorithms.
-        maximize: (default: :data:`False`)
+        maximize: (bool, default: :data:`False`)
             Maximize the params based on the objective, instead of minimizing.
-        use_accelerated_op: (default: :data:`False`)
+        use_accelerated_op: (bool, default: :data:`False`)
             If :data:`True` use our implemented fused operator.
 
     Returns:
@@ -98,6 +99,7 @@ def adam(
     adam_inst = (
         transform.scale_by_accelerated_adam if use_accelerated_op else transform.scale_by_adam
     )
+    b1, b2 = betas
     return combine.chain(
         adam_inst(
             b1=b1,

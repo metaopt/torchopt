@@ -96,8 +96,7 @@ def test_adam(
     optim = torchopt.Adam(
         model.parameters(),
         lr,
-        b1=betas[0],
-        b2=betas[1],
+        betas=betas,
         eps=eps,
         eps_root=0.0,
         maximize=maximize,
@@ -149,8 +148,7 @@ def test_accelerated_adam_cpu(
     optim = torchopt.Adam(
         model.parameters(),
         lr,
-        b1=betas[0],
-        b2=betas[1],
+        betas=betas,
         eps=eps,
         eps_root=0.0,
         maximize=maximize,
@@ -205,8 +203,7 @@ def test_accelerated_adam_cuda(
     optim = torchopt.Adam(
         model.parameters(),
         lr,
-        b1=betas[0],
-        b2=betas[1],
+        betas=betas,
         eps=eps,
         eps_root=0.0,
         maximize=maximize,
