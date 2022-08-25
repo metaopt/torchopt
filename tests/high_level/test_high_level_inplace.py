@@ -259,7 +259,7 @@ def test_rmsprop(
     optim = torchopt.RMSProp(
         model.parameters(),
         lr,
-        decay=alpha,
+        alpha=alpha,
         eps=eps,
         momentum=momentum,
         centered=centered,

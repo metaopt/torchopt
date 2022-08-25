@@ -302,7 +302,7 @@ class TraceState(NamedTuple):
 
 
 def trace(
-    decay: float,
+    decay: float = 0.9,
     nesterov: bool = False,
     moment_requires_grad: bool = False,
 ) -> base.GradientTransformation:
@@ -313,12 +313,12 @@ def trace(
     Both are frequently found in the optimization literature.
 
     Args:
-        decay:
+        decay: (float, default: :const:`0.9`)
             The decay rate for the trace of past updates.
-        nesterov:
+        nesterov: (bool, default: :data:`False`)
             Whether to use Nesterov momentum.
-        moment_requires_grad:
-            If true, states will be created with flag `requires_grad = True`.
+        moment_requires_grad: (bool, default: :data:`False`)
+            if :data:`True`, states will be created with flag `requires_grad = True`.
 
     Returns:
         An (init_fn, update_fn) tuple.
@@ -387,7 +387,7 @@ class ScaleByRmsState(NamedTuple):
 
 
 def scale_by_rms(
-    decay: float = 0.9, eps: float = 1e-8, initial_scale: float = 0.0
+    alpha: float = 0.9, eps: float = 1e-8, initial_scale: float = 0.0
 ) -> base.GradientTransformation:
     """Rescale updates by the root of the exp. moving avg of the square.
 
@@ -395,11 +395,11 @@ def scale_by_rms(
         [Hinton](www.cs.toronto.edu/~tijmen/csc321/slides/lecture_slides_lec6.pdf)
 
     Args:
-        decay:
+        alpha: (float, default: :const:`0.9`)
             Decay rate for the exponentially weighted average of squared grads.
-        eps:
+        eps: (float, default: :const:`1e-8`)
             Term added to the denominator to improve numerical stability.
-        initial_scale:
+        initial_scale: (float, default: :const:`0.0`)
             Initial value for second moment
 
     Returns:
@@ -411,7 +411,7 @@ def scale_by_rms(
         return ScaleByRmsState(nu=nu)
 
     def update_fn(updates, state, inplace=True):
-        nu = _update_moment(updates, state.nu, decay, order=2, inplace=inplace)
+        nu = _update_moment(updates, state.nu, alpha, order=2, inplace=inplace)
 
         if inplace:
 
@@ -437,7 +437,7 @@ class ScaleByRStdDevState(NamedTuple):
 
 
 def scale_by_stddev(
-    decay: float = 0.9, eps: float = 1e-8, initial_scale: float = 0.0
+    alpha: float = 0.9, eps: float = 1e-8, initial_scale: float = 0.0
 ) -> base.GradientTransformation:
     """Rescale updates by the root of the centered exp. moving average of squares.
 
@@ -445,11 +445,11 @@ def scale_by_stddev(
         [Hinton](www.cs.toronto.edu/~tijmen/csc321/slides/lecture_slides_lec6.pdf)
 
     Args:
-        decay:
+        alpha: (float, default: :const:`0.9`)
             Decay rate for the exponentially weighted average of squared grads.
-        eps:
+        eps: (float, default: :const:`1e-8`)
             Term added to the denominator to improve numerical stability.
-        initial_scale:
+        initial_scale: (float, default: :const:`0.0`)
             Initial value for second moment
 
     Returns:
@@ -462,8 +462,8 @@ def scale_by_stddev(
         return ScaleByRStdDevState(mu=mu, nu=nu)
 
     def update_fn(updates, state, inplace=True):
-        mu = _update_moment(updates, state.mu, decay, order=1, inplace=inplace)
-        nu = _update_moment(updates, state.nu, decay, order=2, inplace=inplace)
+        mu = _update_moment(updates, state.mu, alpha, order=1, inplace=inplace)
+        nu = _update_moment(updates, state.nu, alpha, order=2, inplace=inplace)
 
         if inplace:
 

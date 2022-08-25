@@ -160,12 +160,13 @@ def sgd(
 
 # pylint: disable-next=too-many-arguments
 def rmsprop(
-    lr: ScalarOrSchedule,
-    decay: float = 0.9,
+    lr: ScalarOrSchedule = 1e-2,
+    alpha: float = 0.9,
     eps: float = 1e-8,
-    initial_scale: float = 0.0,
+    momentum: float = 0.0,
     centered: bool = False,
-    momentum: Optional[float] = None,
+    *,
+    initial_scale: float = 0.0,
     nesterov: bool = False,
     maximize: bool = False,
 ) -> base.GradientTransformation:
@@ -181,19 +182,22 @@ def rmsprop(
         - Graves, 2013: https://arxiv.org/abs/1308.0850
 
     Args:
-        lr: This is a fixed global scaling factor.
-        decay: The decay used to track the magnitude of previous gradients.
-        eps: A small numerical constant to avoid dividing by zero when rescaling.
-        initial_scale: (default: :data:`0.0`)
-            Initialization of accumulators tracking the magnitude of previous updates. PyTorch uses
-            :data:`0.0`, TensorFlow 1.x uses :data:`1.0`. When reproducing results from a paper,
-            verify the value used by the authors.
+        lr: (float, default: :const:`1e-2`)
+            This is a fixed global scaling factor.
+        alpha: (float, default: :const:`0.99`)
+            Smoothing constant, the decay used to track the magnitude of previous gradients.
+        eps: (float, default: :const:`1e-8`)
+            A small numerical constant to avoid dividing by zero when rescaling.
+        momentum: (float, default: :const:`0.0`)
+            The decay rate used by the momentum term. The momentum is not used when it is set to
+            :const:`0.0`.
         centered: (default: :data:`False`)
-            Whether the second moment or the variance of the past gradients is used to rescale the
-            latest gradients.
-        momentum: (default: :data:`None`)
-            The ``decay`` rate used by the momentum term, when it is set to :data:`None`, then
-            momentum is not used at all.
+            If :data:`True`, use the variance of the past gradients to rescale the latest
+            gradients.
+        initial_scale: (default: :data:`0.0`)
+            Initialization of accumulators tracking the magnitude of previous updates. PyTorch
+            uses :data:`0.0`, TensorFlow 1.x uses :data:`1.0`. When reproducing results from a
+            paper, verify the value used by the authors.
         nesterov: (default: :data:`False`)
             Whether the nesterov momentum is used.
         maximize: (default: :data:`False`)
@@ -204,7 +208,7 @@ def rmsprop(
     """
     if centered:
         return combine.chain(
-            transform.scale_by_stddev(decay=decay, eps=eps, initial_scale=initial_scale),
+            transform.scale_by_stddev(alpha=alpha, eps=eps, initial_scale=initial_scale),
             (
                 transform.trace(decay=momentum, nesterov=nesterov)
                 if momentum is not None and momentum != 0.0
@@ -214,7 +218,7 @@ def rmsprop(
         )
 
     return combine.chain(
-        transform.scale_by_rms(decay=decay, eps=eps, initial_scale=initial_scale),
+        transform.scale_by_rms(alpha=alpha, eps=eps, initial_scale=initial_scale),
         (
             transform.trace(decay=momentum, nesterov=nesterov)
             if momentum is not None and momentum != 0.0

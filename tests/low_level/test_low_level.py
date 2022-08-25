@@ -274,7 +274,7 @@ def test_rmsprop(
     fmodel, params, buffers = functorch.make_functional_with_buffers(model)
     optim = torchopt.rmsprop(
         lr,
-        decay=alpha,
+        alpha=alpha,
         eps=eps,
         momentum=momentum,
         centered=centered,
