@@ -31,7 +31,7 @@
 # ==============================================================================
 
 from abc import abstractmethod
-from typing import Callable, NamedTuple, Tuple
+from typing import Callable, NamedTuple, Optional, Tuple
 
 from typing_extensions import Protocol
 
@@ -82,7 +82,12 @@ class TransformUpdateFn(Protocol):  # pylint: disable=too-few-public-methods
 
     @abstractmethod
     def __call__(
-        self, updates: Updates, state: OptState, inplace: bool = True
+        self,
+        updates: Updates,
+        state: OptState,
+        *,
+        params: Optional[Params] = None,
+        inplace: bool = True,
     ) -> Tuple[Updates, OptState]:
         """The `update` function.
 
@@ -140,7 +145,7 @@ def identity() -> GradientTransformation:
     def init_fn(_):
         return EmptyState()
 
-    def update_fn(updates, state, inplace=True):  # pylint: disable=unused-argument
+    def update_fn(updates, state, *, params=None, inplace=True):  # pylint: disable=unused-argument
         return updates, state
 
     return GradientTransformation(init_fn, update_fn)

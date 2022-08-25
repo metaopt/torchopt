@@ -73,7 +73,7 @@ def scale(step_size: float) -> base.GradientTransformation:
         del params
         return ScaleState()
 
-    def update_fn(updates, state, inplace=True):
+    def update_fn(updates, state, *, params=None, inplace=True):  # pylint: disable=unused-argument
         if inplace:
 
             def f(g):
@@ -114,7 +114,7 @@ def scale_by_schedule(step_size_fn: Schedule) -> base.GradientTransformation:
         )
         return ScaleByScheduleState(count=zero)
 
-    def update_fn(updates, state, inplace=True):
+    def update_fn(updates, state, *, params=None, inplace=True):  # pylint: disable=unused-argument
         step_size = step_size_fn(state.count)
         if inplace:
             updates = pytree.tree_map(lambda g, step_size: g.mul_(step_size), updates, step_size)
@@ -125,7 +125,7 @@ def scale_by_schedule(step_size_fn: Schedule) -> base.GradientTransformation:
     return base.GradientTransformation(init_fn, update_fn)
 
 
-def _update_moment(updates, moments, decay, order, inplace=True):
+def _update_moment(updates, moments, decay, *, order, inplace=True):
     """Compute the exponential moving average of the ``order``-th moment."""
     assert order in (1, 2)
 
@@ -215,7 +215,7 @@ def scale_by_adam(
         )
         return ScaleByAdamState(mu=mu, nu=nu, count=zero)
 
-    def update_fn(updates, state, inplace=True):
+    def update_fn(updates, state, *, params=None, inplace=True):  # pylint: disable=unused-argument
         mu = _update_moment(updates, state.mu, b1, order=1, inplace=inplace)
         nu = _update_moment(updates, state.nu, b2, order=2, inplace=inplace)
         count_inc = inc_count(updates, state.count)
@@ -281,12 +281,12 @@ def scale_by_accelerated_adam(
         )
         return ScaleByAdamState(mu=mu, nu=nu, count=zero)
 
-    def update_fn(updates, state, inplace=True):
+    def update_fn(updates, state, *, params=None, inplace=True):  # pylint: disable=unused-argument
         count_inc = inc_count(updates, state.count)
 
         treedef = pytree.tree_structure(updates)
 
-        op = AdamOp(b1, b2, eps, eps_root, inplace)
+        op = AdamOp(b1=b1, b2=b2, eps=eps, eps_root=eps_root, inplace=inplace)
         out = pytree.tree_map(op, state.mu, state.nu, updates, count_inc)
 
         new_mu, new_nu, new_updates = pytree.tree_transpose(treedef, TRIPLE_PYTREEDEF, out)
@@ -334,7 +334,7 @@ def trace(
             )
         )
 
-    def update_fn(updates, state, inplace=True):
+    def update_fn(updates, state, *, params=None, inplace=True):  # pylint: disable=unused-argument
         if nesterov:
             if inplace:
 
@@ -410,7 +410,7 @@ def scale_by_rms(
         nu = pytree.tree_map(lambda n: torch.full_like(n, initial_scale), params)  # second moment
         return ScaleByRmsState(nu=nu)
 
-    def update_fn(updates, state, inplace=True):
+    def update_fn(updates, state, *, params=None, inplace=True):  # pylint: disable=unused-argument
         nu = _update_moment(updates, state.nu, alpha, order=2, inplace=inplace)
 
         if inplace:
@@ -461,7 +461,7 @@ def scale_by_stddev(
         nu = pytree.tree_map(lambda n: torch.full_like(n, initial_scale), params)  # second moment
         return ScaleByRStdDevState(mu=mu, nu=nu)
 
-    def update_fn(updates, state, inplace=True):
+    def update_fn(updates, state, *, params=None, inplace=True):  # pylint: disable=unused-argument
         mu = _update_moment(updates, state.mu, alpha, order=1, inplace=inplace)
         nu = _update_moment(updates, state.nu, alpha, order=2, inplace=inplace)
 

@@ -112,6 +112,7 @@ class AdamOp:  # pylint: disable=too-few-public-methods
         b1: float = 0.9,
         b2: float = 0.999,
         eps: float = 1e-8,
+        *,
         eps_root: float = 0.0,
         inplace: bool = True,
     ) -> None:

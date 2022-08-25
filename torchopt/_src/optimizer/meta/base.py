@@ -60,7 +60,12 @@ class MetaOptimizer:
             flattened_params, container_tree = pytree.tree_flatten(param_container)
             flattened_params = tuple(flattened_params)
             grad = torch.autograd.grad(loss, flattened_params, create_graph=True, allow_unused=True)
-            updates, new_state = self.impl.update(grad, new_state, inplace=False)
+            updates, new_state = self.impl.update(
+                grad,
+                new_state,
+                params=flattened_params,
+                inplace=False,
+            )
             self.state_groups[i] = new_state
             new_params = apply_updates(flattened_params, updates, inplace=False)
             unflattened_new_params = container_tree.unflatten(new_params)

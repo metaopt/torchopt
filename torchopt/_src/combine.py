@@ -52,7 +52,7 @@ def chain(*args: base.GradientTransformation) -> base.GradientTransformation:
     def init_fn(params):
         return tuple(fn(params) for fn in init_fns)
 
-    def update_fn(updates, state, inplace=True):
+    def update_fn(updates, state, *, params=None, inplace=True):
         if len(update_fns) != len(state):
             raise ValueError(
                 'The number of updates and states has to be the same in chain! Make sure you have '
@@ -60,7 +60,7 @@ def chain(*args: base.GradientTransformation) -> base.GradientTransformation:
             )
         new_state = []
         for s, fn in zip(state, update_fns):  # pylint: disable=invalid-name
-            updates, new_s = fn(updates, s, inplace=inplace)
+            updates, new_s = fn(updates, s, params=params, inplace=inplace)
             new_state.append(new_s)
         return updates, tuple(new_state)
 
