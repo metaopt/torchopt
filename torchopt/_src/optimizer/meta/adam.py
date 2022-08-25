@@ -60,8 +60,8 @@ class MetaAdam(MetaOptimizer):
                 avoid dividing by zero when rescaling. This is needed for example when computing
                 (meta-)gradients through Adam.
             moment_requires_grad: (bool, default: :data:`True`)
-                Here we set ``moment_requires_grad=True`` to make tensors like momentum be
-                differentiable.
+                If :data:`True` the momentums will be created with flag ``requires_grad=True``, this
+                flag is often used in Meta-Learning algorithms.
             maximize: (bool, default: :data:`False`)
                 Maximize the params based on the objective, instead of minimizing.
             use_accelerated_op: (bool, default: :data:`False`)

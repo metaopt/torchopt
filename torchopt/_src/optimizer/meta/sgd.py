@@ -13,8 +13,6 @@
 # limitations under the License.
 # ==============================================================================
 
-from typing import Optional
-
 import torch.nn as nn
 
 from torchopt._src.alias import sgd
@@ -35,7 +33,7 @@ class MetaSGD(MetaOptimizer):
         self,
         net: nn.Module,
         lr: ScalarOrSchedule,
-        momentum: Optional[float] = None,
+        momentum: float = 0.0,
         nesterov: bool = False,
         moment_requires_grad: bool = True,
         maximize: bool = False,
@@ -43,14 +41,19 @@ class MetaSGD(MetaOptimizer):
         """The :meth:`init` function.
 
         Args:
-            net: A network whose parameters should be optimized.
-            lr: This is a fixed global scaling factor.
-            momentum: The ``decay`` rate used by the momentum term, when it is set to :data:`None`,
-                then momentum is not used at all.
-            nesterov: Whether the nesterov momentum is used.
-            moment_requires_grad: Here we set ``moment_requires_grad=True`` to make tensors like
-                momentum be differentiable.
-            maximize: (default: :data:`False`)
+            net: (nn.Module)
+                A network whose parameters should be optimized.
+            lr: (float)
+                This is a fixed global scaling factor.
+            momentum: (float, default: :const:`0.0`)
+                The decay rate used by the momentum term. The momentum is not used when it is set to
+                :const:`0.0`.
+            nesterov: (bool, default: :const:`False`)
+                Whether the nesterov momentum is used.
+            moment_requires_grad: (bool, default: :data:`True`)
+                If :data:`True` the momentums will be created with flag ``requires_grad=True``, this
+                flag is often used in Meta-Learning algorithms.
+            maximize: (bool, default: :data:`False`)
                 Maximize the params based on the objective, instead of minimizing.
         """
         super().__init__(

@@ -32,7 +32,7 @@
 
 # pylint: disable=invalid-name
 
-from typing import Optional, Tuple
+from typing import Tuple
 
 from torchopt._src import base, combine, transform
 from torchopt._src.typing import ScalarOrSchedule
@@ -114,8 +114,9 @@ def adam(
 
 def sgd(
     lr: ScalarOrSchedule,
-    momentum: Optional[float] = None,
+    momentum: float = 0.0,
     nesterov: bool = False,
+    *,
     moment_requires_grad: bool = False,
     maximize: bool = False,
 ) -> base.GradientTransformation:
@@ -129,16 +130,17 @@ def sgd(
         - Sutskever et al, 2013: http://proceedings.mlr.press/v28/sutskever13.pdf
 
     Args:
-        lr: This is a fixed global scaling factor.
-        momentum: (default: :data:`None`)
-            The ``decay`` rate used by the momentum term, when it is set to :data:`None`, then
-            momentum is not used at all.
-        nesterov: (default: :data:`False`)
+        lr: (float)
+            This is a fixed global scaling factor.
+        momentum: (float, default: :const:`0.0`)
+            The decay rate used by the momentum term. The momentum is not used when it is set to
+            :const:`0.0`.
+        nesterov: (bool, default: :data:`False`)
             Whether the nesterov momentum is used.
-        moment_requires_grad: (default: :data:`False`)
+        moment_requires_grad: (bool, default: :data:`False`)
             If :data:`True` the momentums will be created with flag ``requires_grad=True``, this
             flag is often used in Meta-Learning algorithms.
-        maximize: (default: :data:`False`)
+        maximize: (bool, default: :data:`False`)
             Maximize the params based on the objective, instead of minimizing.
 
     Returns:
@@ -191,16 +193,16 @@ def rmsprop(
         momentum: (float, default: :const:`0.0`)
             The decay rate used by the momentum term. The momentum is not used when it is set to
             :const:`0.0`.
-        centered: (default: :data:`False`)
+        centered: (bool, default: :data:`False`)
             If :data:`True`, use the variance of the past gradients to rescale the latest
             gradients.
-        initial_scale: (default: :data:`0.0`)
+        initial_scale: (float, default: :data:`0.0`)
             Initialization of accumulators tracking the magnitude of previous updates. PyTorch
             uses :data:`0.0`, TensorFlow 1.x uses :data:`1.0`. When reproducing results from a
             paper, verify the value used by the authors.
-        nesterov: (default: :data:`False`)
+        nesterov: (bool, default: :data:`False`)
             Whether the nesterov momentum is used.
-        maximize: (default: :data:`False`)
+        maximize: (bool, default: :data:`False`)
             Maximize the params based on the objective, instead of minimizing.
 
     Returns:

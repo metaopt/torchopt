@@ -13,7 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 
-from typing import Iterable, Optional
+from typing import Iterable
 
 import torch
 
@@ -35,22 +35,23 @@ class SGD(Optimizer):
         self,
         params: Iterable[torch.Tensor],
         lr: ScalarOrSchedule,
-        momentum: Optional[float] = None,
+        momentum: float = 0.0,
         nesterov: bool = False,
         maximize: bool = False,
     ):
         r"""The :meth:`init` function.
 
         Args:
-            params (iterable of torch.Tensor): An iterable of :class:`torch.Tensor`\s. Specifies
-                what tensors should be optimized.
-            lr: This is a fixed global scaling factor.
-            momentum: (default: :data:`None`)
-                The ``decay`` rate used by the momentum term, when it is set to :data:`None`, then
-                momentum is not used at all.
-            nesterov: (default: :data:`False`)
+            params: (iterable of torch.Tensor)
+                An iterable of :class:`torch.Tensor`\s. Specifies what tensors should be optimized.
+            lr: (float)
+                This is a fixed global scaling factor.
+            momentum: (float, default: :const:`0.0`)
+                The decay rate used by the momentum term. The momentum is not used when it is set to
+                :const:`0.0`.
+            nesterov: (bool, default: :data:`False`)
                 Whether the nesterov momentum is used.
-            maximize: (default: :data:`False`)
+            maximize: (bool, default: :data:`False`)
                 Maximize the params based on the objective, instead of minimizing.
         """
         super().__init__(
