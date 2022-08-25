@@ -53,10 +53,10 @@ dependencies = [
 dynamic = ["version"]
 
 [project.urls]
-Homepage = "https://github.com/metaopt/TorchOpt"
-Repository = "https://github.com/metaopt/TorchOpt"
+Homepage = "https://github.com/metaopt/torchopt"
+Repository = "https://github.com/metaopt/torchopt"
 Documentation = "https://torchopt.readthedocs.io"
-"Bug Report" = "https://github.com/metaopt/TorchOpt/issues"
+"Bug Report" = "https://github.com/metaopt/torchopt/issues"
 
 [project.optional-dependencies]
 lint = [
