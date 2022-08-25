@@ -96,10 +96,21 @@ def adam(
     Returns:
         The corresponding :class:`GradientTransformation` instance.
     """
+    b1, b2 = betas
+    # pylint: disable=unneeded-not
+    if not (callable(lr) or 0.0 <= lr):
+        raise ValueError(f'Invalid learning rate: {lr}')
+    if not 0.0 <= eps:
+        raise ValueError(f'Invalid epsilon value: {eps}')
+    if not 0.0 <= b1 < 1.0:
+        raise ValueError(f'Invalid beta parameter at index 0: {b1}')
+    if not 0.0 <= b2 < 1.0:
+        raise ValueError(f'Invalid beta parameter at index 1: {b2}')
+    # pylint: enable=unneeded-not
+
     adam_inst = (
         transform.scale_by_accelerated_adam if use_accelerated_op else transform.scale_by_adam
     )
-    b1, b2 = betas
     return combine.chain(
         adam_inst(
             b1=b1,
@@ -146,6 +157,13 @@ def sgd(
     Returns:
         A :class:`GradientTransformation` instance.
     """
+    # pylint: disable=unneeded-not
+    if not (callable(lr) or 0.0 <= lr):
+        raise ValueError(f'Invalid learning rate: {lr}')
+    if not 0.0 <= momentum:
+        raise ValueError(f'Invalid momentum value: {momentum}')
+    # pylint: enable=unneeded-not
+
     return combine.chain(
         (
             transform.trace(
@@ -208,6 +226,17 @@ def rmsprop(
     Returns:
         The corresponding :class:`GradientTransformation` instance.
     """
+    # pylint: disable=unneeded-not
+    if not (callable(lr) or 0.0 <= lr):
+        raise ValueError(f'Invalid learning rate: {lr}')
+    if not 0.0 <= alpha:
+        raise ValueError(f'Invalid alpha value: {alpha}')
+    if not 0.0 <= eps:
+        raise ValueError(f'Invalid epsilon value: {eps}')
+    if not 0.0 <= momentum:
+        raise ValueError(f'Invalid momentum value: {momentum}')
+    # pylint: enable=unneeded-not
+
     if centered:
         return combine.chain(
             transform.scale_by_stddev(alpha=alpha, eps=eps, initial_scale=initial_scale),
