@@ -54,17 +54,17 @@ class MetaOptimizer:
                 parameters.
         """  # pylint: disable=line-too-long
         # step parameter only
-        for idx, (state, param_containers) in enumerate(
-            zip(self.state_groups, self.param_containers_groups)
+        for i, (param_container, new_state) in enumerate(
+            zip(self.param_containers_groups, self.state_groups)
         ):
-            flatten_params, containers_tree = pytree.tree_flatten(param_containers)
-            flatten_params = tuple(flatten_params)
-            grad = torch.autograd.grad(loss, flatten_params, create_graph=True, allow_unused=True)
-            updates, state = self.impl.update(grad, state, False)
-            self.state_groups[idx] = state
-            new_params = apply_updates(flatten_params, updates, inplace=False)
-            unflatten_new_params = containers_tree.unflatten(new_params)
-            for container, unflatten_param in zip(param_containers, unflatten_new_params):
+            flattened_params, container_tree = pytree.tree_flatten(param_container)
+            flattened_params = tuple(flattened_params)
+            grad = torch.autograd.grad(loss, flattened_params, create_graph=True, allow_unused=True)
+            updates, new_state = self.impl.update(grad, new_state, inplace=False)
+            self.state_groups[i] = new_state
+            new_params = apply_updates(flattened_params, updates, inplace=False)
+            unflattened_new_params = container_tree.unflatten(new_params)
+            for container, unflatten_param in zip(param_container, unflattened_new_params):
                 container.update(unflatten_param)
 
     def add_param_group(self, net):
@@ -73,11 +73,10 @@ class MetaOptimizer:
         from torchopt._src.utils import _extract_container
 
         net_container = _extract_container(net, with_buffer=False)
-        flatten_param = pytree.tree_leaves(net_container)
-        flatten_param = tuple(flatten_param)
-        optim_state = self.impl.init(flatten_param)
-        self.state_groups.append(optim_state)
+        flattened_params = tuple(pytree.tree_leaves(net_container))
+        optimizer_state = self.impl.init(flattened_params)
         self.param_containers_groups.append(net_container)
+        self.state_groups.append(optimizer_state)
 
     def state_dict(self):
         """Extract the references of the optimizer states.
@@ -85,9 +84,8 @@ class MetaOptimizer:
         Note that the states are references, so any in-place operations will change the states
         inside :class:`MetaOptimizer` at the same time.
         """
-        out_groups = tuple(group for group in self.state_groups)
-        return out_groups
+        return tuple(self.state_groups)
 
     def load_state_dict(self, state_dict):
         """Load the references of the optimizer states."""
-        self.state_groups = list(group for group in state_dict)
+        self.state_groups[:] = list(state_dict)
