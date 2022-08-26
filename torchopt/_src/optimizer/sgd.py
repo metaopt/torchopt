@@ -36,6 +36,7 @@ class SGD(Optimizer):
         params: Iterable[torch.Tensor],
         lr: ScalarOrSchedule,
         momentum: float = 0.0,
+        weight_decay: float = 0.0,
         nesterov: bool = False,
         maximize: bool = False,
     ):
@@ -49,6 +50,8 @@ class SGD(Optimizer):
             momentum: (float, default: :const:`0.0`)
                 The decay rate used by the momentum term. The momentum is not used when it is set to
                 :const:`0.0`.
+            weight_decay: (float, default: :const:`0.0`):
+                Weight decay, add L2 penalty to parameters.
             nesterov: (bool, default: :data:`False`)
                 Whether the nesterov momentum is used.
             maximize: (bool, default: :data:`False`)
@@ -59,6 +62,7 @@ class SGD(Optimizer):
             sgd(
                 lr=lr,
                 momentum=momentum,
+                weight_decay=weight_decay,
                 nesterov=nesterov,
                 moment_requires_grad=False,
                 maximize=maximize,

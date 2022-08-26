@@ -34,6 +34,7 @@ class MetaSGD(MetaOptimizer):
         net: nn.Module,
         lr: ScalarOrSchedule,
         momentum: float = 0.0,
+        weight_decay: float = 0.0,
         nesterov: bool = False,
         moment_requires_grad: bool = True,
         maximize: bool = False,
@@ -48,6 +49,8 @@ class MetaSGD(MetaOptimizer):
             momentum: (float, default: :const:`0.0`)
                 The decay rate used by the momentum term. The momentum is not used when it is set to
                 :const:`0.0`.
+            weight_decay: (float, default: :const:`0.0`):
+                Weight decay, add L2 penalty to parameters.
             nesterov: (bool, default: :const:`False`)
                 Whether the nesterov momentum is used.
             moment_requires_grad: (bool, default: :data:`True`)
@@ -61,6 +64,7 @@ class MetaSGD(MetaOptimizer):
             sgd(
                 lr=lr,
                 momentum=momentum,
+                weight_decay=weight_decay,
                 nesterov=nesterov,
                 moment_requires_grad=moment_requires_grad,
                 maximize=maximize,

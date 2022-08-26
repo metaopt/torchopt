@@ -37,6 +37,7 @@ class MetaAdam(MetaOptimizer):
         lr: ScalarOrSchedule = 1e-3,
         betas: Tuple[float, float] = (0.9, 0.999),
         eps: float = 1e-8,
+        weight_decay: float = 0.0,
         *,
         eps_root: float = 0.0,
         moment_requires_grad: bool = True,
@@ -55,6 +56,8 @@ class MetaAdam(MetaOptimizer):
             eps: (float, default: :const:`1e-8`)
                 A small constant applied to denominator outside of the square root (as in the Adam
                 paper) to avoid dividing by zero when rescaling.
+            weight_decay: (float, default: :const:`0.0`):
+                Weight decay, add L2 penalty to parameters.
             eps_root: (float, default: :data:`0.0`)
                 A small constant applied to denominator inside the square root (as in RMSProp), to
                 avoid dividing by zero when rescaling. This is needed for example when computing
@@ -73,6 +76,7 @@ class MetaAdam(MetaOptimizer):
                 lr=lr,
                 betas=betas,
                 eps=eps,
+                weight_decay=weight_decay,
                 eps_root=eps_root,
                 moment_requires_grad=moment_requires_grad,
                 maximize=maximize,

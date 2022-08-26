@@ -37,6 +37,7 @@ class RMSProp(Optimizer):
         lr: ScalarOrSchedule = 1e-2,
         alpha: float = 0.99,
         eps: float = 1e-8,
+            weight_decay: float = 0.0,
         momentum: float = 0.0,
         centered: bool = False,
         *,
@@ -55,6 +56,8 @@ class RMSProp(Optimizer):
                 Smoothing constant, the decay used to track the magnitude of previous gradients.
             eps: (float, default: :const:`1e-8`)
                 A small numerical constant to avoid dividing by zero when rescaling.
+            weight_decay: (float, default: :const:`0.0`):
+                Weight decay, add L2 penalty to parameters.
             momentum: (float, default: :const:`0.0`)
                 The decay rate used by the momentum term. The momentum is not used when it is set to
                 :const:`0.0`.
@@ -76,6 +79,7 @@ class RMSProp(Optimizer):
                 lr=lr,
                 alpha=alpha,
                 eps=eps,
+                weight_decay=weight_decay,
                 momentum=momentum,
                 centered=centered,
                 initial_scale=initial_scale,

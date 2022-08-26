@@ -39,18 +39,90 @@ from torchopt._src.typing import ScalarOrSchedule
 from torchopt._src.utils import pytree
 
 
-def _scale_by_lr(lr: ScalarOrSchedule, maximize=False):
-    sign = -1 if not maximize else 1
+def _flip_sign_and_weight_decay(weight_decay: float = 0.0, maximize=False):
+    if not 0.0 <= weight_decay:  # pylint: disable=unneeded-not
+        raise ValueError(f"Invalid weight_decay value: {weight_decay}")
+
+    if not maximize and weight_decay == 0.0:
+        return base.identity()
+
+    def init_fn(_):
+        return base.EmptyState()
+
+    if not maximize:  # gradient descent
+
+        def update_fn(updates, state, *, params=None, inplace=True):
+            assert params is not None, (
+                "Parameters are required for weight decay. "
+                "Call `update(updates, state, params=params)` instead."
+            )
+
+            if inplace:
+
+                def f(g, p):
+                    return g.add_(p, alpha=weight_decay) if g is not None else None
+
+            else:
+
+                def f(g, p):
+                    return g.add(p, alpha=weight_decay) if g is not None else None
+
+            updates = pytree.tree_map(f, updates, params)
+            return updates, state
+
+    else:  # gradient ascent
+
+        if weight_decay == 0.0:
+            # pylint: disable-next=unused-argument
+            def update_fn(updates, state, *, params=None, inplace=True):
+                if inplace:
+
+                    def f(g):
+                        return g.neg_() if g is not None else None
+
+                else:
+
+                    def f(g):
+                        return g.neg() if g is not None else None
+
+                updates = pytree.tree_map(f, updates)
+                return updates, state
+
+        else:
+
+            def update_fn(updates, state, *, params=None, inplace=True):
+                assert params is not None, (
+                    "Parameters are required for weight decay. "
+                    "Call `update(updates, state, params=params)` instead."
+                )
+
+                if inplace:
+
+                    def f(g, p):
+                        return g.neg_().add_(p, alpha=weight_decay) if g is not None else None
+
+                else:
+
+                    def f(g, p):
+                        return g.neg().add_(p, alpha=weight_decay) if g is not None else None
+
+                updates = pytree.tree_map(f, updates, params)
+                return updates, state
+
+    return base.GradientTransformation(init_fn, update_fn)
+
+
+def _scale_by_neg_lr(lr: ScalarOrSchedule):
     if callable(lr):
 
         def schedule_wrapper(count):
             def f(scaled_lr):
-                return sign * scaled_lr
+                return -scaled_lr
 
             return pytree.tree_map(f, lr(count))  # type: ignore
 
         return transform.scale_by_schedule(schedule_wrapper)
-    return transform.scale(sign * lr)
+    return transform.scale(-lr)
 
 
 # pylint: disable-next=too-many-arguments
@@ -58,6 +130,7 @@ def adam(
     lr: ScalarOrSchedule = 1e-3,
     betas: Tuple[float, float] = (0.9, 0.999),
     eps: float = 1e-8,
+    weight_decay: float = 0.0,
     *,
     eps_root: float = 0.0,
     moment_requires_grad: bool = False,
@@ -81,6 +154,8 @@ def adam(
         eps: (float, default: :const:`1e-8`)
             A small constant applied to denominator outside of the square root (as in the Adam
             paper) to avoid dividing by zero when rescaling.
+        weight_decay: (float, default: :const:`0.0`):
+            Weight decay, add L2 penalty to parameters.
         eps_root: (float, default: :data:`0.0`)
             A small constant applied to denominator inside the square root (as in RMSProp), to avoid
             dividing by zero when rescaling. This is needed for example when computing
@@ -106,26 +181,32 @@ def adam(
         raise ValueError(f'Invalid beta parameter at index 0: {b1}')
     if not 0.0 <= b2 < 1.0:
         raise ValueError(f'Invalid beta parameter at index 1: {b2}')
+    if not 0.0 <= weight_decay:
+        raise ValueError(f"Invalid weight_decay value: {weight_decay}")
     # pylint: enable=unneeded-not
 
-    adam_inst = (
-        transform.scale_by_accelerated_adam if use_accelerated_op else transform.scale_by_adam
-    )
+    if use_accelerated_op:
+        adam_scaler = transform.scale_by_accelerated_adam
+    else:
+        adam_scaler = transform.scale_by_adam
+
     return combine.chain(
-        adam_inst(
+        _flip_sign_and_weight_decay(weight_decay=weight_decay, maximize=maximize),
+        adam_scaler(
             b1=b1,
             b2=b2,
             eps=eps,
             eps_root=eps_root,
             moment_requires_grad=moment_requires_grad,
         ),
-        _scale_by_lr(lr, maximize=maximize),
+        _scale_by_neg_lr(lr),
     )
 
 
 def sgd(
     lr: ScalarOrSchedule,
     momentum: float = 0.0,
+    weight_decay: float = 0.0,
     nesterov: bool = False,
     *,
     moment_requires_grad: bool = False,
@@ -146,6 +227,8 @@ def sgd(
         momentum: (float, default: :const:`0.0`)
             The decay rate used by the momentum term. The momentum is not used when it is set to
             :const:`0.0`.
+        weight_decay: (float, default: :const:`0.0`):
+            Weight decay, add L2 penalty to parameters.
         nesterov: (bool, default: :data:`False`)
             Whether the nesterov momentum is used.
         moment_requires_grad: (bool, default: :data:`False`)
@@ -162,9 +245,12 @@ def sgd(
         raise ValueError(f'Invalid learning rate: {lr}')
     if not 0.0 <= momentum:
         raise ValueError(f'Invalid momentum value: {momentum}')
+    if not 0.0 <= weight_decay:
+        raise ValueError(f"Invalid weight_decay value: {weight_decay}")
     # pylint: enable=unneeded-not
 
     return combine.chain(
+        _flip_sign_and_weight_decay(weight_decay=weight_decay, maximize=maximize),
         (
             transform.trace(
                 decay=momentum,
@@ -174,7 +260,7 @@ def sgd(
             if momentum is not None and momentum != 0.0
             else base.identity()
         ),
-        _scale_by_lr(lr, maximize=maximize),
+        _scale_by_neg_lr(lr),
     )
 
 
@@ -183,6 +269,7 @@ def rmsprop(
     lr: ScalarOrSchedule = 1e-2,
     alpha: float = 0.9,
     eps: float = 1e-8,
+    weight_decay: float = 0.0,
     momentum: float = 0.0,
     centered: bool = False,
     *,
@@ -208,6 +295,8 @@ def rmsprop(
             Smoothing constant, the decay used to track the magnitude of previous gradients.
         eps: (float, default: :const:`1e-8`)
             A small numerical constant to avoid dividing by zero when rescaling.
+        weight_decay: (float, default: :const:`0.0`):
+            Weight decay, add L2 penalty to parameters.
         momentum: (float, default: :const:`0.0`)
             The decay rate used by the momentum term. The momentum is not used when it is set to
             :const:`0.0`.
@@ -235,25 +324,22 @@ def rmsprop(
         raise ValueError(f'Invalid epsilon value: {eps}')
     if not 0.0 <= momentum:
         raise ValueError(f'Invalid momentum value: {momentum}')
+    if not 0.0 <= weight_decay:
+        raise ValueError(f"Invalid weight_decay value: {weight_decay}")
     # pylint: enable=unneeded-not
 
     if centered:
-        return combine.chain(
-            transform.scale_by_stddev(alpha=alpha, eps=eps, initial_scale=initial_scale),
-            (
-                transform.trace(decay=momentum, nesterov=nesterov)
-                if momentum is not None and momentum != 0.0
-                else base.identity()
-            ),
-            _scale_by_lr(lr, maximize=maximize),
-        )
+        rmsprop_scaler = transform.scale_by_stddev
+    else:
+        rmsprop_scaler = transform.scale_by_rms
 
     return combine.chain(
-        transform.scale_by_rms(alpha=alpha, eps=eps, initial_scale=initial_scale),
+        _flip_sign_and_weight_decay(weight_decay=weight_decay, maximize=maximize),
+        rmsprop_scaler(alpha=alpha, eps=eps, initial_scale=initial_scale),
         (
             transform.trace(decay=momentum, nesterov=nesterov)
             if momentum is not None and momentum != 0.0
             else base.identity()
         ),
-        _scale_by_lr(lr, maximize=maximize),
+        _scale_by_neg_lr(lr),
     )

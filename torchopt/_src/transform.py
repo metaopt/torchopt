@@ -69,8 +69,7 @@ def scale(step_size: float) -> base.GradientTransformation:
         An ``(init_fn, update_fn)`` tuple.
     """
 
-    def init_fn(params):
-        del params
+    def init_fn(_):
         return ScaleState()
 
     def update_fn(updates, state, *, params=None, inplace=True):  # pylint: disable=unused-argument
