@@ -87,3 +87,6 @@ class RMSProp(Optimizer):
                 maximize=maximize,
             ),
         )
+
+
+RMSprop = RMSProp  # alias for PyTorch compatibility

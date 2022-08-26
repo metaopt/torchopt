@@ -16,8 +16,8 @@
 
 from torchopt._src import accelerated_op_available, clip, combine, hook, schedule, visual
 from torchopt._src.alias import adam, rmsprop, sgd
-from torchopt._src.optimizer import SGD, Adam, Optimizer, RMSProp, meta
-from torchopt._src.optimizer.meta import MetaAdam, MetaOptimizer, MetaRMSProp, MetaSGD
+from torchopt._src.optimizer import SGD, Adam, Optimizer, RMSProp, RMSprop, meta
+from torchopt._src.optimizer.meta import MetaAdam, MetaOptimizer, MetaRMSProp, MetaRMSprop, MetaSGD
 from torchopt._src.update import apply_updates
 from torchopt._src.utils import extract_state_dict, recover_state_dict, stop_gradient
 from torchopt.version import __version__
@@ -37,10 +37,12 @@ __all__ = [
     'SGD',
     'Adam',
     'RMSProp',
+    'RMSprop',
     'MetaOptimizer',
     'MetaSGD',
     'MetaAdam',
     'MetaRMSProp',
+    'MetaRMSprop',
     'apply_updates',
     'extract_state_dict',
     'recover_state_dict',

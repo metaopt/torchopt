@@ -16,5 +16,5 @@
 from torchopt._src.optimizer import meta
 from torchopt._src.optimizer.adam import Adam
 from torchopt._src.optimizer.base import Optimizer
-from torchopt._src.optimizer.rmsprop import RMSProp
+from torchopt._src.optimizer.rmsprop import RMSProp, RMSprop
 from torchopt._src.optimizer.sgd import SGD

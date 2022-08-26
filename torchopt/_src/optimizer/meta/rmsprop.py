@@ -84,3 +84,6 @@ class MetaRMSProp(MetaOptimizer):
                 maximize=maximize,
             ),
         )
+
+
+MetaRMSprop = MetaRMSProp  # alias for PyTorch compatibility
