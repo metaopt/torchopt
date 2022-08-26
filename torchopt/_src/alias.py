@@ -41,7 +41,7 @@ from torchopt._src.utils import pytree
 
 def _flip_sign_and_weight_decay(weight_decay: float = 0.0, maximize=False):
     if not 0.0 <= weight_decay:  # pylint: disable=unneeded-not
-        raise ValueError(f"Invalid weight_decay value: {weight_decay}")
+        raise ValueError(f'Invalid weight_decay value: {weight_decay}')
 
     if not maximize and weight_decay == 0.0:
         return base.identity()
@@ -53,8 +53,8 @@ def _flip_sign_and_weight_decay(weight_decay: float = 0.0, maximize=False):
 
         def update_fn(updates, state, *, params=None, inplace=True):
             assert params is not None, (
-                "Parameters are required for weight decay. "
-                "Call `update(updates, state, params=params)` instead."
+                'Parameters are required for weight decay. '
+                'Call `update(updates, state, params=params)` instead.'
             )
 
             if inplace:
@@ -92,8 +92,8 @@ def _flip_sign_and_weight_decay(weight_decay: float = 0.0, maximize=False):
 
             def update_fn(updates, state, *, params=None, inplace=True):
                 assert params is not None, (
-                    "Parameters are required for weight decay. "
-                    "Call `update(updates, state, params=params)` instead."
+                    'Parameters are required for weight decay. '
+                    'Call `update(updates, state, params=params)` instead.'
                 )
 
                 if inplace:
@@ -182,7 +182,7 @@ def adam(
     if not 0.0 <= b2 < 1.0:
         raise ValueError(f'Invalid beta parameter at index 1: {b2}')
     if not 0.0 <= weight_decay:
-        raise ValueError(f"Invalid weight_decay value: {weight_decay}")
+        raise ValueError(f'Invalid weight_decay value: {weight_decay}')
     # pylint: enable=unneeded-not
 
     if use_accelerated_op:
@@ -246,7 +246,7 @@ def sgd(
     if not 0.0 <= momentum:
         raise ValueError(f'Invalid momentum value: {momentum}')
     if not 0.0 <= weight_decay:
-        raise ValueError(f"Invalid weight_decay value: {weight_decay}")
+        raise ValueError(f'Invalid weight_decay value: {weight_decay}')
     # pylint: enable=unneeded-not
 
     return combine.chain(
@@ -325,7 +325,7 @@ def rmsprop(
     if not 0.0 <= momentum:
         raise ValueError(f'Invalid momentum value: {momentum}')
     if not 0.0 <= weight_decay:
-        raise ValueError(f"Invalid weight_decay value: {weight_decay}")
+        raise ValueError(f'Invalid weight_decay value: {weight_decay}')
     # pylint: enable=unneeded-not
 
     if centered:

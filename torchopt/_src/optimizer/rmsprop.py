@@ -37,7 +37,7 @@ class RMSProp(Optimizer):
         lr: ScalarOrSchedule = 1e-2,
         alpha: float = 0.99,
         eps: float = 1e-8,
-            weight_decay: float = 0.0,
+        weight_decay: float = 0.0,
         momentum: float = 0.0,
         centered: bool = False,
         *,
