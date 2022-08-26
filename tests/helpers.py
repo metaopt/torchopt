@@ -26,8 +26,8 @@ import torch.nn as nn
 from torch.utils import data
 
 
-BATCH_SIZE = 4
-NUM_UPDATES = 3
+BATCH_SIZE = 64
+NUM_UPDATES = 10
 
 MODEL_NUM_INPUTS = 28 * 28  # MNIST
 MODEL_NUM_CLASSES = 10
@@ -169,6 +169,13 @@ def assert_all_close(
     if base is not None:
         actual = actual - base
         expected = expected - base
+
+    if rtol is None or atol is None:
+        from torch.testing._comparison import get_tolerances
+
+        rtol, atol = get_tolerances(actual, expected, rtol=rtol, atol=atol)
+        rtol *= 2 * NUM_UPDATES
+        atol *= 2 * NUM_UPDATES
 
     torch.testing.assert_close(
         actual,

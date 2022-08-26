@@ -151,7 +151,7 @@ def test_adam(
     weight_decay=[0.0, 1e-3],
     maximize=[False, True],
 )
-def test_accelerated_adam_cpu(
+def test_adam_accelerated_cpu(
     dtype: torch.dtype,
     lr: float,
     betas: Tuple[float, float],
@@ -211,7 +211,7 @@ def test_accelerated_adam_cpu(
     weight_decay=[0.0, 1e-3],
     maximize=[False, True],
 )
-def test_accelerated_adam_cuda(
+def test_adam_accelerated_cuda(
     dtype: torch.dtype,
     lr: float,
     betas: Tuple[float, float],
