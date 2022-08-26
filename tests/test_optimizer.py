@@ -31,7 +31,7 @@ import torchopt
     weight_decay=[0.0, 1e-3],
     maximize=[False, True],
 )
-def test_sgd(
+def test_SGD(
     dtype: torch.dtype,
     lr: float,
     momentum: float,
@@ -88,7 +88,7 @@ def test_sgd(
     weight_decay=[0.0, 1e-3],
     maximize=[False, True],
 )
-def test_adam(
+def test_Adam(
     dtype: torch.dtype,
     lr: float,
     betas: Tuple[float, float],
@@ -143,7 +143,7 @@ def test_adam(
     weight_decay=[0.0, 1e-3],
     maximize=[False, True],
 )
-def test_accelerated_adam_cpu(
+def test_Adam_accelerated_cpu(
     dtype: torch.dtype,
     lr: float,
     betas: Tuple[float, float],
@@ -200,7 +200,7 @@ def test_accelerated_adam_cpu(
     weight_decay=[0.0, 1e-3],
     maximize=[False, True],
 )
-def test_accelerated_adam_cuda(
+def test_Adam_accelerated_cuda(
     dtype: torch.dtype,
     lr: float,
     betas: Tuple[float, float],
@@ -259,7 +259,7 @@ def test_accelerated_adam_cuda(
     centered=[False, True],
     weight_decay=[0.0, 1e-3],
 )
-def test_rmsprop(
+def test_RMSProp(
     dtype: torch.dtype,
     lr: float,
     alpha: float,
