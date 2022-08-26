@@ -82,11 +82,21 @@ def get_models(
             bias=True,
             dtype=dtype,
         ),
+        nn.BatchNorm1d(
+            num_features=MODEL_HIDDEN_SIZE,
+            track_running_stats=True,
+            dtype=dtype,
+        ),
         nn.ReLU(),
         nn.Linear(
             in_features=MODEL_HIDDEN_SIZE,
             out_features=MODEL_HIDDEN_SIZE,
             bias=True,
+            dtype=dtype,
+        ),
+        nn.BatchNorm1d(
+            num_features=MODEL_HIDDEN_SIZE,
+            track_running_stats=True,
             dtype=dtype,
         ),
         nn.ReLU(),
@@ -99,7 +109,7 @@ def get_models(
         nn.Softmax(dim=-1),
     )
     for name, param in model_base.named_parameters(recurse=True):
-        if name.endswith('weight'):
+        if name.endswith('weight') and param.ndim >= 2:
             nn.init.orthogonal_(param)
         if name.endswith('bias'):
             param.data.normal_(0, 0.1)
