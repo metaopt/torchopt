@@ -45,16 +45,15 @@ class SGD(Optimizer):
         Args:
             params: (iterable of torch.Tensor)
                 An iterable of :class:`torch.Tensor`\s. Specifies what tensors should be optimized.
-            lr: (float)
-                This is a fixed global scaling factor.
-            momentum: (float, default: :const:`0.0`)
+            lr: This is a fixed global scaling factor.
+            momentum: (default: :const:`0.0`)
                 The decay rate used by the momentum term. The momentum is not used when it is set to
                 :const:`0.0`.
-            weight_decay: (float, default: :const:`0.0`):
+            weight_decay: (default: :const:`0.0`):
                 Weight decay, add L2 penalty to parameters.
-            nesterov: (bool, default: :data:`False`)
+            nesterov: (default: :data:`False`)
                 Whether the nesterov momentum is used.
-            maximize: (bool, default: :data:`False`)
+            maximize: (default: :data:`False`)
                 Maximize the params based on the objective, instead of minimizing.
         """
         super().__init__(

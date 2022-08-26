@@ -42,21 +42,19 @@ class MetaSGD(MetaOptimizer):
         """The :meth:`init` function.
 
         Args:
-            net: (nn.Module)
-                A network whose parameters should be optimized.
-            lr: (float)
-                This is a fixed global scaling factor.
-            momentum: (float, default: :const:`0.0`)
+            net: A network whose parameters should be optimized.
+            lr: This is a fixed global scaling factor.
+            momentum: (default: :const:`0.0`)
                 The decay rate used by the momentum term. The momentum is not used when it is set to
                 :const:`0.0`.
-            weight_decay: (float, default: :const:`0.0`):
+            weight_decay: (default: :const:`0.0`):
                 Weight decay, add L2 penalty to parameters.
-            nesterov: (bool, default: :const:`False`)
+            nesterov: (default: :const:`False`)
                 Whether the nesterov momentum is used.
-            moment_requires_grad: (bool, default: :data:`True`)
+            moment_requires_grad: (default: :data:`True`)
                 If :data:`True` the momentums will be created with flag ``requires_grad=True``, this
                 flag is often used in Meta-Learning algorithms.
-            maximize: (bool, default: :data:`False`)
+            maximize: (default: :data:`False`)
                 Maximize the params based on the objective, instead of minimizing.
         """
         super().__init__(

@@ -186,16 +186,16 @@ def scale_by_adam(
         [Kingma et al, 2014](https://arxiv.org/abs/1412.6980)
 
     Args:
-        b1: (float, default: :const:`0.9`)
+        b1: (default: :const:`0.9`)
             Decay rate for the exponentially weighted average of grads.
-        b2: (float, default: :const:`0.999`)
+        b2: (default: :const:`0.999`)
             Decay rate for the exponentially weighted average of squared grads.
-        eps: (float, default: :const:`1e-8`)
+        eps: (default: :const:`1e-8`)
             Term added to the denominator to improve numerical stability.
-        eps_root: (float, default: :const:`0.0`)
+        eps_root: (default: :const:`0.0`)
             Term added to the denominator inside the square-root to improve
             numerical stability when back-propagating gradients through the rescaling.
-        moment_requires_grad: (bool, default: :data:`False`)
+        moment_requires_grad: (default: :data:`False`)
             if :data:`True`, states will be created with flag `requires_grad = True`.
 
     Returns:
@@ -251,16 +251,16 @@ def scale_by_accelerated_adam(
         [Kingma et al, 2014](https://arxiv.org/abs/1412.6980)
 
     Args:
-        b1: (float, default: :const:`0.9`)
+        b1: (default: :const:`0.9`)
             Decay rate for the exponentially weighted average of grads.
-        b2: (float, default: :const:`0.999`)
+        b2: (default: :const:`0.999`)
             Decay rate for the exponentially weighted average of squared grads.
-        eps: (float, default: :const:`1e-8`)
+        eps: (default: :const:`1e-8`)
             Term added to the denominator to improve numerical stability.
-        eps_root: (float, default: :const:`0.0`)
+        eps_root: (default: :const:`0.0`)
             Term added to the denominator inside the square-root to improve
             numerical stability when back-propagating gradients through the rescaling.
-        moment_requires_grad: (bool, default: :data:`False`)
+        moment_requires_grad: (default: :data:`False`)
             if :data:`True`, states will be created with flag `requires_grad = True`.
 
     Returns:
@@ -312,11 +312,11 @@ def trace(
     Both are frequently found in the optimization literature.
 
     Args:
-        decay: (float, default: :const:`0.9`)
+        decay: (default: :const:`0.9`)
             The decay rate for the trace of past updates.
-        nesterov: (bool, default: :data:`False`)
+        nesterov: (default: :data:`False`)
             Whether to use Nesterov momentum.
-        moment_requires_grad: (bool, default: :data:`False`)
+        moment_requires_grad: (default: :data:`False`)
             if :data:`True`, states will be created with flag `requires_grad = True`.
 
     Returns:
@@ -394,11 +394,11 @@ def scale_by_rms(
         [Hinton](www.cs.toronto.edu/~tijmen/csc321/slides/lecture_slides_lec6.pdf)
 
     Args:
-        alpha: (float, default: :const:`0.9`)
+        alpha: (default: :const:`0.9`)
             Decay rate for the exponentially weighted average of squared grads.
-        eps: (float, default: :const:`1e-8`)
+        eps: (default: :const:`1e-8`)
             Term added to the denominator to improve numerical stability.
-        initial_scale: (float, default: :const:`0.0`)
+        initial_scale: (default: :const:`0.0`)
             Initial value for second moment
 
     Returns:
@@ -444,11 +444,11 @@ def scale_by_stddev(
         [Hinton](www.cs.toronto.edu/~tijmen/csc321/slides/lecture_slides_lec6.pdf)
 
     Args:
-        alpha: (float, default: :const:`0.9`)
+        alpha: (default: :const:`0.9`)
             Decay rate for the exponentially weighted average of squared grads.
-        eps: (float, default: :const:`1e-8`)
+        eps: (default: :const:`1e-8`)
             Term added to the denominator to improve numerical stability.
-        initial_scale: (float, default: :const:`0.0`)
+        initial_scale: (default: :const:`0.0`)
             Initial value for second moment
 
     Returns:

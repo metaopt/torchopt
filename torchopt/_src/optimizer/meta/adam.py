@@ -47,27 +47,26 @@ class MetaAdam(MetaOptimizer):
         """The :meth:`init` function.
 
         Args:
-            net: (nn.Module)
-                A network whose parameters should be optimized.
-            lr: (float, default: :const:`1e-3`)
+            net: A network whose parameters should be optimized.
+            lr: (default: :const:`1e-3`)
                 This is a fixed global scaling factor.
-            betas: (Tuple[float, float], default: :const:`1e-3`)
+            betas: (default: :const:`(0.9, 0.999)`)
                 Coefficients used for computing running averages of gradient and its square.
-            eps: (float, default: :const:`1e-8`)
+            eps: (default: :const:`1e-8`)
                 A small constant applied to denominator outside of the square root (as in the Adam
                 paper) to avoid dividing by zero when rescaling.
-            weight_decay: (float, default: :const:`0.0`):
+            weight_decay: (default: :const:`0.0`):
                 Weight decay, add L2 penalty to parameters.
-            eps_root: (float, default: :data:`0.0`)
+            eps_root: (default: :data:`0.0`)
                 A small constant applied to denominator inside the square root (as in RMSProp), to
                 avoid dividing by zero when rescaling. This is needed for example when computing
                 (meta-)gradients through Adam.
-            moment_requires_grad: (bool, default: :data:`True`)
+            moment_requires_grad: (default: :data:`True`)
                 If :data:`True` the momentums will be created with flag ``requires_grad=True``, this
                 flag is often used in Meta-Learning algorithms.
-            maximize: (bool, default: :data:`False`)
+            maximize: (default: :data:`False`)
                 Maximize the params based on the objective, instead of minimizing.
-            use_accelerated_op: (bool, default: :data:`False`)
+            use_accelerated_op: (default: :data:`False`)
                 If :data:`True` use our implemented fused operator.
         """
         super().__init__(

@@ -147,25 +147,25 @@ def adam(
         - Kingma et al, 2014: https://arxiv.org/abs/1412.6980
 
     Args:
-        lr: (float, default: :const:`1e-3`)
+        lr: (default: :const:`1e-3`)
             This is a fixed global scaling factor.
-        betas: (Tuple[float, float], default: :const:`1e-3`)
+        betas: (default: :const:`(0.9, 0.999)`)
             Coefficients used for computing running averages of gradient and its square.
-        eps: (float, default: :const:`1e-8`)
+        eps: (default: :const:`1e-8`)
             A small constant applied to denominator outside of the square root (as in the Adam
             paper) to avoid dividing by zero when rescaling.
-        weight_decay: (float, default: :const:`0.0`):
+        weight_decay: (default: :const:`0.0`):
             Weight decay, add L2 penalty to parameters.
-        eps_root: (float, default: :data:`0.0`)
+        eps_root: (default: :data:`0.0`)
             A small constant applied to denominator inside the square root (as in RMSProp), to avoid
             dividing by zero when rescaling. This is needed for example when computing
             (meta-)gradients through Adam.
-        moment_requires_grad: (bool, default: :data:`True`)
+        moment_requires_grad: (default: :data:`True`)
             If :data:`True` the momentums will be created with flag ``requires_grad=True``, this
             flag is often used in Meta Learning algorithms.
-        maximize: (bool, default: :data:`False`)
+        maximize: (default: :data:`False`)
             Maximize the params based on the objective, instead of minimizing.
-        use_accelerated_op: (bool, default: :data:`False`)
+        use_accelerated_op: (default: :data:`False`)
             If :data:`True` use our implemented fused operator.
 
     Returns:
@@ -222,19 +222,18 @@ def sgd(
         - Sutskever et al, 2013: http://proceedings.mlr.press/v28/sutskever13.pdf
 
     Args:
-        lr: (float)
-            This is a fixed global scaling factor.
-        momentum: (float, default: :const:`0.0`)
+        lr: This is a fixed global scaling factor.
+        momentum: (default: :const:`0.0`)
             The decay rate used by the momentum term. The momentum is not used when it is set to
             :const:`0.0`.
-        weight_decay: (float, default: :const:`0.0`):
+        weight_decay: (default: :const:`0.0`):
             Weight decay, add L2 penalty to parameters.
-        nesterov: (bool, default: :data:`False`)
+        nesterov: (default: :data:`False`)
             Whether the nesterov momentum is used.
-        moment_requires_grad: (bool, default: :data:`False`)
+        moment_requires_grad: (default: :data:`False`)
             If :data:`True` the momentums will be created with flag ``requires_grad=True``, this
             flag is often used in Meta-Learning algorithms.
-        maximize: (bool, default: :data:`False`)
+        maximize: (default: :data:`False`)
             Maximize the params based on the objective, instead of minimizing.
 
     Returns:
@@ -289,27 +288,27 @@ def rmsprop(
         - Graves, 2013: https://arxiv.org/abs/1308.0850
 
     Args:
-        lr: (float, default: :const:`1e-2`)
+        lr: (default: :const:`1e-2`)
             This is a fixed global scaling factor.
-        alpha: (float, default: :const:`0.99`)
+        alpha: (default: :const:`0.99`)
             Smoothing constant, the decay used to track the magnitude of previous gradients.
-        eps: (float, default: :const:`1e-8`)
+        eps: (default: :const:`1e-8`)
             A small numerical constant to avoid dividing by zero when rescaling.
-        weight_decay: (float, default: :const:`0.0`):
+        weight_decay: (default: :const:`0.0`):
             Weight decay, add L2 penalty to parameters.
-        momentum: (float, default: :const:`0.0`)
+        momentum: (default: :const:`0.0`)
             The decay rate used by the momentum term. The momentum is not used when it is set to
             :const:`0.0`.
-        centered: (bool, default: :data:`False`)
+        centered: (default: :data:`False`)
             If :data:`True`, use the variance of the past gradients to rescale the latest
             gradients.
-        initial_scale: (float, default: :data:`0.0`)
+        initial_scale: (default: :data:`0.0`)
             Initialization of accumulators tracking the magnitude of previous updates. PyTorch
             uses :data:`0.0`, TensorFlow 1.x uses :data:`1.0`. When reproducing results from a
             paper, verify the value used by the authors.
-        nesterov: (bool, default: :data:`False`)
+        nesterov: (default: :data:`False`)
             Whether the nesterov momentum is used.
-        maximize: (bool, default: :data:`False`)
+        maximize: (default: :data:`False`)
             Maximize the params based on the objective, instead of minimizing.
 
     Returns:
