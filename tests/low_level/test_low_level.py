@@ -145,6 +145,62 @@ def test_adam(
     inplace=[True, False],
     maximize=[False, True],
 )
+def test_adamw(
+    dtype: torch.dtype,
+    lr: float,
+    betas: Tuple[float, float],
+    eps: float,
+    inplace: bool,
+    maximize: bool,
+) -> None:
+    model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
+
+    fmodel, params, buffers = functorch.make_functional_with_buffers(model)
+    optim = torchopt.adamw(
+        lr,
+        b1=betas[0],
+        b2=betas[1],
+        eps=eps,
+        eps_root=0.0,
+        maximize=maximize,
+    )
+    optim_state = optim.init(params)
+    optim_ref = torch.optim.Adam(
+        model_ref.parameters(),
+        lr,
+        betas=betas,
+        eps=eps,
+        amsgrad=False,
+        weight_decay=0.0,
+        maximize=maximize,
+    )
+
+    for xs, ys in loader:
+        xs = xs.to(dtype=dtype)
+        pred = fmodel(params, buffers, xs)
+        pred_ref = model_ref(xs)
+        loss = F.cross_entropy(pred, ys)
+        loss_ref = F.cross_entropy(pred_ref, ys)
+
+        grad = torch.autograd.grad(loss, params)
+        updates, optim_state = optim.update(grad, optim_state, inplace=inplace)
+        params = torchopt.apply_updates(params, updates)
+
+        optim_ref.zero_grad()
+        loss_ref.backward()
+        optim_ref.step()
+
+    helpers.assert_model_all_close((params, buffers), model_ref, model_base, dtype=dtype)
+
+
+@helpers.parametrize(
+    dtype=[torch.float64, torch.float32],
+    lr=[1e-3, 1e-4],
+    betas=[(0.9, 0.999), (0.95, 0.9995)],
+    eps=[1e-8],
+    inplace=[True, False],
+    maximize=[False, True],
+)
 def test_accelerated_adam_cpu(
     dtype: torch.dtype,
     lr: float,
