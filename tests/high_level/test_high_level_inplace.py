@@ -28,6 +28,7 @@ import torchopt
     lr=[1e-3, 1e-4],
     momentum=[0.0, 0.1],
     nesterov=[False, True],
+    weight_decay=[0.0, 1e-3],
     maximize=[False, True],
 )
 def test_sgd(
@@ -35,6 +36,7 @@ def test_sgd(
     lr: float,
     momentum: float,
     nesterov: bool,
+    weight_decay: float,
     maximize: bool,
 ) -> None:
     if nesterov and momentum <= 0.0:
@@ -47,6 +49,7 @@ def test_sgd(
         lr,
         momentum=momentum,
         nesterov=nesterov,
+        weight_decay=weight_decay,
         maximize=maximize,
     )
     optim_ref = torch.optim.SGD(
@@ -55,7 +58,7 @@ def test_sgd(
         momentum=momentum,
         dampening=0.0,
         nesterov=nesterov,
-        weight_decay=0.0,
+        weight_decay=weight_decay,
         maximize=maximize,
     )
 
@@ -82,6 +85,7 @@ def test_sgd(
     lr=[1e-3, 1e-4],
     betas=[(0.9, 0.999), (0.95, 0.9995)],
     eps=[1e-8],
+    weight_decay=[0.0, 1e-3],
     maximize=[False, True],
 )
 def test_adam(
@@ -89,6 +93,7 @@ def test_adam(
     lr: float,
     betas: Tuple[float, float],
     eps: float,
+    weight_decay: float,
     maximize: bool,
 ) -> None:
     model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
@@ -99,6 +104,7 @@ def test_adam(
         betas=betas,
         eps=eps,
         eps_root=0.0,
+        weight_decay=weight_decay,
         maximize=maximize,
     )
     optim_ref = torch.optim.Adam(
@@ -107,7 +113,7 @@ def test_adam(
         betas=betas,
         eps=eps,
         amsgrad=False,
-        weight_decay=0.0,
+        weight_decay=weight_decay,
         maximize=maximize,
     )
 
@@ -134,6 +140,7 @@ def test_adam(
     lr=[1e-3, 1e-4],
     betas=[(0.9, 0.999), (0.95, 0.9995)],
     eps=[1e-8],
+    weight_decay=[0.0, 1e-3],
     maximize=[False, True],
 )
 def test_accelerated_adam_cpu(
@@ -141,6 +148,7 @@ def test_accelerated_adam_cpu(
     lr: float,
     betas: Tuple[float, float],
     eps: float,
+    weight_decay: float,
     maximize: bool,
 ) -> None:
     model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
@@ -151,6 +159,7 @@ def test_accelerated_adam_cpu(
         betas=betas,
         eps=eps,
         eps_root=0.0,
+        weight_decay=weight_decay,
         maximize=maximize,
         use_accelerated_op=True,
     )
@@ -160,7 +169,7 @@ def test_accelerated_adam_cpu(
         betas=betas,
         eps=eps,
         amsgrad=False,
-        weight_decay=0.0,
+        weight_decay=weight_decay,
         maximize=maximize,
     )
 
@@ -188,6 +197,7 @@ def test_accelerated_adam_cpu(
     lr=[1e-3, 1e-4],
     betas=[(0.9, 0.999), (0.95, 0.9995)],
     eps=[1e-8],
+    weight_decay=[0.0, 1e-3],
     maximize=[False, True],
 )
 def test_accelerated_adam_cuda(
@@ -195,6 +205,7 @@ def test_accelerated_adam_cuda(
     lr: float,
     betas: Tuple[float, float],
     eps: float,
+    weight_decay: float,
     maximize: bool,
 ) -> None:
     device = 'cuda'
@@ -206,6 +217,7 @@ def test_accelerated_adam_cuda(
         betas=betas,
         eps=eps,
         eps_root=0.0,
+        weight_decay=weight_decay,
         maximize=maximize,
         use_accelerated_op=True,
     )
@@ -215,7 +227,7 @@ def test_accelerated_adam_cuda(
         betas=betas,
         eps=eps,
         amsgrad=False,
-        weight_decay=0.0,
+        weight_decay=weight_decay,
         maximize=maximize,
     )
 
@@ -245,6 +257,7 @@ def test_accelerated_adam_cuda(
     eps=[1e-8],
     momentum=[0.0, 0.1],
     centered=[False, True],
+    weight_decay=[0.0, 1e-3],
 )
 def test_rmsprop(
     dtype: torch.dtype,
@@ -253,6 +266,7 @@ def test_rmsprop(
     eps: float,
     momentum: float,
     centered: bool,
+    weight_decay: float,
 ) -> None:
     model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
 
@@ -264,6 +278,7 @@ def test_rmsprop(
         momentum=momentum,
         centered=centered,
         nesterov=False,
+        weight_decay=weight_decay,
     )
     optim_ref = torch.optim.RMSprop(
         model_ref.parameters(),
@@ -272,7 +287,7 @@ def test_rmsprop(
         eps=eps,
         momentum=momentum,
         centered=centered,
-        weight_decay=0.0,
+        weight_decay=weight_decay,
     )
 
     for xs, ys in loader:
