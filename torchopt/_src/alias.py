@@ -60,7 +60,11 @@ def _flip_sign_and_weight_decay(weight_decay: float = 0.0, maximize=False):
             if inplace:
 
                 def f(g, p):
-                    return g.add_(p, alpha=weight_decay) if g is not None else None
+                    if g is not None:
+                        if g.requires_grad:
+                            return g.add_(p, alpha=weight_decay)
+                        return g.add(p, alpha=weight_decay)
+                    return None
 
             else:
 
@@ -99,7 +103,11 @@ def _flip_sign_and_weight_decay(weight_decay: float = 0.0, maximize=False):
                 if inplace:
 
                     def f(g, p):
-                        return g.neg_().add_(p, alpha=weight_decay) if g is not None else None
+                        if g is not None:
+                            if g.requires_grad:
+                                return g.neg_().add_(p, alpha=weight_decay)
+                            return g.neg_().add(p, alpha=weight_decay)
+                        return None
 
                 else:
 
