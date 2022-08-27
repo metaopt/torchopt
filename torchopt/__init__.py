@@ -16,6 +16,8 @@
 
 from torchopt._src import accelerated_op_available, clip, combine, hook, schedule, visual
 from torchopt._src.alias import adam, rmsprop, sgd
+from torchopt._src.clip import clip_grad_norm
+from torchopt._src.combine import chain
 from torchopt._src.optimizer import SGD, Adam, Optimizer, RMSProp, RMSprop, meta
 from torchopt._src.optimizer.meta import MetaAdam, MetaOptimizer, MetaRMSProp, MetaRMSprop, MetaSGD
 from torchopt._src.update import apply_updates
@@ -33,6 +35,8 @@ __all__ = [
     'adam',
     'rmsprop',
     'sgd',
+    'clip_grad_norm',
+    'chain',
     'Optimizer',
     'SGD',
     'Adam',

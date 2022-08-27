@@ -30,12 +30,17 @@
 # limitations under the License.
 # ==============================================================================
 
+import itertools
 from abc import abstractmethod
 from typing import Callable, NamedTuple, Optional, Tuple
 
-from typing_extensions import Protocol
-
 from torchopt._src.typing import Numeric, TensorTree
+
+
+try:
+    from typing import Protocol
+except ImportError:
+    from typing_extensions import Protocol
 
 
 OptState = TensorTree  # States are arbitrary nests of `torch.Tensor`.
@@ -131,6 +136,76 @@ class GradientTransformation(NamedTuple):
 
     init: TransformInitFn
     update: TransformUpdateFn
+
+    # pylint: disable-next=redefined-builtin
+    def chain(self, next: 'GradientTransformation') -> 'ChainedGradientTransformation':
+        """Chain two gradient transformations together."""
+        return ChainedGradientTransformation(self, next)
+
+
+class ChainedGradientTransformation(GradientTransformation):
+    """A chain of gradient transformations.
+
+    This class is a subclass of :class:`GradientTransformation` which allows for chaining of
+    gradient transformations.
+    """
+
+    transformations: Tuple[GradientTransformation, ...]
+
+    def __new__(cls, *transformations: GradientTransformation) -> 'ChainedGradientTransformation':
+        transformations = tuple(
+            itertools.chain.from_iterable(
+                t.transformations if isinstance(t, ChainedGradientTransformation) else (t,)
+                for t in transformations
+            )
+        )
+
+        init_fns, update_fns = tuple(zip(*transformations))
+
+        def init_fn(params):
+            return tuple(fn(params) for fn in init_fns)
+
+        def update_fn(updates, state, *, params=None, inplace=True):
+            if len(update_fns) != len(state):
+                raise ValueError(
+                    'The number of updates and states has to be the same in chain! Make sure you'
+                    'have called init first!'
+                )
+            new_state = []
+            for s, fn in zip(state, update_fns):  # pylint: disable=invalid-name
+                updates, new_s = fn(updates, s, params=params, inplace=inplace)
+                new_state.append(new_s)
+            return updates, tuple(new_state)
+
+        instance = super().__new__(cls, init_fn, update_fn)
+        instance.transformations = tuple(transformations)
+        return instance
+
+    def __str__(self):
+        return '{}(\n    {}\n)'.format(
+            self.__class__.__name__, ',\n    '.join(repr(t) for t in self.transformations)
+        )
+
+    __repr__ = __str__
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, ChainedGradientTransformation):
+            return self.transformations == other.transformations
+        if isinstance(other, GradientTransformation):
+            return self.transformations == (other,)
+        return False
+
+    def __hash__(self) -> int:
+        return hash(self.transformations)
+
+    def __getstate__(self) -> Tuple[GradientTransformation, ...]:
+        return self.transformations
+
+    def __setstate__(self, state: Tuple[GradientTransformation, ...]) -> None:
+        self.transformations = state
+
+    def __reduce__(self) -> Tuple[Callable, Tuple[Tuple[GradientTransformation, ...]]]:
+        return ChainedGradientTransformation, (self.transformations,)
 
 
 def identity() -> GradientTransformation:

@@ -45,7 +45,7 @@ def test_sgd(
 
     model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
 
-    chain = torchopt.combine.chain(
+    chain = torchopt.chain(
         torchopt.clip.clip_grad_norm(max_norm=max_norm),
         torchopt.sgd(
             lr=lr,
