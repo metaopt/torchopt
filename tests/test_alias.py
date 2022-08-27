@@ -26,11 +26,11 @@ import torchopt
 
 @helpers.parametrize(
     dtype=[torch.float64, torch.float32],
-    lr=[1e-1, 1e-3, 1e-4],
+    lr=[1e-2, 1e-3, 1e-4],
     momentum=[0.0, 0.1],
     nesterov=[False, True],
     inplace=[True, False],
-    weight_decay=[0.0, 1e-3],
+    weight_decay=[0.0, 1e-2],
     maximize=[False, True],
 )
 def test_sgd(
@@ -86,11 +86,11 @@ def test_sgd(
 
 @helpers.parametrize(
     dtype=[torch.float64, torch.float32],
-    lr=[1e-1, 1e-3, 1e-4],
+    lr=[1e-2, 1e-3, 1e-4],
     betas=[(0.9, 0.999), (0.95, 0.9995)],
     eps=[1e-8],
     inplace=[True, False],
-    weight_decay=[0.0, 1e-3],
+    weight_decay=[0.0, 1e-2],
     maximize=[False, True],
 )
 def test_adam(
@@ -144,11 +144,11 @@ def test_adam(
 
 @helpers.parametrize(
     dtype=[torch.float64, torch.float32],
-    lr=[1e-1, 1e-3, 1e-4],
+    lr=[1e-2, 1e-3, 1e-4],
     betas=[(0.9, 0.999), (0.95, 0.9995)],
     eps=[1e-8],
     inplace=[True, False],
-    weight_decay=[0.0, 1e-3],
+    weight_decay=[0.0, 1e-2],
     maximize=[False, True],
 )
 def test_adam_accelerated_cpu(
@@ -204,11 +204,11 @@ def test_adam_accelerated_cpu(
 @pytest.mark.skipif(not torch.cuda.is_available(), reason='No CUDA device available.')
 @helpers.parametrize(
     dtype=[torch.float64, torch.float32],
-    lr=[1e-1, 1e-3, 1e-4],
+    lr=[1e-2, 1e-3, 1e-4],
     betas=[(0.9, 0.999), (0.95, 0.9995)],
     eps=[1e-8],
     inplace=[True, False],
-    weight_decay=[0.0, 1e-3],
+    weight_decay=[0.0, 1e-2],
     maximize=[False, True],
 )
 def test_adam_accelerated_cuda(
@@ -265,12 +265,12 @@ def test_adam_accelerated_cuda(
 
 @helpers.parametrize(
     dtype=[torch.float64, torch.float32],
-    lr=[1e-1, 1e-3, 1e-4],
+    lr=[1e-2, 1e-3, 1e-4],
     alpha=[0.9, 0.99],
     eps=[1e-8],
     momentum=[0.0, 0.1],
     centered=[False, True],
-    weight_decay=[0.0, 1e-3],
+    weight_decay=[0.0, 1e-2],
     inplace=[True, False],
 )
 def test_rmsprop(

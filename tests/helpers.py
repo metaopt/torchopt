@@ -174,8 +174,8 @@ def assert_all_close(
         from torch.testing._comparison import get_tolerances
 
         rtol, atol = get_tolerances(actual, expected, rtol=rtol, atol=atol)
-        rtol *= 2 * NUM_UPDATES
-        atol *= 2 * NUM_UPDATES
+        rtol *= 10 * NUM_UPDATES
+        atol *= 10 * NUM_UPDATES
 
     torch.testing.assert_close(
         actual,

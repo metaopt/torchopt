@@ -25,10 +25,10 @@ import torchopt
 @helpers.parametrize(
     dtype=[torch.float64, torch.float32],
     max_norm=[1.0, 10.0],
-    lr=[1e-1, 1e-3, 1e-4],
+    lr=[1e-2, 1e-3, 1e-4],
     momentum=[0.0, 0.1],
     nesterov=[False, True],
-    weight_decay=[0.0, 1e-3],
+    weight_decay=[0.0, 1e-2],
     maximize=[False, True],
 )
 def test_sgd(

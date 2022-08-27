@@ -62,7 +62,7 @@ def _flip_sign_and_weight_decay(weight_decay: float = 0.0, maximize=False):
                     if g is not None:
                         if g.requires_grad:
                             return g.add_(p, alpha=weight_decay)
-                        return g.add(p, alpha=weight_decay)
+                        return g.add_(p.data, alpha=weight_decay)
                     return None
 
             else:
@@ -105,7 +105,7 @@ def _flip_sign_and_weight_decay(weight_decay: float = 0.0, maximize=False):
                         if g is not None:
                             if g.requires_grad:
                                 return g.neg_().add_(p, alpha=weight_decay)
-                            return g.neg_().add(p, alpha=weight_decay)
+                            return g.neg_().add_(p.data, alpha=weight_decay)
                         return None
 
                 else:
@@ -263,15 +263,11 @@ def sgd(
     return transform.with_flattened_tree(
         combine.chain(
             _flip_sign_and_weight_decay(weight_decay=weight_decay, maximize=maximize),
-            (
-                transform._trace(  # pylint: disable=protected-access
-                    decay=momentum,
-                    nesterov=nesterov,
-                    moment_requires_grad=moment_requires_grad,
-                    already_flattened=True,
-                )
-                if momentum is not None and momentum != 0.0
-                else base.identity()
+            transform._trace(  # pylint: disable=protected-access
+                decay=momentum,
+                nesterov=nesterov,
+                moment_requires_grad=moment_requires_grad,
+                already_flattened=True,
             ),
             _scale_by_neg_lr(lr),
         )
@@ -356,14 +352,10 @@ def rmsprop(
                 initial_scale=initial_scale,
                 already_flattened=True,
             ),
-            (
-                transform._trace(  # pylint: disable=protected-access
-                    decay=momentum,
-                    nesterov=nesterov,
-                    already_flattened=True,
-                )
-                if momentum is not None and momentum != 0.0
-                else base.identity()
+            transform._trace(  # pylint: disable=protected-access
+                decay=momentum,
+                nesterov=nesterov,
+                already_flattened=True,
             ),
             _scale_by_neg_lr(lr),
         )

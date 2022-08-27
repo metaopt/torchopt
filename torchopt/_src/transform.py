@@ -439,7 +439,7 @@ def trace(
     """Compute a trace of past updates.
 
     Note: `trace` and `ema` have very similar but distinct updates;
-    `trace = decay * trace + t`, while `ema = decay * ema + (1-decay) * t`.
+    `trace = decay * trace + t`, while `ema = decay * ema + (1 - decay) * t`.
     Both are frequently found in the optimization literature.
 
     Args:
@@ -469,14 +469,15 @@ def _trace(
     *,
     already_flattened: bool = False,
 ) -> base.GradientTransformation:
+    if decay == 0.0:
+        return base.identity()
+
     if already_flattened:
         tree_map = map_flattened
     else:
         tree_map = pytree.tree_map
 
     def init_fn(params):
-        if decay == 0.0:
-            return TraceState(trace=())
         return TraceState(
             trace=tree_map(
                 lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params
