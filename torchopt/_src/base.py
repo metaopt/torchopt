@@ -217,12 +217,19 @@ class IdentityGradientTransformation(GradientTransformation):
         return super().__new__(cls, init=cls.init_fn, update=cls.update_fn)
 
     @staticmethod
-    def init_fn(params):  # pylint: disable=unused-argument
+    def init_fn(params: Params) -> OptState:  # pylint: disable=unused-argument
         """Returns empty state."""
         return EmptyState()
 
     @staticmethod
-    def update_fn(updates, state, *, params=None, inplace=True):  # pylint: disable=unused-argument
+    # pylint: disable-next=unused-argument
+    def update_fn(
+        updates: Updates,
+        state: OptState,
+        *,
+        params: Optional[Params] = None,
+        inplace: bool = True,
+    ) -> Tuple[Updates, OptState]:
         """Returns updates unchanged."""
         return updates, state
 

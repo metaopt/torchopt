@@ -36,7 +36,6 @@ from typing import Tuple
 
 from torchopt._src import base, combine, transform
 from torchopt._src.typing import ScalarOrSchedule
-from torchopt._src.utils import pytree
 
 
 def _flip_sign_and_weight_decay(weight_decay: float = 0.0, maximize=False):
@@ -71,7 +70,7 @@ def _flip_sign_and_weight_decay(weight_decay: float = 0.0, maximize=False):
                 def f(g, p):
                     return g.add(p, alpha=weight_decay) if g is not None else None
 
-            updates = pytree.tree_map(f, updates, params)
+            updates = transform.map_flattened(f, updates, params)
             return updates, state
 
     else:  # gradient ascent
@@ -89,7 +88,7 @@ def _flip_sign_and_weight_decay(weight_decay: float = 0.0, maximize=False):
                     def f(g):
                         return g.neg() if g is not None else None
 
-                updates = pytree.tree_map(f, updates)
+                updates = transform.map_flattened(f, updates)
                 return updates, state
 
         else:
@@ -114,7 +113,7 @@ def _flip_sign_and_weight_decay(weight_decay: float = 0.0, maximize=False):
                     def f(g, p):
                         return g.neg().add_(p, alpha=weight_decay) if g is not None else None
 
-                updates = pytree.tree_map(f, updates, params)
+                updates = transform.map_flattened(f, updates, params)
                 return updates, state
 
     return base.GradientTransformation(init_fn, update_fn)
@@ -127,10 +126,12 @@ def _scale_by_neg_lr(lr: ScalarOrSchedule):
             def f(scaled_lr):
                 return -scaled_lr
 
-            return pytree.tree_map(f, lr(count))  # type: ignore
+            return transform.map_flattened(f, lr(count))
 
-        return transform.scale_by_schedule(schedule_wrapper)
-    return transform.scale(-lr)
+        return transform._scale_by_schedule(  # pylint: disable=protected-access
+            schedule_wrapper, already_flattened=True
+        )
+    return transform._scale(-lr, already_flattened=True)  # pylint: disable=protected-access
 
 
 # pylint: disable-next=too-many-arguments
@@ -194,20 +195,23 @@ def adam(
     # pylint: enable=unneeded-not
 
     if use_accelerated_op:
-        adam_scaler = transform.scale_by_accelerated_adam
+        adam_scaler = transform._scale_by_accelerated_adam  # pylint: disable=protected-access
     else:
-        adam_scaler = transform.scale_by_adam
+        adam_scaler = transform._scale_by_adam  # pylint: disable=protected-access
 
-    return combine.chain(
-        _flip_sign_and_weight_decay(weight_decay=weight_decay, maximize=maximize),
-        adam_scaler(
-            b1=b1,
-            b2=b2,
-            eps=eps,
-            eps_root=eps_root,
-            moment_requires_grad=moment_requires_grad,
-        ),
-        _scale_by_neg_lr(lr),
+    return transform.with_flattened_tree(
+        combine.chain(
+            _flip_sign_and_weight_decay(weight_decay=weight_decay, maximize=maximize),
+            adam_scaler(
+                b1=b1,
+                b2=b2,
+                eps=eps,
+                eps_root=eps_root,
+                moment_requires_grad=moment_requires_grad,
+                already_flattened=True,
+            ),
+            _scale_by_neg_lr(lr),
+        )
     )
 
 
@@ -256,18 +260,21 @@ def sgd(
         raise ValueError(f'Invalid weight_decay value: {weight_decay}')
     # pylint: enable=unneeded-not
 
-    return combine.chain(
-        _flip_sign_and_weight_decay(weight_decay=weight_decay, maximize=maximize),
-        (
-            transform.trace(
-                decay=momentum,
-                nesterov=nesterov,
-                moment_requires_grad=moment_requires_grad,
-            )
-            if momentum is not None and momentum != 0.0
-            else base.identity()
-        ),
-        _scale_by_neg_lr(lr),
+    return transform.with_flattened_tree(
+        combine.chain(
+            _flip_sign_and_weight_decay(weight_decay=weight_decay, maximize=maximize),
+            (
+                transform._trace(  # pylint: disable=protected-access
+                    decay=momentum,
+                    nesterov=nesterov,
+                    moment_requires_grad=moment_requires_grad,
+                    already_flattened=True,
+                )
+                if momentum is not None and momentum != 0.0
+                else base.identity()
+            ),
+            _scale_by_neg_lr(lr),
+        )
     )
 
 
@@ -336,17 +343,28 @@ def rmsprop(
     # pylint: enable=unneeded-not
 
     if centered:
-        rmsprop_scaler = transform.scale_by_stddev
+        rmsprop_scaler = transform._scale_by_stddev  # pylint: disable=protected-access
     else:
-        rmsprop_scaler = transform.scale_by_rms
+        rmsprop_scaler = transform._scale_by_rms  # pylint: disable=protected-access
 
-    return combine.chain(
-        _flip_sign_and_weight_decay(weight_decay=weight_decay, maximize=maximize),
-        rmsprop_scaler(alpha=alpha, eps=eps, initial_scale=initial_scale),
-        (
-            transform.trace(decay=momentum, nesterov=nesterov)
-            if momentum is not None and momentum != 0.0
-            else base.identity()
-        ),
-        _scale_by_neg_lr(lr),
+    return transform.with_flattened_tree(
+        combine.chain(
+            _flip_sign_and_weight_decay(weight_decay=weight_decay, maximize=maximize),
+            rmsprop_scaler(
+                alpha=alpha,
+                eps=eps,
+                initial_scale=initial_scale,
+                already_flattened=True,
+            ),
+            (
+                transform._trace(  # pylint: disable=protected-access
+                    decay=momentum,
+                    nesterov=nesterov,
+                    already_flattened=True,
+                )
+                if momentum is not None and momentum != 0.0
+                else base.identity()
+            ),
+            _scale_by_neg_lr(lr),
+        )
     )

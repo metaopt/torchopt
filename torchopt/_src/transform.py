@@ -32,7 +32,7 @@
 
 # pylint: disable=invalid-name
 
-from typing import Any, List, NamedTuple, Tuple
+from typing import Any, Callable, List, NamedTuple, Tuple
 
 import torch
 
@@ -46,11 +46,34 @@ INT32_MAX = torch.iinfo(torch.int32).max
 TRIPLE_PYTREEDEF = pytree.tree_structure((0, 1, 2))
 
 
-def _flattened_map(func, *args) -> List[Any]:
+def map_flattened(func: Callable, *args: Any) -> List[Any]:
+    """Apply a function to each element of a flattened list."""
     return list(map(func, *args))
 
 
-def inc_count(updates, count: Tuple[torch.Tensor, ...]) -> Tuple[torch.Tensor, ...]:
+def with_flattened_tree(inner: base.GradientTransformation) -> base.GradientTransformation:
+    # pylint: disable-next=line-too-long
+    """Wraps around the inner transformation that manipulates the flattened tree structure (:class:``list``)."""
+
+    def init_fn(params):
+        return inner.init(pytree.tree_leaves(params))
+
+    def update_fn(updates, state, *, params=None, inplace=True):
+        flattened_updates, treedef = pytree.tree_flatten(updates)
+        if params is not None:
+            params = pytree.tree_leaves(params)
+
+        flattened_updates, state = inner.update(
+            flattened_updates, state, params=params, inplace=inplace
+        )
+        updates = pytree.tree_unflatten(treedef, flattened_updates)
+
+        return updates, state
+
+    return base.GradientTransformation(init_fn, update_fn)
+
+
+def inc_count(updates: base.Updates, count: Tuple[torch.Tensor, ...]) -> Tuple[torch.Tensor, ...]:
     """Increments int counter by one.
 
     Returns:
@@ -61,13 +84,13 @@ def inc_count(updates, count: Tuple[torch.Tensor, ...]) -> Tuple[torch.Tensor, .
 
 
 def _inc_count(
-    updates, count: Tuple[torch.Tensor, ...], *, already_flattened: bool = False
+    updates: base.Updates, count: Tuple[torch.Tensor, ...], *, already_flattened: bool = False
 ) -> Tuple[torch.Tensor, ...]:
     def f(c, g):
         return c + (c != INT32_MAX).to(torch.int32) if g is not None else c
 
     if already_flattened:
-        return _flattened_map(f, count, updates)
+        return map_flattened(f, count, updates)
     return pytree.tree_map(f, count, updates)
 
 
@@ -86,7 +109,7 @@ def scale(step_size: float) -> base.GradientTransformation:
 
 def _scale(step_size: float, *, already_flattened: bool = False) -> base.GradientTransformation:
     if already_flattened:
-        tree_map = _flattened_map
+        tree_map = map_flattened
     else:
         tree_map = pytree.tree_map
 
@@ -134,7 +157,7 @@ def _scale_by_schedule(
     step_size_fn: Schedule, *, already_flattened: bool = False
 ) -> base.GradientTransformation:
     if already_flattened:
-        tree_map = _flattened_map
+        tree_map = map_flattened
     else:
         tree_map = pytree.tree_map
 
@@ -192,7 +215,7 @@ def _update_moment(updates, moments, decay, *, order, inplace=True, already_flat
                 return t.mul(decay).add_(g, alpha=1 - decay) if g is not None else t
 
     if already_flattened:
-        return _flattened_map(f, updates, moments)
+        return map_flattened(f, updates, moments)
     return pytree.tree_map(f, updates, moments)
 
 
@@ -211,7 +234,7 @@ def _bias_correction(moment, decay, count, *, already_flattened=False):
         return t.div(1 - decay**c)
 
     if already_flattened:
-        return _flattened_map(f, moment, count)
+        return map_flattened(f, moment, count)
     return pytree.tree_map(f, moment, count)
 
 
@@ -264,7 +287,7 @@ def _scale_by_adam(
     already_flattened: bool = False,
 ) -> base.GradientTransformation:
     if already_flattened:
-        tree_map = _flattened_map
+        tree_map = map_flattened
     else:
         tree_map = pytree.tree_map
 
@@ -360,14 +383,14 @@ def _scale_by_accelerated_adam(
     from torchopt._src.accelerated_op import AdamOp  # pylint: disable=import-outside-toplevel
 
     if already_flattened:
-        tree_map = _flattened_map
+        tree_map = map_flattened
 
         # pylint: disable-next=unused-argument
         def update_fn(updates, state, *, params=None, inplace=True):
             count_inc = inc_count(updates, state.count)
 
             op = AdamOp(b1=b1, b2=b2, eps=eps, eps_root=eps_root, inplace=inplace)
-            out = _flattened_map(op, state.mu, state.nu, updates, count_inc)
+            out = map_flattened(op, state.mu, state.nu, updates, count_inc)
 
             new_mu, new_nu, new_updates = tuple(zip(*out))  # transpose
             return new_updates, ScaleByAdamState(mu=new_mu, nu=new_nu, count=count_inc)
@@ -447,7 +470,7 @@ def _trace(
     already_flattened: bool = False,
 ) -> base.GradientTransformation:
     if already_flattened:
-        tree_map = _flattened_map
+        tree_map = map_flattened
     else:
         tree_map = pytree.tree_map
 
@@ -548,7 +571,7 @@ def _scale_by_rms(
     already_flattened: bool = False,
 ) -> base.GradientTransformation:
     if already_flattened:
-        tree_map = _flattened_map
+        tree_map = map_flattened
     else:
         tree_map = pytree.tree_map
 
@@ -619,7 +642,7 @@ def _scale_by_stddev(
     already_flattened: bool = False,
 ) -> base.GradientTransformation:
     if already_flattened:
-        tree_map = _flattened_map
+        tree_map = map_flattened
     else:
         tree_map = pytree.tree_map
 
