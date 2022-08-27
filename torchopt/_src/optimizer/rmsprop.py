@@ -69,7 +69,7 @@ class RMSProp(Optimizer):
                 uses :data:`0.0`, TensorFlow 1.x uses :data:`1.0`. When reproducing results from a
                 paper, verify the value used by the authors.
             nesterov: (default: :data:`False`)
-                Whether the nesterov momentum is used.
+                Whether to use Nesterov momentum.
             maximize: (default: :data:`False`)
                 Maximize the params based on the objective, instead of minimizing.
         """

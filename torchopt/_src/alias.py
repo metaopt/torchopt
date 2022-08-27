@@ -237,7 +237,7 @@ def sgd(
         weight_decay: (default: :const:`0.0`):
             Weight decay, add L2 penalty to parameters.
         nesterov: (default: :data:`False`)
-            Whether the nesterov momentum is used.
+            Whether to use Nesterov momentum.
         moment_requires_grad: (default: :data:`False`)
             If :data:`True` the momentums will be created with flag ``requires_grad=True``, this
             flag is often used in Meta-Learning algorithms.
@@ -315,7 +315,7 @@ def rmsprop(
             uses :data:`0.0`, TensorFlow 1.x uses :data:`1.0`. When reproducing results from a
             paper, verify the value used by the authors.
         nesterov: (default: :data:`False`)
-            Whether the nesterov momentum is used.
+            Whether to use Nesterov momentum.
         maximize: (default: :data:`False`)
             Maximize the params based on the objective, instead of minimizing.
 

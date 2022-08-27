@@ -52,7 +52,7 @@ class SGD(Optimizer):
             weight_decay: (default: :const:`0.0`):
                 Weight decay, add L2 penalty to parameters.
             nesterov: (default: :data:`False`)
-                Whether the nesterov momentum is used.
+                Whether to use Nesterov momentum.
             maximize: (default: :data:`False`)
                 Maximize the params based on the objective, instead of minimizing.
         """

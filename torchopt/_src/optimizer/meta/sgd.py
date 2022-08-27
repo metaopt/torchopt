@@ -50,7 +50,7 @@ class MetaSGD(MetaOptimizer):
             weight_decay: (default: :const:`0.0`):
                 Weight decay, add L2 penalty to parameters.
             nesterov: (default: :const:`False`)
-                Whether the nesterov momentum is used.
+                Whether to use Nesterov momentum.
             moment_requires_grad: (default: :data:`True`)
                 If :data:`True` the momentums will be created with flag ``requires_grad=True``, this
                 flag is often used in Meta-Learning algorithms.
