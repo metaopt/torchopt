@@ -35,6 +35,7 @@ class MetaSGD(MetaOptimizer):
         lr: ScalarOrSchedule,
         momentum: float = 0.0,
         weight_decay: float = 0.0,
+        dampening: float = 0.0,
         nesterov: bool = False,
         moment_requires_grad: bool = True,
         maximize: bool = False,
@@ -49,6 +50,8 @@ class MetaSGD(MetaOptimizer):
                 :const:`0.0`.
             weight_decay: (default: :const:`0.0`):
                 Weight decay, add L2 penalty to parameters.
+            dampening: (default: :const:`0.0`)
+                Dampening for momentum.
             nesterov: (default: :const:`False`)
                 Whether to use Nesterov momentum.
             moment_requires_grad: (default: :data:`True`)
@@ -63,6 +66,7 @@ class MetaSGD(MetaOptimizer):
                 lr=lr,
                 momentum=momentum,
                 weight_decay=weight_decay,
+                dampening=dampening,
                 nesterov=nesterov,
                 moment_requires_grad=moment_requires_grad,
                 maximize=maximize,

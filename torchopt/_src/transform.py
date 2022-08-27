@@ -286,6 +286,15 @@ def _scale_by_adam(
     *,
     already_flattened: bool = False,
 ) -> base.GradientTransformation:
+    # pylint: disable=unneeded-not
+    if not 0.0 <= eps:
+        raise ValueError(f'Invalid epsilon value: {eps}')
+    if not 0.0 <= b1 < 1.0:
+        raise ValueError(f'Invalid beta parameter at index 0: {b1}')
+    if not 0.0 <= b2 < 1.0:
+        raise ValueError(f'Invalid beta parameter at index 1: {b2}')
+    # pylint: enable=unneeded-not
+
     if already_flattened:
         tree_map = map_flattened
     else:
@@ -380,6 +389,15 @@ def _scale_by_accelerated_adam(
     *,
     already_flattened: bool = False,
 ) -> base.GradientTransformation:
+    # pylint: disable=unneeded-not
+    if not 0.0 <= eps:
+        raise ValueError(f'Invalid epsilon value: {eps}')
+    if not 0.0 <= b1 < 1.0:
+        raise ValueError(f'Invalid beta parameter at index 0: {b1}')
+    if not 0.0 <= b2 < 1.0:
+        raise ValueError(f'Invalid beta parameter at index 1: {b2}')
+    # pylint: enable=unneeded-not
+
     from torchopt._src.accelerated_op import AdamOp  # pylint: disable=import-outside-toplevel
 
     if already_flattened:
@@ -432,7 +450,8 @@ class TraceState(NamedTuple):
 
 
 def trace(
-    decay: float = 0.9,
+    momentum: float = 0.9,
+    dampening: float = 0.0,
     nesterov: bool = False,
     moment_requires_grad: bool = False,
 ) -> base.GradientTransformation:
@@ -443,8 +462,10 @@ def trace(
     Both are frequently found in the optimization literature.
 
     Args:
-        decay: (default: :const:`0.9`)
+        momentum: (default: :const:`0.9`)
             The decay rate for the trace of past updates.
+        dampening: (default: :const:`0.0`)
+            Dampening for momentum.
         nesterov: (default: :data:`False`)
             Whether to use Nesterov momentum.
         moment_requires_grad: (default: :data:`False`)
@@ -455,7 +476,8 @@ def trace(
     """
 
     return _trace(
-        decay=decay,
+        momentum=momentum,
+        dampening=dampening,
         nesterov=nesterov,
         moment_requires_grad=moment_requires_grad,
         already_flattened=False,
@@ -463,13 +485,21 @@ def trace(
 
 
 def _trace(
-    decay: float = 0.9,
+    momentum: float = 0.9,
+    dampening: float = 0.0,
     nesterov: bool = False,
     moment_requires_grad: bool = False,
     *,
     already_flattened: bool = False,
 ) -> base.GradientTransformation:
-    if decay == 0.0:
+    # pylint: disable=unneeded-not
+    if not 0.0 <= momentum:
+        raise ValueError(f'Invalid momentum value: {momentum}')
+    if nesterov and (momentum <= 0.0 or dampening != 0.0):
+        raise ValueError('Nesterov momentum requires a momentum and zero dampening')
+    # pylint: enable=unneeded-not
+
+    if momentum == 0.0:
         return base.identity()
 
     if already_flattened:
@@ -489,20 +519,20 @@ def _trace(
             if inplace:
 
                 def f1(g, t):
-                    return t.mul_(decay).add_(g)
+                    return t.mul_(momentum).add_(g)
 
                 def f2(g, t):
-                    return g.add_(t, alpha=decay)
+                    return g.add_(t, alpha=momentum)
 
                 new_trace = tree_map(f1, updates, state.trace)
                 updates = tree_map(f2, updates, new_trace)
             else:
 
                 def f1(g, t):
-                    return t.mul(decay).add_(g)
+                    return t.mul(momentum).add_(g)
 
                 def f2(g, t):
-                    return g.add(t, alpha=decay)
+                    return g.add(t, alpha=momentum)
 
                 new_trace = tree_map(f1, updates, state.trace)
                 updates = tree_map(f2, updates, new_trace)
@@ -510,20 +540,20 @@ def _trace(
             if inplace:
 
                 def f(g, t):
-                    return t.mul_(decay).add_(g)
+                    return t.mul_(momentum).add_(g, alpha=1.0 - dampening)
 
                 def copy_(g, t):
                     return g.copy_(t)
 
                 new_trace = tree_map(f, updates, state.trace)
-                updates = tree_map(copy_, updates, state.trace)
+                updates = tree_map(copy_, updates, new_trace)
             else:
 
                 def f(g, t):
-                    return t.mul(decay).add_(g)
+                    return t.mul(momentum).add_(g, alpha=1.0 - dampening)
 
                 new_trace = tree_map(f, updates, state.trace)
-                updates = new_trace
+                updates = tree_map(torch.clone, new_trace)
 
         return updates, TraceState(trace=new_trace)
 
@@ -571,6 +601,13 @@ def _scale_by_rms(
     *,
     already_flattened: bool = False,
 ) -> base.GradientTransformation:
+    # pylint: disable=unneeded-not
+    if not 0.0 <= alpha:
+        raise ValueError(f'Invalid alpha value: {alpha}')
+    if not 0.0 <= eps:
+        raise ValueError(f'Invalid epsilon value: {eps}')
+    # pylint: enable=unneeded-not
+
     if already_flattened:
         tree_map = map_flattened
     else:
@@ -642,6 +679,13 @@ def _scale_by_stddev(
     initial_scale: float = 0.0,
     already_flattened: bool = False,
 ) -> base.GradientTransformation:
+    # pylint: disable=unneeded-not
+    if not 0.0 <= alpha:
+        raise ValueError(f'Invalid alpha value: {alpha}')
+    if not 0.0 <= eps:
+        raise ValueError(f'Invalid epsilon value: {eps}')
+    # pylint: enable=unneeded-not
+
     if already_flattened:
         tree_map = map_flattened
     else:

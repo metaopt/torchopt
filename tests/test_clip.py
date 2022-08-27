@@ -27,6 +27,7 @@ import torchopt
     max_norm=[1.0, 10.0],
     lr=[1e-2, 1e-3, 1e-4],
     momentum=[0.0, 0.1],
+    dampening=[0.0, 0.5],
     nesterov=[False, True],
     weight_decay=[0.0, 1e-2],
     maximize=[False, True],
@@ -36,11 +37,12 @@ def test_sgd(
     max_norm: float,
     lr: float,
     momentum: float,
+    dampening: float,
     nesterov: bool,
     weight_decay: float,
     maximize: bool,
 ) -> None:
-    if nesterov and momentum <= 0.0:
+    if nesterov and (momentum <= 0.0 or dampening != 0.0):
         pytest.skip('Nesterov momentum requires a momentum and zero dampening.')
 
     model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
@@ -50,6 +52,7 @@ def test_sgd(
         torchopt.sgd(
             lr=lr,
             momentum=momentum,
+            dampening=dampening,
             nesterov=nesterov,
             weight_decay=weight_decay,
             maximize=maximize,
@@ -60,7 +63,7 @@ def test_sgd(
         model_ref.parameters(),
         lr,
         momentum=momentum,
-        dampening=0.0,
+        dampening=dampening,
         nesterov=nesterov,
         weight_decay=weight_decay,
         maximize=maximize,

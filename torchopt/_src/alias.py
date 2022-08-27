@@ -120,6 +120,9 @@ def _flip_sign_and_weight_decay(weight_decay: float = 0.0, maximize=False):
 
 
 def _scale_by_neg_lr(lr: ScalarOrSchedule):
+    if not (callable(lr) or 0.0 <= lr):
+        raise ValueError(f'Invalid learning rate: {lr}')
+
     if callable(lr):
 
         def schedule_wrapper(count):
@@ -218,6 +221,7 @@ def adam(
 def sgd(
     lr: ScalarOrSchedule,
     momentum: float = 0.0,
+    dampening: float = 0.0,
     weight_decay: float = 0.0,
     nesterov: bool = False,
     *,
@@ -240,6 +244,8 @@ def sgd(
             :const:`0.0`.
         weight_decay: (default: :const:`0.0`):
             Weight decay, add L2 penalty to parameters.
+        dampening: (default: :const:`0.0`)
+            Dampening for momentum.
         nesterov: (default: :data:`False`)
             Whether to use Nesterov momentum.
         moment_requires_grad: (default: :data:`False`)
@@ -258,13 +264,16 @@ def sgd(
         raise ValueError(f'Invalid momentum value: {momentum}')
     if not 0.0 <= weight_decay:
         raise ValueError(f'Invalid weight_decay value: {weight_decay}')
+    if nesterov and (momentum <= 0.0 or dampening != 0.0):
+        raise ValueError('Nesterov momentum requires a momentum and zero dampening')
     # pylint: enable=unneeded-not
 
     return transform.with_flattened_tree(
         combine.chain(
             _flip_sign_and_weight_decay(weight_decay=weight_decay, maximize=maximize),
             transform._trace(  # pylint: disable=protected-access
-                decay=momentum,
+                momentum=momentum,
+                dampening=dampening,
                 nesterov=nesterov,
                 moment_requires_grad=moment_requires_grad,
                 already_flattened=True,
@@ -353,7 +362,7 @@ def rmsprop(
                 already_flattened=True,
             ),
             transform._trace(  # pylint: disable=protected-access
-                decay=momentum,
+                momentum=momentum,
                 nesterov=nesterov,
                 already_flattened=True,
             ),

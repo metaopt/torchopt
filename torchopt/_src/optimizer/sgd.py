@@ -37,6 +37,7 @@ class SGD(Optimizer):
         lr: ScalarOrSchedule,
         momentum: float = 0.0,
         weight_decay: float = 0.0,
+        dampening: float = 0.0,
         nesterov: bool = False,
         maximize: bool = False,
     ):
@@ -51,6 +52,8 @@ class SGD(Optimizer):
                 :const:`0.0`.
             weight_decay: (default: :const:`0.0`):
                 Weight decay, add L2 penalty to parameters.
+            dampening: (default: :const:`0.0`)
+                Dampening for momentum.
             nesterov: (default: :data:`False`)
                 Whether to use Nesterov momentum.
             maximize: (default: :data:`False`)
@@ -62,6 +65,7 @@ class SGD(Optimizer):
                 lr=lr,
                 momentum=momentum,
                 weight_decay=weight_decay,
+                dampening=dampening,
                 nesterov=nesterov,
                 moment_requires_grad=False,
                 maximize=maximize,
