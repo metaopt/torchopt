@@ -25,12 +25,20 @@ import torchopt
 @helpers.parametrize(
     dtype=[torch.float64, torch.float32],
     max_norm=[1.0, 10.0],
-    lr=[1e-3, 1e-4],
+    lr=[1e-1, 1e-3, 1e-4],
     momentum=[0.0, 0.1],
     nesterov=[False, True],
+    weight_decay=[0.0, 1e-3],
+    maximize=[False, True],
 )
 def test_sgd(
-    dtype: torch.dtype, max_norm: float, lr: float, momentum: float, nesterov: bool
+    dtype: torch.dtype,
+    max_norm: float,
+    lr: float,
+    momentum: float,
+    nesterov: bool,
+    weight_decay: float,
+    maximize: bool,
 ) -> None:
     if nesterov and momentum <= 0.0:
         pytest.skip('Nesterov momentum requires a momentum and zero dampening.')
@@ -39,7 +47,13 @@ def test_sgd(
 
     chain = torchopt.combine.chain(
         torchopt.clip.clip_grad_norm(max_norm=max_norm),
-        torchopt.sgd(lr=lr, momentum=momentum, nesterov=nesterov),
+        torchopt.sgd(
+            lr=lr,
+            momentum=momentum,
+            nesterov=nesterov,
+            weight_decay=weight_decay,
+            maximize=maximize,
+        ),
     )
     optim = torchopt.Optimizer(model.parameters(), chain)
     optim_ref = torch.optim.SGD(
@@ -48,7 +62,8 @@ def test_sgd(
         momentum=momentum,
         dampening=0.0,
         nesterov=nesterov,
-        weight_decay=0.0,
+        weight_decay=weight_decay,
+        maximize=maximize,
     )
 
     for xs, ys in loader:
