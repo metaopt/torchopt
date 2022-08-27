@@ -155,7 +155,9 @@ class ChainedGradientTransformation(GradientTransformation):
     def __new__(cls, *transformations: GradientTransformation) -> 'ChainedGradientTransformation':
         transformations = tuple(
             itertools.chain.from_iterable(
-                t.transformations if isinstance(t, ChainedGradientTransformation) else (t,)
+                t.transformations
+                if isinstance(t, ChainedGradientTransformation)
+                else ((t,) if not isinstance(t, IdentityGradientTransformation) else ())
                 for t in transformations
             )
         )
@@ -177,8 +179,8 @@ class ChainedGradientTransformation(GradientTransformation):
                 new_state.append(new_s)
             return updates, tuple(new_state)
 
-        instance = super().__new__(cls, init_fn, update_fn)
-        instance.transformations = tuple(transformations)
+        instance = super().__new__(cls, init=init_fn, update=update_fn)
+        instance.transformations = transformations
         return instance
 
     def __str__(self):
@@ -208,7 +210,24 @@ class ChainedGradientTransformation(GradientTransformation):
         return ChainedGradientTransformation, (self.transformations,)
 
 
-def identity() -> GradientTransformation:
+class IdentityGradientTransformation(GradientTransformation):
+    """A gradient transformation that does nothing."""
+
+    def __new__(cls):
+        return super().__new__(cls, init=cls.init_fn, update=cls.update_fn)
+
+    @staticmethod
+    def init_fn(params):  # pylint: disable=unused-argument
+        """Returns empty state."""
+        return EmptyState()
+
+    @staticmethod
+    def update_fn(updates, state, *, params=None, inplace=True):  # pylint: disable=unused-argument
+        """Returns updates unchanged."""
+        return updates, state
+
+
+def identity() -> IdentityGradientTransformation:
     """Stateless identity transformation that leaves input gradients untouched.
 
     This function passes through the *gradient updates* unchanged.
@@ -217,10 +236,4 @@ def identity() -> GradientTransformation:
         An ``(init_fn, update_fn)`` tuple.
     """
 
-    def init_fn(_):
-        return EmptyState()
-
-    def update_fn(updates, state, *, params=None, inplace=True):  # pylint: disable=unused-argument
-        return updates, state
-
-    return GradientTransformation(init_fn, update_fn)
+    return IdentityGradientTransformation()
