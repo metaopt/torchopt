@@ -128,7 +128,7 @@ Define the ``train`` function:
                 # These will be used to update the model's meta-parameters.
                 qry_logits = net(x_qry[i])
                 qry_loss = F.cross_entropy(qry_logits, y_qry[i])
-            qry_losses.append(qry_loss.detach())
+                qry_losses.append(qry_loss.detach())
                 qry_acc = (qry_logits.argmax(dim=1) == y_qry[i]).sum().item() / querysz
                 qry_accs.append(qry_acc)
 

@@ -1,6 +1,5 @@
 --extra-index-url https://download.pytorch.org/whl/cu116
 torch >= 1.12
-torchvision
 functorch >= 0.2
 
 --requirement ../requirements.txt

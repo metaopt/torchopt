@@ -36,7 +36,7 @@ RUN TORCH_INDEX_URL="https://download.pytorch.org/whl/cu$(echo "${CUDA_VERSION}"
     echo "source /home/torchopt/venv/bin/activate" >> ~/.bashrc
 
 # Install dependencies
-WORKDIR /home/torchopt/TorchOpt
+WORKDIR /home/torchopt/torchopt
 COPY --chown=torchopt requirements.txt requirements.txt
 RUN source ~/venv/bin/activate && \
     python -m pip install --extra-index-url "${TORCH_INDEX_URL}" -r requirements.txt && \
@@ -84,4 +84,4 @@ ENTRYPOINT [ "/bin/bash", "--login" ]
 
 FROM devel-builder AS devel
 
-COPY --from=base /home/torchopt/TorchOpt .
+COPY --from=base /home/torchopt/torchopt .
