@@ -172,7 +172,7 @@ def adam(
             A small constant applied to denominator inside the square root (as in RMSProp), to avoid
             dividing by zero when rescaling. This is needed for example when computing
             (meta-)gradients through Adam.
-        moment_requires_grad: (default: :data:`True`)
+        moment_requires_grad: (default: :data:`False`)
             If :data:`True` the momentums will be created with flag ``requires_grad=True``, this
             flag is often used in Meta Learning algorithms.
         maximize: (default: :data:`False`)
