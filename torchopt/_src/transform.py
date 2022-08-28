@@ -32,7 +32,7 @@
 
 # pylint: disable=invalid-name
 
-from typing import Any, Callable, List, NamedTuple, Tuple
+from typing import Any, Callable, List, NamedTuple, Sequence
 
 import torch
 
@@ -73,7 +73,7 @@ def with_flattened_tree(inner: base.GradientTransformation) -> base.GradientTran
     return base.GradientTransformation(init_fn, update_fn)
 
 
-def inc_count(updates: base.Updates, count: Tuple[torch.Tensor, ...]) -> Tuple[torch.Tensor, ...]:
+def inc_count(updates: base.Updates, count: Sequence[torch.Tensor]) -> Sequence[torch.Tensor]:
     """Increments int counter by one.
 
     Returns:
@@ -84,8 +84,8 @@ def inc_count(updates: base.Updates, count: Tuple[torch.Tensor, ...]) -> Tuple[t
 
 
 def _inc_count(
-    updates: base.Updates, count: Tuple[torch.Tensor, ...], *, already_flattened: bool = False
-) -> Tuple[torch.Tensor, ...]:
+    updates: base.Updates, count: Sequence[torch.Tensor], *, already_flattened: bool = False
+) -> Sequence[torch.Tensor]:
     def f(c, g):
         return c + (c != INT32_MAX).to(torch.int32) if g is not None else c
 
@@ -136,7 +136,7 @@ def _scale(step_size: float, *, already_flattened: bool = False) -> base.Gradien
 class ScaleByScheduleState(NamedTuple):
     """Maintains count for scale scheduling."""
 
-    count: Tuple[torch.Tensor, ...]  # type: ignore
+    count: Sequence[torch.Tensor]  # type: ignore
 
 
 def scale_by_schedule(step_size_fn: Schedule) -> base.GradientTransformation:
@@ -224,7 +224,7 @@ class ScaleByAdamState(NamedTuple):
 
     mu: base.Updates
     nu: base.Updates
-    count: Tuple[torch.Tensor, ...]  # type: ignore
+    count: Sequence[torch.Tensor]  # type: ignore
 
 
 def _bias_correction(moment, decay, count, *, already_flattened=False):
@@ -405,7 +405,7 @@ def _scale_by_accelerated_adam(
 
         # pylint: disable-next=unused-argument
         def update_fn(updates, state, *, params=None, inplace=True):
-            count_inc = inc_count(updates, state.count)
+            count_inc = _inc_count(updates, state.count, already_flattened=True)
 
             op = AdamOp(b1=b1, b2=b2, eps=eps, eps_root=eps_root, inplace=inplace)
             out = map_flattened(op, state.mu, state.nu, updates, count_inc)
@@ -418,7 +418,7 @@ def _scale_by_accelerated_adam(
 
         # pylint: disable-next=unused-argument
         def update_fn(updates, state, *, params=None, inplace=True):
-            count_inc = inc_count(updates, state.count)
+            count_inc = _inc_count(updates, state.count, already_flattened=False)
 
             treedef = pytree.tree_structure(updates)
 
@@ -677,6 +677,7 @@ def _scale_by_stddev(
     alpha: float = 0.9,
     eps: float = 1e-8,
     initial_scale: float = 0.0,
+    *,
     already_flattened: bool = False,
 ) -> base.GradientTransformation:
     # pylint: disable=unneeded-not
