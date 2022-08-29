@@ -13,7 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 
-from typing import Iterable, Optional
+from typing import Iterable
 
 import torch
 
@@ -34,35 +34,42 @@ class RMSProp(Optimizer):
     def __init__(
         self,
         params: Iterable[torch.Tensor],
-        lr: ScalarOrSchedule,
-        decay: float = 0.9,
+        lr: ScalarOrSchedule = 1e-2,
+        alpha: float = 0.99,
         eps: float = 1e-8,
-        initial_scale: float = 0.0,
+        weight_decay: float = 0.0,
+        momentum: float = 0.0,
         centered: bool = False,
-        momentum: Optional[float] = None,
+        *,
+        initial_scale: float = 0.0,
         nesterov: bool = False,
         maximize: bool = False,
     ):
         r"""The `init` function.
 
         Args:
-            params (iterable of torch.Tensor): An iterable of :class:`torch.Tensor`\s. Specifies
-                what Tensors should be optimized.
-            lr: This is a fixed global scaling factor.
-            decay: The decay used to track the magnitude of previous gradients.
-            eps: A small numerical constant to avoid dividing by zero when rescaling.
+            params: (iterable of torch.Tensor)
+                An iterable of :class:`torch.Tensor`\s. Specifies what Tensors should be optimized.
+            lr: (default: :const:`1e-2`)
+                This is a fixed global scaling factor.
+            alpha: (default: :const:`0.99`)
+                Smoothing constant, the decay used to track the magnitude of previous gradients.
+            eps: (default: :const:`1e-8`)
+                A small numerical constant to avoid dividing by zero when rescaling.
+            weight_decay: (default: :const:`0.0`):
+                Weight decay, add L2 penalty to parameters.
+            momentum: (default: :const:`0.0`)
+                The decay rate used by the momentum term. The momentum is not used when it is set to
+                :const:`0.0`.
+            centered: (default: :data:`False`)
+                If :data:`True`, use the variance of the past gradients to rescale the latest
+                gradients.
             initial_scale: (default: :data:`0.0`)
                 Initialization of accumulators tracking the magnitude of previous updates. PyTorch
                 uses :data:`0.0`, TensorFlow 1.x uses :data:`1.0`. When reproducing results from a
                 paper, verify the value used by the authors.
-            centered: (default: :data:`False`)
-                Whether the second moment or the variance of the past gradients is used to rescale
-                the latest gradients.
-            momentum: (default: :data:`None`)
-                The ``decay`` rate used by the momentum term, when it is set to :data:`None`, then
-                momentum is not used at all.
             nesterov: (default: :data:`False`)
-                Whether the nesterov momentum is used.
+                Whether to use Nesterov momentum.
             maximize: (default: :data:`False`)
                 Maximize the params based on the objective, instead of minimizing.
         """
@@ -70,12 +77,16 @@ class RMSProp(Optimizer):
             params,
             rmsprop(
                 lr=lr,
-                decay=decay,
+                alpha=alpha,
                 eps=eps,
-                initial_scale=initial_scale,
-                centered=centered,
+                weight_decay=weight_decay,
                 momentum=momentum,
+                centered=centered,
+                initial_scale=initial_scale,
                 nesterov=nesterov,
                 maximize=maximize,
             ),
         )
+
+
+RMSprop = RMSProp  # alias for PyTorch compatibility

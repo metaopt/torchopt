@@ -13,7 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 
-from typing import Iterable
+from typing import Iterable, Tuple
 
 import torch
 
@@ -35,9 +35,10 @@ class Adam(Optimizer):
         self,
         params: Iterable[torch.Tensor],
         lr: ScalarOrSchedule,
-        b1: float = 0.9,
-        b2: float = 0.999,
+        betas: Tuple[float, float] = (0.9, 0.999),
         eps: float = 1e-8,
+        weight_decay: float = 0.0,
+        *,
         eps_root: float = 0.0,
         maximize: bool = False,
         use_accelerated_op: bool = False,
@@ -45,13 +46,17 @@ class Adam(Optimizer):
         r"""The :meth:`init` function.
 
         Args:
-            params (iterable of torch.Tensor): An iterable of :class:`torch.Tensor`\s. Specifies
-                what tensors should be optimized.
-            lr: This is a fixed global scaling factor.
-            b1: The exponential decay rate to track the first moment of past gradients.
-            b2: The exponential decay rate to track the second moment of past gradients.
-            eps: A small constant applied to denominator outside of the square root (as in the Adam
+            params: (iterable of torch.Tensor)
+                An iterable of :class:`torch.Tensor`\s. Specifies what tensors should be optimized.
+            lr: (default: :const:`1e-3`)
+                This is a fixed global scaling factor.
+            betas: (default: :const:`(0.9, 0.999)`)
+                Coefficients used for computing running averages of gradient and its square.
+            eps: (default: :const:`1e-8`)
+                A small constant applied to denominator outside of the square root (as in the Adam
                 paper) to avoid dividing by zero when rescaling.
+            weight_decay: (default: :const:`0.0`):
+                Weight decay, add L2 penalty to parameters.
             eps_root: (default: :data:`0.0`)
                 A small constant applied to denominator inside the square root (as in RMSProp), to
                 avoid dividing by zero when rescaling. This is needed for example when computing
@@ -65,9 +70,9 @@ class Adam(Optimizer):
             params,
             adam(
                 lr=lr,
-                b1=b1,
-                b2=b2,
+                betas=betas,
                 eps=eps,
+                weight_decay=weight_decay,
                 eps_root=eps_root,
                 moment_requires_grad=False,
                 maximize=maximize,

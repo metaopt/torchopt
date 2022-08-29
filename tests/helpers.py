@@ -26,8 +26,8 @@ import torch.nn as nn
 from torch.utils import data
 
 
-BATCH_SIZE = 4
-NUM_UPDATES = 3
+BATCH_SIZE = 64
+NUM_UPDATES = 5
 
 MODEL_NUM_INPUTS = 28 * 28  # MNIST
 MODEL_NUM_CLASSES = 10
@@ -82,11 +82,21 @@ def get_models(
             bias=True,
             dtype=dtype,
         ),
+        nn.BatchNorm1d(
+            num_features=MODEL_HIDDEN_SIZE,
+            track_running_stats=True,
+            dtype=dtype,
+        ),
         nn.ReLU(),
         nn.Linear(
             in_features=MODEL_HIDDEN_SIZE,
             out_features=MODEL_HIDDEN_SIZE,
             bias=True,
+            dtype=dtype,
+        ),
+        nn.BatchNorm1d(
+            num_features=MODEL_HIDDEN_SIZE,
+            track_running_stats=True,
             dtype=dtype,
         ),
         nn.ReLU(),
@@ -99,7 +109,7 @@ def get_models(
         nn.Softmax(dim=-1),
     )
     for name, param in model_base.named_parameters(recurse=True):
-        if name.endswith('weight'):
+        if name.endswith('weight') and param.ndim >= 2:
             nn.init.orthogonal_(param)
         if name.endswith('bias'):
             param.data.normal_(0, 0.1)
@@ -159,6 +169,13 @@ def assert_all_close(
     if base is not None:
         actual = actual - base
         expected = expected - base
+
+    if rtol is None or atol is None:
+        from torch.testing._comparison import get_tolerances
+
+        rtol, atol = get_tolerances(actual, expected, rtol=rtol, atol=atol)
+        rtol *= 4 * NUM_UPDATES
+        atol *= 4 * NUM_UPDATES
 
     torch.testing.assert_close(
         actual,
