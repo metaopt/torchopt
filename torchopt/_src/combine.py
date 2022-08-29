@@ -47,7 +47,7 @@ def chain(*args: base.GradientTransformation) -> base.GradientTransformation:
     Returns:
         A single ``(init_fn, update_fn)`` tuple.
     """
-    init_fns, update_fns = zip(*args)
+    init_fns, update_fns = tuple(zip(*args))
 
     def init_fn(params):
         return tuple(fn(params) for fn in init_fns)
@@ -60,7 +60,7 @@ def chain(*args: base.GradientTransformation) -> base.GradientTransformation:
             )
         new_state = []
         for s, fn in zip(state, update_fns):  # pylint: disable=invalid-name
-            updates, new_s = fn(updates, s, inplace)
+            updates, new_s = fn(updates, s, inplace=inplace)
             new_state.append(new_s)
         return updates, tuple(new_state)
 

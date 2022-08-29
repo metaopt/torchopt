@@ -29,7 +29,7 @@ concurrency:
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -77,3 +77,12 @@ jobs:
       - name: Test with pytest
         run: |
           make pytest
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV }}
+          file: ./tests/coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false

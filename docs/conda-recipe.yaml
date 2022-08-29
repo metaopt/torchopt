@@ -31,10 +31,8 @@ dependencies:
 
   # Learning
   - pytorch::pytorch >= 1.12
-  - pytorch::torchvision
   - pytorch::pytorch-mutex = *=*cpu*
   - pip:
-      - jax[cpu] >= 0.3
       - functorch >= 0.2
       - torchviz
       - sphinxcontrib-katex  # for documentation
@@ -70,4 +68,4 @@ dependencies:
   - myst-nb
   - ipykernel
   - pandoc
-  - docutils
+  - docutils = 0.16

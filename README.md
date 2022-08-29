@@ -215,7 +215,6 @@ The figure below show the visualization result. Compared with [`torchviz`](https
 Requirements
 
 - PyTorch
-- JAX
 - (Optional) For visualizing computation graphs
   - [Graphviz](https://graphviz.org/download/) (for Linux users use `apt/yum install graphviz` or `conda install -c anaconda python-graphviz`)
 

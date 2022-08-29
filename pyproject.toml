@@ -11,10 +11,10 @@ readme = "README.md"
 requires-python = ">= 3.7"
 authors = [
     { name = "TorchOpt Contributors" },
-    { name = "Xuehai Pan", email = "XuehaiPan@pku.edu.cn" },
     { name = "Jie Ren", email = "jieren9806@gmail.com" },
     { name = "Xidong Feng", email = "xidong.feng.20@ucl.ac.uk" },
     { name = "Bo Liu", email = "benjaminliu.eecs@gmail.com" },
+    { name = "Xuehai Pan", email = "XuehaiPan@pku.edu.cn" },
 ]
 license = { text = "Apache License, Version 2.0" }
 keywords = [
@@ -45,7 +45,7 @@ classifiers = [
 ]
 dependencies = [
     "torch >= 1.12",
-    "jax[cpu] >= 0.3",
+    "optree",
     "numpy",
     "graphviz",
     "typing-extensions",
@@ -73,7 +73,6 @@ lint = [
     "pre-commit",
 ]
 test = [
-    'torchvision',
     'functorch >= 0.2',
     'pytest',
     'pytest-cov',
@@ -123,10 +122,10 @@ test-command = """
     TORCH_VERSION="$(python -c 'print(__import__("torch").__version__.partition("+")[0])')"
     TEST_TORCH_SPECS="${TEST_TORCH_SPECS:-"${DEFAULT_TEST_TORCH_SPECS}"}"
     for spec in ${TEST_TORCH_SPECS}; do
-        python -m pip uninstall -y torch torchvision
+        python -m pip uninstall -y torch
         export PIP_EXTRA_INDEX_URL="https://download.pytorch.org/whl/${spec}"
         echo "PIP_EXTRA_INDEX_URL='${PIP_EXTRA_INDEX_URL}'"
-        python -m pip install "torch==${TORCH_VERSION}" torchvision
+        python -m pip install "torch==${TORCH_VERSION}"
         echo "ls ${TORCH_LIB_PATH}"; ls -lh "${TORCH_LIB_PATH}"
         find "${SITE_PACKAGES}/torchopt" -name "*.so" -print0 |
             xargs -0 -I '{}' bash -c "echo 'ldd {}'; ldd '{}'; echo 'patchelf --print-rpath {}'; patchelf --print-rpath '{}'"

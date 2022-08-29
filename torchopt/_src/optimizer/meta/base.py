@@ -73,7 +73,7 @@ class MetaOptimizer:
         from torchopt._src.utils import _extract_container
 
         net_container = _extract_container(net, with_buffer=False)
-        flatten_param, _ = pytree.tree_flatten(net_container)
+        flatten_param = pytree.tree_leaves(net_container)
         flatten_param = tuple(flatten_param)
         optim_state = self.impl.init(flatten_param)
         self.state_groups.append(optim_state)

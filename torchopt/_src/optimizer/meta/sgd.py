@@ -38,6 +38,7 @@ class MetaSGD(MetaOptimizer):
         momentum: Optional[float] = None,
         nesterov: bool = False,
         moment_requires_grad: bool = True,
+        maximize: bool = False,
     ):
         """The :meth:`init` function.
 
@@ -49,6 +50,8 @@ class MetaSGD(MetaOptimizer):
             nesterov: Whether the nesterov momentum is used.
             moment_requires_grad: Here we set ``moment_requires_grad=True`` to make tensors like
                 momentum be differentiable.
+            maximize: (default: :data:`False`)
+                Maximize the params based on the objective, instead of minimizing.
         """
         super().__init__(
             net,
@@ -57,5 +60,6 @@ class MetaSGD(MetaOptimizer):
                 momentum=momentum,
                 nesterov=nesterov,
                 moment_requires_grad=moment_requires_grad,
+                maximize=maximize,
             ),
         )

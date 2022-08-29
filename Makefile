@@ -82,7 +82,10 @@ addlicense-install: go-install
 # Tests
 
 pytest: pytest-install
-	cd tests && $(PYTHON) -m pytest unit --cov $(PROJECT_PATH) --durations 0 -v --cov-report term-missing --color=yes
+	cd tests && \
+	$(PYTHON) -m pytest --verbose --color=yes --durations=0 \
+		--cov="$(PROJECT_NAME)" --cov-report=xml --cov-report=term-missing \
+		.
 
 test: pytest
 

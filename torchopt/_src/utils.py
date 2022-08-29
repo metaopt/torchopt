@@ -15,7 +15,7 @@
 
 from typing import Dict, List, NamedTuple, Union
 
-import jax.tree_util as pytree
+import optree as pytree
 import torch
 import torch.nn as nn
 
@@ -57,7 +57,7 @@ def stop_gradient(target):
     elif isinstance(target, nn.Module):
         true_target = tuple(target.parameters())
     elif isinstance(target, MetaOptimizer):
-        true_target, _ = pytree.tree_flatten(target.state_dict())
+        true_target = pytree.tree_leaves(target.state_dict())
     else:
         true_target = target
 
@@ -107,16 +107,15 @@ def extract_state_dict(mod, copy=False, *, with_buffer=True, enable_visual=False
 
         params = []
 
-        def get_v(v):  # pylint: disable=invalid-name
+        def get_variable(t):
             if copy:
-                requires_grad = v.requires_grad
-                return v.clone().detach_().requires_grad_(requires_grad)
-
-            return v
+                requires_grad = t.requires_grad
+                return t.clone().detach_().requires_grad_(requires_grad)
+            return t
 
         def _update(term):
             if len(term) != 0:
-                params.append({k: get_v(v) for k, v in term.items()})
+                params.append({k: get_variable(v) for k, v in term.items()})
 
         # pylint: disable=protected-access
         _update(mod._parameters)
@@ -133,16 +132,14 @@ def extract_state_dict(mod, copy=False, *, with_buffer=True, enable_visual=False
     elif isinstance(mod, MetaOptimizer):
         state = mod.state_dict()
         if copy:
-            flatten_state, state_tree = pytree.tree_flatten(state)
 
-            def get_v(v):  # pylint: disable=invalid-name
-                if not isinstance(v, torch.Tensor):
-                    return v
-                requires_grad = v.requires_grad
-                return v.clone().detach_().requires_grad_(requires_grad)
+            def get_variable(t):
+                if not isinstance(t, torch.Tensor):
+                    return t
+                requires_grad = t.requires_grad
+                return t.clone().detach_().requires_grad_(requires_grad)
 
-            flatten_state = pytree.tree_map(get_v, flatten_state)
-            return state_tree.unflatten(flatten_state)
+            return pytree.tree_map(get_variable, state)
 
         return state
 
