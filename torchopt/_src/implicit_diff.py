@@ -46,6 +46,7 @@ def root_vjp(
         (pytree, same structure as ``sol``).
       solve: a linear solver of the form ``x = solve(matvec, b)``,
         where ``matvec(x) = Ax`` and ``Ax=b``.
+
     Returns:
       tuple of the same length as ``len(args)`` containing the vjps w.r.t.
       each argument. Each ``vjps[i]`` has the same pytree structure as
@@ -205,25 +206,6 @@ def _merge_tensor_and_others(tree, tensor_mask, tensor_tuple, non_tensor_tuple):
 
 
 def _custom_root(solver_fun, optimality_fun, solve, argnums, has_aux, reference_signature=None):
-    # When caling through `jax.custom_vjp`, jax attempts to resolve all
-    # arguments passed by keyword to positions (this is in order to
-    # match against a `nondiff_argnums` parameter that we do not use
-    # here). It does so by resolving them according to the custom_jvp'ed
-    # function's signature. It disallows functions defined with a
-    # catch-all `**kwargs` expression, since their signature cannot
-    # always resolve all keyword arguments to positions.
-    #
-    # We can loosen the constraint on the signature of `solver_fun` so
-    # long as we resolve keywords to positions ourselves. We can do so
-    # just in time, by flattening the `kwargs` dict (respecting its
-    # iteration order) and supplying `custom_vjp` with a
-    # positional-argument-only function. We then explicitly coordinate
-    # flattening and unflattening around the `custom_vjp` boundary.
-    #
-    # Once we make it past the `custom_vjp` boundary, we do some more
-    # work to align arguments with the reference signature (which is, by
-    # default, the signature of `optimality_fun`).
-
     solver_fun_signature = inspect.signature(solver_fun)
 
     if reference_signature is None:

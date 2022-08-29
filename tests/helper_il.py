@@ -13,23 +13,19 @@
 # limitations under the License.
 # ==============================================================================
 
-import copy
 import itertools
 import os
 import random
-from typing import Iterable, Optional, Tuple, Union
 import types
 from collections import OrderedDict
+from typing import Iterable, Optional, Tuple, Union
 
+import jax.numpy as jnp
 import numpy as np
 import pytest
 import torch
 import torch.nn as nn
 from torch.utils import data
-
-import jax
-import jax.numpy as jnp
-
 
 
 BATCH_SIZE = 4
@@ -37,7 +33,7 @@ NUM_UPDATES = 3
 
 MODEL_NUM_INPUTS = 10
 MODEL_NUM_CLASSES = 10
-#MODEL_HIDDEN_SIZE = 64
+# MODEL_HIDDEN_SIZE = 64
 
 
 def parametrize(**argvalues) -> pytest.mark.parametrize:
@@ -75,14 +71,20 @@ def seed_everything(seed: int) -> None:
         pass
 
 
-def get_model_jax(
-    dtype: np.dtype = np.float32
-) -> Tuple[types.FunctionType, OrderedDict]:
+def get_model_jax(dtype: np.dtype = np.float32) -> Tuple[types.FunctionType, OrderedDict]:
     seed_everything(seed=42)
+
     def f(params, x):
         return jnp.matmul(x, params['weight']) + params['bias']
-    p = OrderedDict([('weight', jnp.ones((MODEL_NUM_INPUTS, MODEL_NUM_CLASSES))), ('bias', jnp.zeros((MODEL_NUM_CLASSES,)))])
+
+    p = OrderedDict(
+        [
+            ('weight', jnp.ones((MODEL_NUM_INPUTS, MODEL_NUM_CLASSES))),
+            ('bias', jnp.zeros((MODEL_NUM_CLASSES,))),
+        ]
+    )
     return f, p
+
 
 @torch.no_grad()
 def get_model_torch(
@@ -99,12 +101,12 @@ def get_model_torch(
 
         def forward(self, x):
             return self.fc(x)
-    
+
     model = Net(MODEL_NUM_INPUTS, MODEL_NUM_CLASSES)
 
     if device is not None:
         model = model.to(device=torch.device(device))
-        
+
     dataset = data.TensorDataset(
         torch.randint(0, 1, (BATCH_SIZE * NUM_UPDATES, MODEL_NUM_INPUTS)),
         torch.randint(0, MODEL_NUM_CLASSES, (BATCH_SIZE * NUM_UPDATES,)),
@@ -112,6 +114,7 @@ def get_model_torch(
     loader = data.DataLoader(dataset, BATCH_SIZE, shuffle=False)
 
     return model, loader
+
 
 def clone(p):
     p_out = []
@@ -121,6 +124,7 @@ def clone(p):
         else:
             p_out.append(item)
     return tuple(p_out)
+
 
 @torch.no_grad()
 def assert_model_all_close(
