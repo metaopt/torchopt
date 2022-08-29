@@ -78,7 +78,7 @@ def test_sgd(
 
         grad = torch.autograd.grad(loss, params)
         updates, optim_state = optim.update(grad, optim_state, params=params, inplace=inplace)
-        params = torchopt.apply_updates(params, updates)
+        params = torchopt.apply_updates(params, updates, inplace=inplace)
 
         optim_ref.zero_grad()
         loss_ref.backward()
@@ -136,7 +136,7 @@ def test_adam(
 
         grad = torch.autograd.grad(loss, params)
         updates, optim_state = optim.update(grad, optim_state, params=params, inplace=inplace)
-        params = torchopt.apply_updates(params, updates)
+        params = torchopt.apply_updates(params, updates, inplace=inplace)
 
         optim_ref.zero_grad()
         loss_ref.backward()
@@ -195,7 +195,7 @@ def test_adam_accelerated_cpu(
 
         grad = torch.autograd.grad(loss, params)
         updates, optim_state = optim.update(grad, optim_state, params=params, inplace=inplace)
-        params = torchopt.apply_updates(params, updates)
+        params = torchopt.apply_updates(params, updates, inplace=inplace)
 
         optim_ref.zero_grad()
         loss_ref.backward()
@@ -257,7 +257,7 @@ def test_adam_accelerated_cuda(
 
         grad = torch.autograd.grad(loss, params)
         updates, optim_state = optim.update(grad, optim_state, params=params, inplace=inplace)
-        params = torchopt.apply_updates(params, updates)
+        params = torchopt.apply_updates(params, updates, inplace=inplace)
 
         optim_ref.zero_grad()
         loss_ref.backward()
@@ -318,7 +318,7 @@ def test_rmsprop(
 
         grad = torch.autograd.grad(loss, params)
         updates, optim_state = optim.update(grad, optim_state, params=params, inplace=inplace)
-        params = torchopt.apply_updates(params, updates)
+        params = torchopt.apply_updates(params, updates, inplace=inplace)
 
         optim_ref.zero_grad()
         loss_ref.backward()

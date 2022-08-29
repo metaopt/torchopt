@@ -105,7 +105,7 @@ class Optimizer:
         for i, (params, state) in enumerate(zip(self.param_groups, self.state_groups)):
             grad = pytree.tree_map(f, params)
             updates, new_state = self.impl.update(grad, state, params=params, inplace=True)
-            self.param_groups[i] = apply_updates(params, updates)
+            self.param_groups[i] = apply_updates(params, updates, inplace=True)
             self.state_groups[i] = new_state
 
         return loss

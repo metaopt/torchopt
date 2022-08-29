@@ -27,7 +27,7 @@ from torch.utils import data
 
 
 BATCH_SIZE = 64
-NUM_UPDATES = 10
+NUM_UPDATES = 5
 
 MODEL_NUM_INPUTS = 28 * 28  # MNIST
 MODEL_NUM_CLASSES = 10
