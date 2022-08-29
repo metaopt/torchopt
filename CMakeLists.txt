@@ -32,7 +32,7 @@ if(CUDA_FOUND)
     enable_language(CUDA)
     add_definitions(-D__CUDA_ENABLED__)
 
-    cuda_select_nvcc_arch_flags(CUDA_ARCH_FLAGS Maxwell)
+    cuda_select_nvcc_arch_flags(CUDA_ARCH_FLAGS All)
     list(APPEND CUDA_NVCC_FLAGS ${CUDA_ARCH_FLAGS})
     set(CMAKE_CUDA_STANDARD 14)
     set(CMAKE_CUDA_FLAGS_RELEASE "${CMAKE_CUDA_FLAGS_RELEASE} -O3")
