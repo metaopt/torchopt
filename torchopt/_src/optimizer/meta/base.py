@@ -53,24 +53,26 @@ class MetaOptimizer:
             loss (torch.Tensor): The loss that is used to compute the gradients to the network
                 parameters.
         """  # pylint: disable=line-too-long
-        # step parameter only
+        # Step parameter only
         for i, (param_container, new_state) in enumerate(
             zip(self.param_containers_groups, self.state_groups)
         ):
-            flattened_params, container_tree = pytree.tree_flatten(param_container)
+            flattened_params, container_treedef = pytree.tree_flatten(param_container)
             flattened_params = tuple(flattened_params)
-            grad = torch.autograd.grad(loss, flattened_params, create_graph=True, allow_unused=True)
+            grads = torch.autograd.grad(
+                loss, flattened_params, create_graph=True, allow_unused=True
+            )
             updates, new_state = self.impl.update(
-                grad,
+                grads,
                 new_state,
                 params=flattened_params,
                 inplace=False,
             )
             self.state_groups[i] = new_state
-            new_params = apply_updates(flattened_params, updates, inplace=False)
-            unflattened_new_params = container_tree.unflatten(new_params)
-            for container, unflatten_param in zip(param_container, unflattened_new_params):
-                container.update(unflatten_param)
+            flattened_new_params = apply_updates(flattened_params, updates, inplace=False)
+            new_params = pytree.tree_unflatten(container_treedef, flattened_new_params)
+            for container, new_param in zip(param_container, new_params):
+                container.update(new_param)
 
     def add_param_group(self, net):
         """Add a param group to the optimizer's :attr:`state_groups`."""
