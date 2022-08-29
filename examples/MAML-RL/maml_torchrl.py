@@ -21,7 +21,10 @@ import torch.optim as optim
 import tqdm
 from torchrl.envs import GymEnv, ParallelEnv, SerialEnv
 from torchrl.envs.utils import set_exploration_mode, step_tensordict
-from torchrl.objectives.returns.functional import vec_td_lambda_advantage_estimate
+from torchrl.objectives.returns.functional import (
+    td_lambda_advantage_estimate,
+    vec_td_lambda_advantage_estimate,
+)
 
 import torchopt
 
@@ -61,10 +64,9 @@ def a2c_loss(traj, policy_module, value_module, value_coef):
     next_traj = step_tensordict(traj)
     next_value = value_module(next_traj).get('state_value').detach()
 
-    # Work backwards to compute `G_{T-1}`, ..., `G_0`.
     # tderror = TDEstimate(GAMMA, value_module, gradient_mode=True)
     # tderror = TDLambdaEstimate(GAMMA, LAMBDA, value_module, gradient_mode=True)
-    advantage = vec_td_lambda_advantage_estimate(GAMMA, LAMBDA, value, next_value, reward, done)
+    advantage = td_lambda_advantage_estimate(GAMMA, LAMBDA, value, next_value, reward, done)
     action_loss = -(advantage.detach() * log_probs.view_as(advantage)).mean()
     value_error = advantage
     value_loss = value_error.pow(2).mean()
