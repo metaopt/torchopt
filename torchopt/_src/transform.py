@@ -79,7 +79,6 @@ def inc_count(updates: base.Updates, count: Sequence[torch.Tensor]) -> Sequence[
     Returns:
         A counter incremeted by one, or max_int if the maximum precision is reached.
     """
-
     return _inc_count(updates=updates, count=count, already_flattened=False)
 
 
@@ -103,7 +102,6 @@ def scale(step_size: float) -> base.GradientTransformation:
     Returns:
         An ``(init_fn, update_fn)`` tuple.
     """
-
     return _scale(step_size=step_size, already_flattened=False)
 
 
@@ -266,7 +264,6 @@ def scale_by_adam(
     Returns:
         An (init_fn, update_fn) tuple.
     """
-
     return _scale_by_adam(
         b1=b1,
         b2=b2,
@@ -369,7 +366,6 @@ def scale_by_accelerated_adam(
     Returns:
         An (init_fn, update_fn) tuple.
     """
-
     return _scale_by_accelerated_adam(
         b1=b1,
         b2=b2,
@@ -474,7 +470,6 @@ def trace(
     Returns:
         An (init_fn, update_fn) tuple.
     """
-
     return _trace(
         momentum=momentum,
         dampening=dampening,
@@ -589,7 +584,6 @@ def scale_by_rms(
     Returns:
         An (init_fn, update_fn) tuple.
     """
-
     return _scale_by_rms(
         alpha=alpha,
         eps=eps,
@@ -668,7 +662,6 @@ def scale_by_stddev(
     Returns:
         An (init_fn, update_fn) tuple.
     """
-
     return _scale_by_stddev(
         alpha=alpha,
         eps=eps,

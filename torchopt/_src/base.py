@@ -153,6 +153,7 @@ class ChainedGradientTransformation(GradientTransformation):
     transformations: Tuple[GradientTransformation, ...]
 
     def __new__(cls, *transformations: GradientTransformation) -> 'ChainedGradientTransformation':
+        """Creates a new chained gradient transformation."""
         transformations = tuple(
             itertools.chain.from_iterable(
                 t.transformations
@@ -184,6 +185,7 @@ class ChainedGradientTransformation(GradientTransformation):
         return instance
 
     def __str__(self):
+        """Returns a string representation of the chained gradient transformation."""
         return '{}(\n    {}\n)'.format(
             self.__class__.__name__, ',\n    '.join(repr(t) for t in self.transformations)
         )
@@ -191,6 +193,7 @@ class ChainedGradientTransformation(GradientTransformation):
     __repr__ = __str__
 
     def __eq__(self, other: object) -> bool:
+        """Returns whether two chained gradient transformations are equal."""
         if isinstance(other, ChainedGradientTransformation):
             return self.transformations == other.transformations
         if isinstance(other, GradientTransformation):
@@ -198,15 +201,19 @@ class ChainedGradientTransformation(GradientTransformation):
         return False
 
     def __hash__(self) -> int:
+        """Returns the hash of the chained gradient transformation."""
         return hash(self.transformations)
 
     def __getstate__(self) -> Tuple[GradientTransformation, ...]:
+        """Returns the state of the chained gradient transformation for serialization."""
         return self.transformations
 
     def __setstate__(self, state: Tuple[GradientTransformation, ...]) -> None:
+        """Sets the state of the chained gradient transformation from serialization."""
         self.transformations = state
 
     def __reduce__(self) -> Tuple[Callable, Tuple[Tuple[GradientTransformation, ...]]]:
+        """Serialization support for chained gradient transformation."""
         return ChainedGradientTransformation, (self.transformations,)
 
 
@@ -214,6 +221,7 @@ class IdentityGradientTransformation(GradientTransformation):
     """A gradient transformation that does nothing."""
 
     def __new__(cls):
+        """Create a new gradient transformation that does nothing."""
         return super().__new__(cls, init=cls.init_fn, update=cls.update_fn)
 
     @staticmethod
@@ -242,5 +250,4 @@ def identity() -> IdentityGradientTransformation:
     Returns:
         An ``(init_fn, update_fn)`` tuple.
     """
-
     return IdentityGradientTransformation()
