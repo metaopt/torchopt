@@ -31,15 +31,15 @@ RUN echo "export PS1='[\[\e[1;33m\]\u\[\e[0m\]:\[\e[1;35m\]\w\[\e[0m\]]\$ '" >> 
 
 # Setup virtual environment
 RUN /usr/bin/python3.9 -m venv --upgrade-deps ~/venv && rm -rf ~/.pip/cache
-RUN TORCH_INDEX_URL="https://download.pytorch.org/whl/cu$(echo "${CUDA_VERSION}" | cut -d'.' -f-2  | tr -d '.')" && \
-    echo "export TORCH_INDEX_URL='${TORCH_INDEX_URL}'" >> ~/venv/bin/activate && \
+RUN PIP_EXTRA_INDEX_URL="https://download.pytorch.org/whl/cu$(echo "${CUDA_VERSION}" | cut -d'.' -f-2  | tr -d '.')" && \
+    echo "export PIP_EXTRA_INDEX_URL='${PIP_EXTRA_INDEX_URL}'" >> ~/venv/bin/activate && \
     echo "source /home/torchopt/venv/bin/activate" >> ~/.bashrc
 
 # Install dependencies
 WORKDIR /home/torchopt/torchopt
 COPY --chown=torchopt requirements.txt requirements.txt
 RUN source ~/venv/bin/activate && \
-    python -m pip install --extra-index-url "${TORCH_INDEX_URL}" -r requirements.txt && \
+    python -m pip install -r requirements.txt && \
     rm -rf ~/.pip/cache ~/.cache/pip
 
 ####################################################################################################
@@ -63,8 +63,7 @@ RUN go install github.com/google/addlicense@latest
 COPY --chown=torchopt tests/requirements.txt tests/requirements.txt
 COPY --chown=torchopt tutorials/requirements.txt tutorials/requirements.txt
 RUN source ~/venv/bin/activate && \
-    python -m pip install --extra-index-url "${TORCH_INDEX_URL}" \
-        -r tests/requirements.txt -r tutorials/requirements.txt && \
+    python -m pip install -r tests/requirements.txt -r tutorials/requirements.txt && \
     rm -rf ~/.pip/cache ~/.cache/pip
 
 ####################################################################################################
