@@ -37,14 +37,14 @@ class Optimizer:
                 Note that using ``Optimizer(sgd())`` or ``Optimizer(chain(sgd()))`` is equivalent to
                 :class:`torchopt.SGD`.
         """
-        if not isinstance(params, list):
-            params = list(params)
         self.impl = impl
         self.param_groups = []  # type: ignore
         self.param_tree_groups = []  # type: ignore
         self.state_groups = []  # type: ignore
-        for param_group in params:
-            self.add_param_group(param_group)
+
+        if not isinstance(params, list):
+            params = list(params)
+        self.add_param_group(params)
 
     def zero_grad(self, set_to_none: bool = False):
         r"""Sets the gradients of all optimized :class:`torch.Tensor`\s to zero.
@@ -102,11 +102,11 @@ class Optimizer:
         def f(p):
             return p.grad
 
-        for i, (param, opt_state) in enumerate(zip(self.param_groups, self.state_groups)):
-            grad = pytree.tree_map(f, param)
-            updates, new_opt_state = self.impl.update(grad, opt_state, inplace=True)
-            self.param_groups[i] = apply_updates(param, updates)
-            self.state_groups[i] = new_opt_state
+        for i, (params, state) in enumerate(zip(self.param_groups, self.state_groups)):
+            grads = pytree.tree_map(f, params)
+            updates, new_state = self.impl.update(grads, state, params=params, inplace=True)
+            self.param_groups[i] = apply_updates(params, updates, inplace=True)
+            self.state_groups[i] = new_state
 
         return loss
 
