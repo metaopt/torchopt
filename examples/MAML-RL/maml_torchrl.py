@@ -14,6 +14,7 @@
 # ==============================================================================
 
 import argparse
+import time
 
 import numpy as np
 import torch
@@ -21,10 +22,7 @@ import torch.optim as optim
 import tqdm
 from torchrl.envs import GymEnv, ParallelEnv, SerialEnv
 from torchrl.envs.utils import set_exploration_mode, step_tensordict
-from torchrl.objectives.returns.functional import (
-    td_lambda_advantage_estimate,
-    vec_td_lambda_advantage_estimate,
-)
+from torchrl.objectives.returns.functional import td_lambda_advantage_estimate
 
 import torchopt
 
@@ -80,7 +78,7 @@ def a2c_loss(traj, policy_module, value_module, value_coef):
     return loss
 
 
-def evaluate(env, dummy_env, seed, task_num, actor_critic, policy, value):
+def evaluate(env, dummy_env, seed, task_num, actor_critic):
     pre_reward_ls = []
     post_reward_ls = []
     env.set_seed(seed)
@@ -88,27 +86,44 @@ def evaluate(env, dummy_env, seed, task_num, actor_critic, policy, value):
     device = next(actor_critic.parameters()).device
 
     inner_opt = torchopt.MetaSGD(actor_critic, lr=0.1)
-
     dummy_env.set_seed(seed)
     tasks = dummy_env.sample_tasks(num_tasks=task_num)
 
-    policy_state_dict = torchopt.extract_state_dict(actor_critic)
+    model_state_dict = torchopt.extract_state_dict(actor_critic)
     optim_state_dict = torchopt.extract_state_dict(inner_opt)
     for idx in range(task_num):
         env.reset_task(tasks[idx])
+        policy = actor_critic.get_policy_operator()
+        value = actor_critic.get_value_operator()
         for _ in range(inner_iters):
             with set_exploration_mode('random'), torch.no_grad():
-                pre_traj_td = env.rollout(policy=policy, max_steps=TRAJ_LEN).contiguous().to(device)
+                pre_traj_td = (
+                    env.rollout(
+                        policy=policy,
+                        max_steps=TRAJ_LEN,
+                        auto_reset=True,
+                    )
+                    .contiguous()
+                    .to(device)
+                )
             inner_loss = a2c_loss(pre_traj_td, policy, value, value_coef=0.5)
             inner_opt.step(inner_loss)
         with set_exploration_mode('random'), torch.no_grad():
-            post_traj_td = env.rollout(policy=policy, max_steps=TRAJ_LEN).contiguous().to(device)
+            post_traj_td = (
+                env.rollout(
+                    policy=policy,
+                    max_steps=TRAJ_LEN,
+                    auto_reset=True,
+                )
+                .contiguous()
+                .to(device)
+            )
 
         # Logging
         pre_reward_ls.append(torch.sum(pre_traj_td.get('reward'), dim=1).mean().item())
         post_reward_ls.append(torch.sum(post_traj_td.get('reward'), dim=1).mean().item())
 
-        torchopt.recover_state_dict(actor_critic, policy_state_dict)
+        torchopt.recover_state_dict(actor_critic, model_state_dict)
         torchopt.recover_state_dict(inner_opt, optim_state_dict)
     return pre_reward_ls, post_reward_ls
 
@@ -146,8 +161,6 @@ def main(args):
         env.observation_spec[obs_key].shape[-1],
         env.action_spec.shape[-1],
     ).to(device)
-    policy_module = actor_critic_module.get_policy_operator()
-    value_module = actor_critic_module.get_value_operator()
 
     inner_opt = torchopt.MetaSGD(actor_critic_module, lr=0.1)
     outer_opt = optim.Adam(actor_critic_module.parameters(), lr=1e-3)
@@ -167,11 +180,12 @@ def main(args):
         train_post_reward_ls = []
 
         outer_opt.zero_grad()
-        policy_state_dict = torchopt.extract_state_dict(actor_critic_module)
+        model_state_dict = torchopt.extract_state_dict(actor_critic_module)
         optim_state_dict = torchopt.extract_state_dict(inner_opt)
         for idx in range(TASK_NUM):
-            # print("idx: ", idx)
             env.reset_task(tasks[idx])
+            policy_module = actor_critic_module.get_policy_operator()
+            value_module = actor_critic_module.get_value_operator()
             for k in range(inner_iters):
                 with set_exploration_mode('random'), torch.no_grad():
                     pre_traj_td = (
@@ -199,7 +213,7 @@ def main(args):
             outer_loss = a2c_loss(post_traj_td, policy_module, value_module, value_coef=0.5)
             outer_loss.backward()
 
-            torchopt.recover_state_dict(actor_critic_module, policy_state_dict)
+            torchopt.recover_state_dict(actor_critic_module, model_state_dict)
             torchopt.recover_state_dict(inner_opt, optim_state_dict)
 
             # Logging
@@ -214,8 +228,6 @@ def main(args):
             args.seed,
             TASK_NUM,
             actor_critic_module,
-            policy_module,
-            value_module,
         )
 
         train_pre_reward.append(sum(train_pre_reward_ls) / TASK_NUM)
