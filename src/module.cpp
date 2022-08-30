@@ -13,16 +13,17 @@
 // limitations under the License.
 // =============================================================================
 
-#pragma once
-#include <torch/extension.h>
+#include <pybind11/pybind11.h>
 
-#include <array>
-#include <cstddef>
+#include "include/adam_op/adam_op.h"
 
-using pyfloat_t = double;
-using pyuint_t = std::size_t;
-
-namespace torchopt {
-template <size_t _Nm>
-using TensorArray = std::array<torch::Tensor, _Nm>;
+PYBIND11_MODULE(_C, mod) {
+  py::module m = mod.def_submodule("adam_op", "Adam Ops");
+  m.def("forward_", &torchopt::adam_op::adamForwardInplace);
+  m.def("forwardMu", &torchopt::adam_op::adamForwardMu);
+  m.def("forwardNu", &torchopt::adam_op::adamForwardNu);
+  m.def("forwardUpdates", &torchopt::adam_op::adamForwardUpdates);
+  m.def("backwardMu", &torchopt::adam_op::adamBackwardMu);
+  m.def("backwardNu", &torchopt::adam_op::adamBackwardNu);
+  m.def("backwardUpdates", &torchopt::adam_op::adamBackwardUpdates);
 }

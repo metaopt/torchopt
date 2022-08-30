@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-// ==============================================================================
+// =============================================================================
 
 #include <torch/extension.h>
 
@@ -22,13 +22,15 @@
 
 namespace torchopt {
 
-namespace {
+namespace adam_op {
+
 template <typename scalar_t, typename other_t>
 __global__ void adamForwardInplaceCUDAKernel(
-    const other_t b1, const other_t inv_one_minus_pow_b1, const other_t b2,
-    const other_t inv_one_minus_pow_b2, const other_t eps,
-    const other_t eps_root, const size_t n, scalar_t *__restrict__ updates_ptr,
-    scalar_t *__restrict__ mu_ptr, scalar_t *__restrict__ nu_ptr) {
+    const other_t &b1, const other_t &inv_one_minus_pow_b1, const other_t &b2,
+    const other_t &inv_one_minus_pow_b2, const other_t &eps,
+    const other_t &eps_root, const size_t &n,
+    scalar_t *__restrict__ updates_ptr, scalar_t *__restrict__ mu_ptr,
+    scalar_t *__restrict__ nu_ptr) {
   unsigned tid = threadIdx.x + blockIdx.x * blockDim.x;
   if (tid >= n) {
     return;
@@ -47,12 +49,11 @@ __global__ void adamForwardInplaceCUDAKernel(
   nu_ptr[tid] = nu_out;
   updates_ptr[tid] = updates_out;
 }
-}  // namespace
 
 TensorArray<3> adamForwardInplaceCUDA(
     const torch::Tensor &updates, const torch::Tensor &mu,
-    const torch::Tensor &nu, const pyfloat_t b1, const pyfloat_t b2,
-    const pyfloat_t eps, const pyfloat_t eps_root, const pyuint_t count) {
+    const torch::Tensor &nu, const pyfloat_t &b1, const pyfloat_t &b2,
+    const pyfloat_t &eps, const pyfloat_t &eps_root, const pyuint_t &count) {
   using other_t = pyfloat_t;
   const other_t inv_one_minus_pow_b1 = 1 / (1 - std::pow(b1, count));
   const other_t inv_one_minus_pow_b2 = 1 / (1 - std::pow(b2, count));
@@ -70,11 +71,11 @@ TensorArray<3> adamForwardInplaceCUDA(
       }));
   return TensorArray<3>{updates, mu, nu};
 }
-namespace {
+
 template <typename scalar_t, typename other_t>
 __global__ void adamForwardMuCUDAKernel(
     const scalar_t *__restrict__ updates_ptr,
-    const scalar_t *__restrict__ mu_ptr, const other_t b1, const size_t n,
+    const scalar_t *__restrict__ mu_ptr, const other_t &b1, const size_t &n,
     scalar_t *__restrict__ mu_out_ptr) {
   size_t tid = threadIdx.x + blockIdx.x * blockDim.x;
   if (tid >= n) {
@@ -86,10 +87,9 @@ __global__ void adamForwardMuCUDAKernel(
   const scalar_t mu_out = b1 * mu + (1 - b1) * updates;
   mu_out_ptr[tid] = mu_out;
 }
-}  // namespace
 
 torch::Tensor adamForwardMuCUDA(const torch::Tensor &updates,
-                                const torch::Tensor &mu, const pyfloat_t b1) {
+                                const torch::Tensor &mu, const pyfloat_t &b1) {
   auto mu_out = torch::empty_like(mu);
 
   const size_t n = getTensorPlainSize(updates);
@@ -104,11 +104,10 @@ torch::Tensor adamForwardMuCUDA(const torch::Tensor &updates,
   return mu_out;
 }
 
-namespace {
 template <typename scalar_t, typename other_t>
 __global__ void adamForwardNuCUDAKernel(
     const scalar_t *__restrict__ updates_ptr,
-    const scalar_t *__restrict__ nu_ptr, const other_t b2, const size_t n,
+    const scalar_t *__restrict__ nu_ptr, const other_t &b2, const size_t &n,
     scalar_t *__restrict__ nu_out_ptr) {
   size_t tid = threadIdx.x + blockIdx.x * blockDim.x;
   if (tid >= n) {
@@ -121,10 +120,9 @@ __global__ void adamForwardNuCUDAKernel(
   const scalar_t nu_out = b2 * nu + (1 - b2) * pow(updates, 2);
   nu_out_ptr[tid] = nu_out;
 }
-}  // namespace
 
 torch::Tensor adamForwardNuCUDA(const torch::Tensor &updates,
-                                const torch::Tensor &nu, const pyfloat_t b2) {
+                                const torch::Tensor &nu, const pyfloat_t &b2) {
   auto nu_out = torch::empty_like(nu);
 
   const size_t n = getTensorPlainSize(updates);
@@ -139,13 +137,12 @@ torch::Tensor adamForwardNuCUDA(const torch::Tensor &updates,
   return nu_out;
 }
 
-namespace {
 template <typename scalar_t, typename other_t>
 __global__ void adamForwardUpdatesCUDAKernel(
     const scalar_t *__restrict__ new_mu_ptr,
-    const scalar_t *__restrict__ new_nu_ptr, const other_t inv_one_minus_pow_b1,
-    const other_t inv_one_minus_pow_b2, const other_t eps,
-    const other_t eps_root, const size_t n,
+    const scalar_t *__restrict__ new_nu_ptr,
+    const other_t &inv_one_minus_pow_b1, const other_t &inv_one_minus_pow_b2,
+    const other_t &eps, const other_t &eps_root, const size_t &n,
     scalar_t *__restrict__ updates_out_ptr) {
   size_t tid = threadIdx.x + blockIdx.x * blockDim.x;
   if (tid >= n) {
@@ -158,14 +155,13 @@ __global__ void adamForwardUpdatesCUDAKernel(
   const scalar_t nu_hat = new_nu * inv_one_minus_pow_b2;
   updates_out_ptr[tid] = mu_hat / (sqrt(nu_hat + eps_root) + eps);
 }
-}  // namespace
 
 torch::Tensor adamForwardUpdatesCUDA(const torch::Tensor &new_mu,
                                      const torch::Tensor &new_nu,
-                                     const pyfloat_t b1, const pyfloat_t b2,
-                                     const pyfloat_t eps,
-                                     const pyfloat_t eps_root,
-                                     const pyuint_t count) {
+                                     const pyfloat_t &b1, const pyfloat_t &b2,
+                                     const pyfloat_t &eps,
+                                     const pyfloat_t &eps_root,
+                                     const pyuint_t &count) {
   using other_t = pyfloat_t;
 
   auto updates_out = torch::empty_like(new_mu);
@@ -189,10 +185,9 @@ torch::Tensor adamForwardUpdatesCUDA(const torch::Tensor &new_mu,
   return updates_out;
 }
 
-namespace {
 template <typename scalar_t, typename other_t>
 __global__ void adamBackwardMuCUDAKernel(
-    const scalar_t *__restrict__ dmu_ptr, const other_t b1, const size_t n,
+    const scalar_t *__restrict__ dmu_ptr, const other_t &b1, const size_t &n,
     scalar_t *__restrict__ dupdates_out_ptr,
     scalar_t *__restrict__ dmu_out_ptr) {
   size_t tid = threadIdx.x + blockIdx.x * blockDim.x;
@@ -205,11 +200,11 @@ __global__ void adamBackwardMuCUDAKernel(
   dupdates_out_ptr[tid] = (1 - b1) * dmu;
   dmu_out_ptr[tid] = b1 * dmu;
 }
-}  // namespace
 
 TensorArray<2> adamBackwardMuCUDA(const torch::Tensor &dmu,
                                   const torch::Tensor &updates,
-                                  const torch::Tensor &mu, const pyfloat_t b1) {
+                                  const torch::Tensor &mu,
+                                  const pyfloat_t &b1) {
   auto dupdates_out = torch::empty_like(updates);
   auto dmu_out = torch::empty_like(mu);
 
@@ -225,12 +220,11 @@ TensorArray<2> adamBackwardMuCUDA(const torch::Tensor &dmu,
   return TensorArray<2>{std::move(dupdates_out), std::move(dmu_out)};
 }
 
-namespace {
 template <typename scalar_t, typename other_t>
 __global__ void adamBackwardNuCUDAKernel(
     const scalar_t *__restrict__ dnu_ptr,
-    const scalar_t *__restrict__ updates_ptr, const other_t b2, const size_t n,
-    scalar_t *__restrict__ dupdates_out_ptr,
+    const scalar_t *__restrict__ updates_ptr, const other_t &b2,
+    const size_t &n, scalar_t *__restrict__ dupdates_out_ptr,
     scalar_t *__restrict__ dnu_out_ptr) {
   size_t tid = threadIdx.x + blockIdx.x * blockDim.x;
   if (tid >= n) {
@@ -243,11 +237,11 @@ __global__ void adamBackwardNuCUDAKernel(
   dupdates_out_ptr[tid] = 2 * (1 - b2) * updates * dnu;
   dnu_out_ptr[tid] = b2 * dnu;
 }
-}  // namespace
 
 TensorArray<2> adamBackwardNuCUDA(const torch::Tensor &dnu,
                                   const torch::Tensor &updates,
-                                  const torch::Tensor &nu, const pyfloat_t b2) {
+                                  const torch::Tensor &nu,
+                                  const pyfloat_t &b2) {
   auto dupdates_out = torch::empty_like(updates);
   auto dnu_out = torch::empty_like(nu);
 
@@ -264,13 +258,12 @@ TensorArray<2> adamBackwardNuCUDA(const torch::Tensor &dnu,
   return TensorArray<2>{std::move(dupdates_out), std::move(dnu_out)};
 }
 
-namespace {
 template <typename scalar_t, typename other_t>
 __global__ void adamBackwardUpdatesCUDAKernel(
     const scalar_t *__restrict__ dupdates_ptr,
     const scalar_t *__restrict__ updates_ptr,
-    const scalar_t *__restrict__ new_mu_ptr, const other_t one_minus_pow_b1,
-    const other_t inv_one_minus_pow_b2, const size_t n,
+    const scalar_t *__restrict__ new_mu_ptr, const other_t &one_minus_pow_b1,
+    const other_t &inv_one_minus_pow_b2, const size_t &n,
     scalar_t *__restrict__ dnew_mu_out_ptr,
     scalar_t *__restrict__ dnew_nu_out_ptr) {
   size_t tid = threadIdx.x + blockIdx.x * blockDim.x;
@@ -296,14 +289,13 @@ __global__ void adamBackwardUpdatesCUDAKernel(
   dnew_nu_out_ptr[tid] = -dupdates * updates * denominator * 0.5 *
                          inv_one_minus_pow_b2 * denominator;
 }
-}  // namespace
 
 TensorArray<2> adamBackwardUpdatesCUDA(const torch::Tensor &dupdates,
                                        const torch::Tensor &updates,
                                        const torch::Tensor &new_mu,
                                        const torch::Tensor &new_nu,
-                                       const pyfloat_t b1, const pyfloat_t b2,
-                                       const pyuint_t count) {
+                                       const pyfloat_t &b1, const pyfloat_t &b2,
+                                       const pyuint_t &count) {
   using other_t = pyfloat_t;
 
   auto dmu_out = torch::empty_like(new_mu);
@@ -326,4 +318,6 @@ TensorArray<2> adamBackwardUpdatesCUDA(const torch::Tensor &dupdates,
       }));
   return TensorArray<2>{std::move(dmu_out), std::move(dnu_out)};
 }
+
+}  // namespace adam_op
 }  // namespace torchopt

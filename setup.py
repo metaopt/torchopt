@@ -20,8 +20,10 @@ import version  # noqa
 
 
 class CMakeExtension(Extension):
-    def __init__(self, name, source_dir='.', **kwargs):
-        super().__init__(name, sources=[], **kwargs)
+    parallel = True
+
+    def __init__(self, name, source_dir='.', parallel=True, **kwargs):
+        super().__init__(name, sources=[], parallel=True, **kwargs)
         self.source_dir = os.path.abspath(source_dir)
 
 
@@ -81,8 +83,8 @@ class cmake_build_ext(build_ext):
 
 setup(
     version=version.__version__,
-    package_data={'sharedlib': ['_lib/*.so']},
+    package_data={'sharedlib': ['*.so']},
     include_package_data=True,
     cmdclass={'build_ext': cmake_build_ext},
-    ext_modules=[CMakeExtension('torchopt._lib.adam_op', source_dir=HERE)],
+    ext_modules=[CMakeExtension('torchopt._C', source_dir=HERE)],
 )
