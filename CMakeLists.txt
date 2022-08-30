@@ -26,14 +26,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 find_package(Threads REQUIRED)             # -pthread
 find_package(OpenMP REQUIRED)              # -Xpreprocessor -fopenmp
 set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)  # -fPIC
-set(CMAKE_CXX_VISIBILITY_PRESET hidden)    # -fvisibility=hidden
 
 if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Wall /W4")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_RELEASE} /Zi")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /O2 /Ob2")
 else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_RELEASE} -g -Og")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
 endif()
