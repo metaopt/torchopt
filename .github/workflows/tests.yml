@@ -68,7 +68,7 @@ jobs:
       - name: Install PyTorch and FuncTorch nightly
         run: |
           export PIP_EXTRA_INDEX_URL="${PIP_EXTRA_INDEX_URL//whl/whl\/nightly}"
-          python -m pip install 'torch >= 1.13.0dev' ninja
+          python -m pip install 'torch >= 1.13.0dev' ninja wheel
           python -m pip install git+https://github.com/pytorch/functorch.git
 
       - name: Install dependencies
