@@ -32,11 +32,11 @@ namespace adam_op {
 TensorArray<3> adamForwardInplace(const torch::Tensor &updates,
                                   const torch::Tensor &mu,
                                   const torch::Tensor &nu,
-                                  const pyfloat_t &b1,
-                                  const pyfloat_t &b2,
-                                  const pyfloat_t &eps,
-                                  const pyfloat_t &eps_root,
-                                  const pyuint_t &count) {
+                                  const pyfloat_t b1,
+                                  const pyfloat_t b2,
+                                  const pyfloat_t eps,
+                                  const pyfloat_t eps_root,
+                                  const pyuint_t count) {
 #if defined(__CUDA_ENABLED__)
   if (updates.device().is_cuda()) {
     return adamForwardInplaceCUDA(updates, mu, nu, b1, b2, eps, eps_root, count);
@@ -51,7 +51,7 @@ TensorArray<3> adamForwardInplace(const torch::Tensor &updates,
 
 torch::Tensor adamForwardMu(const torch::Tensor &updates,
                             const torch::Tensor &mu,
-                            const pyfloat_t &b1) {
+                            const pyfloat_t b1) {
 #if defined(__CUDA_ENABLED__)
   if (updates.device().is_cuda()) {
     return adamForwardMuCUDA(updates, mu, b1);
@@ -66,7 +66,7 @@ torch::Tensor adamForwardMu(const torch::Tensor &updates,
 
 torch::Tensor adamForwardNu(const torch::Tensor &updates,
                             const torch::Tensor &nu,
-                            const pyfloat_t &b2) {
+                            const pyfloat_t b2) {
 #if defined(__CUDA_ENABLED__)
   if (updates.device().is_cuda()) {
     return adamForwardNuCUDA(updates, nu, b2);
@@ -81,11 +81,11 @@ torch::Tensor adamForwardNu(const torch::Tensor &updates,
 
 torch::Tensor adamForwardUpdates(const torch::Tensor &new_mu,
                                  const torch::Tensor &new_nu,
-                                 const pyfloat_t &b1,
-                                 const pyfloat_t &b2,
-                                 const pyfloat_t &eps,
-                                 const pyfloat_t &eps_root,
-                                 const pyuint_t &count) {
+                                 const pyfloat_t b1,
+                                 const pyfloat_t b2,
+                                 const pyfloat_t eps,
+                                 const pyfloat_t eps_root,
+                                 const pyuint_t count) {
 #if defined(__CUDA_ENABLED__)
   if (new_mu.device().is_cuda()) {
     return adamForwardUpdatesCUDA(new_mu, new_nu, b1, b2, eps, eps_root, count);
@@ -101,7 +101,7 @@ torch::Tensor adamForwardUpdates(const torch::Tensor &new_mu,
 TensorArray<2> adamBackwardMu(const torch::Tensor &dmu,
                               const torch::Tensor &updates,
                               const torch::Tensor &mu,
-                              const pyfloat_t &b1) {
+                              const pyfloat_t b1) {
 #if defined(__CUDA_ENABLED__)
   if (dmu.device().is_cuda()) {
     return adamBackwardMuCUDA(dmu, updates, mu, b1);
@@ -117,7 +117,7 @@ TensorArray<2> adamBackwardMu(const torch::Tensor &dmu,
 TensorArray<2> adamBackwardNu(const torch::Tensor &dnu,
                               const torch::Tensor &updates,
                               const torch::Tensor &nu,
-                              const pyfloat_t &b2) {
+                              const pyfloat_t b2) {
 #if defined(__CUDA_ENABLED__)
   if (dnu.device().is_cuda()) {
     return adamBackwardNuCUDA(dnu, updates, nu, b2);
@@ -134,9 +134,9 @@ TensorArray<2> adamBackwardUpdates(const torch::Tensor &dupdates,
                                    const torch::Tensor &updates,
                                    const torch::Tensor &new_mu,
                                    const torch::Tensor &new_nu,
-                                   const pyfloat_t &b1,
-                                   const pyfloat_t &b2,
-                                   const pyuint_t &count) {
+                                   const pyfloat_t b1,
+                                   const pyfloat_t b2,
+                                   const pyuint_t count) {
 #if defined(__CUDA_ENABLED__)
   if (dupdates.device().is_cuda()) {
     return adamBackwardUpdatesCUDA(dupdates, updates, new_mu, new_nu, b1, b2, count);
