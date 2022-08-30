@@ -20,10 +20,8 @@ import version  # noqa
 
 
 class CMakeExtension(Extension):
-    parallel = True
-
-    def __init__(self, name, source_dir='.', parallel=True, **kwargs):
-        super().__init__(name, sources=[], parallel=True, **kwargs)
+    def __init__(self, name, source_dir='.', **kwargs):
+        super().__init__(name, sources=[], **kwargs)
         self.source_dir = os.path.abspath(source_dir)
 
 
@@ -70,7 +68,9 @@ class cmake_build_ext(build_ext):
             and hasattr(self, 'parallel')
             and self.parallel
         ):
-            build_args.append(f'-j{self.parallel}')
+            build_args.append(f'--parallel={self.parallel}')
+        else:
+            build_args.append(f'--parallel')
 
         try:
             os.chdir(build_temp)
