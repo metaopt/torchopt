@@ -21,9 +21,22 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pthread -fPIC -fopenmp")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
+set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
+
+find_package(Threads REQUIRED)             # -pthread
+find_package(OpenMP REQUIRED)              # -Xpreprocessor -fopenmp
+set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)  # -fPIC
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)    # -fvisibility=hidden
+
+if(MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Wall /W4")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_RELEASE} /Zi")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /O2 /Ob2")
+else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_RELEASE} -g -Og")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
+endif()
 
 find_package(CUDA)
 
@@ -76,13 +89,19 @@ function(system)
 endfunction()
 
 if(NOT DEFINED PYTHON_EXECUTABLE)
-    set(PYTHON_EXECUTABLE python3)
+    if(WIN32)
+        set(PYTHON_EXECUTABLE "python.exe")
+    else()
+        set(PYTHON_EXECUTABLE "python")
+    endif()
 endif()
 
-system(
-    STRIP OUTPUT_VARIABLE PYTHON_EXECUTABLE
-    COMMAND bash -c "type -P '${PYTHON_EXECUTABLE}'"
-)
+if(UNIX)
+    system(
+        STRIP OUTPUT_VARIABLE PYTHON_EXECUTABLE
+        COMMAND bash -c "type -P '${PYTHON_EXECUTABLE}'"
+    )
+endif()
 
 system(
     STRIP OUTPUT_VARIABLE PYTHON_VERSION

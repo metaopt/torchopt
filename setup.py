@@ -83,7 +83,7 @@ class cmake_build_ext(build_ext):
 
 setup(
     version=version.__version__,
-    package_data={'sharedlib': ['*.so']},
+    package_data={'sharedlib': ['*.so', '*.pyd']},
     include_package_data=True,
     cmdclass={'build_ext': cmake_build_ext},
     ext_modules=[CMakeExtension('torchopt._C', source_dir=HERE)],
