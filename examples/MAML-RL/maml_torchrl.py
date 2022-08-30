@@ -187,7 +187,7 @@ def main(args):
             policy_module = actor_critic_module.get_policy_operator()
             value_module = actor_critic_module.get_value_operator()
             for k in range(inner_iters):
-                with set_exploration_mode('random'), torch.no_grad():
+                with set_exploration_mode('mode'), torch.no_grad():
                     pre_traj_td = (
                         env.rollout(
                             policy=policy_module,
@@ -200,7 +200,7 @@ def main(args):
                 inner_loss = a2c_loss(pre_traj_td, policy_module, value_module, value_coef=0.5)
                 inner_opt.step(inner_loss)
 
-            with set_exploration_mode('random'), torch.no_grad():
+            with set_exploration_mode('mode'), torch.no_grad():
                 post_traj_td = (
                     env.rollout(
                         policy=policy_module,
