@@ -69,7 +69,7 @@ TensorArray<2> adamBackwardUpdates(const torch::Tensor &dupdates,
                                    const pyfloat_t &b2,
                                    const pyuint_t &count);
 
-void buildSubmodule(py::module &mod);
+void buildSubmodule(py::module &mod);  // NOLINT
 
 }  // namespace adam_op
 }  // namespace torchopt
