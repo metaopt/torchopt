@@ -13,7 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 
-set(torchopt_csrc module.cpp)
+set(torchopt_csrc extension.cpp)
 
 set(adam_op_src adam_op/adam_op.cpp adam_op/adam_op_impl_cpu.cpp)
 

@@ -21,40 +21,55 @@
 #include "include/common.h"
 
 namespace torchopt {
+
+namespace py = pybind11;
+
 namespace adam_op {
-TensorArray<3> adamForwardInplace(const torch::Tensor& updates,
-                                  const torch::Tensor& mu,
-                                  const torch::Tensor& nu, const pyfloat_t& b1,
-                                  const pyfloat_t& b2, const pyfloat_t& eps,
-                                  const pyfloat_t& eps_root,
-                                  const pyuint_t& count);
 
-torch::Tensor adamForwardMu(const torch::Tensor& updates,
-                            const torch::Tensor& mu, const pyfloat_t& b1);
+TensorArray<3> adamForwardInplace(const torch::Tensor &updates,
+                                  const torch::Tensor &mu,
+                                  const torch::Tensor &nu,
+                                  const pyfloat_t &b1,
+                                  const pyfloat_t &b2,
+                                  const pyfloat_t &eps,
+                                  const pyfloat_t &eps_root,
+                                  const pyuint_t &count);
 
-torch::Tensor adamForwardNu(const torch::Tensor& updates,
-                            const torch::Tensor& nu, const pyfloat_t& b2);
+torch::Tensor adamForwardMu(const torch::Tensor &updates,
+                            const torch::Tensor &mu,
+                            const pyfloat_t &b1);
 
-torch::Tensor adamForwardUpdates(const torch::Tensor& new_mu,
-                                 const torch::Tensor& new_nu,
-                                 const pyfloat_t& b1, const pyfloat_t& b2,
-                                 const pyfloat_t& eps,
-                                 const pyfloat_t& eps_root,
-                                 const pyuint_t& count);
+torch::Tensor adamForwardNu(const torch::Tensor &updates,
+                            const torch::Tensor &nu,
+                            const pyfloat_t &b2);
 
-TensorArray<2> adamBackwardMu(const torch::Tensor& dmu,
-                              const torch::Tensor& updates,
-                              const torch::Tensor& mu, const pyfloat_t& b1);
+torch::Tensor adamForwardUpdates(const torch::Tensor &new_mu,
+                                 const torch::Tensor &new_nu,
+                                 const pyfloat_t &b1,
+                                 const pyfloat_t &b2,
+                                 const pyfloat_t &eps,
+                                 const pyfloat_t &eps_root,
+                                 const pyuint_t &count);
 
-TensorArray<2> adamBackwardNu(const torch::Tensor& dnu,
-                              const torch::Tensor& updates,
-                              const torch::Tensor& nu, const pyfloat_t& b2);
+TensorArray<2> adamBackwardMu(const torch::Tensor &dmu,
+                              const torch::Tensor &updates,
+                              const torch::Tensor &mu,
+                              const pyfloat_t &b1);
 
-TensorArray<2> adamBackwardUpdates(const torch::Tensor& dupdates,
-                                   const torch::Tensor& updates,
-                                   const torch::Tensor& new_mu,
-                                   const torch::Tensor& new_nu,
-                                   const pyfloat_t& b1, const pyfloat_t& b2,
-                                   const pyuint_t& count);
+TensorArray<2> adamBackwardNu(const torch::Tensor &dnu,
+                              const torch::Tensor &updates,
+                              const torch::Tensor &nu,
+                              const pyfloat_t &b2);
+
+TensorArray<2> adamBackwardUpdates(const torch::Tensor &dupdates,
+                                   const torch::Tensor &updates,
+                                   const torch::Tensor &new_mu,
+                                   const torch::Tensor &new_nu,
+                                   const pyfloat_t &b1,
+                                   const pyfloat_t &b2,
+                                   const pyuint_t &count);
+
+void buildSubmodule(py::module &mod);
+
 }  // namespace adam_op
 }  // namespace torchopt

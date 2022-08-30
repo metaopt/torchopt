@@ -17,13 +17,4 @@
 
 #include "include/adam_op/adam_op.h"
 
-PYBIND11_MODULE(_C, mod) {
-  py::module m = mod.def_submodule("adam_op", "Adam Ops");
-  m.def("forward_", &torchopt::adam_op::adamForwardInplace);
-  m.def("forwardMu", &torchopt::adam_op::adamForwardMu);
-  m.def("forwardNu", &torchopt::adam_op::adamForwardNu);
-  m.def("forwardUpdates", &torchopt::adam_op::adamForwardUpdates);
-  m.def("backwardMu", &torchopt::adam_op::adamBackwardMu);
-  m.def("backwardNu", &torchopt::adam_op::adamBackwardNu);
-  m.def("backwardUpdates", &torchopt::adam_op::adamBackwardUpdates);
-}
+PYBIND11_MODULE(_C, mod) { torchopt::adam_op::buildSubmodule(mod); }

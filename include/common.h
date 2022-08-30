@@ -23,6 +23,6 @@ using pyfloat_t = double;
 using pyuint_t = std::size_t;
 
 namespace torchopt {
-template <size_t _Nm>
-using TensorArray = std::array<torch::Tensor, _Nm>;
+template <size_t N>
+using TensorArray = std::array<torch::Tensor, N>;
 }

@@ -23,7 +23,7 @@
 #endif
 
 namespace torchopt {
-__forceinline__ size_t getTensorPlainSize(const torch::Tensor& tensor) {
+__forceinline__ size_t getTensorPlainSize(const torch::Tensor &tensor) {
   const auto dim = tensor.dim();
   size_t n = 1;
   for (std::decay_t<decltype(dim)> i = 0; i < dim; ++i) {
