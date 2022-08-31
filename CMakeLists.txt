@@ -54,6 +54,7 @@ if(CUDA_FOUND)
         set(TORCH_CUDA_ARCH_LIST "Common")
     endif()
     cuda_select_nvcc_arch_flags(CUDA_ARCH_FLAGS ${TORCH_CUDA_ARCH_LIST})
+    message(STATUS "TORCH_CUDA_ARCH_LIST: \"${TORCH_CUDA_ARCH_LIST}\"")
     message(STATUS "CUDA_ARCH_FLAGS: \"${CUDA_ARCH_FLAGS}\"")
     list(APPEND CUDA_NVCC_FLAGS ${CUDA_ARCH_FLAGS})
 
