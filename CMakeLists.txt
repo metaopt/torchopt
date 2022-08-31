@@ -43,7 +43,7 @@ if(CUDA_FOUND AND NOT WIN32)
     enable_language(CUDA)
     set(CMAKE_CUDA_STANDARD "${CMAKE_CXX_STANDARD}")
     set(CMAKE_CUDA_STANDARD_REQUIRED ON)
-    add_definitions(-D__HAS_CUDA__)
+    add_definitions(-D__USE_CUDA__)
 
     set(TORCH_CUDA_ARCH_LIST $ENV{TORCH_CUDA_ARCH_LIST})
     string(APPEND CMAKE_CUDA_FLAGS " $ENV{TORCH_NVCC_FLAGS}")
