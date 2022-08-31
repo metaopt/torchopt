@@ -21,11 +21,11 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Threads REQUIRED)             # -pthread
-find_package(OpenMP REQUIRED)              # -Xpreprocessor -fopenmp
-set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)  # -fPIC
+find_package(Threads REQUIRED)           # -pthread
+find_package(OpenMP REQUIRED)            # -Xpreprocessor -fopenmp
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)  # -fPIC
 
 if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Wall /W4")
@@ -42,15 +42,42 @@ find_package(CUDA)
 if(CUDA_FOUND)
     message(STATUS "Found CUDA, enabling CUDA support.")
     enable_language(CUDA)
-    set(CMAKE_CUDA_STANDARD 14)
+    set(CMAKE_CUDA_STANDARD "${CMAKE_CXX_STANDARD}")
+    set(CMAKE_CUDA_STANDARD_REQUIRED ON)
     add_definitions(-D__CUDA_ENABLED__)
 
-    if(POLICY CMP0104)
-        set(CMAKE_CUDA_ARCHITECTURES all)
+    set(TORCH_CUDA_ARCH_LIST $ENV{TORCH_CUDA_ARCH_LIST})
+    string(APPEND CMAKE_CUDA_FLAGS " $ENV{TORCH_NVCC_FLAGS}")
+
+    set(CMAKE_CUDA_ARCHITECTURES OFF)
+    if(NOT TORCH_CUDA_ARCH_LIST)
+        set(TORCH_CUDA_ARCH_LIST "Common")
+    endif()
+    cuda_select_nvcc_arch_flags(CUDA_ARCH_FLAGS ${TORCH_CUDA_ARCH_LIST})
+    message(STATUS "CUDA_ARCH_FLAGS: \"${CUDA_ARCH_FLAGS}\"")
+    list(APPEND CUDA_NVCC_FLAGS ${CUDA_ARCH_FLAGS})
+
+    list(APPEND CUDA_NVCC_FLAGS "--expt-relaxed-constexpr" "--expt-extended-lambda")
+    if(CUDA_HAS_FP16 OR NOT "${CUDA_VERSION}" VERSION_LESS "7.5")
+        message(STATUS "Found CUDA with FP16 support, compiling with torch.cuda.HalfTensor.")
+        string(APPEND CMAKE_CUDA_FLAGS " -DCUDA_HAS_FP16=1"
+                                       " -D__CUDA_NO_HALF_OPERATORS__"
+                                       " -D__CUDA_NO_HALF_CONVERSIONS__"
+                                       " -D__CUDA_NO_HALF2_OPERATORS__"
+                                       " -D__CUDA_NO_BFLOAT16_CONVERSIONS__")
+    else()
+        message(STATUS "Could not find CUDA with FP16 support, compiling without torch.CudaHalfTensor.")
     endif()
 
-    cuda_select_nvcc_arch_flags(CUDA_ARCH_FLAGS All)
-    list(APPEND CUDA_NVCC_FLAGS ${CUDA_ARCH_FLAGS})
+    foreach(FLAG ${CUDA_NVCC_FLAGS})
+        string(FIND "${FLAG}" " " flag_space_position)
+        if(NOT flag_space_position EQUAL -1)
+            message(FATAL_ERROR "Found spaces in CUDA_NVCC_FLAGS entry '${FLAG}'")
+        endif()
+        string(APPEND CMAKE_CUDA_FLAGS " ${FLAG}")
+    endforeach()
+    string(STRIP "${CMAKE_CUDA_FLAGS}" CMAKE_CUDA_FLAGS)
+    message(STATUS "CMAKE_CUDA_FLAGS: \"${CMAKE_CUDA_FLAGS}\"")
 
     if(MSVC)
         set(CMAKE_CUDA_FLAGS_RELEASE "${CMAKE_CUDA_FLAGS_RELEASE} /O2 /Ob2")

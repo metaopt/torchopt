@@ -25,13 +25,6 @@ list(APPEND torchopt_csrc "${adam_op_src}")
 
 pybind11_add_module(_C THIN_LTO "${torchopt_csrc}")
 
-if(CUDA_FOUND)
-    target_compile_options(
-        _C PRIVATE
-        $<$<COMPILE_LANGUAGE:CUDA>:${CUDA_NVCC_FLAGS}>
-    )
-endif()
-
 target_link_libraries(
     _C PRIVATE
     ${TORCH_LIBRARIES}
