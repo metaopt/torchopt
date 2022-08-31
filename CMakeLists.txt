@@ -42,12 +42,21 @@ find_package(CUDA)
 if(CUDA_FOUND)
     message(STATUS "Found CUDA, enabling CUDA support.")
     enable_language(CUDA)
+    set(CMAKE_CUDA_STANDARD 14)
     add_definitions(-D__CUDA_ENABLED__)
+
+    if(POLICY CMP0104)
+        set(CMAKE_CUDA_ARCHITECTURES all)
+    endif()
 
     cuda_select_nvcc_arch_flags(CUDA_ARCH_FLAGS All)
     list(APPEND CUDA_NVCC_FLAGS ${CUDA_ARCH_FLAGS})
-    set(CMAKE_CUDA_STANDARD 14)
-    set(CMAKE_CUDA_FLAGS_RELEASE "${CMAKE_CUDA_FLAGS_RELEASE} -O3")
+
+    if(MSVC)
+        set(CMAKE_CUDA_FLAGS_RELEASE "${CMAKE_CUDA_FLAGS_RELEASE} /O2 /Ob2")
+    else()
+        set(CMAKE_CUDA_FLAGS_RELEASE "${CMAKE_CUDA_FLAGS_RELEASE} -O3")
+    endif()
 else()
     message(STATUS "CUDA not found, build for CPU-only.")
 endif()
@@ -125,6 +134,12 @@ else()
     include_directories(${PYTHON_INCLUDE_DIR})
 endif()
 
+system(
+    STRIP OUTPUT_VARIABLE PYTHON_SITE_PACKAGES
+    COMMAND "${PYTHON_EXECUTABLE}" -c "print(__import__('sysconfig') .get_path('purelib'))"
+)
+message(STATUS "Detected Python site packages: \"${PYTHON_SITE_PACKAGES}\"")
+
 set(PYBIND11_PYTHON_VERSION "${PYTHON_VERSION}")
 
 if(NOT DEFINED PYBIND11_CMAKE_DIR)
@@ -148,10 +163,14 @@ if(NOT DEFINED TORCH_INCLUDE_PATH)
         STRIP OUTPUT_VARIABLE TORCH_INCLUDE_PATH
         COMMAND "${PYTHON_EXECUTABLE}" -c "print('\\\;'.join(__import__('torch.utils.cpp_extension', fromlist=[None]).include_paths()))"
     )
+
+    if("${TORCH_INCLUDE_PATH}" STREQUAL "")
+        set(TORCH_INCLUDE_PATH "${PYTHON_SITE_PACKAGES}/torch/include")
+    endif()
 endif()
 
 if("${TORCH_INCLUDE_PATH}" STREQUAL "")
-    message(FATAL_ERROR "Torch include directory not found")
+    message(FATAL_ERROR "Torch include directory not found. Got: \"${TORCH_INCLUDE_PATH}\"")
 else()
     message(STATUS "Detected Torch include directory: \"${TORCH_INCLUDE_PATH}\"")
     include_directories(${TORCH_INCLUDE_PATH})
@@ -163,10 +182,14 @@ if(NOT DEFINED TORCH_LIBRARY_PATH)
         STRIP OUTPUT_VARIABLE TORCH_LIBRARY_PATH
         COMMAND "${PYTHON_EXECUTABLE}" -c "print('\\\;'.join(__import__('torch.utils.cpp_extension', fromlist=[None]).library_paths()))"
     )
+
+    if("${TORCH_LIBRARY_PATH}" STREQUAL "")
+        set(TORCH_LIBRARY_PATH "${PYTHON_SITE_PACKAGES}/torch/lib")
+    endif()
 endif()
 
 if("${TORCH_LIBRARY_PATH}" STREQUAL "")
-    message(FATAL_ERROR "Torch library directory not found")
+    message(FATAL_ERROR "Torch library directory not found. Got: \"${TORCH_LIBRARY_PATH}\"")
 else()
     message(STATUS "Detected Torch library directory: \"${TORCH_LIBRARY_PATH}\"")
 endif()
@@ -174,7 +197,13 @@ endif()
 unset(TORCH_LIBRARIES)
 
 foreach(VAR_PATH ${TORCH_LIBRARY_PATH})
-    list(APPEND TORCH_LIBRARIES "${VAR_PATH}/libtorch_python.so")
+    if(WIN32)
+        file(GLOB TORCH_LIBRARY "${VAR_PATH}/torch_python.lib")
+    else()
+        file(GLOB TORCH_LIBRARY "${VAR_PATH}/libtorch_python.*")
+    endif()
+
+    list(APPEND TORCH_LIBRARIES "${TORCH_LIBRARY}")
 endforeach()
 
 message(STATUS "Detected Torch libraries: \"${TORCH_LIBRARIES}\"")

@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-# http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,6 +24,13 @@ endif()
 list(APPEND torchopt_csrc "${adam_op_src}")
 
 pybind11_add_module(_C THIN_LTO "${torchopt_csrc}")
+
+if(CUDA_FOUND)
+    target_compile_options(
+        _C PRIVATE
+        $<$<COMPILE_LANGUAGE:CUDA>:${CUDA_NVCC_FLAGS}>
+    )
+endif()
 
 target_link_libraries(
     _C PRIVATE
