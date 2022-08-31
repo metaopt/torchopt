@@ -85,7 +85,7 @@ def evaluate(env, dummy_env, seed, task_num, actor_critic):
     env.reset(seed=seed)
     device = next(actor_critic.parameters()).device
 
-    inner_opt = torchopt.MetaSGD(actor_critic, lr=0.1)
+    inner_opt = torchopt.MetaSGD(actor_critic, lr=0.2)
     dummy_env.set_seed(seed)
     tasks = dummy_env.sample_tasks(num_tasks=task_num)
 
@@ -162,7 +162,7 @@ def main(args):
         env.action_spec.shape[-1],
     ).to(device)
 
-    inner_opt = torchopt.MetaSGD(actor_critic_module, lr=0.1)
+    inner_opt = torchopt.MetaSGD(actor_critic_module, lr=0.2)
     outer_opt = optim.Adam(actor_critic_module.parameters(), lr=1e-3)
     train_pre_reward = []
     train_post_reward = []
