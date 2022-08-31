@@ -82,7 +82,7 @@ def evaluate(env, dummy_env, seed, task_num, actor_critic):
     pre_reward_ls = []
     post_reward_ls = []
     env.set_seed(seed)
-    env.reset(seed=seed)
+    env.reset()
     device = next(actor_critic.parameters()).device
 
     inner_opt = torchopt.MetaSGD(actor_critic, lr=0.2)
