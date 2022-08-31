@@ -82,7 +82,7 @@ def evaluate(env, dummy_env, seed, task_num, actor_critic):
     pre_reward_ls = []
     post_reward_ls = []
     env.set_seed(seed)
-    env.reset()
+    env.reset(seed=seed)
     device = next(actor_critic.parameters()).device
 
     inner_opt = torchopt.MetaSGD(actor_critic, lr=0.1)
@@ -96,7 +96,7 @@ def evaluate(env, dummy_env, seed, task_num, actor_critic):
         policy = actor_critic.get_policy_operator()
         value = actor_critic.get_value_operator()
         for _ in range(inner_iters):
-            with set_exploration_mode('mode'), torch.no_grad():
+            with set_exploration_mode('random'), torch.no_grad():
                 pre_traj_td = (
                     env.rollout(
                         policy=policy,
@@ -108,7 +108,7 @@ def evaluate(env, dummy_env, seed, task_num, actor_critic):
                 )
             inner_loss = a2c_loss(pre_traj_td, policy, value, value_coef=0.5)
             inner_opt.step(inner_loss)
-        with set_exploration_mode('mode'), torch.no_grad():
+        with set_exploration_mode('random'), torch.no_grad():
             post_traj_td = (
                 env.rollout(
                     policy=policy,
@@ -187,7 +187,7 @@ def main(args):
             policy_module = actor_critic_module.get_policy_operator()
             value_module = actor_critic_module.get_value_operator()
             for k in range(inner_iters):
-                with set_exploration_mode('mode'), torch.no_grad():
+                with set_exploration_mode('random'), torch.no_grad():
                     pre_traj_td = (
                         env.rollout(
                             policy=policy_module,
@@ -200,7 +200,7 @@ def main(args):
                 inner_loss = a2c_loss(pre_traj_td, policy_module, value_module, value_coef=0.5)
                 inner_opt.step(inner_loss)
 
-            with set_exploration_mode('mode'), torch.no_grad():
+            with set_exploration_mode('random'), torch.no_grad():
                 post_traj_td = (
                     env.rollout(
                         policy=policy_module,
