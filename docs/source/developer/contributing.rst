@@ -37,7 +37,7 @@ To install TorchOpt in an "editable" mode, run:
 
 .. code-block:: bash
 
-    pip3 install --no-build-isolation --editable .
+    make install-editable  # or run `pip3 install --no-build-isolation --editable .`
 
 in the main directory. This installation is removable by:
 
