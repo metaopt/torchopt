@@ -71,3 +71,5 @@ CHANGELOG
 Changelog
 CPython
 nn
+Vincent
+Moens
