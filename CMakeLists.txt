@@ -28,13 +28,30 @@ find_package(OpenMP REQUIRED)            # -Xpreprocessor -fopenmp
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)  # -fPIC
 
 if(MSVC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Wall")
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_RELEASE} /Zi")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /O2 /Ob2")
+    string(APPEND CMAKE_CXX_FLAGS " /Wall")
+    string(APPEND CMAKE_CXX_FLAGS_DEBUG " /Zi")
+    string(APPEND CMAKE_CXX_FLAGS_RELEASE " /O2 /Ob2")
 else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_RELEASE} -g -Og")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
+    string(APPEND CMAKE_CXX_FLAGS " -Wall")
+    string(APPEND CMAKE_CXX_FLAGS_DEBUG " -g -Og")
+    string(APPEND CMAKE_CXX_FLAGS_RELEASE " -O3")
+endif()
+
+if(NOT DEFINED USE_FP16 AND NOT "$ENV{USE_FP16}" STREQUAL "")
+    set(USE_FP16 "$ENV{USE_FP16}")
+endif()
+
+if(NOT DEFINED USE_FP16)
+    set(USE_FP16 OFF)
+    message(WARNING "FP16 support disabled, compiling without torch.HalfTensor. Suppress this warning with -DUSE_FP16=ON or -DUSE_FP16=OFF.")
+elseif(USE_FP16)
+    message(STATUS "FP16 support enabled, compiling with torch.HalfTensor.")
+else()
+    message(STATUS "FP16 support disabled, compiling without torch.HalfTensor.")
+endif()
+
+if(USE_FP16)
+    add_definitions(-DUSE_FP16)
 endif()
 
 find_package(CUDA)
@@ -45,13 +62,18 @@ if(CUDA_FOUND AND NOT WIN32)
     set(CMAKE_CUDA_STANDARD_REQUIRED ON)
     add_definitions(-D__USE_CUDA__)
 
-    set(TORCH_CUDA_ARCH_LIST $ENV{TORCH_CUDA_ARCH_LIST})
     string(APPEND CMAKE_CUDA_FLAGS " $ENV{TORCH_NVCC_FLAGS}")
 
-    set(CMAKE_CUDA_ARCHITECTURES OFF)
-    if(NOT TORCH_CUDA_ARCH_LIST)
-        set(TORCH_CUDA_ARCH_LIST "Common")
+    if(NOT DEFINED TORCH_CUDA_ARCH_LIST AND NOT "$ENV{TORCH_CUDA_ARCH_LIST}" STREQUAL "")
+        set(TORCH_CUDA_ARCH_LIST "$ENV{TORCH_CUDA_ARCH_LIST}")
     endif()
+
+    if(NOT TORCH_CUDA_ARCH_LIST)
+        set(TORCH_CUDA_ARCH_LIST "Auto")
+        message(WARNING "Torch CUDA arch list is not set, setting to \"Auto\". Suppress this warning with -DTORCH_CUDA_ARCH_LIST=Common.")
+    endif()
+
+    set(CMAKE_CUDA_ARCHITECTURES OFF)
     cuda_select_nvcc_arch_flags(CUDA_ARCH_FLAGS ${TORCH_CUDA_ARCH_LIST})
     message(STATUS "TORCH_CUDA_ARCH_LIST: \"${TORCH_CUDA_ARCH_LIST}\"")
     message(STATUS "CUDA_ARCH_FLAGS: \"${CUDA_ARCH_FLAGS}\"")
@@ -59,14 +81,18 @@ if(CUDA_FOUND AND NOT WIN32)
 
     list(APPEND CUDA_NVCC_FLAGS "--expt-relaxed-constexpr" "--expt-extended-lambda")
     if(CUDA_HAS_FP16 OR NOT "${CUDA_VERSION}" VERSION_LESS "7.5")
-        message(STATUS "Found CUDA with FP16 support, compiling with torch.cuda.HalfTensor.")
-        string(APPEND CMAKE_CUDA_FLAGS " -DCUDA_HAS_FP16=1"
-                                       " -D__CUDA_NO_HALF_OPERATORS__"
-                                       " -D__CUDA_NO_HALF_CONVERSIONS__"
-                                       " -D__CUDA_NO_HALF2_OPERATORS__"
-                                       " -D__CUDA_NO_BFLOAT16_CONVERSIONS__")
+        if (USE_FP16)
+            message(STATUS "Found CUDA with FP16 support, compiling with torch.cuda.HalfTensor.")
+            string(APPEND CMAKE_CUDA_FLAGS " -DCUDA_HAS_FP16=1"
+                                           " -D__CUDA_NO_HALF_OPERATORS__"
+                                           " -D__CUDA_NO_HALF_CONVERSIONS__"
+                                           " -D__CUDA_NO_HALF2_OPERATORS__"
+                                           " -D__CUDA_NO_BFLOAT16_CONVERSIONS__")
+        else()
+            message(STATUS "Found CUDA with FP16 support, but it is suppressed by the compile options, compiling without torch.cuda.HalfTensor.")
+        endif()
     else()
-        message(STATUS "Could not find CUDA with FP16 support, compiling without torch.CudaHalfTensor.")
+        message(STATUS "Could not find CUDA with FP16 support, compiling without torch.cuda.HalfTensor.")
     endif()
 
     foreach(FLAG ${CUDA_NVCC_FLAGS})
