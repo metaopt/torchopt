@@ -70,7 +70,7 @@ class cmake_build_ext(build_ext):
         ):
             build_args.append(f'--parallel={self.parallel}')
         else:
-            build_args.append(f'--parallel')
+            build_args.append('--parallel')
 
         try:
             os.chdir(build_temp)
