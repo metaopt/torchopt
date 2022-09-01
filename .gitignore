@@ -394,12 +394,12 @@ fabric.properties
 
 ##### Vim.gitignore #####
 # Swap
-[._]*.s[a-v][a-z]
+.*.s[a-v][a-z]
 !*.svg  # comment out if you don't need vector files
-[._]*.sw[a-p]
-[._]s[a-rt-v][a-z]
-[._]ss[a-gi-z]
-[._]sw[a-p]
+.*.sw[a-p]
+.s[a-rt-v][a-z]
+.ss[a-gi-z]
+.sw[a-p]
 
 # Session
 Session.vim

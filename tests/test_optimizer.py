@@ -15,7 +15,6 @@
 
 from typing import Tuple
 
-import functorch
 import pytest
 import torch
 import torch.nn.functional as F
@@ -26,123 +25,125 @@ import torchopt
 
 @helpers.parametrize(
     dtype=[torch.float64, torch.float32],
-    lr=[1e-3, 1e-4],
+    lr=[1e-2, 1e-3, 1e-4],
     momentum=[0.0, 0.1],
+    dampening=[0.0, 0.5],
     nesterov=[False, True],
-    inplace=[True, False],
+    weight_decay=[0.0, 1e-2],
     maximize=[False, True],
 )
-def test_sgd(
+def test_SGD(
     dtype: torch.dtype,
     lr: float,
     momentum: float,
+    dampening: float,
     nesterov: bool,
-    inplace: bool,
+    weight_decay: float,
     maximize: bool,
 ) -> None:
-    if nesterov and momentum <= 0.0:
+    if nesterov and (momentum <= 0.0 or dampening != 0.0):
         pytest.skip('Nesterov momentum requires a momentum and zero dampening.')
 
     model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
 
-    fmodel, params, buffers = functorch.make_functional_with_buffers(model)
-    optim = torchopt.sgd(
+    optim = torchopt.SGD(
+        model.parameters(),
         lr,
         momentum=momentum,
+        dampening=dampening,
         nesterov=nesterov,
+        weight_decay=weight_decay,
         maximize=maximize,
     )
-    optim_state = optim.init(params)
     optim_ref = torch.optim.SGD(
         model_ref.parameters(),
         lr,
         momentum=momentum,
-        dampening=0.0,
+        dampening=dampening,
         nesterov=nesterov,
-        weight_decay=0.0,
+        weight_decay=weight_decay,
         maximize=maximize,
     )
 
     for xs, ys in loader:
         xs = xs.to(dtype=dtype)
-        pred = fmodel(params, buffers, xs)
+        pred = model(xs)
         pred_ref = model_ref(xs)
         loss = F.cross_entropy(pred, ys)
         loss_ref = F.cross_entropy(pred_ref, ys)
 
-        grad = torch.autograd.grad(loss, params)
-        updates, optim_state = optim.update(grad, optim_state, inplace=inplace)
-        params = torchopt.apply_updates(params, updates)
+        optim.zero_grad()
+        loss.backward()
+        optim.step()
 
         optim_ref.zero_grad()
         loss_ref.backward()
         optim_ref.step()
 
-    helpers.assert_model_all_close((params, buffers), model_ref, model_base, dtype=dtype)
+    helpers.assert_model_all_close(model, model_ref, model_base, dtype=dtype)
 
 
 @helpers.parametrize(
-    dtype=[torch.float64, torch.float32],
-    lr=[1e-3, 1e-4],
+    dtype=[torch.float64],
+    lr=[1e-2, 1e-3, 1e-4],
     betas=[(0.9, 0.999), (0.95, 0.9995)],
     eps=[1e-8],
-    inplace=[True, False],
+    weight_decay=[0.0, 1e-2],
     maximize=[False, True],
 )
-def test_adam(
+def test_Adam(
     dtype: torch.dtype,
     lr: float,
     betas: Tuple[float, float],
     eps: float,
-    inplace: bool,
+    weight_decay: float,
     maximize: bool,
 ) -> None:
     model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
 
-    fmodel, params, buffers = functorch.make_functional_with_buffers(model)
-    optim = torchopt.adam(
+    optim = torchopt.Adam(
+        model.parameters(),
         lr,
-        b1=betas[0],
-        b2=betas[1],
+        betas=betas,
         eps=eps,
         eps_root=0.0,
+        weight_decay=weight_decay,
         maximize=maximize,
     )
-    optim_state = optim.init(params)
     optim_ref = torch.optim.Adam(
         model_ref.parameters(),
         lr,
         betas=betas,
         eps=eps,
         amsgrad=False,
-        weight_decay=0.0,
+        weight_decay=weight_decay,
         maximize=maximize,
     )
 
     for xs, ys in loader:
         xs = xs.to(dtype=dtype)
-        pred = fmodel(params, buffers, xs)
+        pred = model(xs)
         pred_ref = model_ref(xs)
         loss = F.cross_entropy(pred, ys)
         loss_ref = F.cross_entropy(pred_ref, ys)
 
-        grad = torch.autograd.grad(loss, params)
-        updates, optim_state = optim.update(grad, optim_state, inplace=inplace)
-        params = torchopt.apply_updates(params, updates)
+        optim.zero_grad()
+        loss.backward()
+        optim.step()
 
         optim_ref.zero_grad()
         loss_ref.backward()
         optim_ref.step()
 
-    helpers.assert_model_all_close((params, buffers), model_ref, model_base, dtype=dtype)
+    helpers.assert_model_all_close(model, model_ref, model_base, dtype=dtype)
 
 
 @helpers.parametrize(
-    dtype=[torch.float64, torch.float32],
-    lr=[1e-3, 1e-4],
+    dtype=[torch.float64],
+    lr=[1e-2, 1e-3, 1e-4],
     betas=[(0.9, 0.999), (0.95, 0.9995)],
     eps=[1e-8],
-    inplace=[True, False],
+    weight_decay=[0.0, 1e-2],
     maximize=[False, True],
 )
 def test_adamw(
@@ -150,47 +151,43 @@ def test_adamw(
     lr: float,
     betas: Tuple[float, float],
     eps: float,
-    inplace: bool,
     maximize: bool,
 ) -> None:
     model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
 
-    fmodel, params, buffers = functorch.make_functional_with_buffers(model)
-    optim = torchopt.adamw(
+    optim = torchopt.AdamW(
+        model.parameters(),
         lr,
         b1=betas[0],
         b2=betas[1],
         eps=eps,
         eps_root=0.0,
-        maximize=maximize,
     )
-    optim_state = optim.init(params)
-    optim_ref = torch.optim.Adam(
+    optim_ref = torch.optim.AdamW(
         model_ref.parameters(),
         lr,
         betas=betas,
         eps=eps,
         amsgrad=False,
         weight_decay=0.0,
-        maximize=maximize,
     )
 
     for xs, ys in loader:
         xs = xs.to(dtype=dtype)
-        pred = fmodel(params, buffers, xs)
+        pred = model(xs)
         pred_ref = model_ref(xs)
         loss = F.cross_entropy(pred, ys)
         loss_ref = F.cross_entropy(pred_ref, ys)
 
-        grad = torch.autograd.grad(loss, params)
-        updates, optim_state = optim.update(grad, optim_state, inplace=inplace)
-        params = torchopt.apply_updates(params, updates)
+        optim.zero_grad()
+        loss.backward()
+        optim.step()
 
         optim_ref.zero_grad()
         loss_ref.backward()
         optim_ref.step()
 
-    helpers.assert_model_all_close((params, buffers), model_ref, model_base, dtype=dtype)
+    helpers.assert_model_all_close(model, model_ref, model_base, dtype=dtype)
 
 
 @helpers.parametrize(
@@ -198,148 +195,145 @@ def test_adamw(
     lr=[1e-3, 1e-4],
     betas=[(0.9, 0.999), (0.95, 0.9995)],
     eps=[1e-8],
-    inplace=[True, False],
     maximize=[False, True],
 )
-def test_accelerated_adam_cpu(
+def test_Adam_accelerated_cpu(
     dtype: torch.dtype,
     lr: float,
     betas: Tuple[float, float],
     eps: float,
-    inplace: bool,
+    weight_decay: float,
     maximize: bool,
 ) -> None:
     model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
 
-    fmodel, params, buffers = functorch.make_functional_with_buffers(model)
-    optim = torchopt.adam(
+    optim = torchopt.Adam(
+        model.parameters(),
         lr,
-        b1=betas[0],
-        b2=betas[1],
+        betas=betas,
         eps=eps,
         eps_root=0.0,
-        use_accelerated_op=True,
+        weight_decay=weight_decay,
         maximize=maximize,
+        use_accelerated_op=True,
     )
-    optim_state = optim.init(params)
     optim_ref = torch.optim.Adam(
         model_ref.parameters(),
         lr,
         betas=betas,
         eps=eps,
         amsgrad=False,
-        weight_decay=0.0,
+        weight_decay=weight_decay,
         maximize=maximize,
     )
 
     for xs, ys in loader:
         xs = xs.to(dtype=dtype)
-        pred = fmodel(params, buffers, xs)
+        pred = model(xs)
         pred_ref = model_ref(xs)
         loss = F.cross_entropy(pred, ys)
         loss_ref = F.cross_entropy(pred_ref, ys)
 
-        grad = torch.autograd.grad(loss, params)
-        updates, optim_state = optim.update(grad, optim_state, inplace=inplace)
-        params = torchopt.apply_updates(params, updates)
+        optim.zero_grad()
+        loss.backward()
+        optim.step()
 
         optim_ref.zero_grad()
         loss_ref.backward()
         optim_ref.step()
 
-    helpers.assert_model_all_close((params, buffers), model_ref, model_base, dtype=dtype)
+    helpers.assert_model_all_close(model, model_ref, model_base, dtype=dtype)
 
 
 @pytest.mark.skipif(not torch.cuda.is_available(), reason='No CUDA device available.')
 @helpers.parametrize(
-    dtype=[torch.float64, torch.float32],
-    lr=[1e-3, 1e-4],
+    dtype=[torch.float64],
+    lr=[1e-2, 1e-3, 1e-4],
     betas=[(0.9, 0.999), (0.95, 0.9995)],
     eps=[1e-8],
-    inplace=[True, False],
+    weight_decay=[0.0, 1e-2],
     maximize=[False, True],
 )
-def test_accelerated_adam_cuda(
+def test_Adam_accelerated_cuda(
     dtype: torch.dtype,
     lr: float,
     betas: Tuple[float, float],
     eps: float,
-    inplace: bool,
+    weight_decay: float,
     maximize: bool,
 ) -> None:
     device = 'cuda'
     model, model_ref, model_base, loader = helpers.get_models(device=device, dtype=dtype)
 
-    fmodel, params, buffers = functorch.make_functional_with_buffers(model)
-    optim = torchopt.adam(
+    optim = torchopt.Adam(
+        model.parameters(),
         lr,
-        b1=betas[0],
-        b2=betas[1],
+        betas=betas,
         eps=eps,
         eps_root=0.0,
+        weight_decay=weight_decay,
         maximize=maximize,
         use_accelerated_op=True,
     )
-    optim_state = optim.init(params)
     optim_ref = torch.optim.Adam(
         model_ref.parameters(),
         lr,
         betas=betas,
         eps=eps,
         amsgrad=False,
-        weight_decay=0.0,
+        weight_decay=weight_decay,
         maximize=maximize,
     )
 
     for xs, ys in loader:
         xs = xs.to(device=device, dtype=dtype)
         ys = ys.to(device=device)
-        pred = fmodel(params, buffers, xs)
+        pred = model(xs)
         pred_ref = model_ref(xs)
         loss = F.cross_entropy(pred, ys)
         loss_ref = F.cross_entropy(pred_ref, ys)
 
-        grad = torch.autograd.grad(loss, params)
-        updates, optim_state = optim.update(grad, optim_state, inplace=inplace)
-        params = torchopt.apply_updates(params, updates)
+        optim.zero_grad()
+        loss.backward()
+        optim.step()
 
         optim_ref.zero_grad()
         loss_ref.backward()
         optim_ref.step()
 
-    helpers.assert_model_all_close((params, buffers), model_ref, model_base, dtype=dtype)
+    helpers.assert_model_all_close(model, model_ref, model_base, dtype=dtype)
 
 
 @helpers.parametrize(
-    dtype=[torch.float64, torch.float32],
-    lr=[1e-3, 1e-4],
+    dtype=[torch.float64],
+    lr=[1e-2, 1e-3, 1e-4],
     alpha=[0.9, 0.99],
     eps=[1e-8],
     momentum=[0.0, 0.1],
     centered=[False, True],
-    inplace=[True, False],
+    weight_decay=[0.0, 1e-2],
 )
-def test_rmsprop(
+def test_RMSProp(
     dtype: torch.dtype,
     lr: float,
     alpha: float,
     eps: float,
     momentum: float,
     centered: bool,
-    inplace: bool,
+    weight_decay: float,
 ) -> None:
     model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
 
-    fmodel, params, buffers = functorch.make_functional_with_buffers(model)
-    optim = torchopt.rmsprop(
+    optim = torchopt.RMSProp(
+        model.parameters(),
         lr,
-        decay=alpha,
+        alpha=alpha,
         eps=eps,
         momentum=momentum,
         centered=centered,
         nesterov=False,
+        weight_decay=weight_decay,
     )
-    optim_state = optim.init(params)
     optim_ref = torch.optim.RMSprop(
         model_ref.parameters(),
         lr,
@@ -347,22 +341,22 @@ def test_rmsprop(
         eps=eps,
         momentum=momentum,
         centered=centered,
-        weight_decay=0.0,
+        weight_decay=weight_decay,
     )
 
     for xs, ys in loader:
         xs = xs.to(dtype=dtype)
-        pred = fmodel(params, buffers, xs)
+        pred = model(xs)
         pred_ref = model_ref(xs)
         loss = F.cross_entropy(pred, ys)
         loss_ref = F.cross_entropy(pred_ref, ys)
 
-        grad = torch.autograd.grad(loss, params)
-        updates, optim_state = optim.update(grad, optim_state, inplace=inplace)
-        params = torchopt.apply_updates(params, updates)
+        optim.zero_grad()
+        loss.backward()
+        optim.step()
 
         optim_ref.zero_grad()
         loss_ref.backward()
         optim_ref.step()
 
-    helpers.assert_model_all_close((params, buffers), model_ref, model_base, dtype=dtype)
+    helpers.assert_model_all_close(model, model_ref, model_base, dtype=dtype)

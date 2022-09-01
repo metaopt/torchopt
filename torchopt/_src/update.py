@@ -35,7 +35,7 @@ from torchopt._src.utils import pytree
 
 
 def apply_updates(
-    params: 'base.Params', updates: 'base.Updates', inplace: bool = True
+    params: 'base.Params', updates: 'base.Updates', *, inplace: bool = True
 ) -> 'base.Params':
     """Applies an update to the corresponding parameters.
 

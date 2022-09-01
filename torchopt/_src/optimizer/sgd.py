@@ -13,7 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 
-from typing import Iterable, Optional
+from typing import Iterable
 
 import torch
 
@@ -35,21 +35,27 @@ class SGD(Optimizer):
         self,
         params: Iterable[torch.Tensor],
         lr: ScalarOrSchedule,
-        momentum: Optional[float] = None,
+        momentum: float = 0.0,
+        weight_decay: float = 0.0,
+        dampening: float = 0.0,
         nesterov: bool = False,
         maximize: bool = False,
     ):
         r"""The :meth:`init` function.
 
         Args:
-            params (iterable of torch.Tensor): An iterable of :class:`torch.Tensor`\s. Specifies
-                what tensors should be optimized.
+            params: (iterable of torch.Tensor)
+                An iterable of :class:`torch.Tensor`\s. Specifies what tensors should be optimized.
             lr: This is a fixed global scaling factor.
-            momentum: (default: :data:`None`)
-                The ``decay`` rate used by the momentum term, when it is set to :data:`None`, then
-                momentum is not used at all.
+            momentum: (default: :const:`0.0`)
+                The decay rate used by the momentum term. The momentum is not used when it is set to
+                :const:`0.0`.
+            weight_decay: (default: :const:`0.0`):
+                Weight decay, add L2 penalty to parameters.
+            dampening: (default: :const:`0.0`)
+                Dampening for momentum.
             nesterov: (default: :data:`False`)
-                Whether the nesterov momentum is used.
+                Whether to use Nesterov momentum.
             maximize: (default: :data:`False`)
                 Maximize the params based on the objective, instead of minimizing.
         """
@@ -58,6 +64,8 @@ class SGD(Optimizer):
             sgd(
                 lr=lr,
                 momentum=momentum,
+                weight_decay=weight_decay,
+                dampening=dampening,
                 nesterov=nesterov,
                 moment_requires_grad=False,
                 maximize=maximize,
