@@ -22,6 +22,15 @@
 using pyfloat_t = double;
 using pyuint_t = std::size_t;
 
+#define AT_DISPATCH_SCALAR_TYPES(...) \
+  AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, __VA_ARGS__)
+
+#if defined(CUDA_HAS_FP16)
+#define AT_DISPATCH_SCALAR_TYPES_CUDA(...) AT_DISPATCH_SCALAR_TYPES(__VA_ARGS__)
+#else
+#define AT_DISPATCH_SCALAR_TYPES_CUDA(...) AT_DISPATCH_FLOATING_TYPES(__VA_ARGS__)
+#endif
+
 namespace torchopt {
 template <size_t N>
 using TensorArray = std::array<torch::Tensor, N>;
