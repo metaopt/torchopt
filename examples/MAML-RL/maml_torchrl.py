@@ -241,11 +241,6 @@ def main(args):
             f'test_post_reward: {test_post_reward[-1]: 4.4f}, '
         )
 
-        np.save('train_pre_reward_{}.npy'.format(args.seed), np.array(train_pre_reward))
-        np.save('train_post_reward_{}.npy'.format(args.seed), np.array(train_post_reward))
-        np.save('test_pre_reward_{}.npy'.format(args.seed), np.array(test_pre_reward))
-        np.save('test_post_reward_{}.npy'.format(args.seed), np.array(test_post_reward))
-
     env.close()
 
 
