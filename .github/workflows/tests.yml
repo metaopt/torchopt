@@ -63,13 +63,16 @@ jobs:
 
       - name: Upgrade pip
         run: |
-          python -m pip install --upgrade pip setuptools
+          python -m pip install --upgrade pip setuptools wheel
 
       - name: Install dependencies
         run: |
           python -m pip install -r tests/requirements.txt
 
       - name: Install TorchOpt
+        env:
+          USE_FP16: "ON"
+          TORCH_CUDA_ARCH_LIST: "Common"
         run: |
           python -m pip install -vvv -e .
 
