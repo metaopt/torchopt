@@ -23,7 +23,7 @@ using pyfloat_t = double;
 using pyuint_t = std::size_t;
 
 #if defined(USE_FP16)
-#define AT_DISPATCH_SCALAR_TYPES(...) AT_DISPATCH_FLOATING(__VA_ARGS__)
+#define AT_DISPATCH_SCALAR_TYPES(...) AT_DISPATCH_FLOATING_TYPES(__VA_ARGS__)
 #else
 #define AT_DISPATCH_SCALAR_TYPES(...) \
   AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, __VA_ARGS__)
