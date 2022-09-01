@@ -16,7 +16,6 @@
 # https://github.com/tristandeleu/pytorch-maml-rl
 # ==============================================================================
 
-import torch
 import torch.nn as nn
 from torch.distributions import Categorical
 
@@ -27,12 +26,8 @@ class CategoricalMLPPolicy(nn.Module):
     with discrete action spaces (eg. `TabularMDPEnv`).
     """
 
-    def __init__(
-        self,
-        input_size,
-        output_size,
-    ):
-        super(CategoricalMLPPolicy, self).__init__()
+    def __init__(self, input_size, output_size):
+        super().__init__()
         self.torso = nn.Sequential(
             nn.Linear(input_size, 32),
             nn.ReLU(),
