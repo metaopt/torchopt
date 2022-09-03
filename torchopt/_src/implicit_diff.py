@@ -17,7 +17,7 @@ import inspect
 from typing import Any, Callable, Optional, Tuple, Union
 
 import functorch
-import jax
+import optree
 import torch
 from torch.autograd import Function
 
@@ -72,7 +72,7 @@ def root_vjp(
     # The solution of A^T u = v, where
     # A = jacobian(optimality_fun, argnums=0)
     # v = -cotangent.
-    v = jax.tree_util.tree_map(torch.neg, cotangent)
+    v = optree.tree_map(torch.neg, cotangent)
     u = solve(matvec, v)
 
     class MaskArgs:
@@ -176,7 +176,7 @@ def _signature_bind_and_match(signature, *args, **kwargs):
 
 
 def _split_tensor_and_others(mixed_tuple):
-    flat_tuple, tree = jax.tree_util.tree_flatten(mixed_tuple)
+    flat_tuple, tree = optree.tree_flatten(mixed_tuple)
     tensor_tuple = []
     non_tensor_tuple = []
     tensor_mask = []
@@ -248,7 +248,7 @@ def _custom_root(solver_fun, optimality_fun, solve, argnums, has_aux, reference_
                     else:
                         ctx.save_for_backward(*res, *args_tensor)
                     ctx.res_is_tensor = isinstance(res, torch.Tensor)
-                    return *res, (aux,)
+                    return res + (aux,)
                 else:
                     if isinstance(res, torch.Tensor):
                         ctx.save_for_backward(res, *args_tensor)
