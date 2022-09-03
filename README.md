@@ -250,7 +250,7 @@ cd torchopt
 CONDA_OVERRIDE_CUDA=11.7 conda env create --file conda-recipe.yaml
 
 conda activate torchopt
-pip3 install --no-build-isolation --editable .
+make install-editable  # or run `pip3 install --no-build-isolation --editable .`
 ```
 
 --------------------------------------------------------------------------------
@@ -258,8 +258,11 @@ pip3 install --no-build-isolation --editable .
 ## Future Plan
 
 - [x] CPU-accelerated optimizer
-- [ ] Support general implicit differentiation with functional programing.
+- [ ] Support general implicit differentiation with functional programing
 - [ ] Support more optimizers such as AdamW, RMSProp
+- [ ] Zero order optimization
+- [ ] Distributed optimizers
+- [ ] Support `complex` data type
 
 ## Changelog
 

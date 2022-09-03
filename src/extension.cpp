@@ -13,22 +13,8 @@
 // limitations under the License.
 // =============================================================================
 
-#pragma once
-#include <torch/extension.h>
+#include <pybind11/pybind11.h>
 
-#include <array>
+#include "include/adam_op/adam_op.h"
 
-#ifndef __forceinline__
-#define __forceinline__ __inline__ __attribute__((always_inline))
-#endif
-
-namespace torchopt {
-__forceinline__ size_t getTensorPlainSize(const torch::Tensor &tensor) {
-  const auto dim = tensor.dim();
-  size_t n = 1;
-  for (std::decay_t<decltype(dim)> i = 0; i < dim; ++i) {
-    n *= tensor.size(i);
-  }
-  return n;
-}
-}  // namespace torchopt
+PYBIND11_MODULE(_C, mod) { torchopt::adam_op::buildSubmodule(mod); }
