@@ -25,8 +25,10 @@ from torchopt._src import (
     visual,
 )
 from torchopt._src.alias import adam, rmsprop, sgd
-from torchopt._src.optimizer import SGD, Adam, Optimizer, RMSProp, meta
-from torchopt._src.optimizer.meta import MetaAdam, MetaOptimizer, MetaRMSProp, MetaSGD
+from torchopt._src.clip import clip_grad_norm
+from torchopt._src.combine import chain
+from torchopt._src.optimizer import SGD, Adam, Optimizer, RMSProp, RMSprop, meta
+from torchopt._src.optimizer.meta import MetaAdam, MetaOptimizer, MetaRMSProp, MetaRMSprop, MetaSGD
 from torchopt._src.update import apply_updates
 from torchopt._src.utils import extract_state_dict, recover_state_dict, stop_gradient
 from torchopt.version import __version__
@@ -44,14 +46,18 @@ __all__ = [
     'adam',
     'rmsprop',
     'sgd',
+    'clip_grad_norm',
+    'chain',
     'Optimizer',
     'SGD',
     'Adam',
     'RMSProp',
+    'RMSprop',
     'MetaOptimizer',
     'MetaSGD',
     'MetaAdam',
     'MetaRMSProp',
+    'MetaRMSprop',
     'apply_updates',
     'extract_state_dict',
     'recover_state_dict',

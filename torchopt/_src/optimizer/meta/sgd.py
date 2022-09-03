@@ -13,8 +13,6 @@
 # limitations under the License.
 # ==============================================================================
 
-from typing import Optional
-
 import torch.nn as nn
 
 from torchopt._src.alias import sgd
@@ -35,7 +33,9 @@ class MetaSGD(MetaOptimizer):
         self,
         net: nn.Module,
         lr: ScalarOrSchedule,
-        momentum: Optional[float] = None,
+        momentum: float = 0.0,
+        weight_decay: float = 0.0,
+        dampening: float = 0.0,
         nesterov: bool = False,
         moment_requires_grad: bool = True,
         maximize: bool = False,
@@ -45,11 +45,18 @@ class MetaSGD(MetaOptimizer):
         Args:
             net: A network whose parameters should be optimized.
             lr: This is a fixed global scaling factor.
-            momentum: The ``decay`` rate used by the momentum term, when it is set to :data:`None`,
-                then momentum is not used at all.
-            nesterov: Whether the nesterov momentum is used.
-            moment_requires_grad: Here we set ``moment_requires_grad=True`` to make tensors like
-                momentum be differentiable.
+            momentum: (default: :const:`0.0`)
+                The decay rate used by the momentum term. The momentum is not used when it is set to
+                :const:`0.0`.
+            weight_decay: (default: :const:`0.0`):
+                Weight decay, add L2 penalty to parameters.
+            dampening: (default: :const:`0.0`)
+                Dampening for momentum.
+            nesterov: (default: :const:`False`)
+                Whether to use Nesterov momentum.
+            moment_requires_grad: (default: :data:`True`)
+                If :data:`True` the momentums will be created with flag ``requires_grad=True``, this
+                flag is often used in Meta-Learning algorithms.
             maximize: (default: :data:`False`)
                 Maximize the params based on the objective, instead of minimizing.
         """
@@ -58,6 +65,8 @@ class MetaSGD(MetaOptimizer):
             sgd(
                 lr=lr,
                 momentum=momentum,
+                weight_decay=weight_decay,
+                dampening=dampening,
                 nesterov=nesterov,
                 moment_requires_grad=moment_requires_grad,
                 maximize=maximize,

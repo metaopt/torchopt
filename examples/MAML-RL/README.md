@@ -9,6 +9,8 @@ Specify the seed to train.
 ```bash
 ### Run MAML
 python maml.py --seed 1
+### Run torchrl MAML implementation
+python maml_torchrl.py --seed 1
 ```
 
 ## Results

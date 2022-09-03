@@ -38,8 +38,11 @@ class TabularMDPEnv(gym.Env):
         Learning", 2016 (https://arxiv.org/abs/1611.02779)
     """
 
-    def __init__(self, num_states, num_actions, max_episode_steps, seed, task={}):
-        super(TabularMDPEnv, self).__init__()
+    def __init__(self, num_states, num_actions, max_episode_steps, seed, task=None):
+        super().__init__()
+
+        task = task or {}
+
         self.max_episode_steps = max_episode_steps
         self.num_states = num_states
         self.num_actions = num_actions
