@@ -342,7 +342,7 @@ def _custom_root(solver_fun, optimality_fun, solve, argnums, has_aux, reference_
 
         result = make_custom_vjp_solver_fun(solver_fun, keys, args_sign).apply(*flatten_args, *vals)
         if has_aux:
-            return tuple(result[:-1]), *result[-1]
+            return result[:-1], result[-1]
         else:
             return result
 
