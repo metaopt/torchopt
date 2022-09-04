@@ -61,13 +61,10 @@ def _normalize_matvec(f):
     """Normalize an argument for computing matrix-vector products."""
     if callable(f):
         return f
-    elif isinstance(f, torch.Tensor):
-        if f.ndim != 2 or f.shape[0] != f.shape[1]:
-            raise ValueError(f'linear operator must be a square matrix, but has shape: {f.shape}')
-        return partial(torch.matmul, f)
-    else:
-        # TODO(shoyer): handle sparse arrays?
-        raise TypeError(f'linear operator must be either a function or ndarray: {f}')
+    assert isinstance(f, torch.Tensor)
+    if f.ndim != 2 or f.shape[0] != f.shape[1]:
+        raise ValueError(f'linear operator must be a square matrix, but has shape: {f.shape}')
+    return partial(torch.matmul, f)
 
 
 def _safe_sum(obj):
@@ -76,6 +73,7 @@ def _safe_sum(obj):
     return obj
 
 
+# pylint: disable=too-many-locals
 def _cg_solve(A, b, x0=None, *, maxiter, tol=1e-5, atol=0.0, M=_identity):
     # tolerance handling uses the "non-legacy" behavior of scipy.sparse.linalg.cg
     bs = _safe_sum(_vdot_real_tree(b, b))
@@ -124,9 +122,7 @@ def _shapes(pytree):
     return optree.tree_flatten([tuple(term.shape) for term in flatten_tree])[0]
 
 
-def _isolve(
-    _isolve_solve, A, b, x0=None, *, tol=1e-5, atol=0.0, maxiter=None, M=None, check_symmetric=False
-):
+def _isolve(_isolve_solve, A, b, x0=None, *, tol=1e-5, atol=0.0, maxiter=None, M=None):
     if x0 is None:
         x0 = optree.tree_map(torch.zeros_like, b)
 
@@ -199,6 +195,4 @@ def cg(A, b, x0=None, *, tol=1e-5, atol=0.0, maxiter=None, M=None):
     Returns:
         the CG linear solver
     """
-    return _isolve(
-        _cg_solve, A=A, b=b, x0=x0, tol=tol, atol=atol, maxiter=maxiter, M=M, check_symmetric=True
-    )
+    return _isolve(_cg_solve, A=A, b=b, x0=x0, tol=tol, atol=atol, maxiter=maxiter, M=M)

@@ -13,7 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name,too-many-locals,too-many-statements,too-many-arguments
 
 import inspect
 from typing import Any, Callable, Optional, Tuple, Union
@@ -26,7 +26,7 @@ from torch.autograd import Function
 from torchopt._src import linear_solve
 
 
-def root_vjp(
+def _root_vjp(
     optimality_fun: Callable,
     sol: Any,
     args: Tuple,
@@ -35,41 +35,19 @@ def root_vjp(
     argnums: Tuple,
     solve: Callable = linear_solve.solve_normal_cg,
 ) -> Any:
-    """Vector-Jacobian product of a root.
-
-    The invariant is ``optimality_fun(sol, *args) == 0``.
-
-    Args:
-      optimality_fun: the optimality function to use.
-      sol: solution / root (pytree).
-      args: tuple containing the arguments with respect to which we wish to
-        differentiate ``sol`` against.
-      cotangent: vector to left-multiply the Jacobian with
-        (pytree, same structure as ``sol``).
-      solve: a linear solver of the form ``x = solve(matvec, b)``,
-        where ``matvec(x) = Ax`` and ``Ax=b``.
-
-    Returns:
-      tuple of the same length as ``len(args)`` containing the vjps w.r.t.
-      each argument. Each ``vjps[i]`` has the same pytree structure as
-      ``args[i]``.
-    """
-
     def fun_sol(sol):
         # We close over the arguments.
         if res_is_tensor:
             return optimality_fun(sol[0], *args)
-        else:
-            return optimality_fun(sol, *args)
+        return optimality_fun(sol, *args)
 
-    _, vjp_fun_sol = functorch.vjp(fun_sol, sol)
+    _, vjp_fun_sol = functorch.vjp(fun_sol, sol)  # pylint: disable=unbalanced-tuple-unpacking
 
     # Compute the multiplication A^T u = (u^T A)^T.
     def matvec(u):
         if res_is_tensor:
             return vjp_fun_sol(u[0])[0]
-        else:
-            return vjp_fun_sol(u)[0]
+        return vjp_fun_sol(u)[0]
 
     # The solution of A^T u = v, where
     # A = jacobian(optimality_fun, argnums=0)
@@ -77,7 +55,8 @@ def root_vjp(
     v = optree.tree_map(torch.neg, cotangent)
     u = solve(matvec, v)
 
-    class MaskArgs:
+    # pylint: disable=too-few-public-methods
+    class _MaskArgs:
         def __init__(self, argnums, *args) -> None:
             self.argnums = argnums
             pre_filled = []
@@ -104,15 +83,15 @@ def root_vjp(
                 true_args.append(arg)
             if res_is_tensor:
                 return optimality_fun(sol[0], *true_args)
-            else:
-                return optimality_fun(sol, *true_args)
+            return optimality_fun(sol, *true_args)
 
     # def fun_args(*args):
     #     # We close over the solution.
     #     return optimality_fun(sol, *args)
 
-    fun_args = MaskArgs(argnums, *args)
+    fun_args = _MaskArgs(argnums, *args)
 
+    # pylint: disable=unbalanced-tuple-unpacking
     _, vjp_fun_args = functorch.vjp(fun_args, *fun_args.post_filled)
 
     if res_is_tensor:
@@ -216,11 +195,13 @@ def _custom_root(solver_fun, optimality_fun, solve, argnums, has_aux, reference_
     elif not isinstance(reference_signature, inspect.Signature):
         # If is a CompositeLinearFunction, accesses subfun.
         # Otherwise, assumes a Callable.
-        fun = getattr(reference_signature, "subfun", reference_signature)
+        fun = getattr(reference_signature, 'subfun', reference_signature)
         reference_signature = inspect.signature(fun)
 
+    # pylint: disable=missing-class-docstring
     def make_custom_vjp_solver_fun(solver_fun, kwarg_keys, args_sign):
-        class ImplicitMetaGradient(Function):
+        # pylint: disable=abstract-method,arguments-differ
+        class Implicitmetagradient(Function):
             @staticmethod
             def forward(ctx, *flat_args):
                 args = []
@@ -251,14 +232,15 @@ def _custom_root(solver_fun, optimality_fun, solve, argnums, has_aux, reference_
                         ctx.save_for_backward(*res, *args_tensor)
                     ctx.res_is_tensor = isinstance(res, torch.Tensor)
                     return res + (aux,)
-                else:
-                    if isinstance(res, torch.Tensor):
-                        ctx.save_for_backward(res, *args_tensor)
-                    else:
-                        ctx.save_for_backward(*res, *args_tensor)
-                    ctx.res_is_tensor = isinstance(res, torch.Tensor)
-                    return res
 
+                if isinstance(res, torch.Tensor):
+                    ctx.save_for_backward(res, *args_tensor)
+                else:
+                    ctx.save_for_backward(*res, *args_tensor)
+                ctx.res_is_tensor = isinstance(res, torch.Tensor)
+                return res
+
+            # pylint: disable=too-many-locals
             @staticmethod
             def backward(ctx, *cotangent):
                 if has_aux:
@@ -281,16 +263,16 @@ def _custom_root(solver_fun, optimality_fun, solve, argnums, has_aux, reference_
                 )
                 if ba_kwargs:
                     raise TypeError(
-                        "keyword arguments to solver_fun could not be resolved to "
-                        "positional arguments based on the signature "
-                        f"{reference_signature}. This can happen under custom_root if "
-                        "optimality_fun takes catch-all **kwargs, or under "
-                        "custom_fixed_point if fixed_point_fun takes catch-all **kwargs, "
-                        "both of which are currently unsupported."
+                        'keyword arguments to solver_fun could not be resolved to '
+                        'positional arguments based on the signature '
+                        f'{reference_signature}. This can happen under custom_root if '
+                        'optimality_fun takes catch-all **kwargs, or under '
+                        'custom_fixed_point if fixed_point_fun takes catch-all **kwargs, '
+                        'both of which are currently unsupported.'
                     )
 
                 # Compute VJPs w.r.t. args.
-                vjps = root_vjp(
+                vjps = _root_vjp(
                     optimality_fun=optimality_fun,
                     sol=sol,
                     args=ba_args[1:],
@@ -304,7 +286,7 @@ def _custom_root(solver_fun, optimality_fun, solve, argnums, has_aux, reference_
                 arg_vjps, kws_vjps = map_back(vjps)
                 ordered_vjps = tuple(arg_vjps) + tuple(kws_vjps[k] for k in kwargs.keys())
                 true_vjps = []
-                for idx, ((_, is_tuple), vjp) in enumerate(zip(args_sign, ordered_vjps)):
+                for (_, is_tuple), vjp in zip(args_sign, ordered_vjps):
                     if is_tuple:
                         for item in vjp:
                             true_vjps.append(item)
@@ -312,7 +294,7 @@ def _custom_root(solver_fun, optimality_fun, solve, argnums, has_aux, reference_
                         true_vjps.append(vjp)
                 return tuple(true_vjps)
 
-        return ImplicitMetaGradient
+        return Implicitmetagradient
 
     def wrapped_solver_fun(*args, **kwargs):
         args, kwargs = _signature_bind(solver_fun_signature, *args, **kwargs)
@@ -333,7 +315,7 @@ def _custom_root(solver_fun, optimality_fun, solve, argnums, has_aux, reference_
                         flatten_args.append(arg_item)
                     args_counter += len(arg)
                 else:
-                    raise RuntimeError("must be tensor or tensor tuple")
+                    raise RuntimeError('must be tensor or tensor tuple')
             else:
                 args_sign.append((args_counter, False))  # start position, is_tuple
                 flatten_args.append(arg)
@@ -345,8 +327,7 @@ def _custom_root(solver_fun, optimality_fun, solve, argnums, has_aux, reference_
         result = make_custom_vjp_solver_fun(solver_fun, keys, args_sign).apply(*flatten_args, *vals)
         if has_aux:
             return result[:-1], result[-1]
-        else:
-            return result
+        return result
 
     return wrapped_solver_fun
 

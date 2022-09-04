@@ -75,15 +75,13 @@ def solve_cg(
 
 
 def _make_rmatvec(matvec, x):
-    matvec_x, vjp = functorch.vjp(matvec, x)
+    _, vjp = functorch.vjp(matvec, x)  # pylint: disable=unbalanced-tuple-unpacking
     return lambda y: vjp(y)[0]
-    # transpose = jax.linear_transpose(matvec, x)
-    # return lambda y: transpose(y)[0]
 
 
 def _normal_matvec(matvec, x):
     """Computes A^T A x from matvec(x) = A x."""
-    matvec_x, vjp = functorch.vjp(matvec, x)
+    matvec_x, vjp = functorch.vjp(matvec, x)  # pylint: disable=unbalanced-tuple-unpacking
     return vjp(matvec_x)[0]
 
 
@@ -110,15 +108,7 @@ def solve_normal_cg(
     else:
         example_x = init
 
-    try:
-        rmatvec = _make_rmatvec(matvec, example_x)
-    except TypeError:
-        raise TypeError(
-            "The initialization `init` of solve_normal_cg is "
-            "compulsory when `matvec` is nonsquare. It should "
-            "have the same pytree structure as a solution. "
-            "Typically, a pytree filled with zeros should work."
-        )
+    rmatvec = _make_rmatvec(matvec, example_x)
 
     def normal_matvec(x):
         return _normal_matvec(matvec, x)
