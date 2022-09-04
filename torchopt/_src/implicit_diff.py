@@ -364,6 +364,7 @@ def custom_root(
       optimality_fun: an equation function, ``optimality_fun(params, *args)``.
         The invariant is ``optimality_fun(sol, *args) == 0`` at the
         solution / root ``sol``.
+      argnums: specifies arguments to compute gradients with respect to.
       has_aux: whether the decorated solver function returns auxiliary data.
       solve: a linear solver of the form ``solve(matvec, b)``.
       reference_signature: optional function signature
