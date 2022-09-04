@@ -166,7 +166,7 @@ def adam(
         eps: (default: :const:`1e-8`)
             A small constant applied to denominator outside of the square root (as in the Adam
             paper) to avoid dividing by zero when rescaling.
-        weight_decay: (default: :const:`0.01`):
+        weight_decay: (default: :const:`0.0`):
             Weight decay, add L2 penalty to parameters.
         eps_root: (default: :data:`0.0`)
             A small constant applied to denominator inside the square root (as in RMSProp), to avoid
@@ -401,7 +401,8 @@ def adamw(
         eps: (default: :const:`1e-8`)
             A small constant applied to denominator outside of the square root (as in the Adam
             paper) to avoid dividing by zero when rescaling.
-        weight_decay: strength of the weight decay regularization. Note that this
+        weight_decay: (default: :const:`0.01`):
+            Strength of the weight decay regularization. Note that this
             weight decay is multiplied with the learning rate. This is consistent
             with other frameworks such as PyTorch, but different from
             (Loshchilov et al, 2019) where the weight decay is only multiplied with
