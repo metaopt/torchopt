@@ -455,7 +455,11 @@ def adamw(
                 moment_requires_grad=moment_requires_grad,
                 already_flattened=True,
             ),
-            transform.add_decayed_weights(weight_decay, mask),
+            transform._add_decayed_weights(  # pylint: disable=protected-access
+                weight_decay,
+                mask,
+                already_flattened=True,
+            ),
             _scale_by_neg_lr(lr),
         )
     )
