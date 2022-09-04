@@ -209,7 +209,7 @@ def test_adamw(
     betas=[(0.9, 0.999), (0.95, 0.9995)],
     eps=[1e-8],
     inplace=[True, False],
-    weight_decay=[0.0, 1e-2],
+    weight_decay=[1e-2, 1e-1],
     maximize=[False, True],
 )
 def test_adam_accelerated_cpu(
