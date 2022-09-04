@@ -830,7 +830,8 @@ def _add_decayed_weights(
     *,
     already_flattened: bool = False,
 ) -> base.GradientTransformation:
-    # pylint: enable=unneeded-not
+    if not 0.0 <= weight_decay:  # pylint: disable=unneeded-not
+        raise ValueError(f'Invalid weight_decay value: {weight_decay}')
 
     if already_flattened:
         tree_map = map_flattened
