@@ -49,6 +49,7 @@ dependencies = [
     "numpy",
     "graphviz",
     "typing-extensions",
+    "functorch",
 ]
 dynamic = ["version"]
 

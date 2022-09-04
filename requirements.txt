@@ -3,3 +3,4 @@ optree
 numpy
 graphviz
 typing-extensions
+functorch
