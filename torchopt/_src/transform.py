@@ -770,16 +770,34 @@ def masked(
     Returns:
       New GradientTransformation wrapping ``inner``.
     """
+    return _masked(
+        inner=inner,
+        mask=mask,
+        already_flattened=False,
+    )
+
+
+def _masked(
+    inner: base.GradientTransformation,
+    mask: Union[Any, Callable[[base.Params], Any]],
+    *,
+    already_flattened: bool = False,
+) -> base.GradientTransformation:
+
+    if already_flattened:
+        tree_map = map_flattened
+    else:
+        tree_map = pytree.tree_map
 
     def mask_pytree(py_tree, mask_tree):
-        return pytree.tree_map(lambda m, p: p if m else MaskedNode(), mask_tree, py_tree)
+        return tree_map(lambda m, p: p if m else MaskedNode(), mask_tree, py_tree)
 
     def init_fn(params):
         mask_tree = mask(params) if callable(mask) else mask
         masked_params = mask_pytree(params, mask_tree)
         return MaskedState(inner_state=inner.init(masked_params))
 
-    def update_fn(updates, state, inplace=False, params=None):  # pylint: disable=unused-argument
+    def update_fn(updates, state, params=None, inplace=False):  # pylint: disable=unused-argument
         mask_tree = mask(updates) if callable(mask) else mask
         masked_updates = mask_pytree(updates, mask_tree)
         masked_params = None if params is None else mask_pytree(params, mask_tree)
@@ -788,7 +806,7 @@ def masked(
             masked_updates, state.inner_state, inplace=False, params=masked_params
         )
 
-        new_updates = pytree.tree_map(
+        new_updates = tree_map(
             lambda m, new_u, old_u: new_u if m else old_u, mask_tree, new_masked_updates, updates
         )
         return new_updates, MaskedState(inner_state=new_inner_state)
@@ -842,7 +860,7 @@ def _add_decayed_weights(
         del params
         return AddDecayedWeightsState()
 
-    def update_fn(updates, state, inplace, params):  # pylint: disable=unused-argument
+    def update_fn(updates, state, params, inplace):  # pylint: disable=unused-argument
         if params is None:
             raise ValueError(
                 (
@@ -856,5 +874,9 @@ def _add_decayed_weights(
     # If mask is not `None`, apply mask to the gradient transformation.
     # E.g. it is common to skip weight decay on bias units and batch stats.
     if mask is not None:
-        return masked(base.GradientTransformation(init_fn, update_fn), mask)
+        return _masked(
+            base.GradientTransformation(init_fn, update_fn),
+            mask,
+            already_flattened=True,
+        )
     return base.GradientTransformation(init_fn, update_fn)
