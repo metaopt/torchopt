@@ -166,7 +166,7 @@ def adam(
         eps: (default: :const:`1e-8`)
             A small constant applied to denominator outside of the square root (as in the Adam
             paper) to avoid dividing by zero when rescaling.
-        weight_decay: (default: :const:`0.0`):
+        weight_decay: (default: :const:`0.01`):
             Weight decay, add L2 penalty to parameters.
         eps_root: (default: :data:`0.0`)
             A small constant applied to denominator inside the square root (as in RMSProp), to avoid
@@ -373,16 +373,16 @@ def rmsprop(
 
 # pylint: disable=too-many-arguments
 def adamw(
-    lr: ScalarOrSchedule,
+    lr: ScalarOrSchedule = 1e-3,
     betas: Tuple[float, float] = (0.9, 0.999),
     eps: float = 1e-8,
     weight_decay: float = 0.0,
     *,
     eps_root: float = 0.0,
+    mask: Optional[Union[Any, Callable[['base.Params'], Any]]] = None,
     moment_requires_grad: bool = False,
     maximize: bool = False,
     use_accelerated_op: bool = False,
-    mask: Optional[Union[Any, Callable[['base.Params'], Any]]] = None,
 ) -> base.GradientTransformation:
     """Adam with weight decay regularization.
 
@@ -395,11 +395,17 @@ def adamw(
         - Loshchilov et al, 2019: https://arxiv.org/abs/1711.05101
 
     Args:
-        learning_rate: this is a fixed global scaling factor.
-        b1: the exponential decay rate to track the first moment of past gradients.
-        b2: the exponential decay rate to track the second moment of past gradients.
-        eps: A small constant applied to denominator outside of the square root (as in the Adam
+        lr: this is a fixed global scaling factor.
+        betas: (default: :const:`(0.9, 0.999)`)
+            Coefficients used for computing running averages of gradient and its square.
+        eps: (default: :const:`1e-8`)
+            A small constant applied to denominator outside of the square root (as in the Adam
             paper) to avoid dividing by zero when rescaling.
+        weight_decay: strength of the weight decay regularization. Note that this
+            weight decay is multiplied with the learning rate. This is consistent
+            with other frameworks such as PyTorch, but different from
+            (Loshchilov et al, 2019) where the weight decay is only multiplied with
+            the "schedule multiplier", but not the base learning rate.
         eps_root: (default: :data:`0.0`)
             A small constant applied to denominator inside the square root (as in RMSProp), to avoid
             dividing by zero when rescaling. This is needed for example when computing
@@ -409,11 +415,6 @@ def adamw(
             flag is often used in Meta Learning algorithms.
         use_accelerated_op: (default: :data:`False`)
             If :data:`True` use our implemented fused operator.
-        weight_decay: strength of the weight decay regularization. Note that this
-            weight decay is multiplied with the learning rate. This is consistent
-            with other frameworks such as PyTorch, but different from
-            (Loshchilov et al, 2019) where the weight decay is only multiplied with
-            the "schedule multiplier", but not the base learning rate.
         mask: a tree with same structure as (or a prefix of) the params PyTree,
             or a Callable that returns such a pytree given the params/updates.
             The leaves should be booleans, `True` for leaves/subtrees you want to
