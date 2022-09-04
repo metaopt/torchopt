@@ -798,6 +798,7 @@ def masked(
 
 AddDecayedWeightsState = base.EmptyState
 
+
 # mypy: ignore-errors
 def add_decayed_weights(
     weight_decay: float = 0.0,
@@ -815,6 +816,26 @@ def add_decayed_weights(
     Returns:
       An (init_fn, update_fn) tuple.
     """
+    return _add_decayed_weights(
+        weight_decay=weight_decay,
+        mask=mask,
+        already_flattened=False,
+    )
+
+
+# mypy: ignore-errors
+def _add_decayed_weights(
+    weight_decay: float = 0.0,
+    mask: Optional[Union[Any, Callable[[base.Params], Any]]] = None,
+    *,
+    already_flattened: bool = False,
+) -> base.GradientTransformation:
+    # pylint: enable=unneeded-not
+
+    if already_flattened:
+        tree_map = map_flattened
+    else:
+        tree_map = pytree.tree_map
 
     def init_fn(params):
         del params
@@ -828,7 +849,7 @@ def add_decayed_weights(
                     'parameters, but you are not passing `params` when calling `update`.'
                 )
             )
-        updates = map_flattened(lambda g, p: g + weight_decay * p, updates, params)
+        updates = tree_map(lambda g, p: g + weight_decay * p, updates, params)
         return updates, state
 
     # If mask is not `None`, apply mask to the gradient transformation.

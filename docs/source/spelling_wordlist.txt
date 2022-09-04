@@ -71,9 +71,6 @@ CHANGELOG
 Changelog
 CPython
 AdamW
-regularise
-generalisation
-regularisation
 Loshchilov
 pytree
 booleans

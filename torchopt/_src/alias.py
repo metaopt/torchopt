@@ -371,7 +371,7 @@ def rmsprop(
     )
 
 
-# pylint: disable=too-many-arguments
+# pylint: disable-next=too-many-arguments
 def adamw(
     lr: ScalarOrSchedule = 1e-3,
     betas: Tuple[float, float] = (0.9, 0.999),
@@ -386,8 +386,8 @@ def adamw(
 ) -> base.GradientTransformation:
     """Adam with weight decay regularization.
 
-    AdamW uses weight decay to regularise learning towards small weights, as
-    this leads to better generalisation. In SGD you can also use L2 regularisation
+    AdamW uses weight decay to regularize learning towards small weights, as
+    this leads to better generalization. In SGD you can also use L2 regularization
     to implement this as an additive loss term, however L2 regularization
     does not behave as intended for adaptive gradient algorithms such as Adam.
 
