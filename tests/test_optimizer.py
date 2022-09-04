@@ -194,10 +194,11 @@ def test_adamw(
 
 
 @helpers.parametrize(
-    dtype=[torch.float64, torch.float32],
-    lr=[1e-3, 1e-4],
+    dtype=[torch.float64],
+    lr=[1e-2, 1e-3, 1e-4],
     betas=[(0.9, 0.999), (0.95, 0.9995)],
     eps=[1e-8],
+    weight_decay=[0.0, 1e-2],
     maximize=[False, True],
 )
 def test_Adam_accelerated_cpu(
