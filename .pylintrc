@@ -20,13 +20,11 @@ fail-on=
 fail-under=10.0
 
 # Files or directories to be skipped. They should be base names, not paths.
-ignore=CVS,.vscode,.history,
-       examples,
-       tests
+ignore=CVS,.vscode,.history
 
 # Add files or directories matching the regex patterns to the ignore-list. The
 # regex matches against paths and can be in Posix or Windows format.
-ignore-paths=
+ignore-paths=^_C/$,^examples/$,^tests/$
 
 # Files or directories matching the regex patterns are skipped. The regex
 # matches against base names, not paths. The default value ignores emacs file

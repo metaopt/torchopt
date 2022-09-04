@@ -504,15 +504,23 @@ def _trace(
         tree_map = pytree.tree_map
 
     def init_fn(params):
-        return TraceState(trace=tree_map(lambda _: None, params))
+        return TraceState(
+            trace=tree_map(
+                lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params
+            )
+        )
+
+    first_call = True
 
     def update_fn(updates, state, *, params=None, inplace=True):  # pylint: disable=unused-argument
+        nonlocal first_call
+
         if nesterov:
             if inplace:
 
                 def f1(g, t):
-                    if t is None:
-                        return g.clone().detach_().requires_grad_(moment_requires_grad)
+                    if first_call:
+                        return t.add_(g)
                     return t.mul_(momentum).add_(g)
 
                 def f2(g, t):
@@ -523,8 +531,8 @@ def _trace(
             else:
 
                 def f1(g, t):
-                    if t is None:
-                        return g.clone().detach_().requires_grad_(moment_requires_grad)
+                    if first_call:
+                        return t.add(g)
                     return t.mul(momentum).add_(g)
 
                 def f2(g, t):
@@ -536,8 +544,8 @@ def _trace(
             if inplace:
 
                 def f(g, t):
-                    if t is None:
-                        return g.clone().detach_().requires_grad_(moment_requires_grad)
+                    if first_call:
+                        return t.add(g)
                     return t.mul_(momentum).add_(g, alpha=1.0 - dampening)
 
                 def copy_(g, t):
@@ -548,13 +556,14 @@ def _trace(
             else:
 
                 def f(g, t):
-                    if t is None:
-                        return g.clone().detach_().requires_grad_(moment_requires_grad)
+                    if first_call:
+                        return t.add(g)
                     return t.mul(momentum).add_(g, alpha=1.0 - dampening)
 
                 new_trace = tree_map(f, updates, state.trace)
                 updates = tree_map(torch.clone, new_trace)
 
+        first_call = False
         return updates, TraceState(trace=new_trace)
 
     return base.GradientTransformation(init_fn, update_fn)

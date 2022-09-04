@@ -10,4 +10,5 @@ matplotlib
 pandas
 seaborn
 torchviz
+torchrl
 pillow
