@@ -143,7 +143,7 @@ def test_Adam(
     lr=[1e-2, 1e-3, 1e-4],
     betas=[(0.9, 0.999), (0.95, 0.9995)],
     eps=[1e-8],
-    weight_decay=[0.0, 1e-2],
+    weight_decay=[1e-2, 1e-1],
     maximize=[False, True],
 )
 def test_adamw(
@@ -151,6 +151,7 @@ def test_adamw(
     lr: float,
     betas: Tuple[float, float],
     eps: float,
+    weight_decay: float,
     maximize: bool,
 ) -> None:
     model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
@@ -158,10 +159,11 @@ def test_adamw(
     optim = torchopt.AdamW(
         model.parameters(),
         lr,
-        b1=betas[0],
-        b2=betas[1],
+        betas=betas,
         eps=eps,
         eps_root=0.0,
+        weight_decay=weight_decay,
+        maximize=maximize,
     )
     optim_ref = torch.optim.AdamW(
         model_ref.parameters(),
@@ -169,7 +171,8 @@ def test_adamw(
         betas=betas,
         eps=eps,
         amsgrad=False,
-        weight_decay=0.0,
+        weight_decay=weight_decay,
+        maximize=maximize,
     )
 
     for xs, ys in loader:

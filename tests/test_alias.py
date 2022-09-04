@@ -160,6 +160,7 @@ def test_adamw(
     betas: Tuple[float, float],
     eps: float,
     inplace: bool,
+    weight_decay: float,
     maximize: bool,
 ) -> None:
     model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
@@ -167,20 +168,20 @@ def test_adamw(
     fmodel, params, buffers = functorch.make_functional_with_buffers(model)
     optim = torchopt.adamw(
         lr,
-        b1=betas[0],
-        b2=betas[1],
+        betas=betas,
         eps=eps,
         eps_root=0.0,
+        weight_decay=weight_decay,
         maximize=maximize,
     )
     optim_state = optim.init(params)
-    optim_ref = torch.optim.Adam(
+    optim_ref = torch.optim.AdamW(
         model_ref.parameters(),
         lr,
         betas=betas,
         eps=eps,
         amsgrad=False,
-        weight_decay=0.0,
+        weight_decay=weight_decay,
         maximize=maximize,
     )
 
@@ -192,7 +193,7 @@ def test_adamw(
         loss_ref = F.cross_entropy(pred_ref, ys)
 
         grad = torch.autograd.grad(loss, params)
-        updates, optim_state = optim.update(grad, optim_state, inplace=inplace)
+        updates, optim_state = optim.update(grad, optim_state, params=params, inplace=inplace)
         params = torchopt.apply_updates(params, updates)
 
         optim_ref.zero_grad()
