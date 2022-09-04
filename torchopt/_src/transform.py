@@ -32,7 +32,6 @@
 
 # pylint: disable=invalid-name
 
-
 from typing import Any, Callable, List, NamedTuple, Optional, Sequence, Union
 
 import torch
@@ -829,7 +828,7 @@ def add_decayed_weights(
                     'parameters, but you are not passing `params` when calling `update`.'
                 )
             )
-        updates = pytree.tree_map(lambda g, p: g + weight_decay * p, updates, params)
+        updates = map_flattened(lambda g, p: g + weight_decay * p, updates, params)
         return updates, state
 
     # If mask is not `None`, apply mask to the gradient transformation.

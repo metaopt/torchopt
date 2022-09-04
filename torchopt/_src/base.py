@@ -105,7 +105,6 @@ class TransformUpdateFn(Protocol):  # pylint: disable=too-few-public-methods
             params: (optional)
                 The current value of the parameters.
 
-
         Returns:
             The transformed ``updates``, and the updated ``state``.
         """

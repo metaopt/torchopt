@@ -54,9 +54,6 @@ Functional RMSProp Optimizer
 
 .. autofunction:: rmsprop
 
-
-
-
 ------
 
 Classic Optimizers
