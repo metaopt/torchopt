@@ -30,6 +30,8 @@
 # limitations under the License.
 # ==============================================================================
 
+# pylint: disable=invalid-name
+
 from typing import Any, Callable, Optional
 
 import functorch
