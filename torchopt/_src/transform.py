@@ -804,7 +804,7 @@ def _masked(
         masked_params = None if params is None else tree_mask(params, mask_tree)
 
         new_masked_updates, new_inner_state = inner.update(
-            masked_updates, state.inner_state, params=masked_params, inplace=False
+            masked_updates, state.inner_state, params=masked_params, inplace=inplace
         )
 
         new_updates = tree_map(
@@ -864,14 +864,26 @@ def _add_decayed_weights(
         return AddDecayedWeightsState()
 
     def update_fn(updates, state, params=None, inplace=True):  # pylint: disable=unused-argument
-        if params is None:
-            raise ValueError(
-                (
-                    'You are using a transformation that requires the current value of '
-                    'parameters, but you are not passing `params` when calling `update`.'
-                )
-            )
-        updates = tree_map(lambda g, p: g + weight_decay * p, updates, params)
+        assert params is not None, (
+            'Parameters are required for weight decay. '
+            'Call `update(updates, state, params=params)` instead.'
+        )
+
+        if inplace:
+
+            def f(g, p):
+                if g is not None:
+                    if g.requires_grad:
+                        return g.add_(p, alpha=weight_decay)
+                    return g.add_(p.data, alpha=weight_decay)
+                return None
+
+        else:
+
+            def f(g, p):
+                return g.add(p, alpha=weight_decay) if g is not None else None
+
+        updates = tree_map(f, updates, params)
         return updates, state
 
     # If mask is not `None`, apply mask to the gradient transformation.
@@ -880,6 +892,6 @@ def _add_decayed_weights(
         return _masked(
             inner=base.GradientTransformation(init_fn, update_fn),
             mask=mask,
-            already_flattened=True,
+            already_flattened=already_flattened,
         )
     return base.GradientTransformation(init_fn, update_fn)
