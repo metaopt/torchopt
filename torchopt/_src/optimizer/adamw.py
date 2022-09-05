@@ -38,7 +38,7 @@ class AdamW(Optimizer):
         lr: ScalarOrSchedule = 1e-3,
         betas: Tuple[float, float] = (0.9, 0.999),
         eps: float = 1e-8,
-        weight_decay: float = 0.0,
+        weight_decay: float = 1e-2,
         *,
         eps_root: float = 0.0,
         mask: Optional[Union[Any, Callable[['base.Params'], Any]]] = None,
@@ -57,7 +57,7 @@ class AdamW(Optimizer):
             eps: (default: :const:`1e-8`)
                 A small constant applied to denominator outside of the square root (as in the Adam
                 paper) to avoid dividing by zero when rescaling.
-            weight_decay: (default: :const:`0.0`)
+            weight_decay: (default: :const:`1e-2`)
                 Strength of the weight decay regularization. Note that this weight decay is
                 multiplied with the learning rate. This is consistent with other frameworks such as
                 PyTorch, but different from (Loshchilov et al, 2019) where the weight decay is only

@@ -174,7 +174,7 @@ def adam(
             (meta-)gradients through Adam.
         moment_requires_grad: (default: :data:`False`)
             If :data:`True` the momentums will be created with flag ``requires_grad=True``, this
-            flag is often used in Meta Learning algorithms.
+            flag is often used in Meta-Learning algorithms.
         maximize: (default: :data:`False`)
             Maximize the params based on the objective, instead of minimizing.
         use_accelerated_op: (default: :data:`False`)
@@ -266,7 +266,7 @@ def adamw(
             transformations are applied to all parameters.
         moment_requires_grad: (default: :data:`False`)
             If :data:`True` the momentums will be created with flag ``requires_grad=True``, this
-            flag is often used in Meta Learning algorithms.
+            flag is often used in Meta-Learning algorithms.
         maximize: (default: :data:`False`)
             Maximize the params based on the objective, instead of minimizing.
         use_accelerated_op: (default: :data:`False`)
