@@ -13,33 +13,35 @@
 # limitations under the License.
 # ==============================================================================
 
-from typing import Iterable, Tuple
+from typing import Any, Callable, Iterable, Optional, Tuple, Union
 
 import torch
 
-from torchopt._src.alias import adam
+from torchopt._src import base  # pylint: disable=unused-import
+from torchopt._src.alias import adamw
 from torchopt._src.optimizer.base import Optimizer
 from torchopt._src.typing import ScalarOrSchedule
 
 
-class Adam(Optimizer):
-    """The classic Adam optimizer.
+class AdamW(Optimizer):
+    """The classic AdamW optimizer.
 
     See Also:
-        - The functional Adam optimizer: :func:`torchopt.adam`.
-        - The differentiable meta-Adam optimizer: :class:`torchopt.MetaAdam`.
+        - The functional AdamW optimizer: :func:`torchopt.adamw`.
+        - The differentiable meta-AdamW optimizer: :class:`torchopt.MetaAdamW`.
     """
 
     # pylint: disable-next=too-many-arguments
     def __init__(
         self,
         params: Iterable[torch.Tensor],
-        lr: ScalarOrSchedule,
+        lr: ScalarOrSchedule = 1e-3,
         betas: Tuple[float, float] = (0.9, 0.999),
         eps: float = 1e-8,
-        weight_decay: float = 0.0,
+        weight_decay: float = 1e-2,
         *,
         eps_root: float = 0.0,
+        mask: Optional[Union[Any, Callable[['base.Params'], Any]]] = None,
         maximize: bool = False,
         use_accelerated_op: bool = False,
     ):
@@ -55,12 +57,21 @@ class Adam(Optimizer):
             eps: (default: :const:`1e-8`)
                 A small constant applied to denominator outside of the square root (as in the Adam
                 paper) to avoid dividing by zero when rescaling.
-            weight_decay: (default: :const:`0.0`)
-                Weight decay, add L2 penalty to parameters.
+            weight_decay: (default: :const:`1e-2`)
+                Strength of the weight decay regularization. Note that this weight decay is
+                multiplied with the learning rate. This is consistent with other frameworks such as
+                PyTorch, but different from (Loshchilov et al, 2019) where the weight decay is only
+                multiplied with the "schedule multiplier", but not the base learning rate.
             eps_root: (default: :data:`0.0`)
                 A small constant applied to denominator inside the square root (as in RMSProp), to
                 avoid dividing by zero when rescaling. This is needed for example when computing
                 (meta-)gradients through Adam.
+            mask: (default: :data:`None`)
+                A tree with same structure as (or a prefix of) the params PyTree, or a Callable that
+                returns such a pytree given the params/updates. The leaves should be booleans,
+                :data:`True` for leaves/subtrees you want to apply the weight decay to, and
+                :data:`False` for those you want to skip. Note that the Adam gradient
+                transformations are applied to all parameters.
             maximize: (default: :data:`False`)
                 Maximize the params based on the objective, instead of minimizing.
             use_accelerated_op: (default: :data:`False`)
@@ -68,12 +79,13 @@ class Adam(Optimizer):
         """
         super().__init__(
             params,
-            adam(
+            adamw(
                 lr=lr,
                 betas=betas,
                 eps=eps,
                 weight_decay=weight_decay,
                 eps_root=eps_root,
+                mask=mask,
                 moment_requires_grad=False,
                 maximize=maximize,
                 use_accelerated_op=use_accelerated_op,

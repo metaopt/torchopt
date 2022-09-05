@@ -32,7 +32,7 @@
 
 # pylint: disable=invalid-name
 
-from typing import Any, Callable, List, NamedTuple, Sequence
+from typing import Any, Callable, List, NamedTuple, Optional, Sequence, Union
 
 import torch
 
@@ -111,7 +111,7 @@ def _scale(step_size: float, *, already_flattened: bool = False) -> base.Gradien
     else:
         tree_map = pytree.tree_map
 
-    def init_fn(_):
+    def init_fn(params):  # pylint: disable=unused-argument
         return ScaleState()
 
     def update_fn(updates, state, *, params=None, inplace=True):  # pylint: disable=unused-argument
@@ -724,4 +724,174 @@ def _scale_by_stddev(
         updates = tree_map(f, updates, mu, nu)
         return updates, ScaleByRStdDevState(mu=mu, nu=nu)
 
+    return base.GradientTransformation(init_fn, update_fn)
+
+
+class MaskedState(NamedTuple):
+    """Maintains inner transform state for masked transformations."""
+
+    inner_state: Any
+
+
+class MaskedNode(NamedTuple):
+    """A node used to mask out unspecified parts of a tree.
+
+    This node is ignored when mapping functions across the tree e.g. using
+    :func:`pytree.tree_map` since it is a container without children. It can
+    therefore be used to mask out parts of a tree.
+    """
+
+
+def masked(
+    inner: base.GradientTransformation,
+    mask: Union[Any, Callable[[base.Params], Any]],
+) -> base.GradientTransformation:
+    """Mask updates so only some are transformed, the rest are passed through.
+
+    For example, it is common to skip weight decay for BatchNorm scale and all
+    bias parameters. In many networks, these are the only parameters with only
+    one dimension. So, you may create a mask function to mask these out as
+    follows::
+      mask_fn = lambda p: pytree.tree_map(lambda x: x.ndim != 1, p)
+      weight_decay = torchopt.masked(torchopt.add_decayed_weights(0.001), mask_fn)
+    You may alternatively create the mask pytree upfront::
+      mask = pytree.tree_map(lambda x: x.ndim != 1, params)
+      weight_decay = torchopt.masked(torchopt.add_decayed_weights(0.001), mask)
+    For the ``inner`` transform, state will only be stored for the parameters that
+    have a mask value of ``True``.
+
+    Args:
+      inner: Inner transformation to mask.
+      mask: a PyTree with same structure as (or a prefix of) the params PyTree, or
+        a Callable that returns such a pytree given the params/updates. The leaves
+        should be booleans, ``True`` for leaves/subtrees you want to apply the
+        transformation to, and ``False`` for those you want to skip. The mask must
+        be static for the gradient transformation to be jit-compilable.
+
+    Returns:
+      New GradientTransformation wrapping ``inner``.
+    """
+    return _masked(
+        inner=inner,
+        mask=mask,
+        already_flattened=False,
+    )
+
+
+def _masked(
+    inner: base.GradientTransformation,
+    mask: Union[Any, Callable[[base.Params], Any]],
+    *,
+    already_flattened: bool = False,
+) -> base.GradientTransformation:
+
+    if already_flattened:
+        tree_map = map_flattened
+    else:
+        tree_map = pytree.tree_map
+
+    def tree_mask(params, mask_tree):
+        return tree_map(lambda p, m: p if m else MaskedNode(), params, mask_tree)
+
+    def init_fn(params):
+        mask_tree = mask(params) if callable(mask) else mask
+        masked_params = tree_mask(params, mask_tree)
+        return MaskedState(inner_state=inner.init(masked_params))
+
+    def update_fn(updates, state, params=None, inplace=True):  # pylint: disable=unused-argument
+        mask_tree = mask(updates) if callable(mask) else mask
+        masked_updates = tree_mask(updates, mask_tree)
+        masked_params = None if params is None else tree_mask(params, mask_tree)
+
+        new_masked_updates, new_inner_state = inner.update(
+            masked_updates, state.inner_state, params=masked_params, inplace=inplace
+        )
+
+        new_updates = tree_map(
+            lambda new_u, old_u, m: new_u if m else old_u, new_masked_updates, updates, mask_tree
+        )
+        return new_updates, MaskedState(inner_state=new_inner_state)
+
+    return base.GradientTransformation(init_fn, update_fn)
+
+
+AddDecayedWeightsState = base.EmptyState
+
+
+# mypy: ignore-errors
+def add_decayed_weights(
+    weight_decay: float = 0.0,
+    mask: Optional[Union[Any, Callable[[base.Params], Any]]] = None,
+) -> base.GradientTransformation:
+    """Add parameter scaled by `weight_decay`.
+
+    Args:
+        weight_decay: a scalar weight decay rate.
+        mask: a tree with same structure as (or a prefix of) the params PyTree,
+            or a Callable that returns such a pytree given the params/updates.
+            The leaves should be booleans, `True` for leaves/subtrees you want to
+            apply the transformation to, and `False` for those you want to skip.
+
+    Returns:
+      An (init_fn, update_fn) tuple.
+    """
+    return _add_decayed_weights(
+        weight_decay=weight_decay,
+        mask=mask,
+        already_flattened=False,
+    )
+
+
+# mypy: ignore-errors
+def _add_decayed_weights(
+    weight_decay: float = 0.0,
+    mask: Optional[Union[Any, Callable[[base.Params], Any]]] = None,
+    *,
+    already_flattened: bool = False,
+) -> base.GradientTransformation:
+    if not 0.0 <= weight_decay:  # pylint: disable=unneeded-not
+        raise ValueError(f'Invalid weight_decay value: {weight_decay}')
+
+    if weight_decay == 0.0 and mask is None:
+        return base.identity()
+
+    if already_flattened:
+        tree_map = map_flattened
+    else:
+        tree_map = pytree.tree_map
+
+    def init_fn(params):  # pylint: disable=unused-argument
+        return AddDecayedWeightsState()
+
+    def update_fn(updates, state, params=None, inplace=True):  # pylint: disable=unused-argument
+        assert params is not None, (
+            'Parameters are required for weight decay. '
+            'Call `update(updates, state, params=params)` instead.'
+        )
+
+        if inplace:
+
+            def f(g, p):
+                if g is not None:
+                    if g.requires_grad:
+                        return g.add_(p, alpha=weight_decay)
+                    return g.add_(p.data, alpha=weight_decay)
+                return None
+
+        else:
+
+            def f(g, p):
+                return g.add(p, alpha=weight_decay) if g is not None else None
+
+        updates = tree_map(f, updates, params)
+        return updates, state
+
+    # If mask is not `None`, apply mask to the gradient transformation.
+    # E.g. it is common to skip weight decay on bias units and batch stats.
+    if mask is not None:
+        return _masked(
+            inner=base.GradientTransformation(init_fn, update_fn),
+            mask=mask,
+            already_flattened=already_flattened,
+        )
     return base.GradientTransformation(init_fn, update_fn)

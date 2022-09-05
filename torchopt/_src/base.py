@@ -82,7 +82,9 @@ class TransformUpdateFn(Protocol):  # pylint: disable=too-few-public-methods
     The :func:`update` step takes a tree of candidate parameter ``updates`` (e.g. their gradient
     with respect to some loss), an arbitrary structured ``state``, and the current ``params`` of the
     model being optimized. The ``params`` argument is optional, it must however be provided when
-    using transformations that require access to the current values of the parameters.
+    using transformations that require access to the current values of the parameters. The
+    ``inplace`` argument is optional, If :data:`True`, modify updates and state using inplace
+    operations.
     """
 
     @abstractmethod
@@ -99,6 +101,8 @@ class TransformUpdateFn(Protocol):  # pylint: disable=too-few-public-methods
         Args:
             updates: A tree of candidate updates.
             state: The state of the gradient transformation.
+            params: (optional)
+                The current value of the parameters.
             inplace: (optional)
                 If :data:`True`, modify updates and state using inplace operations.
 

@@ -33,7 +33,7 @@ def register_hook(hook) -> GradientTransformation:
         An ``(init_fn, update_fn)`` tuple.
     """
 
-    def init_fn(_):
+    def init_fn(params):  # pylint: disable=unused-argument
         return EmptyState()
 
     def update_fn(updates, state, *, params=None, inplace=True):  # pylint: disable=unused-argument
