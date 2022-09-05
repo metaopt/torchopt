@@ -78,6 +78,9 @@ test = [
     'pytest',
     'pytest-cov',
     'pytest-xdist',
+    'jax[cpu]',
+    'jaxopt',
+    'optax',
 ]
 
 [tool.setuptools.packages.find]
