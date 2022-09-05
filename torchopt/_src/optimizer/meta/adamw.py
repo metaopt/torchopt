@@ -24,11 +24,11 @@ from torchopt._src.typing import ScalarOrSchedule
 
 
 class MetaAdamW(MetaOptimizer):
-    """The classic RMSProp optimizer.
+    """The differentiable AdamW optimizer.
 
     See Also:
-        - The functional RMSProp optimizer: :func:`torchopt.rmsprop`.
-        - The differentiable meta-RMSProp optimizer: :class:`torchopt.MetaRMSProp`.
+        - The functional AdamW optimizer: :func:`torchopt.adamw`.
+        - The classic AdamW optimizer: :class:`torchopt.AdamW`.
     """
 
     # pylint: disable-next=too-many-arguments
@@ -46,7 +46,7 @@ class MetaAdamW(MetaOptimizer):
         maximize: bool = False,
         use_accelerated_op: bool = False,
     ):
-        r"""The `init` function.
+        """The :meth:`init` function.
 
         Args:
             net: (nn.Module)

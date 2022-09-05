@@ -47,7 +47,8 @@ class MetaAdam(MetaOptimizer):
         """The :meth:`init` function.
 
         Args:
-            net: A network whose parameters should be optimized.
+            net: (nn.Module)
+                A network whose parameters should be optimized.
             lr: (default: :const:`1e-3`)
                 This is a fixed global scaling factor.
             betas: (default: :const:`(0.9, 0.999)`)

@@ -46,7 +46,8 @@ class MetaRMSProp(MetaOptimizer):
         """The :meth:`init` function.
 
         Args:
-            net: A network whose parameters should be optimized.
+            net: (nn.Module)
+                A network whose parameters should be optimized.
             lr: (default: :const:`1e-2`)
                 This is a fixed global scaling factor.
             alpha: (default: :const:`0.99`)

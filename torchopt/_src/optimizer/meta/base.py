@@ -28,10 +28,11 @@ class MetaOptimizer:
         """The :meth:`init` function.
 
         Args:
-            net (torch.nn.Module): A network whose parameters should be optimized.
-            impl (GradientTransformation): A low level optimizer function, it could be a optimizer
-                function provided by ``alias.py`` or a customized ``chain`` provided by
-                ``combine.py``.
+            net: (nn.Module)
+                A network whose parameters should be optimized.
+            impl: (GradientTransformation)
+                A low level optimizer function, it could be a optimizer function provided by
+                ``alias.py`` or a customized ``chain`` provided by ``combine.py``.
                 Note that using ``MetaOptimizer(sgd(moment_requires_grad=True))`` or
                 ``MetaOptimizer(chain(sgd(moment_requires_grad=True)))`` is equivalent to
                 :class:`torchopt.MetaSGD`.
@@ -50,8 +51,8 @@ class MetaOptimizer:
         gradients and update the network parameters without modifying tensors in-place.
 
         Args:
-            loss (torch.Tensor): The loss that is used to compute the gradients to the network
-                parameters.
+            loss: (torch.Tensor)
+                The loss that is used to compute the gradients to the network parameters.
         """  # pylint: disable=line-too-long
         # Step parameter only
         for i, (param_container, new_state) in enumerate(

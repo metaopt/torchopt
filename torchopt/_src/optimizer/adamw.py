@@ -24,14 +24,14 @@ from torchopt._src.typing import ScalarOrSchedule
 
 
 class AdamW(Optimizer):
-    """The classic RMSProp optimizer.
+    """The classic AdamW optimizer.
 
     See Also:
         - The functional AdamW optimizer: :func:`torchopt.adamw`.
         - The differentiable meta-AdamW optimizer: :class:`torchopt.MetaAdamW`.
     """
 
-    # pylint: disable=too-many-arguments
+    # pylint: disable-next=too-many-arguments
     def __init__(
         self,
         params: Iterable[torch.Tensor],
@@ -45,7 +45,7 @@ class AdamW(Optimizer):
         maximize: bool = False,
         use_accelerated_op: bool = False,
     ):
-        r"""The `init` function.
+        r"""The :meth:`init` function.
 
         Args:
             params: (iterable of torch.Tensor)
