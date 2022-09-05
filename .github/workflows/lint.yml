@@ -42,21 +42,25 @@ jobs:
       - run: |
           CUDA_VERSION="${{steps.cuda-toolkit.outputs.cuda}}"
           echo "CUDA_VERSION=${CUDA_VERSION}" >> "${GITHUB_ENV}"
-          TORCH_INDEX_URL="https://download.pytorch.org/whl/cu$(echo "${CUDA_VERSION}" | cut -d'.' -f-2  | tr -d '.')"
-          echo "TORCH_INDEX_URL=${TORCH_INDEX_URL}" >> "${GITHUB_ENV}"
+          PIP_EXTRA_INDEX_URL="https://download.pytorch.org/whl/cu$(echo "${CUDA_VERSION}" | cut -d'.' -f-2  | tr -d '.')"
+          echo "PIP_EXTRA_INDEX_URL=${PIP_EXTRA_INDEX_URL}" >> "${GITHUB_ENV}"
 
           echo "Installed CUDA version is: ${CUDA_VERSION}"
           echo "CUDA install location: ${{steps.cuda-toolkit.outputs.CUDA_PATH}}"
           nvcc -V
-          echo "Torch index URL: ${TORCH_INDEX_URL}"
+          echo "Torch index URL: ${PIP_EXTRA_INDEX_URL}"
 
       - name: Upgrade pip
         run: |
-          python -m pip install --upgrade pip setuptools
+          python -m pip install --upgrade pip setuptools wheel
 
       - name: Install TorchOpt
+        env:
+          USE_FP16: "OFF"
+          TORCH_CUDA_ARCH_LIST: "Auto"
         run: |
-          python -m pip install -vvv -e '.[lint]'
+          python -m pip install torch numpy pybind11
+          python -m pip install -vvv --no-build-isolation --editable '.[lint]'
 
       - name: pre-commit
         run: |
@@ -92,8 +96,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install --extra-index-url "${TORCH_INDEX_URL}" \
-            -r docs/requirements.txt
+          python -m pip install -r docs/requirements.txt
 
       - name: docstyle
         run: |

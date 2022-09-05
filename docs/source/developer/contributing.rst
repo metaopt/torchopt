@@ -3,14 +3,14 @@ Contributing to TorchOpt
 
 Before contributing to TorchOpt, please follow the instructions below to setup.
 
-1. Fork TorchOpt (`fork <https://github.com/metaopt/TorchOpt/fork>`_) on GitHub and clone the repository.
+1. Fork TorchOpt (`fork <https://github.com/metaopt/torchopt/fork>`_) on GitHub and clone the repository.
 
 .. code-block:: bash
 
-    git clone git@github.com:<your username>/TorchOpt.git  # use the SSH protocol
-    cd TorchOpt
+    git clone git@github.com:<your username>/torchopt.git  # use the SSH protocol
+    cd torchopt
 
-    git remote add upstream git@github.com:metaopt/TorchOpt.git
+    git remote add upstream git@github.com:metaopt/torchopt.git
 
 2. Setup a development environment via `conda <https://github.com/conda/conda>`_:
 
@@ -37,7 +37,7 @@ To install TorchOpt in an "editable" mode, run:
 
 .. code-block:: bash
 
-    pip3 install --no-build-isolation --editable .
+    make install-editable  # or run `pip3 install --no-build-isolation --editable .`
 
 in the main directory. This installation is removable by:
 

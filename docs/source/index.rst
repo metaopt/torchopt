@@ -1,4 +1,4 @@
-:github_url: https://github.com/metaopt/TorchOpt/tree/HEAD/docs
+:github_url: https://github.com/metaopt/torchopt/tree/HEAD/docs
 
 TorchOpt
 --------
@@ -13,10 +13,8 @@ Installation
 
 Requirements:
 
-* PyTorch
-* JAX
-* (Optional) For visualizing computation graphs
-  * `Graphviz <https://graphviz.org/download/>`_ (for Linux users use ``apt/yum install graphviz`` or ``conda install -c anaconda python-graphviz``)
+* `PyTorch <https://pytorch.org/>`_
+* (Optional) `Graphviz <https://graphviz.org/download/>`_
 
 Please follow the instructions at https://pytorch.org to install PyTorch in your Python environment first. Then run the following command to install TorchOpt from PyPI:
 
@@ -28,16 +26,16 @@ You can also build shared libraries from source, use:
 
 .. code-block:: bash
 
-    git clone https://github.com/metaopt/TorchOpt.git
-    cd TorchOpt
+    git clone https://github.com/metaopt/torchopt.git
+    cd torchopt
     pip3 install .
 
 We provide a `conda <https://github.com/conda/conda>`_ environment recipe to install the build toolchain such as `cmake`, `g++`, and `nvcc`:
 
 .. code-block:: bash
 
-    git clone https://github.com/metaopt/TorchOpt.git
-    cd TorchOpt
+    git clone https://github.com/metaopt/torchopt.git
+    cd torchopt
 
     # You may need `CONDA_OVERRIDE_CUDA` if conda fails to detect the NVIDIA driver (e.g. in docker or WSL2)
     CONDA_OVERRIDE_CUDA=11.7 conda env create --file conda-recipe.yaml
@@ -88,7 +86,7 @@ Support
 -------
 
 If you are having issues, please let us know by filing an issue on our
-`issue tracker <https://github.com/metaopt/TorchOpt/issues>`_.
+`issue tracker <https://github.com/metaopt/torchopt/issues>`_.
 
 Changelog
 ---------

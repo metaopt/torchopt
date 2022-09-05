@@ -45,7 +45,7 @@ classifiers = [
 ]
 dependencies = [
     "torch >= 1.12",
-    "jax[cpu] >= 0.3",
+    "optree",
     "numpy",
     "graphviz",
     "typing-extensions",
@@ -53,10 +53,10 @@ dependencies = [
 dynamic = ["version"]
 
 [project.urls]
-Homepage = "https://github.com/metaopt/TorchOpt"
-Repository = "https://github.com/metaopt/TorchOpt"
+Homepage = "https://github.com/metaopt/torchopt"
+Repository = "https://github.com/metaopt/torchopt"
 Documentation = "https://torchopt.readthedocs.io"
-"Bug Report" = "https://github.com/metaopt/TorchOpt/issues"
+"Bug Report" = "https://github.com/metaopt/torchopt/issues"
 
 [project.optional-dependencies]
 lint = [
@@ -73,7 +73,6 @@ lint = [
     "pre-commit",
 ]
 test = [
-    'torchvision',
     'functorch >= 0.2',
     'pytest',
     'pytest-cov',
@@ -91,7 +90,9 @@ build = "*manylinux*"
 skip = "pp*"
 build-frontend = "pip"
 build-verbosity = 3
+environment.USE_FP16 = "ON"
 environment.CUDACXX = "/usr/local/cuda/bin/nvcc"
+environment.TORCH_CUDA_ARCH_LIST = "Common"
 environment.DEFAULT_CUDA_VERSION = "11.6"
 environment.DEFAULT_TEST_TORCH_SPECS = "cpu cu113 cu116"
 environment-pass = ["CUDA_VERSION", "TEST_TORCH_SPECS"]
@@ -123,10 +124,10 @@ test-command = """
     TORCH_VERSION="$(python -c 'print(__import__("torch").__version__.partition("+")[0])')"
     TEST_TORCH_SPECS="${TEST_TORCH_SPECS:-"${DEFAULT_TEST_TORCH_SPECS}"}"
     for spec in ${TEST_TORCH_SPECS}; do
-        python -m pip uninstall -y torch torchvision
+        python -m pip uninstall -y torch
         export PIP_EXTRA_INDEX_URL="https://download.pytorch.org/whl/${spec}"
         echo "PIP_EXTRA_INDEX_URL='${PIP_EXTRA_INDEX_URL}'"
-        python -m pip install "torch==${TORCH_VERSION}" torchvision
+        python -m pip install "torch==${TORCH_VERSION}"
         echo "ls ${TORCH_LIB_PATH}"; ls -lh "${TORCH_LIB_PATH}"
         find "${SITE_PACKAGES}/torchopt" -name "*.so" -print0 |
             xargs -0 -I '{}' bash -c "echo 'ldd {}'; ldd '{}'; echo 'patchelf --print-rpath {}'; patchelf --print-rpath '{}'"

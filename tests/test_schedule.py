@@ -12,3 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
+
+import numpy as np
+
+import torchopt
+
+
+def test_linear_schedule() -> None:
+    init_value = 1.0
+    end_value = 0.0
+    gap_value = init_value - end_value
+    transition_steps = 10
+    transition_begin = 1
+
+    schedule = torchopt.schedule.linear_schedule(
+        init_value=init_value,
+        end_value=end_value,
+        transition_steps=transition_steps,
+        transition_begin=transition_begin,
+    )
+    for i in range(transition_begin, transition_steps):
+        lr = schedule(i)
+        lr_gt = init_value - gap_value * (i - transition_begin) / transition_steps
+        assert np.allclose(lr, lr_gt)

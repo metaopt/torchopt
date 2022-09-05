@@ -13,12 +13,12 @@
 # limitations under the License.
 # ==============================================================================
 
-from typing import Any, Callable, Iterable, Mapping, Union
+from typing import Any, Callable, Iterable, Mapping, TypeVar, Union
 
 from torch import Tensor
 
 
-Scalar = Union[float, int]
+Scalar = TypeVar('Scalar', float, int)
 Numeric = Union[Tensor, Scalar]
 
 Schedule = Callable[[Numeric], Numeric]

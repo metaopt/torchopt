@@ -186,8 +186,8 @@ def setup(app):
 # -- Source code links -------------------------------------------------------
 
 extlinks = {
-    'gitcode': ('https://github.com/metaopt/TorchOpt/blob/HEAD/%s', '%s'),
-    'issue': ('https://github.com/metaopt/TorchOpt/issues/%s', 'issue %s'),
+    'gitcode': ('https://github.com/metaopt/torchopt/blob/HEAD/%s', '%s'),
+    'issue': ('https://github.com/metaopt/torchopt/issues/%s', 'issue %s'),
 }
 
 # -- Extension configuration -------------------------------------------------

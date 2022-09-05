@@ -68,7 +68,9 @@ class cmake_build_ext(build_ext):
             and hasattr(self, 'parallel')
             and self.parallel
         ):
-            build_args.append(f'-j{self.parallel}')
+            build_args.append(f'--parallel={self.parallel}')
+        else:
+            build_args.append('--parallel')
 
         try:
             os.chdir(build_temp)
@@ -81,8 +83,8 @@ class cmake_build_ext(build_ext):
 
 setup(
     version=version.__version__,
-    package_data={'sharedlib': ['_lib/*.so']},
+    package_data={'sharedlib': ['*.so', '*.pyd']},
     include_package_data=True,
     cmdclass={'build_ext': cmake_build_ext},
-    ext_modules=[CMakeExtension('torchopt._lib.adam_op', source_dir=HERE)],
+    ext_modules=[CMakeExtension('torchopt._C', source_dir=HERE)],
 )

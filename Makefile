@@ -16,6 +16,14 @@ default: install
 install:
 	$(PYTHON) -m pip install .
 
+install-editable:
+	$(PYTHON) -m pip install --upgrade pip
+	$(PYTHON) -m pip install --upgrade setuptools wheel
+	$(PYTHON) -m pip install torch numpy pybind11
+	USE_FP16=ON TORCH_CUDA_ARCH_LIST=Auto $(PYTHON) -m pip install -vvv --no-build-isolation --editable .
+
+install-e: install-editable  # alias
+
 build:
 	$(PYTHON) -m pip install --upgrade pip
 	$(PYTHON) -m pip install --upgrade setuptools wheel build
@@ -83,8 +91,9 @@ addlicense-install: go-install
 
 pytest: pytest-install
 	cd tests && \
-	$(PYTHON) -m pytest unit --verbose --color=yes --durations=0 \
-		--cov="$(PROJECT_PATH)" --cov-report=xml --cov-report=term-missing
+	$(PYTHON) -m pytest --verbose --color=yes --durations=0 \
+		--cov="$(PROJECT_NAME)" --cov-report=xml --cov-report=term-missing \
+		.
 
 test: pytest
 

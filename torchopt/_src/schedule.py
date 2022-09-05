@@ -30,8 +30,9 @@
 # limitations under the License.
 # ==============================================================================
 
+import logging
+
 import numpy as np
-from absl import logging
 
 from torchopt._src import base
 from torchopt._src.typing import Scalar

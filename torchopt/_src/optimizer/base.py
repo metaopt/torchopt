@@ -37,12 +37,13 @@ class Optimizer:
                 Note that using ``Optimizer(sgd())`` or ``Optimizer(chain(sgd()))`` is equivalent to
                 :class:`torchopt.SGD`.
         """
-        if not isinstance(params, list):
-            params = list(params)
         self.impl = impl
         self.param_groups = []  # type: ignore
         self.param_tree_groups = []  # type: ignore
         self.state_groups = []  # type: ignore
+
+        if not isinstance(params, list):
+            params = list(params)
         self.add_param_group(params)
 
     def zero_grad(self, set_to_none: bool = False):
@@ -101,10 +102,11 @@ class Optimizer:
         def f(p):
             return p.grad
 
-        for param, state in zip(self.param_groups, self.state_groups):
-            grad = pytree.tree_map(f, param)
-            updates, _ = self.impl.update(grad, state)
-            apply_updates(param, updates)
+        for i, (params, state) in enumerate(zip(self.param_groups, self.state_groups)):
+            grads = pytree.tree_map(f, params)
+            updates, new_state = self.impl.update(grads, state, params=params, inplace=True)
+            self.param_groups[i] = apply_updates(params, updates, inplace=True)
+            self.state_groups[i] = new_state
 
         return loss
 
