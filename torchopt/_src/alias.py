@@ -45,7 +45,7 @@ def _flip_sign_and_weight_decay(weight_decay: float = 0.0, maximize=False):
     if not maximize and weight_decay == 0.0:
         return base.identity()
 
-    def init_fn(_):
+    def init_fn(params):  # pylint: disable=unused-argument
         return base.EmptyState()
 
     if not maximize:  # gradient descent
@@ -456,8 +456,8 @@ def adamw(
                 already_flattened=True,
             ),
             transform._add_decayed_weights(  # pylint: disable=protected-access
-                weight_decay,
-                mask,
+                weight_decay=weight_decay,
+                mask=mask,
                 already_flattened=True,
             ),
             _scale_by_neg_lr(lr),

@@ -192,9 +192,9 @@ def test_adamw(
         loss = F.cross_entropy(pred, ys)
         loss_ref = F.cross_entropy(pred_ref, ys)
 
-        grad = torch.autograd.grad(loss, params)
-        updates, optim_state = optim.update(grad, optim_state, params=params, inplace=inplace)
-        params = torchopt.apply_updates(params, updates)
+        grads = torch.autograd.grad(loss, params)
+        updates, optim_state = optim.update(grads, optim_state, params=params, inplace=inplace)
+        params = torchopt.apply_updates(params, updates, inplace=inplace)
 
         optim_ref.zero_grad()
         loss_ref.backward()

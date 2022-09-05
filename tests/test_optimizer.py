@@ -146,7 +146,7 @@ def test_Adam(
     weight_decay=[1e-2, 1e-1],
     maximize=[False, True],
 )
-def test_adamw(
+def test_AdamW(
     dtype: torch.dtype,
     lr: float,
     betas: Tuple[float, float],

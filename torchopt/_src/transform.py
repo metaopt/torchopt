@@ -111,7 +111,7 @@ def _scale(step_size: float, *, already_flattened: bool = False) -> base.Gradien
     else:
         tree_map = pytree.tree_map
 
-    def init_fn(_):
+    def init_fn(params):  # pylint: disable=unused-argument
         return ScaleState()
 
     def update_fn(updates, state, *, params=None, inplace=True):  # pylint: disable=unused-argument
@@ -710,6 +710,7 @@ def _scale_by_stddev(
         nu = _update_moment(
             updates, state.nu, alpha, order=2, inplace=inplace, already_flattened=already_flattened
         )
+
         if inplace:
 
             def f(g, m, n):
@@ -736,7 +737,7 @@ class MaskedNode(NamedTuple):
     """A node used to mask out unspecified parts of a tree.
 
     This node is ignored when mapping functions across the tree e.g. using
-    `pytree.tree_map` since it is a container without children. It can
+    :func:`pytree.tree_map` since it is a container without children. It can
     therefore be used to mask out parts of a tree.
     """
 
@@ -789,25 +790,25 @@ def _masked(
     else:
         tree_map = pytree.tree_map
 
-    def mask_pytree(py_tree, mask_tree):
-        return tree_map(lambda m, p: p if m else MaskedNode(), mask_tree, py_tree)
+    def tree_mask(params, mask_tree):
+        return tree_map(lambda p, m: p if m else MaskedNode(), params, mask_tree)
 
     def init_fn(params):
         mask_tree = mask(params) if callable(mask) else mask
-        masked_params = mask_pytree(params, mask_tree)
+        masked_params = tree_mask(params, mask_tree)
         return MaskedState(inner_state=inner.init(masked_params))
 
-    def update_fn(updates, state, params=None, inplace=False):  # pylint: disable=unused-argument
+    def update_fn(updates, state, params=None, inplace=True):  # pylint: disable=unused-argument
         mask_tree = mask(updates) if callable(mask) else mask
-        masked_updates = mask_pytree(updates, mask_tree)
-        masked_params = None if params is None else mask_pytree(params, mask_tree)
+        masked_updates = tree_mask(updates, mask_tree)
+        masked_params = None if params is None else tree_mask(params, mask_tree)
 
         new_masked_updates, new_inner_state = inner.update(
-            masked_updates, state.inner_state, inplace=False, params=masked_params
+            masked_updates, state.inner_state, params=masked_params, inplace=False
         )
 
         new_updates = tree_map(
-            lambda m, new_u, old_u: new_u if m else old_u, mask_tree, new_masked_updates, updates
+            lambda new_u, old_u, m: new_u if m else old_u, new_masked_updates, updates, mask_tree
         )
         return new_updates, MaskedState(inner_state=new_inner_state)
 
@@ -856,11 +857,10 @@ def _add_decayed_weights(
     else:
         tree_map = pytree.tree_map
 
-    def init_fn(params):
-        del params
+    def init_fn(params):  # pylint: disable=unused-argument
         return AddDecayedWeightsState()
 
-    def update_fn(updates, state, params, inplace):  # pylint: disable=unused-argument
+    def update_fn(updates, state, params=None, inplace=True):  # pylint: disable=unused-argument
         if params is None:
             raise ValueError(
                 (
@@ -875,8 +875,8 @@ def _add_decayed_weights(
     # E.g. it is common to skip weight decay on bias units and batch stats.
     if mask is not None:
         return _masked(
-            base.GradientTransformation(init_fn, update_fn),
-            mask,
+            inner=base.GradientTransformation(init_fn, update_fn),
+            mask=mask,
             already_flattened=True,
         )
     return base.GradientTransformation(init_fn, update_fn)

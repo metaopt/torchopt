@@ -40,6 +40,7 @@ __all__ = [
     'schedule',
     'visual',
     'adam',
+    'adamw',
     'rmsprop',
     'sgd',
     'clip_grad_norm',
