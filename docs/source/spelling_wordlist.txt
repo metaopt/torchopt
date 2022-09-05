@@ -70,11 +70,11 @@ SGD
 CHANGELOG
 Changelog
 CPython
+nn
+Vincent
+Moens
 AdamW
 Loshchilov
 pytree
 booleans
 subtrees
-nn
-Vincent
-Moens

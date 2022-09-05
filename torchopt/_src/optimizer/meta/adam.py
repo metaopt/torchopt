@@ -55,7 +55,7 @@ class MetaAdam(MetaOptimizer):
             eps: (default: :const:`1e-8`)
                 A small constant applied to denominator outside of the square root (as in the Adam
                 paper) to avoid dividing by zero when rescaling.
-            weight_decay: (default: :const:`0.0`):
+            weight_decay: (default: :const:`0.0`)
                 Weight decay, add L2 penalty to parameters.
             eps_root: (default: :data:`0.0`)
                 A small constant applied to denominator inside the square root (as in RMSProp), to

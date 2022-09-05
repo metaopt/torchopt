@@ -53,7 +53,7 @@ class MetaRMSProp(MetaOptimizer):
                 Smoothing constant, the decay used to track the magnitude of previous gradients.
             eps: (default: :const:`1e-8`)
                 A small numerical constant to avoid dividing by zero when rescaling.
-            weight_decay: (default: :const:`0.0`):
+            weight_decay: (default: :const:`0.0`)
                 Weight decay, add L2 penalty to parameters.
             momentum: (default: :const:`0.0`)
                 The decay rate used by the momentum term. The momentum is not used when it is set to

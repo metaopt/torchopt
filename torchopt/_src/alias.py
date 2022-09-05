@@ -166,7 +166,7 @@ def adam(
         eps: (default: :const:`1e-8`)
             A small constant applied to denominator outside of the square root (as in the Adam
             paper) to avoid dividing by zero when rescaling.
-        weight_decay: (default: :const:`0.0`):
+        weight_decay: (default: :const:`0.0`)
             Weight decay, add L2 penalty to parameters.
         eps_root: (default: :data:`0.0`)
             A small constant applied to denominator inside the square root (as in RMSProp), to avoid
@@ -218,64 +218,96 @@ def adam(
     )
 
 
-def sgd(
-    lr: ScalarOrSchedule,
-    momentum: float = 0.0,
-    dampening: float = 0.0,
-    weight_decay: float = 0.0,
-    nesterov: bool = False,
+# pylint: disable-next=too-many-arguments
+def adamw(
+    lr: ScalarOrSchedule = 1e-3,
+    betas: Tuple[float, float] = (0.9, 0.999),
+    eps: float = 1e-8,
+    weight_decay: float = 1e-2,
     *,
+    eps_root: float = 0.0,
+    mask: Optional[Union[Any, Callable[['base.Params'], Any]]] = None,
     moment_requires_grad: bool = False,
     maximize: bool = False,
+    use_accelerated_op: bool = False,
 ) -> base.GradientTransformation:
-    """The functional version of the canonical Stochastic Gradient Descent optimizer.
+    """Adam with weight decay regularization.
 
-    This implements stochastic gradient descent. It also includes support for momentum, and nesterov
-    acceleration, as these are standard practice when using stochastic gradient descent to train
-    deep neural networks.
+    AdamW uses weight decay to regularize learning towards small weights, as
+    this leads to better generalization. In SGD you can also use L2 regularization
+    to implement this as an additive loss term, however L2 regularization
+    does not behave as intended for adaptive gradient algorithms such as Adam.
 
     References:
-        - Sutskever et al, 2013: http://proceedings.mlr.press/v28/sutskever13.pdf
+        - Loshchilov et al, 2019: https://arxiv.org/abs/1711.05101
 
     Args:
-        lr: This is a fixed global scaling factor.
-        momentum: (default: :const:`0.0`)
-            The decay rate used by the momentum term. The momentum is not used when it is set to
-            :const:`0.0`.
-        weight_decay: (default: :const:`0.0`):
-            Weight decay, add L2 penalty to parameters.
-        dampening: (default: :const:`0.0`)
-            Dampening for momentum.
-        nesterov: (default: :data:`False`)
-            Whether to use Nesterov momentum.
+        lr: (default: :const:`1e-3`)
+            This is a fixed global scaling factor.
+        betas: (default: :const:`(0.9, 0.999)`)
+            Coefficients used for computing running averages of gradient and its square.
+        eps: (default: :const:`1e-8`)
+            A small constant applied to denominator outside of the square root (as in the Adam
+            paper) to avoid dividing by zero when rescaling.
+        weight_decay: (default: :const:`1e-2`)
+            Strength of the weight decay regularization. Note that this weight decay is multiplied
+            with the learning rate. This is consistent with other frameworks such as PyTorch, but
+            different from (Loshchilov et al, 2019) where the weight decay is only multiplied with
+            the "schedule multiplier", but not the base learning rate.
+        eps_root: (default: :data:`0.0`)
+            A small constant applied to denominator inside the square root (as in RMSProp), to avoid
+            dividing by zero when rescaling. This is needed for example when computing
+            (meta-)gradients through Adam.
+        mask: (default: :data:`None`)
+            A tree with same structure as (or a prefix of) the params PyTree, or a Callable that
+            returns such a pytree given the params/updates. The leaves should be booleans,
+            :data:`True` for leaves/subtrees you want to apply the weight decay to, and
+            :data:`False` for those you want to skip. Note that the Adam gradient
+            transformations are applied to all parameters.
         moment_requires_grad: (default: :data:`False`)
             If :data:`True` the momentums will be created with flag ``requires_grad=True``, this
-            flag is often used in Meta-Learning algorithms.
+            flag is often used in Meta Learning algorithms.
         maximize: (default: :data:`False`)
             Maximize the params based on the objective, instead of minimizing.
+        use_accelerated_op: (default: :data:`False`)
+            If :data:`True` use our implemented fused operator.
 
     Returns:
-        A :class:`GradientTransformation` instance.
+      the corresponding `GradientTransformation`.
     """
+    b1, b2 = betas
     # pylint: disable=unneeded-not
     if not (callable(lr) or 0.0 <= lr):
         raise ValueError(f'Invalid learning rate: {lr}')
-    if not 0.0 <= momentum:
-        raise ValueError(f'Invalid momentum value: {momentum}')
+    if not 0.0 <= eps:
+        raise ValueError(f'Invalid epsilon value: {eps}')
+    if not 0.0 <= b1 < 1.0:
+        raise ValueError(f'Invalid beta parameter at index 0: {b1}')
+    if not 0.0 <= b2 < 1.0:
+        raise ValueError(f'Invalid beta parameter at index 1: {b2}')
     if not 0.0 <= weight_decay:
         raise ValueError(f'Invalid weight_decay value: {weight_decay}')
-    if nesterov and (momentum <= 0.0 or dampening != 0.0):
-        raise ValueError('Nesterov momentum requires a momentum and zero dampening')
     # pylint: enable=unneeded-not
+
+    if use_accelerated_op:
+        adam_scaler = transform._scale_by_accelerated_adam  # pylint: disable=protected-access
+    else:
+        adam_scaler = transform._scale_by_adam  # pylint: disable=protected-access
 
     return transform.with_flattened_tree(
         combine.chain(
-            _flip_sign_and_weight_decay(weight_decay=weight_decay, maximize=maximize),
-            transform._trace(  # pylint: disable=protected-access
-                momentum=momentum,
-                dampening=dampening,
-                nesterov=nesterov,
+            _flip_sign_and_weight_decay(weight_decay=0.0, maximize=maximize),
+            adam_scaler(
+                b1=b1,
+                b2=b2,
+                eps=eps,
+                eps_root=eps_root,
                 moment_requires_grad=moment_requires_grad,
+                already_flattened=True,
+            ),
+            transform._add_decayed_weights(  # pylint: disable=protected-access
+                weight_decay=weight_decay,
+                mask=mask,
                 already_flattened=True,
             ),
             _scale_by_neg_lr(lr),
@@ -314,7 +346,7 @@ def rmsprop(
             Smoothing constant, the decay used to track the magnitude of previous gradients.
         eps: (default: :const:`1e-8`)
             A small numerical constant to avoid dividing by zero when rescaling.
-        weight_decay: (default: :const:`0.0`):
+        weight_decay: (default: :const:`0.0`)
             Weight decay, add L2 penalty to parameters.
         momentum: (default: :const:`0.0`)
             The decay rate used by the momentum term. The momentum is not used when it is set to
@@ -371,93 +403,64 @@ def rmsprop(
     )
 
 
-# pylint: disable-next=too-many-arguments
-def adamw(
-    lr: ScalarOrSchedule = 1e-3,
-    betas: Tuple[float, float] = (0.9, 0.999),
-    eps: float = 1e-8,
+def sgd(
+    lr: ScalarOrSchedule,
+    momentum: float = 0.0,
+    dampening: float = 0.0,
     weight_decay: float = 0.0,
+    nesterov: bool = False,
     *,
-    eps_root: float = 0.0,
-    mask: Optional[Union[Any, Callable[['base.Params'], Any]]] = None,
     moment_requires_grad: bool = False,
     maximize: bool = False,
-    use_accelerated_op: bool = False,
 ) -> base.GradientTransformation:
-    """Adam with weight decay regularization.
+    """The functional version of the canonical Stochastic Gradient Descent optimizer.
 
-    AdamW uses weight decay to regularize learning towards small weights, as
-    this leads to better generalization. In SGD you can also use L2 regularization
-    to implement this as an additive loss term, however L2 regularization
-    does not behave as intended for adaptive gradient algorithms such as Adam.
+    This implements stochastic gradient descent. It also includes support for momentum, and nesterov
+    acceleration, as these are standard practice when using stochastic gradient descent to train
+    deep neural networks.
 
     References:
-        - Loshchilov et al, 2019: https://arxiv.org/abs/1711.05101
+        - Sutskever et al, 2013: http://proceedings.mlr.press/v28/sutskever13.pdf
 
     Args:
-        lr: this is a fixed global scaling factor.
-        betas: (default: :const:`(0.9, 0.999)`)
-            Coefficients used for computing running averages of gradient and its square.
-        eps: (default: :const:`1e-8`)
-            A small constant applied to denominator outside of the square root (as in the Adam
-            paper) to avoid dividing by zero when rescaling.
-        weight_decay: (default: :const:`0.01`):
-            Strength of the weight decay regularization. Note that this
-            weight decay is multiplied with the learning rate. This is consistent
-            with other frameworks such as PyTorch, but different from
-            (Loshchilov et al, 2019) where the weight decay is only multiplied with
-            the "schedule multiplier", but not the base learning rate.
-        eps_root: (default: :data:`0.0`)
-            A small constant applied to denominator inside the square root (as in RMSProp), to avoid
-            dividing by zero when rescaling. This is needed for example when computing
-            (meta-)gradients through Adam.
+        lr: This is a fixed global scaling factor.
+        momentum: (default: :const:`0.0`)
+            The decay rate used by the momentum term. The momentum is not used when it is set to
+            :const:`0.0`.
+        weight_decay: (default: :const:`0.0`)
+            Weight decay, add L2 penalty to parameters.
+        dampening: (default: :const:`0.0`)
+            Dampening for momentum.
+        nesterov: (default: :data:`False`)
+            Whether to use Nesterov momentum.
         moment_requires_grad: (default: :data:`False`)
             If :data:`True` the momentums will be created with flag ``requires_grad=True``, this
-            flag is often used in Meta Learning algorithms.
-        use_accelerated_op: (default: :data:`False`)
-            If :data:`True` use our implemented fused operator.
-        mask: a tree with same structure as (or a prefix of) the params PyTree,
-            or a Callable that returns such a pytree given the params/updates.
-            The leaves should be booleans, `True` for leaves/subtrees you want to
-            apply the weight decay to, and `False` for those you want to skip. Note
-            that the Adam gradient transformations are applied to all parameters.
+            flag is often used in Meta-Learning algorithms.
+        maximize: (default: :data:`False`)
+            Maximize the params based on the objective, instead of minimizing.
 
     Returns:
-      the corresponding `GradientTransformation`.
+        A :class:`GradientTransformation` instance.
     """
-    b1, b2 = betas
     # pylint: disable=unneeded-not
     if not (callable(lr) or 0.0 <= lr):
         raise ValueError(f'Invalid learning rate: {lr}')
-    if not 0.0 <= eps:
-        raise ValueError(f'Invalid epsilon value: {eps}')
-    if not 0.0 <= b1 < 1.0:
-        raise ValueError(f'Invalid beta parameter at index 0: {b1}')
-    if not 0.0 <= b2 < 1.0:
-        raise ValueError(f'Invalid beta parameter at index 1: {b2}')
+    if not 0.0 <= momentum:
+        raise ValueError(f'Invalid momentum value: {momentum}')
     if not 0.0 <= weight_decay:
         raise ValueError(f'Invalid weight_decay value: {weight_decay}')
+    if nesterov and (momentum <= 0.0 or dampening != 0.0):
+        raise ValueError('Nesterov momentum requires a momentum and zero dampening')
     # pylint: enable=unneeded-not
-
-    if use_accelerated_op:
-        adam_scaler = transform._scale_by_accelerated_adam  # pylint: disable=protected-access
-    else:
-        adam_scaler = transform._scale_by_adam  # pylint: disable=protected-access
 
     return transform.with_flattened_tree(
         combine.chain(
-            _flip_sign_and_weight_decay(weight_decay=0.0, maximize=maximize),
-            adam_scaler(
-                b1=b1,
-                b2=b2,
-                eps=eps,
-                eps_root=eps_root,
+            _flip_sign_and_weight_decay(weight_decay=weight_decay, maximize=maximize),
+            transform._trace(  # pylint: disable=protected-access
+                momentum=momentum,
+                dampening=dampening,
+                nesterov=nesterov,
                 moment_requires_grad=moment_requires_grad,
-                already_flattened=True,
-            ),
-            transform._add_decayed_weights(  # pylint: disable=protected-access
-                weight_decay=weight_decay,
-                mask=mask,
                 already_flattened=True,
             ),
             _scale_by_neg_lr(lr),
