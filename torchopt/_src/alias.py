@@ -273,7 +273,7 @@ def adamw(
             If :data:`True` use our implemented fused operator.
 
     Returns:
-      the corresponding `GradientTransformation`.
+        The corresponding :class:`GradientTransformation` instance.
     """
     b1, b2 = betas
     # pylint: disable=unneeded-not
@@ -440,7 +440,7 @@ def sgd(
             Maximize the params based on the objective, instead of minimizing.
 
     Returns:
-        A :class:`GradientTransformation` instance.
+        The corresponding :class:`GradientTransformation` instance.
     """
     # pylint: disable=unneeded-not
     if not (callable(lr) or 0.0 <= lr):
