@@ -38,7 +38,7 @@ def clip_grad_norm(
         An ``(init_fn, update_fn)`` tuple.
     """
 
-    def init_fn(_):
+    def init_fn(params):  # pylint: disable=unused-argument
         return ClipState()
 
     def update_fn(updates, state, *, params=None, inplace=True):  # pylint: disable=unused-argument

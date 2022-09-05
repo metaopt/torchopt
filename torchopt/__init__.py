@@ -15,11 +15,18 @@
 """TorchOpt: a high-performance optimizer library built upon PyTorch."""
 
 from torchopt._src import accelerated_op_available, clip, combine, hook, schedule, visual
-from torchopt._src.alias import adam, rmsprop, sgd
+from torchopt._src.alias import adam, adamw, rmsprop, sgd
 from torchopt._src.clip import clip_grad_norm
 from torchopt._src.combine import chain
-from torchopt._src.optimizer import SGD, Adam, Optimizer, RMSProp, RMSprop, meta
-from torchopt._src.optimizer.meta import MetaAdam, MetaOptimizer, MetaRMSProp, MetaRMSprop, MetaSGD
+from torchopt._src.optimizer import SGD, Adam, AdamW, Optimizer, RMSProp, RMSprop, meta
+from torchopt._src.optimizer.meta import (
+    MetaAdam,
+    MetaAdamW,
+    MetaOptimizer,
+    MetaRMSProp,
+    MetaRMSprop,
+    MetaSGD,
+)
 from torchopt._src.update import apply_updates
 from torchopt._src.utils import extract_state_dict, recover_state_dict, stop_gradient
 from torchopt.version import __version__
@@ -33,6 +40,7 @@ __all__ = [
     'schedule',
     'visual',
     'adam',
+    'adamw',
     'rmsprop',
     'sgd',
     'clip_grad_norm',
@@ -40,11 +48,13 @@ __all__ = [
     'Optimizer',
     'SGD',
     'Adam',
+    'AdamW',
     'RMSProp',
     'RMSprop',
     'MetaOptimizer',
     'MetaSGD',
     'MetaAdam',
+    'MetaAdamW',
     'MetaRMSProp',
     'MetaRMSprop',
     'apply_updates',

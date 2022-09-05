@@ -43,12 +43,13 @@ class MetaSGD(MetaOptimizer):
         """The :meth:`init` function.
 
         Args:
-            net: A network whose parameters should be optimized.
+            net: (nn.Module)
+                A network whose parameters should be optimized.
             lr: This is a fixed global scaling factor.
             momentum: (default: :const:`0.0`)
                 The decay rate used by the momentum term. The momentum is not used when it is set to
                 :const:`0.0`.
-            weight_decay: (default: :const:`0.0`):
+            weight_decay: (default: :const:`0.0`)
                 Weight decay, add L2 penalty to parameters.
             dampening: (default: :const:`0.0`)
                 Dampening for momentum.

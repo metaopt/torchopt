@@ -13,41 +13,44 @@
 # limitations under the License.
 # ==============================================================================
 
-from typing import Iterable, Tuple
+from typing import Any, Callable, Optional, Tuple, Union
 
-import torch
+import torch.nn as nn
 
-from torchopt._src.alias import adam
-from torchopt._src.optimizer.base import Optimizer
+from torchopt._src import base  # pylint: disable=unused-import
+from torchopt._src.alias import adamw
+from torchopt._src.optimizer.meta.base import MetaOptimizer
 from torchopt._src.typing import ScalarOrSchedule
 
 
-class Adam(Optimizer):
-    """The classic Adam optimizer.
+class MetaAdamW(MetaOptimizer):
+    """The differentiable AdamW optimizer.
 
     See Also:
-        - The functional Adam optimizer: :func:`torchopt.adam`.
-        - The differentiable meta-Adam optimizer: :class:`torchopt.MetaAdam`.
+        - The functional AdamW optimizer: :func:`torchopt.adamw`.
+        - The classic AdamW optimizer: :class:`torchopt.AdamW`.
     """
 
     # pylint: disable-next=too-many-arguments
     def __init__(
         self,
-        params: Iterable[torch.Tensor],
-        lr: ScalarOrSchedule,
+        net: nn.Module,
+        lr: ScalarOrSchedule = 1e-3,
         betas: Tuple[float, float] = (0.9, 0.999),
         eps: float = 1e-8,
-        weight_decay: float = 0.0,
+        weight_decay: float = 1e-2,
         *,
         eps_root: float = 0.0,
+        mask: Optional[Union[Any, Callable[['base.Params'], Any]]] = None,
+        moment_requires_grad: bool = False,
         maximize: bool = False,
         use_accelerated_op: bool = False,
     ):
-        r"""The :meth:`init` function.
+        """The :meth:`init` function.
 
         Args:
-            params: (iterable of torch.Tensor)
-                An iterable of :class:`torch.Tensor`\s. Specifies what tensors should be optimized.
+            net: (nn.Module)
+                A network whose parameters should be optimized.
             lr: (default: :const:`1e-3`)
                 This is a fixed global scaling factor.
             betas: (default: :const:`(0.9, 0.999)`)
@@ -55,26 +58,39 @@ class Adam(Optimizer):
             eps: (default: :const:`1e-8`)
                 A small constant applied to denominator outside of the square root (as in the Adam
                 paper) to avoid dividing by zero when rescaling.
-            weight_decay: (default: :const:`0.0`)
-                Weight decay, add L2 penalty to parameters.
+            weight_decay: (default: :const:`1e-2`)
+                Strength of the weight decay regularization. Note that this weight decay is
+                multiplied with the learning rate. This is consistent with other frameworks such as
+                PyTorch, but different from (Loshchilov et al, 2019) where the weight decay is only
+                multiplied with the "schedule multiplier", but not the base learning rate.
             eps_root: (default: :data:`0.0`)
                 A small constant applied to denominator inside the square root (as in RMSProp), to
                 avoid dividing by zero when rescaling. This is needed for example when computing
                 (meta-)gradients through Adam.
+            mask: (default: :data:`None`)
+                A tree with same structure as (or a prefix of) the params PyTree, or a Callable that
+                returns such a pytree given the params/updates. The leaves should be booleans,
+                :data:`True` for leaves/subtrees you want to apply the weight decay to, and
+                :data:`False` for those you want to skip. Note that the Adam gradient
+                transformations are applied to all parameters.
+            moment_requires_grad: (default: :data:`False`)
+                If :data:`True` the momentums will be created with flag ``requires_grad=True``, this
+                flag is often used in Meta-Learning algorithms.
             maximize: (default: :data:`False`)
                 Maximize the params based on the objective, instead of minimizing.
             use_accelerated_op: (default: :data:`False`)
                 If :data:`True` use our implemented fused operator.
         """
         super().__init__(
-            params,
-            adam(
+            net,
+            adamw(
                 lr=lr,
                 betas=betas,
                 eps=eps,
                 weight_decay=weight_decay,
                 eps_root=eps_root,
-                moment_requires_grad=False,
+                mask=mask,
+                moment_requires_grad=moment_requires_grad,
                 maximize=maximize,
                 use_accelerated_op=use_accelerated_op,
             ),
