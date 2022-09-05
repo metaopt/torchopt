@@ -19,11 +19,11 @@ import inspect
 from typing import Any, Callable, Optional, Tuple, Union
 
 import functorch
-import optree
 import torch
 from torch.autograd import Function
 
 from torchopt._src import linear_solve
+from torchopt._src.utils import pytree
 
 
 def _root_vjp(
@@ -52,7 +52,7 @@ def _root_vjp(
     # The solution of A^T u = v, where
     # A = jacobian(optimality_fun, argnums=0)
     # v = -cotangent.
-    v = optree.tree_map(torch.neg, cotangent)
+    v = pytree.tree_map(torch.neg, cotangent)
     u = solve(matvec, v)
 
     # pylint: disable=too-few-public-methods
@@ -157,7 +157,7 @@ def _signature_bind_and_match(signature, *args, **kwargs):
 
 
 def _split_tensor_and_others(mixed_tuple):
-    flat_tuple, tree = optree.tree_flatten(mixed_tuple)
+    flat_tuple, tree = pytree.tree_flatten(mixed_tuple)
     tensor_tuple = []
     non_tensor_tuple = []
     tensor_mask = []

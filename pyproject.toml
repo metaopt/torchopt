@@ -45,11 +45,11 @@ classifiers = [
 ]
 dependencies = [
     "torch >= 1.12",
+    "functorch >= 0.2",
     "optree",
     "numpy",
     "graphviz",
     "typing-extensions",
-    "functorch",
 ]
 dynamic = ["version"]
 
@@ -74,11 +74,10 @@ lint = [
     "pre-commit",
 ]
 test = [
-    'functorch >= 0.2',
     'pytest',
     'pytest-cov',
     'pytest-xdist',
-    'jax[cpu]',
+    'jax[cpu] >= 0.3',
     'jaxopt',
     'optax',
 ]

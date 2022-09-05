@@ -1,6 +1,6 @@
 torch >= 1.12
+functorch >= 0.2
 optree
 numpy
 graphviz
 typing-extensions
-functorch

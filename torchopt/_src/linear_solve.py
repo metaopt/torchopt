@@ -35,14 +35,14 @@
 from typing import Any, Callable, Optional
 
 import functorch
-import optree
 
 from torchopt._src import linalg
+from torchopt._src.utils import pytree
 
 
 def tree_add_scalar_mul(tree_x, scalar, tree_y):
     """Compute tree_x + scalar * tree_y."""
-    return optree.tree_map(lambda x, y: x.add(y, alpha=scalar), tree_x, tree_y)
+    return pytree.tree_map(lambda x, y: x.add(y, alpha=scalar), tree_x, tree_y)
 
 
 def _make_ridge_matvec(matvec: Callable, ridge: float = 0.0):

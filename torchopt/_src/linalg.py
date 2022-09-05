@@ -35,8 +35,9 @@
 import math
 from functools import partial
 
-import optree
 import torch
+
+from torchopt._src.utils import pytree
 
 
 # aliases for working with pytrees
@@ -50,7 +51,7 @@ def _vdot_real_part(x, y):
 
 
 def _vdot_real_tree(x, y):
-    return optree.tree_map(_vdot_real_part, x, y)
+    return pytree.tree_map(_vdot_real_part, x, y)
 
 
 def _identity(x):
@@ -92,15 +93,15 @@ def _cg_solve(A, b, x0=None, *, maxiter, tol=1e-5, atol=0.0, M=_identity):
         x, r, gamma, p, k = value
         Ap = A(p)
         alpha = gamma / _safe_sum(_vdot_real_tree(p, Ap))
-        x_ = optree.tree_map(lambda a, b: a.add(b, alpha=alpha), x, p)
-        r_ = optree.tree_map(lambda a, b: a.sub(b, alpha=alpha), r, Ap)
+        x_ = pytree.tree_map(lambda a, b: a.add(b, alpha=alpha), x, p)
+        r_ = pytree.tree_map(lambda a, b: a.sub(b, alpha=alpha), r, Ap)
         z_ = M(r_)
         gamma_ = _safe_sum(_vdot_real_tree(r_, z_))
         beta_ = gamma_ / gamma
-        p_ = optree.tree_map(lambda a, b: a.add(b, alpha=beta_), z_, p)
+        p_ = pytree.tree_map(lambda a, b: a.add(b, alpha=beta_), z_, p)
         return x_, r_, gamma_, p_, k + 1
 
-    r0 = optree.tree_map(torch.sub, b, A(x0))
+    r0 = pytree.tree_map(torch.sub, b, A(x0))
     p0 = z0 = M(r0)
     gamma0 = _safe_sum(_vdot_real_tree(r0, z0))
     initial_value = (x0, r0, gamma0, p0, 0)
@@ -117,14 +118,14 @@ def _cg_solve(A, b, x0=None, *, maxiter, tol=1e-5, atol=0.0, M=_identity):
     return x_final
 
 
-def _shapes(pytree):
-    flatten_tree, _ = optree.tree_flatten(pytree)
-    return optree.tree_flatten([tuple(term.shape) for term in flatten_tree])[0]
+def _shapes(tree):
+    flatten_tree, _ = pytree.tree_flatten(tree)
+    return pytree.tree_flatten([tuple(term.shape) for term in flatten_tree])[0]
 
 
 def _isolve(_isolve_solve, A, b, x0=None, *, tol=1e-5, atol=0.0, maxiter=None, M=None):
     if x0 is None:
-        x0 = optree.tree_map(torch.zeros_like, b)
+        x0 = pytree.tree_map(torch.zeros_like, b)
 
     if maxiter is None:
         size = sum(_shapes(b))
