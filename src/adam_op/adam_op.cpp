@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-// ==============================================================================
+// =============================================================================
 
 #include "include/adam_op/adam_op.h"
 
@@ -19,21 +19,27 @@
 #include <pybind11/stl.h>
 
 #include "include/adam_op/adam_op_impl_cpu.h"
-#if defined(__CUDA_ENABLED__)
+#if defined(__USE_CUDA__)
 #include "include/adam_op/adam_op_impl_cuda.cuh"
 #endif
 
 namespace torchopt {
-TensorArray<3> adamForwardInplace(const torch::Tensor& updates,
-                                  const torch::Tensor& mu,
-                                  const torch::Tensor& nu, const pyfloat_t b1,
-                                  const pyfloat_t b2, const pyfloat_t eps,
+
+namespace py = pybind11;
+
+namespace adam_op {
+
+TensorArray<3> adamForwardInplace(const torch::Tensor &updates,
+                                  const torch::Tensor &mu,
+                                  const torch::Tensor &nu,
+                                  const pyfloat_t b1,
+                                  const pyfloat_t b2,
+                                  const pyfloat_t eps,
                                   const pyfloat_t eps_root,
                                   const pyuint_t count) {
-#if defined(__CUDA_ENABLED__)
+#if defined(__USE_CUDA__)
   if (updates.device().is_cuda()) {
-    return adamForwardInplaceCUDA(updates, mu, nu, b1, b2, eps, eps_root,
-                                  count);
+    return adamForwardInplaceCUDA(updates, mu, nu, b1, b2, eps, eps_root, count);
   }
 #endif
   if (updates.device().is_cpu()) {
@@ -42,9 +48,11 @@ TensorArray<3> adamForwardInplace(const torch::Tensor& updates,
     throw std::runtime_error("Not implemented");
   }
 }
-torch::Tensor adamForwardMu(const torch::Tensor& updates,
-                            const torch::Tensor& mu, const pyfloat_t b1) {
-#if defined(__CUDA_ENABLED__)
+
+torch::Tensor adamForwardMu(const torch::Tensor &updates,
+                            const torch::Tensor &mu,
+                            const pyfloat_t b1) {
+#if defined(__USE_CUDA__)
   if (updates.device().is_cuda()) {
     return adamForwardMuCUDA(updates, mu, b1);
   }
@@ -56,9 +64,10 @@ torch::Tensor adamForwardMu(const torch::Tensor& updates,
   }
 }
 
-torch::Tensor adamForwardNu(const torch::Tensor& updates,
-                            const torch::Tensor& nu, const pyfloat_t b2) {
-#if defined(__CUDA_ENABLED__)
+torch::Tensor adamForwardNu(const torch::Tensor &updates,
+                            const torch::Tensor &nu,
+                            const pyfloat_t b2) {
+#if defined(__USE_CUDA__)
   if (updates.device().is_cuda()) {
     return adamForwardNuCUDA(updates, nu, b2);
   }
@@ -70,12 +79,14 @@ torch::Tensor adamForwardNu(const torch::Tensor& updates,
   }
 }
 
-torch::Tensor adamForwardUpdates(const torch::Tensor& new_mu,
-                                 const torch::Tensor& new_nu,
-                                 const pyfloat_t b1, const pyfloat_t b2,
-                                 const pyfloat_t eps, const pyfloat_t eps_root,
+torch::Tensor adamForwardUpdates(const torch::Tensor &new_mu,
+                                 const torch::Tensor &new_nu,
+                                 const pyfloat_t b1,
+                                 const pyfloat_t b2,
+                                 const pyfloat_t eps,
+                                 const pyfloat_t eps_root,
                                  const pyuint_t count) {
-#if defined(__CUDA_ENABLED__)
+#if defined(__USE_CUDA__)
   if (new_mu.device().is_cuda()) {
     return adamForwardUpdatesCUDA(new_mu, new_nu, b1, b2, eps, eps_root, count);
   }
@@ -87,10 +98,11 @@ torch::Tensor adamForwardUpdates(const torch::Tensor& new_mu,
   }
 }
 
-TensorArray<2> adamBackwardMu(const torch::Tensor& dmu,
-                              const torch::Tensor& updates,
-                              const torch::Tensor& mu, const pyfloat_t b1) {
-#if defined(__CUDA_ENABLED__)
+TensorArray<2> adamBackwardMu(const torch::Tensor &dmu,
+                              const torch::Tensor &updates,
+                              const torch::Tensor &mu,
+                              const pyfloat_t b1) {
+#if defined(__USE_CUDA__)
   if (dmu.device().is_cuda()) {
     return adamBackwardMuCUDA(dmu, updates, mu, b1);
   }
@@ -102,10 +114,11 @@ TensorArray<2> adamBackwardMu(const torch::Tensor& dmu,
   }
 }
 
-TensorArray<2> adamBackwardNu(const torch::Tensor& dnu,
-                              const torch::Tensor& updates,
-                              const torch::Tensor& nu, const pyfloat_t b2) {
-#if defined(__CUDA_ENABLED__)
+TensorArray<2> adamBackwardNu(const torch::Tensor &dnu,
+                              const torch::Tensor &updates,
+                              const torch::Tensor &nu,
+                              const pyfloat_t b2) {
+#if defined(__USE_CUDA__)
   if (dnu.device().is_cuda()) {
     return adamBackwardNuCUDA(dnu, updates, nu, b2);
   }
@@ -117,33 +130,85 @@ TensorArray<2> adamBackwardNu(const torch::Tensor& dnu,
   }
 }
 
-TensorArray<2> adamBackwardUpdates(const torch::Tensor& dupdates,
-                                   const torch::Tensor& updates,
-                                   const torch::Tensor& new_mu,
-                                   const torch::Tensor& new_nu,
-                                   const pyfloat_t b1, const pyfloat_t b2,
+TensorArray<2> adamBackwardUpdates(const torch::Tensor &dupdates,
+                                   const torch::Tensor &updates,
+                                   const torch::Tensor &new_mu,
+                                   const torch::Tensor &new_nu,
+                                   const pyfloat_t b1,
+                                   const pyfloat_t b2,
                                    const pyuint_t count) {
-#if defined(__CUDA_ENABLED__)
+#if defined(__USE_CUDA__)
   if (dupdates.device().is_cuda()) {
-    return adamBackwardUpdatesCUDA(dupdates, updates, new_mu, new_nu, b1, b2,
-                                   count);
+    return adamBackwardUpdatesCUDA(dupdates, updates, new_mu, new_nu, b1, b2, count);
   }
 #endif
   if (dupdates.device().is_cpu()) {
-    return adamBackwardUpdatesCPU(dupdates, updates, new_mu, new_nu, b1, b2,
-                                  count);
+    return adamBackwardUpdatesCPU(dupdates, updates, new_mu, new_nu, b1, b2, count);
   } else {
     throw std::runtime_error("Not implemented");
   }
 }
-}  // namespace torchopt
 
-PYBIND11_MODULE(adam_op, m) {
-  m.def("forward_", &torchopt::adamForwardInplace);
-  m.def("forwardMu", &torchopt::adamForwardMu);
-  m.def("forwardNu", &torchopt::adamForwardNu);
-  m.def("forwardUpdates", &torchopt::adamForwardUpdates);
-  m.def("backwardMu", &torchopt::adamBackwardMu);
-  m.def("backwardNu", &torchopt::adamBackwardNu);
-  m.def("backwardUpdates", &torchopt::adamBackwardUpdates);
+void buildSubmodule(py::module &mod) {  // NOLINT
+  py::module m = mod.def_submodule("adam_op", "Adam Ops");
+  m.def("forward_",
+        &adamForwardInplace,
+        "Adam forward inplace",
+        py::arg("updates"),
+        py::arg("mu"),
+        py::arg("nu"),
+        py::arg("b1"),
+        py::arg("b2"),
+        py::arg("eps"),
+        py::arg("eps_root"),
+        py::arg("count"));
+  m.def("forwardMu",
+        &adamForwardMu,
+        "Adam forward mu",
+        py::arg("updates"),
+        py::arg("mu"),
+        py::arg("b1"));
+  m.def("forwardNu",
+        &adamForwardNu,
+        "Adam forward nu",
+        py::arg("updates"),
+        py::arg("nu"),
+        py::arg("b2"));
+  m.def("forwardUpdates",
+        &adamForwardUpdates,
+        "Adam forward updates",
+        py::arg("new_mu"),
+        py::arg("new_nu"),
+        py::arg("b1"),
+        py::arg("b2"),
+        py::arg("eps"),
+        py::arg("eps_root"),
+        py::arg("count"));
+  m.def("backwardMu",
+        &adamBackwardMu,
+        "Adam backward mu",
+        py::arg("dmu"),
+        py::arg("updates"),
+        py::arg("mu"),
+        py::arg("b1"));
+  m.def("backwardNu",
+        &adamBackwardNu,
+        "Adam backward nu",
+        py::arg("dnu"),
+        py::arg("updates"),
+        py::arg("nu"),
+        py::arg("b1"));
+  m.def("backwardUpdates",
+        &adamBackwardUpdates,
+        "Adam backward updates",
+        py::arg("dupdates"),
+        py::arg("updates"),
+        py::arg("new_mu"),
+        py::arg("new_nu"),
+        py::arg("b1"),
+        py::arg("b2"),
+        py::arg("count"));
 }
+
+}  // namespace adam_op
+}  // namespace torchopt

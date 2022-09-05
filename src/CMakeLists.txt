@@ -13,4 +13,20 @@
 # limitations under the License.
 # ==============================================================================
 
-add_subdirectory(adam_op)
+set(torchopt_csrc extension.cpp)
+
+set(adam_op_src adam_op/adam_op.cpp adam_op/adam_op_impl_cpu.cpp)
+
+if(CUDA_FOUND)
+    list(APPEND adam_op_src adam_op/adam_op_impl_cuda.cu)
+endif()
+
+list(APPEND torchopt_csrc "${adam_op_src}")
+
+pybind11_add_module(_C THIN_LTO "${torchopt_csrc}")
+
+target_link_libraries(
+    _C PRIVATE
+    ${TORCH_LIBRARIES}
+    OpenMP::OpenMP_CXX
+)
