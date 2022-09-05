@@ -852,6 +852,9 @@ def _add_decayed_weights(
     if not 0.0 <= weight_decay:  # pylint: disable=unneeded-not
         raise ValueError(f'Invalid weight_decay value: {weight_decay}')
 
+    if weight_decay == 0.0 and mask is None:
+        return base.identity()
+
     if already_flattened:
         tree_map = map_flattened
     else:
