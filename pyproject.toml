@@ -98,7 +98,7 @@ include = ["torchopt", "torchopt.*"]
 [tool.cibuildwheel]
 archs = ["auto64"]
 build = "*manylinux*"
-skip = "pp*"
+skip = "pp* *musllinux*"
 build-frontend = "pip"
 build-verbosity = 3
 environment.USE_FP16 = "ON"
