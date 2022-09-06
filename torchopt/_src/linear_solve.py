@@ -37,12 +37,13 @@ from typing import Callable, Optional
 import functorch
 
 from torchopt._src import linalg
-from torchopt._src.typing import Numeric, TensorTree
+from torchopt._src.typing import Scalar, TensorTree
 from torchopt._src.utils import pytree
 
 
-def tree_add(tree_x: TensorTree, tree_y: TensorTree, alpha: Numeric = 1.0) -> TensorTree:
+def tree_add(tree_x: TensorTree, tree_y: TensorTree, alpha: Scalar = 1.0) -> TensorTree:
     """Compute tree_x + alpha * tree_y."""
+
     return pytree.tree_map(lambda x, y: x.add(y, alpha=alpha), tree_x, tree_y)
 
 

@@ -303,8 +303,6 @@ def _custom_root(
                         true_vjps.append(vjp)
                 return tuple(true_vjps)
 
-            vjp = backward  # vjp and backward are alias of each other
-
         return ImplicitMetaGradient
 
     def wrapped_solver_fun(*args, **kwargs):
