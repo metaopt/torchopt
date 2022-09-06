@@ -34,6 +34,14 @@ MODEL_NUM_CLASSES = 10
 MODEL_HIDDEN_SIZE = 64
 
 
+def dtype_numpy2torch(dtype: np.dtype) -> torch.dtype:
+    return torch.tensor(np.zeros(1, dtype=dtype)).dtype
+
+
+def dtype_torch2numpy(dtype: torch.dtype) -> np.dtype:
+    return torch.zeros(1, dtype=dtype).numpy().dtype
+
+
 def parametrize(**argvalues) -> pytest.mark.parametrize:
     arguments = list(argvalues)
 
@@ -80,34 +88,29 @@ def get_models(
             in_features=MODEL_NUM_INPUTS,
             out_features=MODEL_HIDDEN_SIZE,
             bias=True,
-            dtype=dtype,
         ),
         nn.BatchNorm1d(
             num_features=MODEL_HIDDEN_SIZE,
             track_running_stats=True,
-            dtype=dtype,
         ),
         nn.ReLU(),
         nn.Linear(
             in_features=MODEL_HIDDEN_SIZE,
             out_features=MODEL_HIDDEN_SIZE,
             bias=True,
-            dtype=dtype,
         ),
         nn.BatchNorm1d(
             num_features=MODEL_HIDDEN_SIZE,
             track_running_stats=True,
-            dtype=dtype,
         ),
         nn.ReLU(),
         nn.Linear(
             in_features=MODEL_HIDDEN_SIZE,
             out_features=MODEL_NUM_CLASSES,
             bias=True,
-            dtype=dtype,
         ),
         nn.Softmax(dim=-1),
-    )
+    ).to(dtype=dtype)
     for name, param in model_base.named_parameters(recurse=True):
         if name.endswith('weight') and param.ndim >= 2:
             nn.init.orthogonal_(param)

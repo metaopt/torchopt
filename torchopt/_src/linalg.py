@@ -163,7 +163,7 @@ def _isolve(
             'arrays in x0 and b must have matching shapes: ' f'{_shapes(x0)} vs {_shapes(b)}'
         )
 
-    isolve_solve = partial(_isolve_solve, x0=x0, tol=rtol, atol=atol, maxiter=maxiter, M=M)
+    isolve_solve = partial(_isolve_solve, x0=x0, rtol=rtol, atol=atol, maxiter=maxiter, M=M)
 
     x = isolve_solve(A, b)
     return x
