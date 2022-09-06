@@ -13,10 +13,11 @@
 # limitations under the License.
 # ==============================================================================
 
-# pylint: disable=invalid-name,too-many-locals,too-many-statements,too-many-arguments
+# pylint: disable=invalid-name
 
+import functools
 import inspect
-from typing import Any, Callable, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Optional, Sequence, Tuple, Union
 
 import functorch
 import torch
@@ -26,22 +27,23 @@ from torchopt._src import linear_solve
 from torchopt._src.utils import pytree
 
 
+# pylint: disable-next=too-many-arguments,too-many-locals
 def _root_vjp(
     optimality_fun: Callable,
     sol: Any,
-    args: Tuple,
+    args: Tuple[Any, ...],
     cotangent: Any,
-    res_is_tensor,
-    argnums: Tuple,
+    res_is_tensor: bool,
+    argnums: Tuple[int, ...],
     solve: Callable = linear_solve.solve_normal_cg,
-) -> Any:
+) -> Tuple:
     def fun_sol(sol):
         # We close over the arguments.
         if res_is_tensor:
             return optimality_fun(sol[0], *args)
         return optimality_fun(sol, *args)
 
-    _, vjp_fun_sol = functorch.vjp(fun_sol, sol)  # pylint: disable=unbalanced-tuple-unpacking
+    _, vjp_fun_sol, *_ = functorch.vjp(fun_sol, sol)
 
     # Compute the multiplication A^T u = (u^T A)^T.
     def matvec(u):
@@ -55,23 +57,20 @@ def _root_vjp(
     v = pytree.tree_map(torch.neg, cotangent)
     u = solve(matvec, v)
 
-    # pylint: disable=too-few-public-methods
-    class _MaskArgs:
-        def __init__(self, argnums, *args) -> None:
+    class MaskArgs:  # pylint: disable=missing-class-docstring,too-few-public-methods
+        def __init__(self, argnums: Tuple[int, ...], *args) -> None:
             self.argnums = argnums
-            pre_filled = []
-            post_filled = []
+
+            self.pre_filled = []
+            self.post_filled = []
             for idx, arg in enumerate(args):
                 if idx + 1 in argnums:  # plus 1 because we exclude the first argument
-                    post_filled.append(arg)
+                    self.post_filled.append(arg)
                 else:
-                    pre_filled.append(arg)
-            self.pre_filled = pre_filled
-            self.post_filled = post_filled
+                    self.pre_filled.append(arg)
             self.len_args = len(self.pre_filled) + len(self.post_filled)
 
         def __call__(self, *args) -> Any:
-            args = list(args)
             true_args = []
             pre_filled_counter = 0
             for idx in range(self.len_args):
@@ -85,14 +84,9 @@ def _root_vjp(
                 return optimality_fun(sol[0], *true_args)
             return optimality_fun(sol, *true_args)
 
-    # def fun_args(*args):
-    #     # We close over the solution.
-    #     return optimality_fun(sol, *args)
+    fun_args = MaskArgs(argnums, *args)
 
-    fun_args = _MaskArgs(argnums, *args)
-
-    # pylint: disable=unbalanced-tuple-unpacking
-    _, vjp_fun_args = functorch.vjp(fun_args, *fun_args.post_filled)
+    _, vjp_fun_args, *_ = functorch.vjp(fun_args, *fun_args.post_filled)
 
     if res_is_tensor:
         result = vjp_fun_args(u[0])
@@ -109,39 +103,39 @@ def _root_vjp(
     return tuple(true_result)
 
 
-def _extract_kwargs(kwarg_keys, flat_args):
-    n = len(flat_args) - len(kwarg_keys)
-    args, kwarg_vals = flat_args[:n], flat_args[n:]
+def _extract_kwargs(
+    kwarg_keys: Sequence[Any], flat_args: Sequence[Any]
+) -> Tuple[Tuple[Any, ...], Dict[Any, Any]]:
+    nargs = len(flat_args) - len(kwarg_keys)
+    args, kwarg_vals = flat_args[:nargs], flat_args[nargs:]
     kwargs = dict(zip(kwarg_keys, kwarg_vals))
     return args, kwargs
 
 
 def _signature_bind(signature, *args, **kwargs):
-    ba = signature.bind(*args, **kwargs)
-    ba.apply_defaults()
-    return ba.args, ba.kwargs
+    bound = signature.bind(*args, **kwargs)
+    bound.apply_defaults()
+    return bound.args, bound.kwargs
 
 
-def _signature_bind_and_match(signature, *args, **kwargs):
-    # We want to bind *args and **kwargs based on the provided
-    # signature, but also to associate the resulting positional
-    # arguments back. To achieve this, we lift arguments to a triple:
+def _signature_bind_and_match(signature, *args, **kwargs) -> Tuple[Tuple, Dict, Callable]:
+    # We want to bind *args and **kwargs based on the provided signature, but also to associate the
+    # resulting positional arguments back. To achieve this, we lift arguments to a triple:
     #
     #   (was_kwarg, ref, value)
     #
-    # where ref is an index position (int) if the original argument was
-    # from *args and a dictionary key if the original argument was from
-    # **kwargs. After binding to the inspected signature, we use the
-    # tags to associate the resolved positional arguments back to their
-    # arg and kwarg source.
+    # where ref is an index position (int) if the original argument was from *args and a dictionary
+    # key if the original argument was from **kwargs. After binding to the inspected signature, we
+    # use the tags to associate the resolved positional arguments back to their arg and kwarg
+    # source.
 
     args = [(False, i, v) for i, v in enumerate(args)]
     kwargs = {k: (True, k, v) for (k, v) in kwargs.items()}
-    ba = signature.bind(*args, **kwargs)
+    bound = signature.bind(*args, **kwargs)
 
-    mapping = [(was_kwarg, ref) for was_kwarg, ref, _ in ba.args]
+    mapping = [(was_kwarg, ref) for was_kwarg, ref, _ in bound.args]
 
-    def map_back(out_args):
+    def map_args_back(out_args):
         src_args = [None] * len(args)
         src_kwargs = {}
         for (was_kwarg, ref), out_arg in zip(mapping, out_args):
@@ -151,42 +145,54 @@ def _signature_bind_and_match(signature, *args, **kwargs):
                 src_args[ref] = out_arg
         return src_args, src_kwargs
 
-    out_args = tuple(v for _, _, v in ba.args)
-    out_kwargs = {k: v for k, (_, _, v) in ba.kwargs.items()}
-    return out_args, out_kwargs, map_back
+    out_args = tuple(v for _, _, v in bound.args)
+    out_kwargs = {k: v for k, (_, _, v) in bound.kwargs.items()}
+    return out_args, out_kwargs, map_args_back
 
 
 def _split_tensor_and_others(mixed_tuple):
-    flat_tuple, tree = pytree.tree_flatten(mixed_tuple)
-    tensor_tuple = []
-    non_tensor_tuple = []
-    tensor_mask = []
-    for item in flat_tuple:
+    flattened, treedef = pytree.tree_flatten(mixed_tuple)
+    tensors = []
+    non_tensors = []
+    is_tensor_mask = []
+    for item in flattened:
         if isinstance(item, torch.Tensor):
-            tensor_tuple.append(item)
-            tensor_mask.append(True)
+            tensors.append(item)
+            is_tensor_mask.append(True)
         else:
-            non_tensor_tuple.append(item)
-            tensor_mask.append(False)
-    return tree, tuple(tensor_mask), tuple(tensor_tuple), tuple(non_tensor_tuple)
+            non_tensors.append(item)
+            is_tensor_mask.append(False)
+    return treedef, tuple(is_tensor_mask), tuple(tensors), tuple(non_tensors)
 
 
-def _merge_tensor_and_others(tree, tensor_mask, tensor_tuple, non_tensor_tuple):
+def _merge_tensor_and_others(
+    treedef: pytree.PyTreeDef,
+    is_tensor_mask: Tuple[bool, ...],
+    tensors: Tuple[torch.Tensor, ...],
+    non_tensors: Tuple[Any, ...],
+):
     tensor_counter = 0
     non_tensor_counter = 0
-    result_tuple = []
-    for is_tensor in tensor_mask:
+    results = []
+    for is_tensor in is_tensor_mask:
         if is_tensor:
-            result_tuple.append(tensor_tuple[tensor_counter])
+            results.append(tensors[tensor_counter])
             tensor_counter += 1
         else:
-            result_tuple.append(non_tensor_tuple[non_tensor_counter])
+            results.append(non_tensors[non_tensor_counter])
             non_tensor_counter += 1
-    result_tuple = tuple(result_tuple)
-    return tree.unflatten(result_tuple)
+    return pytree.tree_unflatten(treedef, results)
 
 
-def _custom_root(solver_fun, optimality_fun, solve, argnums, has_aux, reference_signature=None):
+# pylint: disable-next=too-many-arguments,too-many-statements
+def _custom_root(
+    solver_fun: Callable,
+    optimality_fun: Callable,
+    solve: Callable,
+    argnums: Tuple[int, ...],
+    has_aux: bool,
+    reference_signature: Optional[inspect.Signature] = None,
+) -> Callable:
     solver_fun_signature = inspect.signature(solver_fun)
 
     if reference_signature is None:
@@ -198,12 +204,11 @@ def _custom_root(solver_fun, optimality_fun, solve, argnums, has_aux, reference_
         fun = getattr(reference_signature, 'subfun', reference_signature)
         reference_signature = inspect.signature(fun)
 
-    # pylint: disable=missing-class-docstring
     def make_custom_vjp_solver_fun(solver_fun, kwarg_keys, args_sign):
-        # pylint: disable=abstract-method,arguments-differ
-        class Implicitmetagradient(Function):
+        # pylint: disable-next=missing-class-docstring,abstract-method
+        class ImplicitMetaGradient(Function):
             @staticmethod
-            def forward(ctx, *flat_args):
+            def forward(ctx, *flat_args):  # pylint: disable=arguments-differ
                 args = []
                 for idx, (start_point, is_tuple) in enumerate(args_sign):
                     if is_tuple:
@@ -215,53 +220,52 @@ def _custom_root(solver_fun, optimality_fun, solve, argnums, has_aux, reference_
                 args, kwargs = _extract_kwargs(kwarg_keys, args)
                 res = solver_fun(*args, **kwargs)
                 (
-                    args_tree,
-                    args_tensor_mask,
-                    args_tensor,
-                    args_non_tensor,
+                    args_treedef,
+                    args_is_tensor_mask,
+                    args_tensors,
+                    args_non_tensors,
                 ) = _split_tensor_and_others(args)
-                ctx.args_tree = args_tree
-                ctx.args_tensor_mask = args_tensor_mask
-                ctx.args_non_tensor = args_non_tensor
+                ctx.args_treedef = args_treedef
+                ctx.args_is_tensor_mask = args_is_tensor_mask
+                ctx.args_non_tensors = args_non_tensors
                 if has_aux:
                     aux = res[1]
                     res = res[0]
                     if isinstance(res, torch.Tensor):
-                        ctx.save_for_backward(res, *args_tensor)
+                        ctx.save_for_backward(res, *args_tensors)
                     else:
-                        ctx.save_for_backward(*res, *args_tensor)
+                        ctx.save_for_backward(*res, *args_tensors)
                     ctx.res_is_tensor = isinstance(res, torch.Tensor)
                     return res + (aux,)
 
                 if isinstance(res, torch.Tensor):
-                    ctx.save_for_backward(res, *args_tensor)
+                    ctx.save_for_backward(res, *args_tensors)
                 else:
-                    ctx.save_for_backward(*res, *args_tensor)
+                    ctx.save_for_backward(*res, *args_tensors)
                 ctx.res_is_tensor = isinstance(res, torch.Tensor)
                 return res
 
-            # pylint: disable=too-many-locals
             @staticmethod
-            def backward(ctx, *cotangent):
+            def backward(ctx, *cotangent):  # pylint: disable=too-many-locals
                 if has_aux:
                     cotangent = cotangent[:-1]
 
                 saved_tensors = ctx.saved_tensors
-                res, args_tensor = saved_tensors[: len(cotangent)], saved_tensors[len(cotangent) :]
-                args_tree = ctx.args_tree
-                args_tensor_mask = ctx.args_tensor_mask
-                args_non_tensor = ctx.args_non_tensor
+                res, args_tensors = saved_tensors[: len(cotangent)], saved_tensors[len(cotangent) :]
+                args_treedef = ctx.args_treedef
+                args_is_tensor_mask = ctx.args_is_tensor_mask
+                args_non_tensors = ctx.args_non_tensors
                 args = _merge_tensor_and_others(
-                    args_tree, args_tensor_mask, args_tensor, args_non_tensor
+                    args_treedef, args_is_tensor_mask, args_tensors, args_non_tensors
                 )
 
                 args, kwargs = _extract_kwargs(kwarg_keys, args)
 
                 sol = res
-                ba_args, ba_kwargs, map_back = _signature_bind_and_match(
+                bound_args, bound_kwargs, map_args_back = _signature_bind_and_match(
                     reference_signature, *args, **kwargs
                 )
-                if ba_kwargs:
+                if bound_kwargs:
                     raise TypeError(
                         'keyword arguments to solver_fun could not be resolved to '
                         'positional arguments based on the signature '
@@ -275,7 +279,7 @@ def _custom_root(solver_fun, optimality_fun, solve, argnums, has_aux, reference_
                 vjps = _root_vjp(
                     optimality_fun=optimality_fun,
                     sol=sol,
-                    args=ba_args[1:],
+                    args=bound_args[1:],
                     cotangent=cotangent,
                     res_is_tensor=ctx.res_is_tensor,
                     argnums=argnums,
@@ -283,8 +287,8 @@ def _custom_root(solver_fun, optimality_fun, solve, argnums, has_aux, reference_
                 )
                 # Prepend None as the vjp for init_params.
 
-                arg_vjps, kws_vjps = map_back(vjps)
-                ordered_vjps = tuple(arg_vjps) + tuple(kws_vjps[k] for k in kwargs.keys())
+                arg_vjps, kwargs_vjps = map_args_back(vjps)
+                ordered_vjps = tuple(arg_vjps) + tuple(kwargs_vjps[k] for k in kwargs.keys())
                 true_vjps = []
                 for (_, is_tuple), vjp in zip(args_sign, ordered_vjps):
                     if is_tuple:
@@ -294,7 +298,9 @@ def _custom_root(solver_fun, optimality_fun, solve, argnums, has_aux, reference_
                         true_vjps.append(vjp)
                 return tuple(true_vjps)
 
-        return Implicitmetagradient
+            vjp = backward  # vjp and backward are alias of each other
+
+        return ImplicitMetaGradient
 
     def wrapped_solver_fun(*args, **kwargs):
         args, kwargs = _signature_bind(solver_fun_signature, *args, **kwargs)
@@ -334,33 +340,33 @@ def _custom_root(solver_fun, optimality_fun, solve, argnums, has_aux, reference_
 
 def custom_root(
     optimality_fun: Callable,
-    argnums: Union[tuple, int] = 0,
+    argnums: Union[int, Tuple[int, ...]] = 0,
     has_aux: bool = False,
-    solve: Optional[Callable] = None,
-    reference_signature: Optional[Callable] = None,
+    solve: Callable = linear_solve.solve_normal_cg,
+    reference_signature: Optional[inspect.Signature] = None,
 ):
     """Decorator for adding implicit differentiation to a root solver.
 
     Args:
-      optimality_fun: an equation function, ``optimality_fun(params, *args)``.
-        The invariant is ``optimality_fun(sol, *args) == 0`` at the
-        solution / root ``sol``.
-      argnums: specifies arguments to compute gradients with respect to.
-      has_aux: whether the decorated solver function returns auxiliary data.
-      solve: a linear solver of the form ``solve(matvec, b)``.
-      reference_signature: optional function signature
-        (i.e. arguments and keyword arguments), with which the
-        solver and optimality functions are expected to agree. Defaults
-        to ``optimality_fun``. It is required that solver and optimality
-        functions share the same input signature, but both might be
-        defined in such a way that the signature correspondence is
-        ambiguous (e.g. if both accept catch-all ``**kwargs``). To
-        satisfy custom_root's requirement, any function with an
-        unambiguous signature can be provided here.
+        optimality_fun: (callable)
+            An equation function, ``optimality_fun(params, *args)``. The invariant is
+            ``optimality_fun(sol, *args) == 0`` at the solution / root of ``sol``.
+        argnums: (int or tuple of int, default: :const:`0`)
+            Specifies arguments to compute gradients with respect to.
+        has_aux: (default: :data:`False`)
+            Whether the decorated solver function returns auxiliary data.
+        solve: (callable, optional, default: :func:`linear_solve.solve_normal_cg`)
+            a linear solver of the form ``solve(matvec, b)``.
+        reference_signature: (function signature, optional)
+            Function signature (i.e. arguments and keyword arguments), with which the solver and
+            optimality functions are expected to agree. Defaults to ``optimality_fun``. It is
+            required that solver and optimality functions share the same input signature, but both
+            might be defined in such a way that the signature correspondence is ambiguous (e.g. if
+            both accept catch-all ``**kwargs``). To satisfy ``custom_root``'s requirement, any
+            function with an unambiguous signature can be provided here.
 
     Returns:
-      A solver function decorator, i.e.,
-      ``custom_root(optimality_fun)(solver_fun)``.
+        A solver function decorator, i.e., ``custom_root(optimality_fun)(solver_fun)``.
     """
     if isinstance(argnums, int):
         assert argnums != 0
@@ -368,12 +374,11 @@ def custom_root(
     else:
         assert 0 not in argnums
 
-    if solve is None:
-        solve = linear_solve.solve_normal_cg
-
-    def wrapper(solver_fun):
-        return _custom_root(
-            solver_fun, optimality_fun, solve, argnums, has_aux, reference_signature
-        )
-
-    return wrapper
+    return functools.partial(
+        _custom_root,
+        optimality_fun=optimality_fun,
+        solve=solve,
+        argnums=argnums,
+        has_aux=has_aux,
+        reference_signature=reference_signature,
+    )

@@ -40,7 +40,7 @@ import torch
 from torchopt._src.utils import pytree
 
 
-# aliases for working with pytrees
+# Aliases for working with pytrees
 def _vdot_real_part(x, y):
     x = x.view(-1)
     y = y.view(-1)
@@ -62,6 +62,7 @@ def _normalize_matvec(f):
     """Normalize an argument for computing matrix-vector products."""
     if callable(f):
         return f
+
     assert isinstance(f, torch.Tensor)
     if f.ndim != 2 or f.shape[0] != f.shape[1]:
         raise ValueError(f'linear operator must be a square matrix, but has shape: {f.shape}')
@@ -74,11 +75,11 @@ def _safe_sum(obj):
     return obj
 
 
-# pylint: disable=too-many-locals
-def _cg_solve(A, b, x0=None, *, maxiter, tol=1e-5, atol=0.0, M=_identity):
-    # tolerance handling uses the "non-legacy" behavior of scipy.sparse.linalg.cg
+# pylint: disable-next=too-many-locals
+def _cg_solve(A, b, x0=None, *, maxiter, rtol=1e-5, atol=0.0, M=_identity):
+    # tolerance handling uses the "non-legacy" behavior of `scipy.sparse.linalg.cg`
     bs = _safe_sum(_vdot_real_tree(b, b))
-    atol2 = max(tol**2 * bs, atol**2)
+    atol2 = max(rtol**2 * bs, atol**2)
 
     # https://en.wikipedia.org/wiki/Conjugate_gradient_method#The_preconditioned_conjugate_gradient_method
 
@@ -119,11 +120,11 @@ def _cg_solve(A, b, x0=None, *, maxiter, tol=1e-5, atol=0.0, M=_identity):
 
 
 def _shapes(tree):
-    flatten_tree, _ = pytree.tree_flatten(tree)
-    return pytree.tree_flatten([tuple(term.shape) for term in flatten_tree])[0]
+    flattened_tree = pytree.tree_leaves(tree)
+    return pytree.tree_leaves([tuple(term.shape) for term in flattened_tree])
 
 
-def _isolve(_isolve_solve, A, b, x0=None, *, tol=1e-5, atol=0.0, maxiter=None, M=None):
+def _isolve(_isolve_solve, A, b, x0=None, *, rtol=1e-5, atol=0.0, maxiter=None, M=None):
     if x0 is None:
         x0 = pytree.tree_map(torch.zeros_like, b)
 
@@ -141,59 +142,57 @@ def _isolve(_isolve_solve, A, b, x0=None, *, tol=1e-5, atol=0.0, maxiter=None, M
             'arrays in x0 and b must have matching shapes: ' f'{_shapes(x0)} vs {_shapes(b)}'
         )
 
-    isolve_solve = partial(_isolve_solve, x0=x0, tol=tol, atol=atol, maxiter=maxiter, M=M)
+    isolve_solve = partial(_isolve_solve, x0=x0, tol=rtol, atol=atol, maxiter=maxiter, M=M)
 
     x = isolve_solve(A, b)
     info = None
     return x, info
 
 
-def cg(A, b, x0=None, *, tol=1e-5, atol=0.0, maxiter=None, M=None):
+def cg(A, b, x0=None, *, rtol=1e-5, atol=0.0, maxiter=None, M=None):
     """Use Conjugate Gradient iteration to solve ``Ax = b``.
 
-    The numerics of JAX's ``cg`` should exact match SciPy's ``cg`` (up to
-    numerical precision), but note that the interface is slightly different: you
-    need to supply the linear operator ``A`` as a function instead of a sparse
-    matrix or ``LinearOperator``.
+    The numerics of JAX's ``cg`` should exact match SciPy's ``cg`` (up to numerical precision), but
+    note that the interface is slightly different: you need to supply the linear operator ``A`` as a
+    function instead of a sparse matrix or ``LinearOperator``.
 
-    Derivatives of ``cg`` are implemented via implicit differentiation with
-    another ``cg`` solve, rather than by differentiating *through* the solver.
-    They will be accurate only if both solves converge.
+    Derivatives of :func:`cg` are implemented via implicit differentiation with another :func:`cg`
+    solve, rather than by differentiating *through* the solver. They will be accurate only if both
+    solves converge.
 
     Args:
-        A: ndarray or function
+        A: (ndarray or function)
             2D array or function that calculates the linear map (matrix-vector
             product) ``Ax`` when called like ``A(x)``. ``A`` must represent a
             hermitian, positive definite matrix, and must return array(s) with the
             same structure and shape as its argument.
-        b: array or tree of arrays
+        b: (array or tree of arrays)
             Right hand side of the linear system representing a single vector. Can be
             stored as an array or Python container of array(s) with any shape.
             x: array or tree of arrays
             The converged solution. Has the same structure as ``b``.
         info: None
-            Placeholder for convergence information. In the future, JAX will report
-            the number of iterations when convergence is not achieved, like SciPy.
-        x0: array
+            Placeholder for convergence information. In the future, JAX will report the number of
+            iterations when convergence is not achieved, like SciPy.
+        x0: (array)
             Starting guess for the solution. Must have the same structure as ``b``.
-        tol: float, optional
-            Tolerances for convergence, ``norm(residual) <= max(tol*norm(b), atol)``.
-            We do not implement SciPy's "legacy" behavior, so JAX's tolerance will
-            differ from SciPy unless you explicitly pass ``atol`` to SciPy's ``cg``.
-        atol: float, optional
-            Tolerances for convergence, ``norm(residual) <= max(tol*norm(b), atol)``.
-            We do not implement SciPy's "legacy" behavior, so JAX's tolerance will
-            differ from SciPy unless you explicitly pass ``atol`` to SciPy's ``cg``.
-        maxiter: integer
-            Maximum number of iterations.  Iteration will stop after maxiter
-            steps even if the specified tolerance has not been achieved.
-        M: ndarray or function
-            Preconditioner for A.  The preconditioner should approximate the
-            inverse of A.  Effective preconditioning dramatically improves the
-            rate of convergence, which implies that fewer iterations are needed
-            to reach a given error tolerance.
+        rtol: (float, optional, default: :const:`1e-5`)
+            Tolerances for convergence, ``norm(residual) <= max(rtol*norm(b), atol)``. We do not
+            implement SciPy's "legacy" behavior, so JAX's tolerance will differ from SciPy unless
+            you explicitly pass ``atol`` to SciPy's ``cg``.
+        atol: (float, optional, default: :const:`0.0`)
+            Tolerances for convergence, ``norm(residual) <= max(tol*norm(b), atol)``. We do not
+            implement SciPy's "legacy" behavior, so JAX's tolerance will differ from SciPy unless
+            you explicitly pass ``atol`` to SciPy's ``cg``.
+        maxiter: (integer)
+            Maximum number of iterations. Iteration will stop after maxiter steps even if the
+            specified tolerance has not been achieved.
+        M: (ndarray or function)
+            Pre-conditioner for ``A``. The pre-conditioner should approximate the inverse of ``A``.
+            Effective preconditioning dramatically improves the rate of convergence, which implies
+            that fewer iterations are needed to reach a given error tolerance.
 
     Returns:
         the CG linear solver
     """
-    return _isolve(_cg_solve, A=A, b=b, x0=x0, tol=tol, atol=atol, maxiter=maxiter, M=M)
+    return _isolve(_cg_solve, A=A, b=b, x0=x0, rtol=rtol, atol=atol, maxiter=maxiter, M=M)
