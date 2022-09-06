@@ -32,62 +32,75 @@
 
 # pylint: disable=invalid-name
 
-from typing import Any, Callable, Optional
+from typing import Callable, Optional
 
 import functorch
 
 from torchopt._src import linalg
+from torchopt._src.typing import Numeric, TensorTree
 from torchopt._src.utils import pytree
 
 
-def tree_add_scalar_mul(tree_x, scalar, tree_y):
-    """Compute tree_x + scalar * tree_y."""
-    return pytree.tree_map(lambda x, y: x.add(y, alpha=scalar), tree_x, tree_y)
+def tree_add(tree_x: TensorTree, tree_y: TensorTree, alpha: Numeric = 1.0) -> TensorTree:
+    """Compute tree_x + alpha * tree_y."""
+    return pytree.tree_map(lambda x, y: x.add(y, alpha=alpha), tree_x, tree_y)
 
 
-def _make_ridge_matvec(matvec: Callable, ridge: float = 0.0):
-    def ridge_matvec(v: Any) -> Any:
-        return tree_add_scalar_mul(matvec(v), ridge, v)
+def _make_ridge_matvec(
+    matvec: Callable[[TensorTree], TensorTree], ridge: float = 0.0
+) -> Callable[[TensorTree], TensorTree]:
+    def ridge_matvec(v: TensorTree) -> TensorTree:
+        return tree_add(matvec(v), v, alpha=ridge)
 
     return ridge_matvec
 
 
 def solve_cg(
-    matvec: Callable, b: Any, ridge: Optional[float] = None, init: Optional[Any] = None, **kwargs
-) -> Any:
+    matvec: Callable[[TensorTree], TensorTree],
+    b: TensorTree,
+    ridge: Optional[float] = None,
+    init: Optional[TensorTree] = None,
+    **kwargs,
+) -> TensorTree:
     """Solves ``A x = b`` using conjugate gradient.
 
-    It assumes that ``A`` is  a Hermitian, positive definite matrix.
+    It assumes that ``A`` is a Hermitian, positive definite matrix.
 
     Args:
-      matvec: product between ``A`` and a vector.
-      b: pytree.
-      ridge: optional ridge regularization.
-      init: optional initialization to be used by conjugate gradient.
-      **kwargs: additional keyword arguments for solver.
+        matvec: a function that returns the product between ``A`` and a vector.
+        b: a tree of tensors.
+        ridge: optional ridge regularization.
+        init: optional initialization to be used by conjugate gradient.
+        **kwargs: additional keyword arguments for solver.
 
     Returns:
-      pytree with same structure as ``b``.
+        The solution with the same structure as ``b``.
     """
     if ridge is not None:
         matvec = _make_ridge_matvec(matvec, ridge=ridge)
     return linalg.cg(matvec, b, x0=init, **kwargs)[0]
 
 
-def _make_rmatvec(matvec, x):
-    _, vjp = functorch.vjp(matvec, x)  # pylint: disable=unbalanced-tuple-unpacking
+def _make_rmatvec(
+    matvec: Callable[[TensorTree], TensorTree], x: TensorTree
+) -> Callable[[TensorTree], TensorTree]:
+    _, vjp, *_ = functorch.vjp(matvec, x)
     return lambda y: vjp(y)[0]
 
 
-def _normal_matvec(matvec, x):
+def _normal_matvec(matvec: Callable[[TensorTree], TensorTree], x: TensorTree) -> TensorTree:
     """Computes A^T A x from matvec(x) = A x."""
-    matvec_x, vjp = functorch.vjp(matvec, x)  # pylint: disable=unbalanced-tuple-unpacking
+    matvec_x, vjp, *_ = functorch.vjp(matvec, x)
     return vjp(matvec_x)[0]
 
 
 def solve_normal_cg(
-    matvec: Callable, b: Any, ridge: Optional[float] = None, init: Optional[Any] = None, **kwargs
-) -> Any:
+    matvec: Callable[[TensorTree], TensorTree],
+    b: TensorTree,
+    ridge: Optional[float] = None,
+    init: Optional[TensorTree] = None,
+    **kwargs,
+) -> TensorTree:
     """Solves the normal equation ``A^T A x = A^T b`` using conjugate gradient.
 
     This can be used to solve Ax=b using conjugate gradient when A is not
@@ -101,7 +114,7 @@ def solve_normal_cg(
       **kwargs: additional keyword arguments for solver.
 
     Returns:
-      pytree with same structure as ``b``.
+        The solution with the same structure as ``b``.
     """
     if init is None:
         example_x = b  # This assumes that matvec is a square linear operator.
@@ -118,4 +131,4 @@ def solve_normal_cg(
 
     Ab = rmatvec(b)  # A.T b
 
-    return linalg.cg(normal_matvec, Ab, x0=init, **kwargs)[0]
+    return linalg.cg(normal_matvec, Ab, x0=init, **kwargs)
