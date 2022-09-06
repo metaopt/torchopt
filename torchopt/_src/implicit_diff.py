@@ -36,7 +36,7 @@ def _root_vjp(
     res_is_tensor: bool,
     argnums: Tuple[int, ...],
     solve: Callable = linear_solve.solve_normal_cg,
-) -> Tuple:
+) -> Tuple[Any, ...]:
     def fun_sol(sol):
         # We close over the arguments.
         if res_is_tensor:
@@ -112,13 +112,17 @@ def _extract_kwargs(
     return args, kwargs
 
 
-def _signature_bind(signature, *args, **kwargs):
+def _signature_bind(
+    signature: inspect.Signature, *args, **kwargs
+) -> Tuple[Tuple[Any, ...], Dict[Any, Any]]:
     bound = signature.bind(*args, **kwargs)
     bound.apply_defaults()
     return bound.args, bound.kwargs
 
 
-def _signature_bind_and_match(signature, *args, **kwargs) -> Tuple[Tuple, Dict, Callable]:
+def _signature_bind_and_match(
+    signature: inspect.Signature, *args, **kwargs
+) -> Tuple[Tuple, Dict, Callable]:
     # We want to bind *args and **kwargs based on the provided signature, but also to associate the
     # resulting positional arguments back. To achieve this, we lift arguments to a triple:
     #
@@ -150,7 +154,9 @@ def _signature_bind_and_match(signature, *args, **kwargs) -> Tuple[Tuple, Dict, 
     return out_args, out_kwargs, map_args_back
 
 
-def _split_tensor_and_others(mixed_tuple):
+def _split_tensor_and_others(
+    mixed_tuple: Tuple,
+) -> Tuple[pytree.PyTreeDef, Tuple[bool, ...], Tuple[torch.Tensor, ...], Tuple[Any, ...]]:
     flattened, treedef = pytree.tree_flatten(mixed_tuple)
     tensors = []
     non_tensors = []
@@ -170,7 +176,7 @@ def _merge_tensor_and_others(
     is_tensor_mask: Tuple[bool, ...],
     tensors: Tuple[torch.Tensor, ...],
     non_tensors: Tuple[Any, ...],
-):
+) -> Any:
     tensor_counter = 0
     non_tensor_counter = 0
     results = []
@@ -344,7 +350,7 @@ def custom_root(
     has_aux: bool = False,
     solve: Callable = linear_solve.solve_normal_cg,
     reference_signature: Optional[inspect.Signature] = None,
-):
+) -> Callable[[Callable], Callable]:
     """Decorator for adding implicit differentiation to a root solver.
 
     Args:
