@@ -35,6 +35,7 @@
 from typing import Callable, Optional
 
 import functorch
+import torch
 
 from torchopt._src import linalg
 from torchopt._src.typing import TensorTree
@@ -78,7 +79,10 @@ def solve_cg(
     """
     if ridge is not None:
         matvec = _make_ridge_matvec(matvec, ridge=ridge)
-    return linalg.cg(matvec, b, x0=init, **kwargs)[0]
+    solution = linalg.cg(matvec, b, x0=init, **kwargs)
+    if isinstance(solution, torch.Tensor):
+        return solution
+    return solution[0]
 
 
 def _make_rmatvec(
