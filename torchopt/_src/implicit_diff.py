@@ -27,11 +27,15 @@ from torchopt._src import linear_solve
 from torchopt._src.utils import pytree
 
 
+ARGS = Tuple[Any, ...]
+KWARGS = Dict[Any, Any]
+
+
 # pylint: disable-next=too-many-arguments,too-many-locals
 def _root_vjp(
     optimality_fun: Callable,
     sol: Any,
-    args: Tuple[Any, ...],
+    args: ARGS,
     cotangent: Any,
     res_is_tensor: bool,
     argnums: Tuple[int, ...],
@@ -103,18 +107,14 @@ def _root_vjp(
     return tuple(true_result)
 
 
-def _extract_kwargs(
-    kwarg_keys: Sequence[Any], flat_args: Sequence[Any]
-) -> Tuple[Tuple[Any, ...], Dict[Any, Any]]:
+def _extract_kwargs(kwarg_keys: Sequence[Any], flat_args: Tuple[Any, ...]) -> Tuple[ARGS, KWARGS]:
     nargs = len(flat_args) - len(kwarg_keys)
     args, kwarg_vals = flat_args[:nargs], flat_args[nargs:]
     kwargs = dict(zip(kwarg_keys, kwarg_vals))
     return args, kwargs
 
 
-def _signature_bind(
-    signature: inspect.Signature, *args, **kwargs
-) -> Tuple[Tuple[Any, ...], Dict[Any, Any]]:
+def _signature_bind(signature: inspect.Signature, *args, **kwargs) -> Tuple[ARGS, KWARGS]:
     bound = signature.bind(*args, **kwargs)
     bound.apply_defaults()
     return bound.args, bound.kwargs
@@ -122,7 +122,7 @@ def _signature_bind(
 
 def _signature_bind_and_match(
     signature: inspect.Signature, *args, **kwargs
-) -> Tuple[Tuple, Dict, Callable]:
+) -> Tuple[ARGS, KWARGS, Callable[[ARGS], Tuple[ARGS, KWARGS]]]:
     # We want to bind *args and **kwargs based on the provided signature, but also to associate the
     # resulting positional arguments back. To achieve this, we lift arguments to a triple:
     #
@@ -197,13 +197,12 @@ def _custom_root(
     solve: Callable,
     argnums: Tuple[int, ...],
     has_aux: bool,
-    reference_signature: Optional[inspect.Signature] = None,
+    reference_signature: Optional[Union[inspect.Signature, Callable]] = None,
 ) -> Callable:
     solver_fun_signature = inspect.signature(solver_fun)
 
     if reference_signature is None:
         reference_signature = inspect.signature(optimality_fun)
-
     elif not isinstance(reference_signature, inspect.Signature):
         # If is a CompositeLinearFunction, accesses subfun.
         # Otherwise, assumes a Callable.
@@ -269,7 +268,7 @@ def _custom_root(
 
                 sol = res
                 bound_args, bound_kwargs, map_args_back = _signature_bind_and_match(
-                    reference_signature, *args, **kwargs
+                    reference_signature, *args, **kwargs  # type: ignore[arg-type]
                 )
                 if bound_kwargs:
                     raise TypeError(
@@ -349,7 +348,7 @@ def custom_root(
     argnums: Union[int, Tuple[int, ...]] = 0,
     has_aux: bool = False,
     solve: Callable = linear_solve.solve_normal_cg,
-    reference_signature: Optional[inspect.Signature] = None,
+    reference_signature: Optional[Union[inspect.Signature, Callable]] = None,
 ) -> Callable[[Callable], Callable]:
     """Decorator for adding implicit differentiation to a root solver.
 

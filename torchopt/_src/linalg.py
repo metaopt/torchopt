@@ -43,7 +43,7 @@ from torchopt._src.utils import pytree
 
 
 # Aliases for working with pytrees
-def _vdot_real_part(x: torch.Tensor, y: torch.Tensor) -> torch.FloatTensor:
+def _vdot_real_part(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
     x = x.view(-1)
     y = y.view(-1)
     result = torch.dot(x.real, y.real)
@@ -83,7 +83,7 @@ def _safe_sum(obj: Union[Any, Sequence[Any]]) -> Any:
 def _cg_solve(
     A: Callable[[TensorTree], TensorTree],
     b: TensorTree,
-    x0: Optional[TensorTree] = None,
+    x0: TensorTree,
     *,
     maxiter: int,
     rtol: float = 1e-5,
@@ -137,14 +137,14 @@ def _shapes(tree: TensorTree) -> List[int]:
 
 def _isolve(
     _isolve_solve: Callable,
-    A: Union[TensorTree, Callable[[TensorTree], TensorTree]],
+    A: Union[torch.Tensor, Callable[[TensorTree], TensorTree]],
     b: TensorTree,
     x0: Optional[TensorTree] = None,
     *,
     rtol: float = 1e-5,
     atol: float = 0.0,
     maxiter: Optional[int] = None,
-    M: Optional[Union[TensorTree, Callable[[TensorTree], TensorTree]]] = None,
+    M: Optional[Union[torch.Tensor, Callable[[TensorTree], TensorTree]]] = None,
 ):
     if x0 is None:
         x0 = pytree.tree_map(torch.zeros_like, b)
@@ -170,14 +170,14 @@ def _isolve(
 
 
 def cg(
-    A: Union[TensorTree, Callable[[TensorTree], TensorTree]],
+    A: Union[torch.Tensor, Callable[[TensorTree], TensorTree]],
     b: TensorTree,
     x0: Optional[TensorTree] = None,
     *,
     rtol: float = 1e-5,
     atol: float = 0.0,
     maxiter: Optional[int] = None,
-    M: Optional[Union[TensorTree, Callable[[TensorTree], TensorTree]]] = None,
+    M: Optional[Union[torch.Tensor, Callable[[TensorTree], TensorTree]]] = None,
 ):
     """Use Conjugate Gradient iteration to solve ``Ax = b``.
 
