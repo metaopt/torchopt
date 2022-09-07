@@ -35,7 +35,6 @@
 from typing import Callable, Optional
 
 import functorch
-import torch
 
 from torchopt._src import linalg
 from torchopt._src.typing import TensorTree
