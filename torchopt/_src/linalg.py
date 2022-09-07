@@ -114,10 +114,8 @@ def _cg_solve(
     gamma0 = tree_inner_product(r0, z0)
 
     value = (x0, r0, gamma0, p0, 0)
-    not_stop = cond_fun(value)
-    while not_stop:
+    while cond_fun(value):
         value = body_fun(value)
-        not_stop = cond_fun(value)
 
     x_final, *_ = value
 
