@@ -17,8 +17,8 @@ from typing import List
 
 import torch
 
-import torchopt
-from torchopt._src import base
+from torchopt._src.base import GradientTransformation
+from torchopt._src.update import apply_updates
 
 
 # from torchopt._src.base import EmptyState
@@ -28,10 +28,11 @@ from torchopt._src import base
 class FuncOptimizer:  # pylint: disable=too-few-public-methods
     """A high-level functional optimizer base class."""
 
-    def __init__(self, impl: base.GradientTransformation):
-        """
+    def __init__(self, impl: GradientTransformation):
+        r"""The :meth:`init` function.
+
         Args:
-          impl (base.GradientTransformation): a low level optimizer function, it could be a
+          impl (GradientTransformation): a low level optimizer function, it could be a
             optimizer function provided by `alias.py` or a customerized `chain` provided by
             `combine.py`. Note that use `MetaOptimizer(sgd(moment_requires_grad=True))` or
             `MetaOptimizer(chain(sgd(moment_requires_grad=True))) is equavalent to `MetaSGD`.
@@ -40,14 +41,17 @@ class FuncOptimizer:  # pylint: disable=too-few-public-methods
         self.optim_state = None
 
     def step(self, loss: torch.Tensor, params: List[torch.Tensor]):
-        """Compute the gradients of loss to the network parameters and update network parameters.
+        r"""Compute the gradients of loss to the network parameters and update network parameters.
 
         Graph of the derivative will be constructed, allowing to compute higher order derivative
         products. We use the differentiable optimizer (pass argument inplace=False) to scale the
         gradients and update the network parameters without modifying tensors in-place.
 
         Args:
-          loss (torch.Tensor): loss that is used to compute the gradients to network parameters.
+            loss: (torch.Tensor)
+                loss that is used to compute the gradients to network parameters.
+            params: (iterable of torch.Tensor)
+                An iterable of :class:`torch.Tensor`\s. Specifies what tensors should be optimized.
         """
         if self.optim_state is None:
             self.optim_state = self.impl.init(params)
@@ -55,5 +59,5 @@ class FuncOptimizer:  # pylint: disable=too-few-public-methods
         # step parameter only
         grad = torch.autograd.grad(loss, params, create_graph=True, allow_unused=True)
         updates, self.optim_state = self.impl.update(grad, self.optim_state, False)
-        new_params = torchopt.apply_updates(list(params), list(updates), inplace=False)
+        new_params = apply_updates(list(params), list(updates), inplace=False)
         return new_params

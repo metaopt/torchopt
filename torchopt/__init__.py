@@ -18,7 +18,8 @@ from torchopt._src import accelerated_op_available, clip, combine, hook, schedul
 from torchopt._src.alias import adam, adamw, rmsprop, sgd
 from torchopt._src.clip import clip_grad_norm
 from torchopt._src.combine import chain
-from torchopt._src.optimizer import SGD, Adam, AdamW, Optimizer, RMSProp, RMSprop, meta
+from torchopt._src.optimizer import SGD, Adam, AdamW, Optimizer, RMSProp, RMSprop, func, meta
+from torchopt._src.optimizer.func import FuncOptimizer
 from torchopt._src.optimizer.meta import (
     MetaAdam,
     MetaAdamW,
