@@ -142,7 +142,7 @@ def _isolve(
     atol: float = 0.0,
     maxiter: Optional[int] = None,
     M: Optional[Union[torch.Tensor, Callable[[TensorTree], TensorTree]]] = None,
-):
+) -> TensorTree:
     if x0 is None:
         x0 = pytree.tree_map(torch.zeros_like, b)
 
@@ -175,7 +175,7 @@ def cg(
     atol: float = 0.0,
     maxiter: Optional[int] = None,
     M: Optional[Union[torch.Tensor, Callable[[TensorTree], TensorTree]]] = None,
-):
+) -> TensorTree:
     """Use Conjugate Gradient iteration to solve ``Ax = b``.
 
     The numerics of JAX's ``cg`` should exact match SciPy's ``cg`` (up to numerical precision), but
