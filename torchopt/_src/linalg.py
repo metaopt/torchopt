@@ -42,6 +42,7 @@ from torchopt._src.utils import pytree
 
 
 def _inner_product_kernel(x: torch.Tensor, y: torch.Tensor) -> float:
+    """Computes (x.conj() * y).real."""
     x = x.view(-1)
     y = y.view(-1)
     prod = torch.dot(x.real, y.real).item()
@@ -50,14 +51,11 @@ def _inner_product_kernel(x: torch.Tensor, y: torch.Tensor) -> float:
     return prod
 
 
-def _tree_inner_product(
-    tree_left: TensorTree,
-    tree_right: TensorTree,
-    kernel: Callable[[torch.Tensor, torch.Tensor], float] = _inner_product_kernel,
-) -> TensorTree:
-    leaves_left, treedef = pytree.tree_flatten(tree_left)
-    leaves_right = treedef.flatten_up_to(tree_right)
-    return sum(map(kernel, leaves_left, leaves_right))
+def tree_inner_product(tree_x: TensorTree, tree_y: TensorTree) -> float:
+    """Computes (tree_x.conj() * tree_y).real.sum()."""
+    leaves_x, treedef = pytree.tree_flatten(tree_x)
+    leaves_y = treedef.flatten_up_to(tree_y)
+    return sum(map(_inner_product_kernel, leaves_x, leaves_y))
 
 
 def _identity(x: TensorTree) -> TensorTree:
@@ -91,29 +89,29 @@ def _cg_solve(
     # https://en.wikipedia.org/wiki/Conjugate_gradient_method#The_preconditioned_conjugate_gradient_method
 
     # tolerance handling uses the "non-legacy" behavior of `scipy.sparse.linalg.cg`
-    bs = _tree_inner_product(b, b)
+    bs = tree_inner_product(b, b)
     atol2 = max(rtol**2 * bs, atol**2)
 
     def cond_fun(value):
         _, r, gamma, _, k = value
-        rs = gamma if M is _identity else _tree_inner_product(r, r)
+        rs = gamma if M is _identity else tree_inner_product(r, r)
         return rs > atol2 and k < maxiter
 
     def body_fun(value):
         x, r, gamma, p, k = value
         Ap = A(p)
-        alpha = gamma / _tree_inner_product(p, Ap)
+        alpha = gamma / tree_inner_product(p, Ap)
         x_ = pytree.tree_map(lambda a, b: a.add(b, alpha=alpha), x, p)
         r_ = pytree.tree_map(lambda a, b: a.sub(b, alpha=alpha), r, Ap)
         z_ = M(r_)
-        gamma_ = _tree_inner_product(r_, z_)
+        gamma_ = tree_inner_product(r_, z_)
         beta_ = gamma_ / gamma
         p_ = pytree.tree_map(lambda a, b: a.add(b, alpha=beta_), z_, p)
         return x_, r_, gamma_, p_, k + 1
 
     r0 = pytree.tree_map(torch.sub, b, A(x0))
     p0 = z0 = M(r0)
-    gamma0 = _tree_inner_product(r0, z0)
+    gamma0 = tree_inner_product(r0, z0)
 
     value = (x0, r0, gamma0, p0, 0)
     not_stop = cond_fun(value)

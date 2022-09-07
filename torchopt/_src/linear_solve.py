@@ -42,7 +42,7 @@ from torchopt._src.utils import pytree
 
 
 def tree_add(tree_x: TensorTree, tree_y: TensorTree, alpha: float = 1.0) -> TensorTree:
-    """Compute tree_x + alpha * tree_y."""
+    """Computes tree_x + alpha * tree_y."""
     return pytree.tree_map(lambda x, y: x.add(y, alpha=alpha), tree_x, tree_y)
 
 
