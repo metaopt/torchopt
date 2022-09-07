@@ -37,7 +37,7 @@ from torchopt._src.optimizer.meta import (
     MetaSGD,
 )
 from torchopt._src.update import apply_updates
-from torchopt._src.utils import extract_state_dict, recover_state_dict, stop_gradient
+from torchopt._src.utils import extract_state_dict, pytree, recover_state_dict, stop_gradient
 from torchopt.version import __version__
 
 

@@ -31,7 +31,7 @@ from torch.utils import data
 
 import helpers
 import torchopt
-from torchopt._src.utils import pytree
+from torchopt import pytree
 
 
 BATCH_SIZE = 8
