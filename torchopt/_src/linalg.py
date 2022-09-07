@@ -96,10 +96,10 @@ def _cg_solve(
     bs = _safe_sum(_vdot_real_tree(b, b))
     atol2 = max(rtol**2 * bs, atol**2)
 
-    def cond_fun(value, min_rs):
+    def cond_fun(value):
         _, r, gamma, _, k = value
         rs = gamma if M is _identity else _safe_sum(_vdot_real_tree(r, r))
-        return (rs > atol2) & (k < maxiter) & (rs <= min_rs), rs
+        return (rs > atol2) & (k < maxiter)
 
     def body_fun(value):
         x, r, gamma, p, k = value
@@ -117,13 +117,11 @@ def _cg_solve(
     p0 = z0 = M(r0)
     gamma0 = _safe_sum(_vdot_real_tree(r0, z0))
 
-    min_rs = math.inf
     value = (x0, r0, gamma0, p0, 0)
-    not_stop, min_rs = cond_fun(value, min_rs)
+    not_stop = cond_fun(value)
     while not_stop:
         value = body_fun(value)
-        not_stop, rs = cond_fun(value, min_rs)
-        min_rs = min(rs, min_rs)
+        not_stop = cond_fun(value)
 
     x_final, *_ = value
 
@@ -151,7 +149,7 @@ def _isolve(
 
     if maxiter is None:
         size = sum(_shapes(b))
-        maxiter = size  # copied from SciPy
+        maxiter = 10 * size  # copied from SciPy
 
     if M is None:
         M = _identity
