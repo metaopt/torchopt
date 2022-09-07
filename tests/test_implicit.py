@@ -200,11 +200,12 @@ def test_imaml(dtype: torch.dtype, lr: float, inner_lr: float, inner_update: int
 
     for p, p_ref in zip(params, jax_params_as_tensor):
         helpers.assert_all_close(p, p_ref)
-        
+
 
 @torch.no_grad()
 def get_dataset_torch_rr(
-    device: Optional[Union[str, torch.device]] = None) -> Tuple[nn.Module, data.DataLoader]:
+    device: Optional[Union[str, torch.device]] = None
+) -> Tuple[nn.Module, data.DataLoader]:
     helpers.seed_everything(seed=42)
     NUM_UPDATES = 4
     BATCH_SIZE = 1024
@@ -212,11 +213,12 @@ def get_dataset_torch_rr(
         torch.randn((BATCH_SIZE * NUM_UPDATES, MODEL_NUM_INPUTS)),
         torch.randn((BATCH_SIZE * NUM_UPDATES)),
         torch.randn((BATCH_SIZE * NUM_UPDATES, MODEL_NUM_INPUTS)),
-        torch.randn((BATCH_SIZE * NUM_UPDATES))
+        torch.randn((BATCH_SIZE * NUM_UPDATES)),
     )
     loader = data.DataLoader(dataset, BATCH_SIZE, shuffle=False)
 
     return loader
+
 
 @helpers.parametrize(
     lr=[1e-3, 1e-4],
@@ -231,27 +233,27 @@ def test_rr(
     helpers.seed_everything(42)
     device = 'cpu'
     input_size = 10
-    
+
     init_params_torch = torch.randn(input_size).to(device, dtype=dtype)
     l2reg_torch = torch.rand(1, requires_grad=True).to(device, dtype=dtype)
-    
+
     init_params_jax = jnp.array(init_params_torch.detach().numpy(), dtype=jax_dtype)
     l2reg_jax = jnp.array(l2reg_torch.detach().numpy(), dtype=jax_dtype)
-    
+
     loader = get_dataset_torch_rr(device='cpu')
 
     optim = torchopt.sgd(lr)
     optim_state = optim.init(l2reg_torch)
-    
+
     optim_jax = optax.sgd(lr)
     opt_state_jax = optim_jax.init(l2reg_jax)
-    
+
     def ridge_objective_torch(params, l2reg, data):
         """Ridge objective function."""
         x_tr, y_tr = data
         params = params
-        residuals  = x_tr @ params - y_tr
-        return 0.5 * torch.mean(residuals ** 2) + 0.5 * l2reg.sum() * torch.sum(params ** 2)
+        residuals = x_tr @ params - y_tr
+        return 0.5 * torch.mean(residuals**2) + 0.5 * l2reg.sum() * torch.sum(params**2)
 
     @torchopt.implicit_diff.custom_root(functorch.grad(ridge_objective_torch, argnums=0), argnums=1)
     def ridge_solver_torch(init_params, l2reg, data):
@@ -261,61 +263,63 @@ def test_rr(
         def matvec(u):
             return torch.matmul(X_tr.T, torch.matmul(X_tr, u))
 
-        return torchopt.linear_solve.solve_cg(matvec=matvec,
-                                      b=torch.matmul(X_tr.T, y_tr),
-                                      ridge=len(y_tr) * l2reg.item(),
-                                      init=init_params,
-                                      maxiter=20)
-    
+        return torchopt.linear_solve.solve_cg(
+            matvec=matvec,
+            b=torch.matmul(X_tr.T, y_tr),
+            ridge=len(y_tr) * l2reg.item(),
+            init=init_params,
+            maxiter=20,
+        )
+
     def ridge_objective_jax(params, l2reg, X_tr, y_tr):
         """Ridge objective function."""
-        #X_tr, y_tr = data
+        # X_tr, y_tr = data
         residuals = jnp.dot(X_tr, params) - y_tr
-        return 0.5 * jnp.mean(residuals ** 2) + 0.5 * jnp.sum(l2reg) * jnp.sum(params ** 2)
-
+        return 0.5 * jnp.mean(residuals**2) + 0.5 * jnp.sum(l2reg) * jnp.sum(params**2)
 
     @jaxopt.implicit_diff.custom_root(jax.grad(ridge_objective_jax, argnums=0))
     def ridge_solver_jax(init_params, l2reg, X_tr, y_tr):
-      """Solve ridge regression by conjugate gradient."""
+        """Solve ridge regression by conjugate gradient."""
 
-      def matvec(u):
-        return jnp.dot(X_tr.T, jnp.dot(X_tr, u))
+        def matvec(u):
+            return jnp.dot(X_tr.T, jnp.dot(X_tr, u))
 
-      return jaxopt.linear_solve.solve_cg(matvec=matvec,
-                                   b=jnp.dot(X_tr.T, y_tr),
-                                   ridge=len(y_tr) * l2reg.item(),
-                                   init=init_params,
-                                   maxiter=20)
-    
+        return jaxopt.linear_solve.solve_cg(
+            matvec=matvec,
+            b=jnp.dot(X_tr.T, y_tr),
+            ridge=len(y_tr) * l2reg.item(),
+            init=init_params,
+            maxiter=20,
+        )
+
     for xs, ys, xq, yq in loader:
         xs = xs.to(dtype=dtype)
         ys = ys.to(dtype=dtype)
         xq = xq.to(dtype=dtype)
         yq = yq.to(dtype=dtype)
-        
-        data = (xs, ys)
-        #print(init_params_torch.shape, l2reg_torch.shape, xs.shape, ys.shape)
+
+        # print(init_params_torch.shape, l2reg_torch.shape, xs.shape, ys.shape)
         w_fit = ridge_solver_torch(init_params_torch, l2reg_torch, (xs, ys))
         outer_loss = F.mse_loss(xq @ w_fit, yq)
-        
+
         grad = torch.autograd.grad(outer_loss, l2reg_torch)[0]
         updates, optim_state = optim.update(grad, optim_state)
         l2reg_torch = torchopt.apply_updates(l2reg_torch, updates)
-        
+
         xs = jnp.array(xs.numpy(), dtype=jax_dtype)
         ys = jnp.array(ys.numpy(), dtype=jax_dtype)
         xq = jnp.array(xq.numpy(), dtype=jax_dtype)
         yq = jnp.array(yq.numpy(), dtype=jax_dtype)
-        
+
         def outer_level(init_params_jax, l2reg_jax, xs, ys, xq, yq):
             w_fit = ridge_solver_jax(init_params_jax, l2reg_jax, xs, ys)
             y_pred = jnp.dot(xq, w_fit)
             loss_value = jnp.mean((y_pred - yq) ** 2)
             return loss_value
-        
+
         grads_jax = jax.grad(outer_level, argnums=1)(init_params_jax, l2reg_jax, xs, ys, xq, yq)
         updates_jax, opt_state_jax = optim_jax.update(grads_jax, opt_state_jax)  # get updates
         jax_params = optax.apply_updates(l2reg_jax, updates_jax)
-    
+
     jax_p = torch.tensor(np.array(jax_params)).to(dtype=dtype)
     helpers.assert_all_close(l2reg_torch, jax_p, rtol=5e-5, atol=5e-5)
