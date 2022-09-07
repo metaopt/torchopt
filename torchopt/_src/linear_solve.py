@@ -79,10 +79,7 @@ def solve_cg(
     """
     if ridge is not None:
         matvec = _make_ridge_matvec(matvec, ridge=ridge)
-    solution = linalg.cg(matvec, b, x0=init, **kwargs)
-    if isinstance(solution, torch.Tensor):
-        return solution
-    return solution[0]
+    return linalg.cg(matvec, b, x0=init, **kwargs)
 
 
 def _make_rmatvec(
