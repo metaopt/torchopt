@@ -33,7 +33,7 @@
 # pylint: disable=invalid-name
 
 from functools import partial
-from typing import Any, Callable, List, Optional, Sequence, Union
+from typing import Callable, List, Optional, Union
 
 import torch
 
@@ -41,18 +41,23 @@ from torchopt._src.typing import TensorTree
 from torchopt._src.utils import pytree
 
 
-# Aliases for working with pytrees
-def _vdot_real_part(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+def _inner_product_kernel(x: torch.Tensor, y: torch.Tensor) -> float:
     x = x.view(-1)
     y = y.view(-1)
-    result = torch.dot(x.real, y.real)
+    prod = torch.dot(x.real, y.real).item()
     if x.is_complex() or y.is_complex():
-        result += torch.dot(x.imag, y.imag)
-    return result
+        prod += torch.dot(x.imag, y.imag).item()
+    return prod
 
 
-def _vdot_real_tree(x: TensorTree, y: TensorTree) -> TensorTree:
-    return pytree.tree_map(_vdot_real_part, x, y)
+def _tree_inner_product(
+    tree_left: TensorTree,
+    tree_right: TensorTree,
+    kernel: Callable[[torch.Tensor, torch.Tensor], float] = _inner_product_kernel,
+) -> TensorTree:
+    leaves_left, treedef = pytree.tree_flatten(tree_left)
+    leaves_right = treedef.flatten_up_to(tree_right)
+    return sum(map(kernel, leaves_left, leaves_right))
 
 
 def _identity(x: TensorTree) -> TensorTree:
@@ -72,12 +77,6 @@ def _normalize_matvec(
     return partial(torch.matmul, f)
 
 
-def _safe_sum(obj: Union[Any, Sequence[Any]]) -> Any:
-    if isinstance(obj, (list, tuple)):
-        return sum(obj)
-    return obj
-
-
 # pylint: disable-next=too-many-locals
 def _cg_solve(
     A: Callable[[TensorTree], TensorTree],
@@ -92,29 +91,29 @@ def _cg_solve(
     # https://en.wikipedia.org/wiki/Conjugate_gradient_method#The_preconditioned_conjugate_gradient_method
 
     # tolerance handling uses the "non-legacy" behavior of `scipy.sparse.linalg.cg`
-    bs = _safe_sum(_vdot_real_tree(b, b))
+    bs = _tree_inner_product(b, b)
     atol2 = max(rtol**2 * bs, atol**2)
 
     def cond_fun(value):
         _, r, gamma, _, k = value
-        rs = gamma if M is _identity else _safe_sum(_vdot_real_tree(r, r))
-        return (rs > atol2) & (k < maxiter)
+        rs = gamma if M is _identity else _tree_inner_product(r, r)
+        return rs > atol2 and k < maxiter
 
     def body_fun(value):
         x, r, gamma, p, k = value
         Ap = A(p)
-        alpha = gamma / _safe_sum(_vdot_real_tree(p, Ap))
+        alpha = gamma / _tree_inner_product(p, Ap)
         x_ = pytree.tree_map(lambda a, b: a.add(b, alpha=alpha), x, p)
         r_ = pytree.tree_map(lambda a, b: a.sub(b, alpha=alpha), r, Ap)
         z_ = M(r_)
-        gamma_ = _safe_sum(_vdot_real_tree(r_, z_))
+        gamma_ = _tree_inner_product(r_, z_)
         beta_ = gamma_ / gamma
         p_ = pytree.tree_map(lambda a, b: a.add(b, alpha=beta_), z_, p)
         return x_, r_, gamma_, p_, k + 1
 
     r0 = pytree.tree_map(torch.sub, b, A(x0))
     p0 = z0 = M(r0)
-    gamma0 = _safe_sum(_vdot_real_tree(r0, z0))
+    gamma0 = _tree_inner_product(r0, z0)
 
     value = (x0, r0, gamma0, p0, 0)
     not_stop = cond_fun(value)
