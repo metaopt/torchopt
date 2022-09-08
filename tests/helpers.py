@@ -126,6 +126,7 @@ def get_models(
 
     dataset = data.TensorDataset(
         torch.randint(0, 1, (BATCH_SIZE * NUM_UPDATES, MODEL_NUM_INPUTS)),
+        # torch.empty((BATCH_SIZE * NUM_UPDATES, MODEL_NUM_INPUTS), dtype=dtype).uniform_(-1.0, +1.0),
         torch.randint(0, MODEL_NUM_CLASSES, (BATCH_SIZE * NUM_UPDATES,)),
     )
     loader = data.DataLoader(dataset, BATCH_SIZE, shuffle=False)
