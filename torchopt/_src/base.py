@@ -234,13 +234,12 @@ class IdentityGradientTransformation(GradientTransformation):
         return EmptyState()
 
     @staticmethod
-    # pylint: disable-next=unused-argument
     def update_fn(
         updates: Updates,
         state: OptState,
         *,
-        params: Optional[Params] = None,
-        inplace: bool = True,
+        params: Optional[Params] = None,  # pylint: disable=unused-argument
+        inplace: bool = True,  # pylint: disable=unused-argument
     ) -> Tuple[Updates, OptState]:
         """Returns updates unchanged."""
         return updates, state
