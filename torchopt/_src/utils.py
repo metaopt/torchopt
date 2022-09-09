@@ -48,7 +48,7 @@ def stop_gradient(target):
     from torchopt._src.optimizer.meta.base import MetaOptimizer
 
     def f(obj):
-        if isinstance(obj, torch.Tensor):
+        if torch.is_tensor(obj):
             requires_grad = obj.requires_grad
             obj.detach_().requires_grad_(requires_grad)
 
@@ -134,7 +134,7 @@ def extract_state_dict(mod, copy=False, *, with_buffer=True, enable_visual=False
         if copy:
 
             def get_variable(t):
-                if not isinstance(t, torch.Tensor):
+                if not torch.is_tensor(t):
                     return t
                 requires_grad = t.requires_grad
                 return t.clone().detach_().requires_grad_(requires_grad)

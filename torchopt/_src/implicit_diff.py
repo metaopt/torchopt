@@ -162,7 +162,7 @@ def _split_tensor_and_others(
     non_tensors = []
     is_tensor_mask = []
     for item in flattened:
-        if isinstance(item, torch.Tensor):
+        if torch.is_tensor(item):
             tensors.append(item)
             is_tensor_mask.append(True)
         else:
@@ -236,18 +236,18 @@ def _custom_root(
                 if has_aux:
                     aux = res[1]
                     res = res[0]
-                    if isinstance(res, torch.Tensor):
+                    if torch.is_tensor(res):
                         ctx.save_for_backward(res, *args_tensors)
                     else:
                         ctx.save_for_backward(*res, *args_tensors)
-                    ctx.res_is_tensor = isinstance(res, torch.Tensor)
+                    ctx.res_is_tensor = torch.is_tensor(res)
                     return res + (aux,)
 
-                if isinstance(res, torch.Tensor):
+                if torch.is_tensor(res):
                     ctx.save_for_backward(res, *args_tensors)
                 else:
                     ctx.save_for_backward(*res, *args_tensors)
-                ctx.res_is_tensor = isinstance(res, torch.Tensor)
+                ctx.res_is_tensor = torch.is_tensor(res)
                 return res
 
             @staticmethod
@@ -314,7 +314,7 @@ def _custom_root(
         args_counter = 0
         for idx, arg in enumerate(args):
             if idx in argnums:
-                if isinstance(arg, torch.Tensor):
+                if torch.is_tensor(arg):
                     args_sign.append((args_counter, False))  # start position, is_tuple
                     flatten_args.append(arg)
                     args_counter += 1

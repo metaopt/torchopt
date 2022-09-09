@@ -33,10 +33,10 @@
 import logging
 
 import numpy as np
+import torch
 
 from torchopt._src import base
-from torchopt._src.typing import Scalar
-from torchopt._src.utils import pytree
+from torchopt._src.typing import Numeric, Scalar
 
 
 def polynomial_schedule(
@@ -80,13 +80,11 @@ def polynomial_schedule(
         )
         transition_begin = 0
 
-    def schedule(count):
-        def impl(count):
-            count = np.clip(count - transition_begin, 0, transition_steps)
-            frac = 1 - count / transition_steps
-            return (init_value - end_value) * (frac**power) + end_value
-
-        return pytree.tree_map(impl, count)
+    def schedule(count: Numeric) -> Numeric:
+        clip = torch.clamp if torch.is_tensor(count) else np.clip
+        count = clip(count - transition_begin, 0, transition_steps)  # type: ignore[operator]
+        frac = 1.0 - count / transition_steps
+        return (init_value - end_value) * (frac**power) + end_value
 
     return schedule
 

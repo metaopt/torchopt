@@ -166,20 +166,25 @@ def _scale_by_schedule(
         return ScaleByScheduleState(count=zero)
 
     def update_fn(updates, state, *, params=None, inplace=True):  # pylint: disable=unused-argument
-        step_size = step_size_fn(state.count)
-
         if inplace:
 
-            def f(g):
+            def f(g, c):
+                step_size = step_size_fn(c)
                 return g.mul_(step_size) if g is not None else None
 
         else:
 
-            def f(g):
+            def f(g, c):
+                step_size = step_size_fn(c)
                 return g.mul(step_size) if g is not None else None
 
-        updates = tree_map(f, updates)
-        return updates, ScaleByScheduleState(count=inc_count(updates, state.count))
+        updates = tree_map(f, updates, state.count)
+        return (
+            updates,
+            ScaleByScheduleState(
+                count=_inc_count(updates, state.count, already_flattened=already_flattened)
+            ),
+        )
 
     return base.GradientTransformation(init_fn, update_fn)
 

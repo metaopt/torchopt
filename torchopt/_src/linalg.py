@@ -69,7 +69,7 @@ def _normalize_matvec(
     if callable(f):
         return f
 
-    assert isinstance(f, torch.Tensor)
+    assert torch.is_tensor(f)
     if f.ndim != 2 or f.shape[0] != f.shape[1]:
         raise ValueError(f'linear operator must be a square matrix, but has shape: {f.shape}')
     return partial(torch.matmul, f)
