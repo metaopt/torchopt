@@ -314,7 +314,7 @@ def adamw(
 # pylint: disable-next=too-many-arguments
 def rmsprop(
     lr: ScalarOrSchedule = 1e-2,
-    alpha: float = 0.9,
+    alpha: float = 0.99,
     eps: float = 1e-8,
     weight_decay: float = 0.0,
     momentum: float = 0.0,
