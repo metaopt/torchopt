@@ -161,7 +161,7 @@ def _scale_by_schedule(
 
     def init_fn(params):
         zero = tree_map(  # count init
-            lambda t: torch.zeros(1, dtype=torch.int32, device=t.device), params
+            lambda t: torch.zeros(1, dtype=torch.int32, device=t.device).squeeze_(), params
         )
         return ScaleByScheduleState(count=zero)
 
@@ -299,7 +299,7 @@ def _scale_by_adam(
 
     def init_fn(params):
         zero = tree_map(  # count init
-            lambda t: torch.zeros(1, dtype=torch.int32, device=t.device), params
+            lambda t: torch.zeros(1, dtype=torch.int32, device=t.device).squeeze_(), params
         )
         mu = tree_map(  # first moment
             lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params
@@ -426,7 +426,7 @@ def _scale_by_accelerated_adam(
 
     def init_fn(params):
         zero = tree_map(  # count init
-            lambda t: torch.zeros(1, dtype=torch.int32, device=t.device), params
+            lambda t: torch.zeros(1, dtype=torch.int32, device=t.device).squeeze_(), params
         )
         mu = tree_map(  # first moment
             lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params
