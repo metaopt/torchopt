@@ -126,14 +126,10 @@ def _scale_by_neg_lr(lr: ScalarOrSchedule):
     if callable(lr):
 
         def schedule_wrapper(count):
-            def f(scaled_lr):
-                return -scaled_lr
+            return -lr(count)  # type: ignore[operator]
 
-            return transform.map_flattened(f, lr(count))  # type: ignore[operator]
-
-        return transform._scale_by_schedule(  # pylint: disable=protected-access
-            schedule_wrapper, already_flattened=True
-        )
+        # pylint: disable-next=protected-access
+        return transform._scale_by_schedule(schedule_wrapper, already_flattened=True)
     return transform._scale(-lr, already_flattened=True)  # pylint: disable=protected-access
 
 
