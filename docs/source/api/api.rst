@@ -131,6 +131,41 @@ Differentiable Meta-RMSProp Optimizer
 
 ------
 
+Implicit differentiation
+========================
+
+.. currentmodule:: torchopt._src.implicit_diff
+
+.. autosummary::
+
+    custom_root
+
+Custom solvers
+~~~~~~~~~~~~~~
+
+.. autofunction:: custom_root
+
+------
+
+
+Linear system solving
+=====================
+
+.. currentmodule:: torchopt._src.linear_solve
+
+.. autosummary::
+
+    solve_cg
+    solve_normal_cg
+
+Indirect solvers
+~~~~~~~~~~~~~~~~
+
+.. autofunction:: solve_cg
+.. autofunction:: solve_normal_cg
+
+------
+
 Optimizer Hooks
 ===============
 
