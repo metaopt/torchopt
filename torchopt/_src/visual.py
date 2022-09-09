@@ -148,7 +148,7 @@ def make_dot(
             return f'{param_map[var][0]}\n{size_to_str(param_map[var][1].size())}'
         return None
 
-    def add_nodes(fn):
+    def add_nodes(fn):  # pylint: disable=too-many-branches
         assert not torch.is_tensor(fn)
         if fn in seen:
             return

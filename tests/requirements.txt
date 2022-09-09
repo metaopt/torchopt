@@ -18,3 +18,6 @@ pydocstyle
 pyenchant
 cpplint
 pre-commit
+jax[cpu] >= 0.3
+jaxopt
+optax

@@ -45,6 +45,7 @@ classifiers = [
 ]
 dependencies = [
     "torch >= 1.12",
+    "functorch >= 0.2",
     "optree",
     "numpy",
     "graphviz",
@@ -73,10 +74,12 @@ lint = [
     "pre-commit",
 ]
 test = [
-    'functorch >= 0.2',
     'pytest',
     'pytest-cov',
     'pytest-xdist',
+    'jax[cpu] >= 0.3',
+    'jaxopt',
+    'optax',
 ]
 
 [tool.setuptools.packages.find]
@@ -111,6 +114,7 @@ before-all = """
         yum install -y nvidia-driver-latest-libs "cuda-minimal-build-${CUDA_PKG_SUFFIX}"
     fi
     echo "cat torchopt/version.py"; cat torchopt/version.py
+    touch .first-python
     """
 test-extras = ["test"]
 test-command = """
@@ -122,17 +126,20 @@ test-command = """
         xargs -0 -I '{}' bash -c "echo 'ldd {}'; ldd '{}'; echo 'patchelf --print-rpath {}'; patchelf --print-rpath '{}'"
     make -C "{project}" test || exit 1
     TORCH_VERSION="$(python -c 'print(__import__("torch").__version__.partition("+")[0])')"
-    TEST_TORCH_SPECS="${TEST_TORCH_SPECS:-"${DEFAULT_TEST_TORCH_SPECS}"}"
-    for spec in ${TEST_TORCH_SPECS}; do
-        python -m pip uninstall -y torch
-        export PIP_EXTRA_INDEX_URL="https://download.pytorch.org/whl/${spec}"
-        echo "PIP_EXTRA_INDEX_URL='${PIP_EXTRA_INDEX_URL}'"
-        python -m pip install "torch==${TORCH_VERSION}"
-        echo "ls ${TORCH_LIB_PATH}"; ls -lh "${TORCH_LIB_PATH}"
-        find "${SITE_PACKAGES}/torchopt" -name "*.so" -print0 |
-            xargs -0 -I '{}' bash -c "echo 'ldd {}'; ldd '{}'; echo 'patchelf --print-rpath {}'; patchelf --print-rpath '{}'"
-        make -C "{project}" test || exit 1
-    done
+    if [[ -f .first-python ]]; then
+        TEST_TORCH_SPECS="${TEST_TORCH_SPECS:-"${DEFAULT_TEST_TORCH_SPECS}"}"
+        for spec in ${TEST_TORCH_SPECS}; do
+            python -m pip uninstall -y torch
+            export PIP_EXTRA_INDEX_URL="https://download.pytorch.org/whl/${spec}"
+            echo "PIP_EXTRA_INDEX_URL='${PIP_EXTRA_INDEX_URL}'"
+            python -m pip install "torch==${TORCH_VERSION}"
+            echo "ls ${TORCH_LIB_PATH}"; ls -lh "${TORCH_LIB_PATH}"
+            find "${SITE_PACKAGES}/torchopt" -name "*.so" -print0 |
+                xargs -0 -I '{}' bash -c "echo 'ldd {}'; ldd '{}'; echo 'patchelf --print-rpath {}'; patchelf --print-rpath '{}'"
+            make -C "{project}" test || exit 1
+        done
+        rm -f .first-python
+    fi
     rm -rf ~/.pip/cache ~/.cache/pip
     """
 
