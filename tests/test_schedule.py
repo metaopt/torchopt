@@ -71,7 +71,7 @@ def test_lr_linear_schedule(
     fmodel, params, buffers = functorch.make_functional_with_buffers(model)
     optim = torchopt_optimizer(
         torchopt.schedule.linear_schedule(
-            init_value=lr, end_value=0.0, transition_steps=total_iters, transition_begin=0
+            init_value=lr, end_value=0.1 * lr, transition_steps=total_iters, transition_begin=0
         ),
         weight_decay=weight_decay,
     )
@@ -82,7 +82,7 @@ def test_lr_linear_schedule(
         weight_decay=weight_decay,
     )
     torch_scheduler = torch.optim.lr_scheduler.LinearLR(
-        optim_ref, start_factor=1.0, end_factor=0.0, total_iters=total_iters
+        optim_ref, start_factor=1.0, end_factor=0.1, total_iters=total_iters
     )
 
     for xs, ys in loader:
