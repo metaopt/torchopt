@@ -207,6 +207,21 @@ Chain
 .. autofunction:: chain
 
 
+Implicit Gradient
+=================
+
+.. currentmodule:: torchopt._src.implicit_diff
+
+.. autosummary::
+
+    custom_root
+
+Root Solver
+~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: custom_root
+
+
 General Utilities
 =================
 

@@ -345,8 +345,7 @@ def custom_root(
     optimality_fun: Callable,
     argnums: Union[int, Tuple[int, ...]] = 0,
     has_aux: bool = False,
-    solve: Callable = linear_solve.solve_normal_cg,
-    reference_signature: Optional[Union[inspect.Signature, Callable]] = None,
+    solve: Callable = linear_solve.solve_normal_cg
 ) -> Callable[[Callable], Callable]:
     """Decorator for adding implicit differentiation to a root solver.
 
@@ -360,13 +359,6 @@ def custom_root(
             Whether the decorated solver function returns auxiliary data.
         solve: (callable, optional, default: :func:`linear_solve.solve_normal_cg`)
             a linear solver of the form ``solve(matvec, b)``.
-        reference_signature: (function signature, optional)
-            Function signature (i.e. arguments and keyword arguments), with which the solver and
-            optimality functions are expected to agree. Defaults to ``optimality_fun``. It is
-            required that solver and optimality functions share the same input signature, but both
-            might be defined in such a way that the signature correspondence is ambiguous (e.g. if
-            both accept catch-all ``**kwargs``). To satisfy ``custom_root``'s requirement, any
-            function with an unambiguous signature can be provided here.
 
     Returns:
         A solver function decorator, i.e., ``custom_root(optimality_fun)(solver_fun)``.
@@ -382,6 +374,5 @@ def custom_root(
         optimality_fun=optimality_fun,
         solve=solve,
         argnums=argnums,
-        has_aux=has_aux,
-        reference_signature=reference_signature,
+        has_aux=has_aux
     )
