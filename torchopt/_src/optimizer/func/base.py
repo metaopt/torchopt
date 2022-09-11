@@ -24,8 +24,8 @@ from torchopt._src.update import apply_updates
 
 # mypy: ignore-errors
 class FuncOptimizer:  # pylint: disable=too-few-public-methods
-    """A wrapper class to hold the functional optimizer.
-    It makes it easier to maintain the optimizer states.
+    """A wrapper class to hold the functional optimizer. It makes it easier to maintain the
+    optimizer states.
 
     See Also:
         - The functional Adam optimizer: :func:`torchopt.adam`.
@@ -40,7 +40,7 @@ class FuncOptimizer:  # pylint: disable=too-few-public-methods
         Args:
             impl (GradientTransformation): A low level optimizer function, it could be a optimizer
                 function provided by `alias.py` or a customized `chain` provided by `combine.py`.
-            inplace: (default: :data:`False`)
+            inplace (optional): (default: :data:`False`)
                 The default value of ``inplace`` for each optimization update.
         """
         self.impl = impl
@@ -61,6 +61,9 @@ class FuncOptimizer:  # pylint: disable=too-few-public-methods
                 loss that is used to compute the gradients to network parameters.
             params: (tree of torch.Tensor)
                 An tree of :class:`torch.Tensor`\s. Specifies what tensors should be optimized.
+            inplace (optional): (default: :data:`None`)
+                Wether to update the parameters in-place. If :data:`None`, use the default value
+                specified in the constructor.
         """
         if self.optim_state is None:
             self.optim_state = self.impl.init(params)
