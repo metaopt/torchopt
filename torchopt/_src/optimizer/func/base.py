@@ -24,8 +24,11 @@ from torchopt._src.update import apply_updates
 
 # mypy: ignore-errors
 class FuncOptimizer:  # pylint: disable=too-few-public-methods
-    """A wrapper class to hold the functional optimizer. It makes it easier to maintain the
-    optimizer states.
+    """A wrapper class to hold the functional optimizer.
+
+    This wrapper makes it easier to maintain the optimizer states. The optimizer states are holden
+    by the wrapper internally. The wrapper provides a :meth:`step` function to compute the gradients
+    and update the parameters.
 
     See Also:
         - The functional Adam optimizer: :func:`torchopt.adam`.
