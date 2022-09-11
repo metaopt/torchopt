@@ -77,6 +77,22 @@ updates, opt_state = optimizer.update(grads, opt_state)  # get updates
 params = torchopt.apply_updates(params, updates)         # update network parameters
 ```
 
+We also provide a wrapper `torchopt.FuncOptimizer` to make maintaining the optimizer state easier:
+
+```python
+net = Net()  # init
+loader = Loader()
+optimizer = torchopt.FuncOptimizer(torchopt.adam())      # wrap with `torchopt.FuncOptimizer`
+
+model, params = functorch.make_functional(net)           # use functorch extract network parameters
+
+for xs, ys in loader:                                    # get data
+    pred = model(params, xs)                             # forward
+    loss = F.cross_entropy(pred, ys)                     # compute loss
+
+    params = optimizer.step(loss, params)                # update network parameters
+```
+
 ### PyTorch-Like API
 
 We also offer origin PyTorch APIs (e.g. `zero_grad()` or `step()`) by wrapping our Optax-Like API for traditional PyTorch user:

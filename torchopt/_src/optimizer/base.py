@@ -37,6 +37,9 @@ class Optimizer:
                 Note that using ``Optimizer(sgd())`` or ``Optimizer(chain(sgd()))`` is equivalent to
                 :class:`torchopt.SGD`.
         """
+        if not isinstance(impl, GradientTransformation):
+            raise TypeError(f'{impl} (type: {type(impl).__name__}) is not a GradientTransformation')
+
         self.impl = impl
         self.param_groups = []  # type: ignore
         self.param_tree_groups = []  # type: ignore

@@ -29,10 +29,17 @@ Functional Optimizers
 
 .. autosummary::
 
+    FuncOptimizer
     adam
     sgd
     rmsprop
     adamw
+
+Wrapper for Function Optimizer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: FuncOptimizer
+    :members:
 
 Functional Adam Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~

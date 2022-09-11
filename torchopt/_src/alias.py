@@ -178,6 +178,9 @@ def adam(
 
     Returns:
         The corresponding :class:`GradientTransformation` instance.
+
+    See Also:
+        The functional optimizer wrapper :class:`torchopt.FuncOptimizer`.
     """
     b1, b2 = betas
     # pylint: disable=unneeded-not
@@ -270,6 +273,9 @@ def adamw(
 
     Returns:
         The corresponding :class:`GradientTransformation` instance.
+
+    See Also:
+        The functional optimizer wrapper :class:`torchopt.FuncOptimizer`.
     """
     b1, b2 = betas
     # pylint: disable=unneeded-not
@@ -361,6 +367,9 @@ def rmsprop(
 
     Returns:
         The corresponding :class:`GradientTransformation` instance.
+
+    See Also:
+        The functional optimizer wrapper :class:`torchopt.FuncOptimizer`.
     """
     # pylint: disable=unneeded-not
     if not (callable(lr) or 0.0 <= lr):
@@ -437,6 +446,9 @@ def sgd(
 
     Returns:
         The corresponding :class:`GradientTransformation` instance.
+
+    See Also:
+        The functional optimizer wrapper :class:`torchopt.FuncOptimizer`.
     """
     # pylint: disable=unneeded-not
     if not (callable(lr) or 0.0 <= lr):

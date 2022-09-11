@@ -37,6 +37,9 @@ class MetaOptimizer:
                 ``MetaOptimizer(chain(sgd(moment_requires_grad=True)))`` is equivalent to
                 :class:`torchopt.MetaSGD`.
         """
+        if not isinstance(impl, GradientTransformation):
+            raise TypeError(f'{impl} (type: {type(impl).__name__}) is not a GradientTransformation')
+
         self.impl = impl
         self.param_containers_groups = []  # type: ignore
         self.state_groups = []  # type: ignore

@@ -13,8 +13,9 @@
 # limitations under the License.
 # ==============================================================================
 
-from typing import Tuple
+from typing import Callable, Tuple
 
+import functorch
 import pytest
 import torch
 import torch.nn.functional as F
@@ -364,3 +365,56 @@ def test_RMSProp(
         optim_ref.step()
 
     helpers.assert_model_all_close(model, model_ref, model_base, dtype=dtype)
+
+
+@helpers.parametrize(
+    dtype=[torch.float64, torch.float32],
+    lr=[1e-2, 1e-3],
+    optimizers=[
+        (torchopt.sgd, torch.optim.SGD),
+        (torchopt.adam, torch.optim.Adam),
+        (torchopt.adamw, torch.optim.AdamW),
+        (torchopt.rmsprop, torch.optim.RMSprop),
+    ],
+    inplace=[True, False],
+    weight_decay=[0.0, 1e-2],
+)
+def test_FuncOptimizer(
+    dtype: torch.dtype,
+    lr: float,
+    optimizers: Tuple[Callable, torch.optim.Optimizer],
+    inplace: bool,
+    weight_decay: float,
+) -> None:
+    model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
+
+    torchopt_optimizer, torch_optimizer = optimizers
+
+    fmodel, params, buffers = functorch.make_functional_with_buffers(model)
+    optim = torchopt.FuncOptimizer(
+        torchopt_optimizer(
+            lr=lr,
+            weight_decay=weight_decay,
+        ),
+        inplace=inplace,
+    )
+    optim_ref = torch_optimizer(
+        model_ref.parameters(),
+        lr,
+        weight_decay=weight_decay,
+    )
+
+    for xs, ys in loader:
+        xs = xs.to(dtype=dtype)
+        pred = fmodel(params, buffers, xs)
+        pred_ref = model_ref(xs)
+        loss = F.cross_entropy(pred, ys)
+        loss_ref = F.cross_entropy(pred_ref, ys)
+
+        params = optim.step(loss, params)
+
+        optim_ref.zero_grad()
+        loss_ref.backward()
+        optim_ref.step()
+
+    helpers.assert_model_all_close((params, buffers), model_ref, model_base, dtype=dtype)
