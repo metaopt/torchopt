@@ -22,6 +22,9 @@ from torchopt._src.typing import TensorTree
 from torchopt._src.update import apply_updates
 
 
+__NOT_INITIALIZED = object()
+
+
 # mypy: ignore-errors
 class FuncOptimizer:  # pylint: disable=too-few-public-methods
     """A wrapper class to hold the functional optimizer.
@@ -47,7 +50,7 @@ class FuncOptimizer:  # pylint: disable=too-few-public-methods
                 The default value of ``inplace`` for each optimization update.
         """
         self.impl = impl
-        self.optim_state = None
+        self.optim_state = __NOT_INITIALIZED
         self.inplace = bool(inplace)
 
     def step(
@@ -68,7 +71,7 @@ class FuncOptimizer:  # pylint: disable=too-few-public-methods
                 Whether to update the parameters in-place. If :data:`None`, use the default value
                 specified in the constructor.
         """
-        if self.optim_state is None:
+        if self.optim_state is __NOT_INITIALIZED:
             self.optim_state = self.impl.init(params)
 
         if inplace is None:
