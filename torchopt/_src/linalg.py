@@ -185,7 +185,7 @@ def cg(
         A: (tensor or tree of tensors or function)
             2D array or function that calculates the linear map (matrix-vector
             product) ``Ax`` when called like ``A(x)``. ``A`` must represent a
-            hermitian, positive definite matrix, and must return array(s) with the
+            Hermitian, positive definite matrix, and must return array(s) with the
             same structure and shape as its argument.
         b: (tensor or tree of tensors)
             Right hand side of the linear system representing a single vector. Can be

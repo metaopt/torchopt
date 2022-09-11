@@ -80,3 +80,5 @@ booleans
 subtrees
 optimality
 argnums
+matvec
+Hermitian

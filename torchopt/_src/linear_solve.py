@@ -104,7 +104,7 @@ def solve_normal_cg(
     """Solves the normal equation ``A^T A x = A^T b`` using conjugate gradient.
 
     This can be used to solve Ax=b using conjugate gradient when A is not
-    hermitian, positive definite.
+    Hermitian, positive definite.
 
     Args:
       matvec: product between ``A`` and a vector.
