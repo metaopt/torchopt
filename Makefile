@@ -14,7 +14,7 @@ PYTHON         ?= $(shell command -v python3 || command -v python)
 default: install
 
 install:
-	$(PYTHON) -m pip install .
+	$(PYTHON) -m pip install -vvv .
 
 install-editable:
 	$(PYTHON) -m pip install --upgrade pip

@@ -14,9 +14,13 @@ except ImportError:
     from setuptools.command.build_ext import build_ext
 
 HERE = pathlib.Path(__file__).absolute().parent
+VERSION_FILE = HERE / 'torchopt' / 'version.py'
 
-sys.path.insert(0, str(HERE / 'torchopt'))
-import version  # noqa
+try:
+    from torchopt import version  # noqa
+except ImportError:
+    sys.path.insert(0, str(VERSION_FILE.parent))
+    import version  # noqa
 
 
 class CMakeExtension(Extension):
@@ -81,10 +85,28 @@ class cmake_build_ext(build_ext):
             os.chdir(HERE)
 
 
-setup(
-    version=version.__version__,
-    package_data={'sharedlib': ['*.so', '*.pyd']},
-    include_package_data=True,
-    cmdclass={'build_ext': cmake_build_ext},
-    ext_modules=[CMakeExtension('torchopt._C', source_dir=HERE)],
-)
+VERSION_CONTENT = None
+if not version.__release__:
+    import re
+
+    VERSION_CONTENT = VERSION_FILE.read_text(encoding='UTF-8')
+    VERSION_FILE.write_text(
+        data=re.sub(
+            r"""__version__\s*=\s*('[^']+'|"[^"]+")""",
+            r"__version__ = '{}'".format(version.__version__),
+            string=VERSION_CONTENT,
+        ),
+        encoding='UTF-8',
+    )
+
+try:
+    setup(
+        version=version.__version__,
+        package_data={'sharedlib': ['*.so', '*.pyd']},
+        include_package_data=True,
+        cmdclass={'build_ext': cmake_build_ext},
+        ext_modules=[CMakeExtension('torchopt._C', source_dir=HERE)],
+    )
+finally:
+    if VERSION_CONTENT is not None:
+        VERSION_FILE.write_text(data=VERSION_CONTENT, encoding='UTF-8')
