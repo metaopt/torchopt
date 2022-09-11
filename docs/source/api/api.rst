@@ -147,21 +147,21 @@ Custom solvers
 
 ------
 
-.. Linear system solving
-.. =====================
+Linear system solving
+=====================
 
-.. .. currentmodule:: torchopt._src.linear_solve
+.. currentmodule:: torchopt._src.linear_solve
 
-.. .. autosummary::
+.. autosummary::
 
-..     solve_cg
-..     solve_normal_cg
+    solve_cg
+    solve_normal_cg
 
-.. Indirect solvers
-.. ~~~~~~~~~~~~~~~~
+Indirect solvers
+~~~~~~~~~~~~~~~~
 
-.. .. autofunction:: solve_cg
-.. .. autofunction:: solve_normal_cg
+.. autofunction:: solve_cg
+.. autofunction:: solve_normal_cg
 
 ------
 
