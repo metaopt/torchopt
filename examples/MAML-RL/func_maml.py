@@ -93,8 +93,8 @@ def a2c_loss(traj, fpolicy, params, value_coef):
     action_loss = -(advs.detach() * log_probs).mean()
     value_loss = advs.pow(2).mean()
 
-    a2c_loss = action_loss + value_coef * value_loss
-    return a2c_loss
+    loss = action_loss + value_coef * value_loss
+    return loss
 
 
 def evaluate(env, seed, task_num, fpolicy, params):
@@ -108,8 +108,7 @@ def evaluate(env, seed, task_num, fpolicy, params):
         ),
     )
     tasks = env.sample_tasks(num_tasks=task_num)
-    # policy_state_dict = torchopt.extract_state_dict(policy)
-    # optim_state_dict = torchopt.extract_state_dict(inner_opt)
+
     for idx in range(task_num):
         for _ in range(inner_iters):
             pre_trajs = sample_traj(env, tasks[idx], fpolicy, params)
@@ -122,8 +121,6 @@ def evaluate(env, seed, task_num, fpolicy, params):
         pre_reward_ls.append(np.sum(pre_trajs.rews, axis=0).mean())
         post_reward_ls.append(np.sum(post_trajs.rews, axis=0).mean())
 
-        # torchopt.recover_state_dict(policy, policy_state_dict)
-        # torchopt.recover_state_dict(inner_opt, optim_state_dict)
     return pre_reward_ls, post_reward_ls
 
 
@@ -156,8 +153,6 @@ def main(args):
 
         outer_opt.zero_grad()
 
-        # policy_state_dict = torchopt.extract_state_dict(policy)
-        # optim_state_dict = torchopt.extract_state_dict(inner_opt)
         param_orig = [p.detach().clone().requires_grad_() for p in params]
         _params = list(params)
         for idx in range(TASK_NUM):
@@ -170,8 +165,6 @@ def main(args):
             outer_loss = a2c_loss(post_trajs, fpolicy, _params, value_coef=0.5)
             outer_loss.backward()
             _params = [p.detach().clone().requires_grad_() for p in param_orig]
-            # torchopt.recover_state_dict(policy, policy_state_dict)
-            # torchopt.recover_state_dict(inner_opt, optim_state_dict)
 
             # Logging
             train_pre_reward_ls.append(np.sum(pre_trajs.rews, axis=0).mean())

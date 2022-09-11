@@ -99,8 +99,9 @@ def a2c_loss(traj, policy, value_coef):
     advs = lambda_returns - torch.squeeze(values, -1)
     action_loss = -(advs.detach() * log_probs).mean()
     value_loss = advs.pow(2).mean()
-    a2c_loss = action_loss + value_coef * value_loss
-    return a2c_loss
+
+    loss = action_loss + value_coef * value_loss
+    return loss
 
 
 def evaluate(env, seed, task_num, policy):
