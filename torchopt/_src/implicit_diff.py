@@ -345,7 +345,7 @@ def custom_root(
     optimality_fun: Callable,
     argnums: Union[int, Tuple[int, ...]] = 0,
     has_aux: bool = False,
-    solve: Callable = linear_solve.solve_normal_cg
+    solve: Callable = linear_solve.solve_normal_cg,
 ) -> Callable[[Callable], Callable]:
     """Decorator for adding implicit differentiation to a root solver.
 
@@ -370,9 +370,5 @@ def custom_root(
         assert 0 not in argnums
 
     return functools.partial(
-        _custom_root,
-        optimality_fun=optimality_fun,
-        solve=solve,
-        argnums=argnums,
-        has_aux=has_aux
+        _custom_root, optimality_fun=optimality_fun, solve=solve, argnums=argnums, has_aux=has_aux
     )
