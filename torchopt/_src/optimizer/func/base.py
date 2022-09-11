@@ -48,6 +48,9 @@ class FuncOptimizer:  # pylint: disable=too-few-public-methods
             inplace (optional): (default: :data:`False`)
                 The default value of ``inplace`` for each optimization update.
         """
+        if not isinstance(impl, GradientTransformation):
+            raise TypeError(f'{impl} (type: {type(impl).__name__}) is not a GradientTransformation')
+
         self.impl = impl
         self.optim_state = self.__NOT_INITIALIZED
         self.inplace = bool(inplace)
