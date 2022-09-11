@@ -24,7 +24,15 @@ from torchopt._src.update import apply_updates
 
 # mypy: ignore-errors
 class FuncOptimizer:  # pylint: disable=too-few-public-methods
-    """A high-level functional optimizer base class."""
+    """A wrapper class to hold the functional optimizer.
+    It makes it easier to maintain the optimizer states.
+
+    See Also:
+        - The functional Adam optimizer: :func:`torchopt.adam`.
+        - The functional AdamW optimizer: :func:`torchopt.adamw`.
+        - The functional RMSprop optimizer: :func:`torchopt.rmsprop`.
+        - The functional SGD optimizer: :func:`torchopt.sgd`.
+    """
 
     def __init__(self, impl: GradientTransformation, *, inplace: bool = False) -> None:
         """The :meth:`init` function.
