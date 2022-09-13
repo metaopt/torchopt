@@ -354,7 +354,10 @@ def custom_root(
             An equation function, ``optimality_fun(params, *args)``. The invariant is
             ``optimality_fun(sol, *args) == 0`` at the solution / root of ``sol``.
         argnums: (int or tuple of int, default: :const:`0`)
-            Specifies arguments to compute gradients with respect to.
+            Specifies arguments to compute gradients with respect to. The ``argnums`` can be an
+            integer or a tuple of integers, which respect to the zero-based indices of the arguments
+            of the ``optimality_fun(params, *args)`` function. The argument ``params`` is included
+            for the counting, while it is indexed as ``argnums=0``.
         has_aux: (default: :data:`False`)
             Whether the decorated solver function returns auxiliary data.
         solve: (callable, optional, default: :func:`linear_solve.solve_normal_cg`)
