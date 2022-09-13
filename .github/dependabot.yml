@@ -12,8 +12,10 @@ updates:
     allow:
       # Allow all updates for
       # PyTorch and any packages starting "torch"
-      - dependency-name: "torch*"
-        dependency-type: "all"
+      # - dependency-name: "torch*"
+      #   dependency-type: "all"
+      # Allow both direct and indirect updates for all packages
+      - dependency-type: "all"
     # Include a list of updated dependencies
     # with a prefix determined by the dependency group
     commit-message:
