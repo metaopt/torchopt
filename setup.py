@@ -16,11 +16,8 @@ except ImportError:
 HERE = pathlib.Path(__file__).absolute().parent
 VERSION_FILE = HERE / 'torchopt' / 'version.py'
 
-try:
-    from torchopt import version  # noqa
-except ImportError:
-    sys.path.insert(0, str(VERSION_FILE.parent))
-    import version  # noqa
+sys.path.insert(0, str(VERSION_FILE.parent))
+import version  # noqa
 
 
 class CMakeExtension(Extension):
@@ -93,7 +90,7 @@ if not version.__release__:
     VERSION_FILE.write_text(
         data=re.sub(
             r"""__version__\s*=\s*('[^']+'|"[^"]+")""",
-            r"__version__ = '{}'".format(version.__version__),
+            f"__version__ = '{version.__version__}'",
             string=VERSION_CONTENT,
         ),
         encoding='UTF-8',
