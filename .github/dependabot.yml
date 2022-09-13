@@ -11,7 +11,7 @@ updates:
       interval: "weekly"
     allow:
       # Allow all updates for
-      # Django and any packages starting "torch"
+      # PyTorch and any packages starting "torch"
       - dependency-name: "torch*"
         dependency-type: "all"
     # Include a list of updated dependencies
