@@ -333,7 +333,7 @@ def _scale_by_adam(
         else:
 
             def f(g, m, v):
-                return m.div(v.add(eps_root).sqrt_().add_(eps)) if g is not None else None
+                return m.div(v.add(eps_root).sqrt_().add(eps)) if g is not None else None
 
         updates = tree_map(f, updates, mu_hat, nu_hat)
         return updates, ScaleByAdamState(mu=mu, nu=nu, count=count_inc)
