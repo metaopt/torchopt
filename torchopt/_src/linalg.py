@@ -43,8 +43,8 @@ from torchopt._src.utils import pytree
 
 def _inner_product_kernel(x: torch.Tensor, y: torch.Tensor) -> float:
     """Computes (x.conj() * y).real."""
-    x = x.view(-1)
-    y = y.view(-1)
+    x = x.reshape(-1)
+    y = y.reshape(-1)
     prod = torch.dot(x.real, y.real).item()
     if x.is_complex() or y.is_complex():
         prod += torch.dot(x.imag, y.imag).item()
