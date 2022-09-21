@@ -13,7 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 
-from typing import Dict, List, NamedTuple, Union
+from typing import Dict, List, NamedTuple, Optional, Union
 
 import optree as pytree
 import torch
@@ -113,9 +113,13 @@ def extract_state_dict(mod, copy=False, *, with_buffer=True, enable_visual=False
                 return t.clone().detach_().requires_grad_(requires_grad)
             return t
 
-        def _update(term):
+        def _update(term: Dict[str, Optional[torch.Tensor]]):
             if len(term) != 0:
-                params.append({k: get_variable(v) for k, v in term.items()})
+                params.append(
+                    type(term)(
+                        (k, get_variable(v)) for k, v in term.items() if isinstance(v, torch.Tensor)
+                    )
+                )
 
         # pylint: disable=protected-access
         _update(mod._parameters)
@@ -150,9 +154,11 @@ def _extract_container(mod, with_buffer=True):
     if isinstance(mod, nn.Module):
         containers = []
 
-        def _update(term):
+        def _update(term: Dict[str, Optional[torch.Tensor]]) -> Dict[str, torch.Tensor]:
             if len(term) != 0:
-                containers.append(term)
+                containers.append(
+                    type(term)((k, v) for k, v in term.items() if isinstance(v, torch.Tensor))
+                )
 
         # pylint: disable=protected-access
         _update(mod._parameters)
