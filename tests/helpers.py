@@ -107,7 +107,7 @@ def get_models(
         nn.Linear(
             in_features=MODEL_HIDDEN_SIZE,
             out_features=MODEL_NUM_CLASSES,
-            bias=True,
+            bias=False,
         ),
         nn.Softmax(dim=-1),
     ).to(dtype=dtype)
