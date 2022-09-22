@@ -44,31 +44,31 @@ We provide a `conda <https://github.com/conda/conda>`_ environment recipe to ins
 
 
 .. toctree::
-   :caption: Getting Started
-   :maxdepth: 1
+    :caption: Getting Started
+    :maxdepth: 1
 
-   torchopt101/torchopt-101.rst
-
-
-.. toctree::
-   :caption: Examples
-   :maxdepth: 1
-
-   examples/MAML.rst
+    torchopt101/torchopt-101.rst
 
 
 .. toctree::
-   :caption: Developer Documentation
-   :maxdepth: 1
+    :caption: Examples
+    :maxdepth: 1
 
-   developer/contributing.rst
-   developer/contributor.rst
+    examples/MAML.rst
+
 
 .. toctree::
-   :caption: API Documentation
-   :maxdepth: 2
+    :caption: Developer Documentation
+    :maxdepth: 1
 
-   api/api.rst
+    developer/contributing.rst
+    developer/contributor.rst
+
+.. toctree::
+    :caption: API Documentation
+    :maxdepth: 2
+
+    api/api.rst
 
 The Team
 --------
@@ -105,14 +105,14 @@ If you find TorchOpt useful, please cite it in your publications.
 
 .. code-block:: bibtex
 
-   @software{TorchOpt,
-     author = {Jie Ren and Xidong Feng and Bo Liu and Xuehai Pan and Luo Mai and Yaodong Yang},
-     title = {TorchOpt},
-     year = {2022},
-     publisher = {GitHub},
-     journal = {GitHub repository},
-     howpublished = {\url{https://github.com/metaopt/torchopt}},
-   }
+    @software{TorchOpt,
+      author       = {Jie Ren and Xidong Feng and Bo Liu and Xuehai Pan and Luo Mai and Yaodong Yang},
+      title        = {TorchOpt},
+      year         = {2022},
+      publisher    = {GitHub},
+      journal      = {GitHub repository},
+      howpublished = {\url{https://github.com/metaopt/torchopt}}
+    }
 
 
 Indices and tables

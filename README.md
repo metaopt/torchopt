@@ -296,11 +296,11 @@ If you find TorchOpt useful, please cite it in your publications.
 
 ```bibtex
 @software{TorchOpt,
-  author = {Jie Ren and Xidong Feng and Bo Liu and Xuehai Pan and Luo Mai and Yaodong Yang},
-  title = {TorchOpt},
-  year = {2022},
-  publisher = {GitHub},
-  journal = {GitHub repository},
-  howpublished = {\url{https://github.com/metaopt/torchopt}},
+  author       = {Jie Ren and Xidong Feng and Bo Liu and Xuehai Pan and Luo Mai and Yaodong Yang},
+  title        = {TorchOpt},
+  year         = {2022},
+  publisher    = {GitHub},
+  journal      = {GitHub repository},
+  howpublished = {\url{https://github.com/metaopt/torchopt}}
 }
 ```
