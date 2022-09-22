@@ -60,6 +60,7 @@ autograd
 attrs
 GradientTransformations
 args
+kwargs
 chainable
 adam
 Adam
