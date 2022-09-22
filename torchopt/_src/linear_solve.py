@@ -32,10 +32,10 @@
 
 # pylint: disable=invalid-name
 
+import functools
 from typing import Callable, Optional
 
 import functorch
-import functools
 
 from torchopt._src import linalg
 from torchopt._src.typing import TensorTree
@@ -136,4 +136,5 @@ def _solve_normal_cg(
 
 
 def solve_normal_cg(**kwargs):
+    """Wrapper for `solve_normal_cg`."""
     return functools.partial(_solve_normal_cg, **kwargs)
