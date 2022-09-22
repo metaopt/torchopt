@@ -328,12 +328,12 @@ def _scale_by_adam(
         if inplace:
 
             def f(g, m, v):
-                return m.div_(v.add_(eps_root).sqrt_().add_(eps)) if g is not None else None
+                return m.div_(v.add_(eps_root).sqrt_().add(eps)) if g is not None else None
 
         else:
 
             def f(g, m, v):
-                return m.div(v.add(eps_root).sqrt_().add_(eps)) if g is not None else None
+                return m.div(v.add(eps_root).sqrt_().add(eps)) if g is not None else None
 
         updates = tree_map(f, updates, mu_hat, nu_hat)
         return updates, ScaleByAdamState(mu=mu, nu=nu, count=count_inc)
@@ -642,7 +642,7 @@ def _scale_by_rms(
         else:
 
             def f(g, n):
-                return g.div(n.sqrt().add_(eps))
+                return g.div(n.sqrt().add(eps))
 
         updates = tree_map(f, updates, nu)
         return updates, ScaleByRmsState(nu=nu)
@@ -719,12 +719,12 @@ def _scale_by_stddev(
         if inplace:
 
             def f(g, m, n):
-                return g.div_(n.addcmul(m, m, value=-1.0).sqrt_().add_(eps))
+                return g.div_(n.addcmul(m, m, value=-1.0).sqrt_().add(eps))
 
         else:
 
             def f(g, m, n):
-                return g.div(n.addcmul(m, m, value=-1.0).sqrt_().add_(eps))
+                return g.div(n.addcmul(m, m, value=-1.0).sqrt_().add(eps))
 
         updates = tree_map(f, updates, mu, nu)
         return updates, ScaleByRStdDevState(mu=mu, nu=nu)

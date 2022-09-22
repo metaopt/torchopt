@@ -22,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fix `None` in module containers by [@XuehaiPan](https://github.com/XuehaiPan)
+- Fix backward errors when using inplace `sqrt_` and `add_` by [@Benjamin-eecs](https://github.com/Benjamin-eecs) and [@JieRen98](https://github.com/JieRen98) and [@XuehaiPan](https://github.com/XuehaiPan)
 - Fix LR scheduling by [@XuehaiPan](https://github.com/XuehaiPan) in [#76](https://github.com/metaopt/torchopt/pull/76).
 - Fix the step count tensor (`shape=(1,)`) can change the shape of the scalar updates (`shape=()`) by [@XuehaiPan](https://github.com/XuehaiPan) in [#71](https://github.com/metaopt/torchopt/pull/71).
 

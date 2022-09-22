@@ -163,7 +163,7 @@ def _split_tensor_and_others(
     is_tensor_mask = []
     for item in flattened:
         if torch.is_tensor(item):
-            tensors.append(item)
+            tensors.append(item.data)
             is_tensor_mask.append(True)
         else:
             non_tensors.append(item)
