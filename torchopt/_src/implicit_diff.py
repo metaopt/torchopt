@@ -39,7 +39,7 @@ def _root_vjp(
     cotangent: Any,
     res_is_tensor: bool,
     argnums: Tuple[int, ...],
-    solve: Callable = linear_solve.solve_normal_cg,
+    solve: Callable = linear_solve.solve_normal_cg(),
 ) -> Tuple[Any, ...]:
     def fun_sol(sol):
         # We close over the arguments.
@@ -345,7 +345,7 @@ def custom_root(
     optimality_fun: Callable,
     argnums: Union[int, Tuple[int, ...]] = 0,
     has_aux: bool = False,
-    solve: Callable = linear_solve.solve_normal_cg,
+    solve: Callable = linear_solve.solve_normal_cg(),
     reference_signature: Optional[Union[inspect.Signature, Callable]] = None,
 ) -> Callable[[Callable], Callable]:
     """Decorator for adding implicit differentiation to a root solver.

@@ -32,6 +32,7 @@
 
 # pylint: disable=invalid-name
 
+import functools
 from typing import Callable, Optional
 
 import functorch
@@ -94,7 +95,7 @@ def _normal_matvec(matvec: Callable[[TensorTree], TensorTree], x: TensorTree) ->
     return vjp(matvec_x)[0]
 
 
-def solve_normal_cg(
+def _solve_normal_cg(
     matvec: Callable[[TensorTree], TensorTree],
     b: TensorTree,
     ridge: Optional[float] = None,
@@ -132,3 +133,8 @@ def solve_normal_cg(
     Ab = rmatvec(b)  # A.T b
 
     return linalg.cg(normal_matvec, Ab, x0=init, **kwargs)
+
+
+def solve_normal_cg(**kwargs):
+    """Wrapper for `solve_normal_cg`."""
+    return functools.partial(_solve_normal_cg, **kwargs)
