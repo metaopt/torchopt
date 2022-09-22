@@ -234,8 +234,7 @@ def _custom_root(
                 ctx.args_is_tensor_mask = args_is_tensor_mask
                 ctx.args_non_tensors = args_non_tensors
                 if has_aux:
-                    aux = res[1]
-                    res = res[0]
+                    res, aux = res
                     if torch.is_tensor(res):
                         ctx.save_for_backward(res, *args_tensors)
                     else:
@@ -353,18 +352,21 @@ def custom_root(
 
     .. code-block:: python
 
-        def optimality_fun(params, ...):
+        def optimality_fun(optimal_params, ...):
             ...
+            return residual
 
         @custom_root(optimality_fun, argnums=argnums)
         def solver_fun(params, arg1, arg2, ...):
             ...
             return optimal_params
 
-    The first argument to ``optimality_fun`` and ``solver_fun`` is preserved as ``params``.
+    The first argument to ``optimality_fun`` and ``solver_fun`` is preserved as the parameter input.
     The ``argnums`` argument refers to the indices of the variables in ``solver_fun``'s signature.
     For example, setting ``argnums=(1, 2)`` will compute the gradient of ``optimal_params`` with
-    respect to ``arg1`` and ``arg2`` in the above example.
+    respect to ``arg1`` and ``arg2`` in the above snippet. Note that, except the first argument, the
+    keyword arguments of the ``optimality_fun`` should be a subset of the ones of ``solver_fun``.
+    **In best practice, the ``optimality_fun`` should have the same signature as ``solver_fun``.**
 
     Args:
         optimality_fun: (callable)
