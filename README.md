@@ -273,8 +273,8 @@ make install-editable  # or run `pip3 install --no-build-isolation --editable .`
 
 ## Future Plan
 
-- [x] CPU-accelerated optimizer
-- [ ] Support general implicit differentiation with functional programing
+- [X] CPU-accelerated optimizer
+- [X] Support general implicit differentiation with functional programing
 - [X] Support more optimizers such as AdamW, RMSProp
 - [ ] Zero order optimization
 - [ ] Distributed optimizers
