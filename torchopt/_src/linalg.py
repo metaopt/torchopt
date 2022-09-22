@@ -183,13 +183,12 @@ def cg(
 
     Args:
         A: (tensor or tree of tensors or function)
-            2D array or function that calculates the linear map (matrix-vector
-            product) ``Ax`` when called like ``A(x)``. ``A`` must represent a
-            Hermitian, positive definite matrix, and must return array(s) with the
-            same structure and shape as its argument.
+            2D array or function that calculates the linear map (matrix-vector product) ``Ax`` when
+            called like ``A(x)``. ``A`` must represent a Hermitian, positive definite matrix, and
+            must return array(s) with the same structure and shape as its argument.
         b: (tensor or tree of tensors)
-            Right hand side of the linear system representing a single vector. Can be
-            stored as an array or Python container of array(s) with any shape.
+            Right hand side of the linear system representing a single vector. Can be stored as an
+            array or Python container of array(s) with any shape.
         x0: (tensor or tree of tensors, optional)
             Starting guess for the solution. Must have the same structure as ``b``.
         rtol: (float, optional, default: :const:`1e-5`)
