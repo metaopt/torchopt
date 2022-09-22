@@ -349,6 +349,23 @@ def custom_root(
 ) -> Callable[[Callable], Callable]:
     """Decorator for adding implicit differentiation to a root solver.
 
+    This wrapper should be used as a decorator:
+
+    .. code-block:: python
+
+        def optimality_fun(params, ...):
+            ...
+
+        @custom_root(optimality_fun, argnums=argnums)
+        def solver_fun(params, arg1, arg2, ...):
+            ...
+            return optimal_params
+
+    The first argument to ``optimality_fun`` and ``solver_fun`` is preserved as ``params``.
+    The ``argnums`` argument refers to the indices of the variables in ``solver_fun``'s signature.
+    For example, setting ``argnums=(1, 2)`` will compute the gradient of ``optimal_params`` with
+    respect to ``arg1`` and ``arg2`` in the above example.
+
     Args:
         optimality_fun: (callable)
             An equation function, ``optimality_fun(params, *args)``. The invariant is
@@ -356,7 +373,7 @@ def custom_root(
         argnums: (int or tuple of int, default: :const:`0`)
             Specifies arguments to compute gradients with respect to. The ``argnums`` can be an
             integer or a tuple of integers, which respect to the zero-based indices of the arguments
-            of the ``optimality_fun(params, *args)`` function. The argument ``params`` is included
+            of the ``solver_fun(params, *args)`` function. The argument ``params`` is included
             for the counting, while it is indexed as ``argnums=0``.
         has_aux: (default: :data:`False`)
             Whether the decorated solver function returns auxiliary data.
