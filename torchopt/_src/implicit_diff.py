@@ -237,10 +237,12 @@ def _custom_root(
                     res, aux = res
                     if torch.is_tensor(res):
                         ctx.save_for_backward(res, *args_tensors)
-                    else:
-                        ctx.save_for_backward(*res, *args_tensors)
-                    ctx.res_is_tensor = torch.is_tensor(res)
-                    return res + (aux,)
+                        ctx.res_is_tensor = True
+                        return (res, aux, True, torch.tensor)
+
+                    ctx.save_for_backward(*res, *args_tensors)
+                    ctx.res_is_tensor = False
+                    return (*res, aux, False, type(res))
 
                 if torch.is_tensor(res):
                     ctx.save_for_backward(res, *args_tensors)
@@ -252,7 +254,7 @@ def _custom_root(
             @staticmethod
             def backward(ctx, *cotangent):  # pylint: disable=too-many-locals
                 if has_aux:
-                    cotangent = cotangent[:-1]
+                    cotangent = cotangent[:-3]
 
                 saved_tensors = ctx.saved_tensors
                 res, args_tensors = saved_tensors[: len(cotangent)], saved_tensors[len(cotangent) :]
@@ -334,7 +336,11 @@ def _custom_root(
 
         result = make_custom_vjp_solver_fun(solver_fun, keys, args_sign).apply(*flatten_args, *vals)
         if has_aux:
-            return result[:-1], result[-1]
+            *res, aux, res_is_tensor, res_type = result
+            if res_is_tensor:
+                return res[0], aux
+            res = res_type(res)
+            return res, aux
         return result
 
     return wrapped_solver_fun
