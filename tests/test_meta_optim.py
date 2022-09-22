@@ -13,16 +13,11 @@
 # limitations under the License.
 # ==============================================================================
 
-import torch
-
 import helpers
 import torchopt
-from torchopt import pytree
 
 
-def test_no_none_in_containers():
+def test_filter_nones_in_params():
     model = helpers.get_models()[0]
 
     meta_adam = torchopt.MetaAdam(model)
-    leaves = pytree.tree_leaves(meta_adam.param_containers_groups)
-    assert all(map(lambda t: isinstance(t, torch.Tensor), leaves))

@@ -13,7 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 
-from typing import Dict, List, NamedTuple, Optional, Union
+from typing import Dict, List, NamedTuple, Union
 
 import optree as pytree
 import torch
@@ -113,7 +113,7 @@ def extract_state_dict(mod, copy=False, *, with_buffer=True, enable_visual=False
                 return t.clone().detach_().requires_grad_(requires_grad)
             return t
 
-        def _update(term: Dict[str, Optional[torch.Tensor]]):
+        def update_container(term):
             if len(term) != 0:
                 params.append(
                     type(term)(
@@ -122,15 +122,15 @@ def extract_state_dict(mod, copy=False, *, with_buffer=True, enable_visual=False
                 )
 
         # pylint: disable=protected-access
-        _update(mod._parameters)
+        update_container(mod._parameters)
         if with_buffer:
-            _update(mod._buffers)
+            update_container(mod._buffers)
         for module in mod.modules():
             if module is mod:
                 continue
-            _update(module._parameters)
+            update_container(module._parameters)
             if with_buffer:
-                _update(module._buffers)
+                update_container(module._buffers)
         return _ModuleState(params=tuple(params), visual_contents=visual_contents)
 
     elif isinstance(mod, MetaOptimizer):
@@ -154,22 +154,20 @@ def _extract_container(mod, with_buffer=True):
     if isinstance(mod, nn.Module):
         containers = []
 
-        def _update(term: Dict[str, Optional[torch.Tensor]]) -> Dict[str, torch.Tensor]:
+        def update_container(term):
             if len(term) != 0:
-                containers.append(
-                    type(term)((k, v) for k, v in term.items() if isinstance(v, torch.Tensor))
-                )
+                containers.append(term)  # we need references to original dicts
 
         # pylint: disable=protected-access
-        _update(mod._parameters)
+        update_container(mod._parameters)
         if with_buffer:
-            _update(mod._buffers)
+            update_container(mod._buffers)
         for module in mod.modules():
             if module is mod:
                 continue
-            _update(module._parameters)
+            update_container(module._parameters)
             if with_buffer:
-                _update(module._buffers)
+                update_container(module._buffers)
         return tuple(containers)
 
     raise RuntimeError(f'Unexpected class of {mod}')
