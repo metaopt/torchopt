@@ -32,6 +32,7 @@
 
 # pylint: disable=invalid-name
 
+import functools
 from typing import Callable, Optional
 
 import functorch
@@ -94,7 +95,7 @@ def _normal_matvec(matvec: Callable[[TensorTree], TensorTree], x: TensorTree) ->
     return vjp(matvec_x)[0]
 
 
-def solve_normal_cg(
+def _solve_normal_cg(
     matvec: Callable[[TensorTree], TensorTree],
     b: TensorTree,
     ridge: Optional[float] = None,
@@ -103,8 +104,8 @@ def solve_normal_cg(
 ) -> TensorTree:
     """Solves the normal equation ``A^T A x = A^T b`` using conjugate gradient.
 
-    This can be used to solve Ax=b using conjugate gradient when A is not
-    hermitian, positive definite.
+    This can be used to solve ``A x = b`` using conjugate gradient when ``A`` is not Hermitian,
+    positive definite.
 
     Args:
       matvec: product between ``A`` and a vector.
@@ -132,3 +133,8 @@ def solve_normal_cg(
     Ab = rmatvec(b)  # A.T b
 
     return linalg.cg(normal_matvec, Ab, x0=init, **kwargs)
+
+
+def solve_normal_cg(**kwargs):
+    """Wrapper for :func:`solve_normal_cg`."""
+    return functools.partial(_solve_normal_cg, **kwargs)

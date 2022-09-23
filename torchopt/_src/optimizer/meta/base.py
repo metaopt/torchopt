@@ -46,7 +46,7 @@ class MetaOptimizer:
 
         self.add_param_group(net)
 
-    def step(self, loss: torch.Tensor):
+    def step(self, loss: torch.Tensor):  # pylint: disable=too-many-locals
         """Compute the gradients of the loss to the network parameters and update network parameters.
 
         Graph of the derivative will be constructed, allowing to compute higher order derivative
@@ -61,8 +61,8 @@ class MetaOptimizer:
         for i, (param_container, new_state) in enumerate(
             zip(self.param_containers_groups, self.state_groups)
         ):
-            flattened_params, container_treedef = pytree.tree_flatten(param_container)
-            flattened_params = tuple(flattened_params)
+            flattened_params_or_none, container_treedef = pytree.tree_flatten(param_container)
+            flattened_params = tuple(filter(torch.is_tensor, flattened_params_or_none))
             grads = torch.autograd.grad(
                 loss, flattened_params, create_graph=True, allow_unused=True
             )
@@ -74,7 +74,14 @@ class MetaOptimizer:
             )
             self.state_groups[i] = new_state
             flattened_new_params = apply_updates(flattened_params, updates, inplace=False)
-            new_params = pytree.tree_unflatten(container_treedef, flattened_new_params)
+            new_params_iter = iter(flattened_new_params)
+            flattened_new_params_or_none = [
+                next(new_params_iter)
+                if isinstance(old_param_or_none, torch.Tensor)
+                else old_param_or_none
+                for old_param_or_none in flattened_params_or_none
+            ]
+            new_params = pytree.tree_unflatten(container_treedef, flattened_new_params_or_none)
             for container, new_param in zip(param_container, new_params):
                 container.update(new_param)
 
@@ -84,7 +91,7 @@ class MetaOptimizer:
         from torchopt._src.utils import _extract_container
 
         net_container = _extract_container(net, with_buffer=False)
-        flattened_params = tuple(pytree.tree_leaves(net_container))
+        flattened_params = tuple(filter(torch.is_tensor, pytree.tree_leaves(net_container)))
         optimizer_state = self.impl.init(flattened_params)
         self.param_containers_groups.append(net_container)
         self.state_groups.append(optimizer_state)

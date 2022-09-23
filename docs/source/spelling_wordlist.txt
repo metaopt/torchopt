@@ -60,6 +60,7 @@ autograd
 attrs
 GradientTransformations
 args
+kwargs
 chainable
 adam
 Adam
@@ -78,3 +79,7 @@ Loshchilov
 pytree
 booleans
 subtrees
+optimality
+argnums
+matvec
+Hermitian

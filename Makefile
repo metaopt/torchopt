@@ -135,6 +135,7 @@ docs: docs-install
 	$(PYTHON) -m sphinx_autobuild --watch $(PROJECT_PATH) --open-browser docs/source docs/build
 
 spelling: docs-install
+	make -C docs clean
 	make -C docs spelling SPHINXOPTS="-W"
 
 clean-docs:

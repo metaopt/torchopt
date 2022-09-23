@@ -39,7 +39,7 @@ def _root_vjp(
     cotangent: Any,
     res_is_tensor: bool,
     argnums: Tuple[int, ...],
-    solve: Callable = linear_solve.solve_normal_cg,
+    solve: Callable = linear_solve.solve_normal_cg(),
 ) -> Tuple[Any, ...]:
     def fun_sol(sol):
         # We close over the arguments.
@@ -234,14 +234,15 @@ def _custom_root(
                 ctx.args_is_tensor_mask = args_is_tensor_mask
                 ctx.args_non_tensors = args_non_tensors
                 if has_aux:
-                    aux = res[1]
-                    res = res[0]
+                    res, aux = res
                     if torch.is_tensor(res):
                         ctx.save_for_backward(res, *args_tensors)
-                    else:
-                        ctx.save_for_backward(*res, *args_tensors)
-                    ctx.res_is_tensor = torch.is_tensor(res)
-                    return res + (aux,)
+                        ctx.res_is_tensor = True
+                        return (res, aux, True, torch.tensor)
+
+                    ctx.save_for_backward(*res, *args_tensors)
+                    ctx.res_is_tensor = False
+                    return (*res, aux, False, type(res))
 
                 if torch.is_tensor(res):
                     ctx.save_for_backward(res, *args_tensors)
@@ -253,7 +254,7 @@ def _custom_root(
             @staticmethod
             def backward(ctx, *cotangent):  # pylint: disable=too-many-locals
                 if has_aux:
-                    cotangent = cotangent[:-1]
+                    cotangent = cotangent[:-3]
 
                 saved_tensors = ctx.saved_tensors
                 res, args_tensors = saved_tensors[: len(cotangent)], saved_tensors[len(cotangent) :]
@@ -335,7 +336,11 @@ def _custom_root(
 
         result = make_custom_vjp_solver_fun(solver_fun, keys, args_sign).apply(*flatten_args, *vals)
         if has_aux:
-            return result[:-1], result[-1]
+            *res, aux, res_is_tensor, res_type = result
+            if res_is_tensor:
+                return res[0], aux
+            res = res_type(res)
+            return res, aux
         return result
 
     return wrapped_solver_fun
@@ -345,28 +350,43 @@ def custom_root(
     optimality_fun: Callable,
     argnums: Union[int, Tuple[int, ...]] = 0,
     has_aux: bool = False,
-    solve: Callable = linear_solve.solve_normal_cg,
-    reference_signature: Optional[Union[inspect.Signature, Callable]] = None,
+    solve: Callable = linear_solve.solve_normal_cg(),
 ) -> Callable[[Callable], Callable]:
     """Decorator for adding implicit differentiation to a root solver.
+
+    This wrapper should be used as a decorator:
+
+    .. code-block:: python
+
+        def optimality_fun(optimal_params, ...):
+            ...
+            return residual
+
+        @custom_root(optimality_fun, argnums=argnums)
+        def solver_fun(params, arg1, arg2, ...):
+            ...
+            return optimal_params
+
+    The first argument to ``optimality_fun`` and ``solver_fun`` is preserved as the parameter input.
+    The ``argnums`` argument refers to the indices of the variables in ``solver_fun``'s signature.
+    For example, setting ``argnums=(1, 2)`` will compute the gradient of ``optimal_params`` with
+    respect to ``arg1`` and ``arg2`` in the above snippet. Note that, except the first argument, the
+    keyword arguments of the ``optimality_fun`` should be a subset of the ones of ``solver_fun``.
+    **In best practice, the ``optimality_fun`` should have the same signature as ``solver_fun``.**
 
     Args:
         optimality_fun: (callable)
             An equation function, ``optimality_fun(params, *args)``. The invariant is
             ``optimality_fun(sol, *args) == 0`` at the solution / root of ``sol``.
         argnums: (int or tuple of int, default: :const:`0`)
-            Specifies arguments to compute gradients with respect to.
+            Specifies arguments to compute gradients with respect to. The ``argnums`` can be an
+            integer or a tuple of integers, which respect to the zero-based indices of the arguments
+            of the ``solver_fun(params, *args)`` function. The argument ``params`` is included
+            for the counting, while it is indexed as ``argnums=0``.
         has_aux: (default: :data:`False`)
             Whether the decorated solver function returns auxiliary data.
         solve: (callable, optional, default: :func:`linear_solve.solve_normal_cg`)
             a linear solver of the form ``solve(matvec, b)``.
-        reference_signature: (function signature, optional)
-            Function signature (i.e. arguments and keyword arguments), with which the solver and
-            optimality functions are expected to agree. Defaults to ``optimality_fun``. It is
-            required that solver and optimality functions share the same input signature, but both
-            might be defined in such a way that the signature correspondence is ambiguous (e.g. if
-            both accept catch-all ``**kwargs``). To satisfy ``custom_root``'s requirement, any
-            function with an unambiguous signature can be provided here.
 
     Returns:
         A solver function decorator, i.e., ``custom_root(optimality_fun)(solver_fun)``.
@@ -383,5 +403,4 @@ def custom_root(
         solve=solve,
         argnums=argnums,
         has_aux=has_aux,
-        reference_signature=reference_signature,
     )
