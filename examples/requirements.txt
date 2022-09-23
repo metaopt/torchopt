@@ -5,7 +5,7 @@ functorch >= 0.2
 
 --requirement ../requirements.txt
 
-gym >= 0.20.0, < 0.24.0a0
+gym >= 0.20.0, < 0.27.0
 matplotlib
 pandas
 seaborn
