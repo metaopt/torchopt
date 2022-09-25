@@ -55,7 +55,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.7 - 3.10"
+          python-version: "3.7 - 3.10" # sync with requires-python in pyproject.toml
           update-environment: true
 
       - name: Set __release__
@@ -95,7 +95,7 @@ jobs:
         id: py
         uses: actions/setup-python@v4
         with:
-          python-version: "3.7 - 3.10"
+          python-version: "3.7 - 3.10" # sync with requires-python in pyproject.toml
           update-environment: true
 
       - name: Set __release__
@@ -107,7 +107,7 @@ jobs:
         run: python setup.py --version
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.10.0
+        uses: pypa/cibuildwheel@v2.10.2
         with:
           package-dir: .
           output-dir: wheelhouse
@@ -138,7 +138,7 @@ jobs:
         uses: actions/setup-python@v4
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          python-version: "3.7 - 3.10"
+          python-version: "3.7 - 3.10" # sync with requires-python in pyproject.toml
           update-environment: true
 
       - name: Check consistency between the package version and release tag

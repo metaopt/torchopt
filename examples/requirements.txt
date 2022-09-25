@@ -12,3 +12,4 @@ seaborn
 torchviz
 torchrl
 pillow
+setproctitle

@@ -134,7 +134,7 @@ Differentiable Meta-RMSProp Optimizer
 Implicit differentiation
 ========================
 
-.. currentmodule:: torchopt._src.implicit_diff
+.. currentmodule:: torchopt.implicit_diff
 
 .. autosummary::
 
@@ -150,7 +150,7 @@ Custom solvers
 Linear system solving
 =====================
 
-.. currentmodule:: torchopt._src.linear_solve
+.. currentmodule:: torchopt.linear_solve
 
 .. autosummary::
 
@@ -168,7 +168,7 @@ Indirect solvers
 Optimizer Hooks
 ===============
 
-.. currentmodule:: torchopt._src.hook
+.. currentmodule:: torchopt.hook
 
 .. autosummary::
 
@@ -186,7 +186,7 @@ Hook
 Gradient Transformation
 =======================
 
-.. currentmodule:: torchopt._src.clip
+.. currentmodule:: torchopt.clip
 
 .. autosummary::
 
@@ -200,7 +200,7 @@ Transforms
 Optimizer Schedules
 ===================
 
-.. currentmodule:: torchopt._src.schedule
+.. currentmodule:: torchopt.schedule
 
 .. autosummary::
 
@@ -231,7 +231,7 @@ Apply Updates
 Combining Optimizers
 ====================
 
-.. currentmodule:: torchopt._src.combine
+.. currentmodule:: torchopt.combine
 
 .. autosummary::
 
@@ -273,7 +273,7 @@ Stop Gradient
 Visualizing Gradient Flow
 =========================
 
-.. currentmodule:: torchopt._src.visual
+.. currentmodule:: torchopt.visual
 
 .. autosummary::
 

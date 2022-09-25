@@ -83,3 +83,4 @@ optimality
 argnums
 matvec
 Hermitian
+deepcopy

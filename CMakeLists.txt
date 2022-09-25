@@ -178,7 +178,7 @@ if(NOT DEFINED PYTHON_INCLUDE_DIR)
     message(STATUS "Auto detecting Python include directory...")
     system(
         STRIP OUTPUT_VARIABLE PYTHON_INCLUDE_DIR
-        COMMAND "${PYTHON_EXECUTABLE}" -c "print(__import__('sysconfig').get_path('include'))"
+        COMMAND "${PYTHON_EXECUTABLE}" -c "print(__import__('sysconfig').get_path('platinclude'))"
     )
 endif()
 
@@ -191,7 +191,7 @@ endif()
 
 system(
     STRIP OUTPUT_VARIABLE PYTHON_SITE_PACKAGES
-    COMMAND "${PYTHON_EXECUTABLE}" -c "print(__import__('sysconfig') .get_path('purelib'))"
+    COMMAND "${PYTHON_EXECUTABLE}" -c "print(__import__('sysconfig').get_path('purelib'))"
 )
 message(STATUS "Detected Python site packages: \"${PYTHON_SITE_PACKAGES}\"")
 

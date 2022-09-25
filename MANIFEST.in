@@ -1,4 +1,5 @@
 recursive-include torchopt *.pyi
+recursive-include torchopt *.typed
 include LICENSE
 
 # Include source files in sdist

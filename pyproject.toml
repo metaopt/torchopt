@@ -1,6 +1,7 @@
 # Package ######################################################################
 
 [build-system]
+# Sync with project.dependencies
 requires = ["setuptools", "torch >= 1.12", "numpy", "pybind11"]
 build-backend = "setuptools.build_meta"
 
@@ -8,7 +9,9 @@ build-backend = "setuptools.build_meta"
 name = "torchopt"
 description = "A Jax-style optimizer for PyTorch."
 readme = "README.md"
-requires-python = ">= 3.7"
+# Change this if wheels for `torch` is available
+# Search "requires-python" and update all corresponding items
+requires-python = ">= 3.7, < 3.11.0a0"
 authors = [
     { name = "TorchOpt Contributors" },
     { name = "Jie Ren", email = "jieren9806@gmail.com" },
@@ -29,6 +32,7 @@ keywords = [
 classifiers = [
     "Development Status :: 4 - Beta",
     "License :: OSI Approved :: Apache Software License",
+    # Sync with requires-python
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
@@ -44,9 +48,9 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 dependencies = [
-    "torch >= 1.12",
+    "torch >= 1.12",     # see also build-system.requires and project.requires-python
     "functorch >= 0.2",
-    "optree",
+    "optree >= 0.2.0",
     "numpy",
     "graphviz",
     "typing-extensions",
@@ -88,7 +92,7 @@ include = ["torchopt", "torchopt.*"]
 # Wheel builder ################################################################
 # Reference: https://cibuildwheel.readthedocs.io
 [tool.cibuildwheel]
-archs = ["x86_64"]
+archs = ["auto64"]
 build = "*manylinux*"
 skip = "pp*"
 build-frontend = "pip"
@@ -163,6 +167,7 @@ repair-wheel-command = """
 safe = true
 line-length = 100
 skip-string-normalization = true
+# Sync with requires-python
 target-version = ["py37", "py38", "py39", "py310"]
 
 [tool.isort]
@@ -174,16 +179,19 @@ lines_after_imports = 2
 multi_line_output = 3
 
 [tool.mypy]
+# Sync with requires-python
+python_version = 3.7
+pretty = true
+show_error_codes = true
+show_error_context = true
+show_traceback = true
 allow_redefinition = true
+enable_recursive_aliases = true
 check_untyped_defs = true
 disallow_incomplete_defs = false
 disallow_untyped_defs = false
 ignore_missing_imports = true
 no_implicit_optional = true
-pretty = true
-show_error_codes = true
-show_error_context = true
-show_traceback = true
 strict_equality = true
 strict_optional = true
 warn_no_return = true

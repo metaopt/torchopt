@@ -17,11 +17,11 @@ dependencies:
   - pip
 
   # Learning
-  - pytorch::pytorch >= 1.12
+  - pytorch::pytorch >= 1.12  # sync with project.dependencies
   - pytorch::torchvision
   - pytorch::pytorch-mutex = *=*cuda*
   - pip:
-      - functorch >= 0.2
+      - functorch >= 0.2     # sync with project.dependencies
       - torchviz
       - sphinxcontrib-katex  # for documentation
   - jax                      # for tutorials
@@ -64,7 +64,7 @@ dependencies:
   - myst-nb
   - ipykernel
   - pandoc
-  - docutils = 0.16
+  - docutils
 
   # Testing
   - pytest
