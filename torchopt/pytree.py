@@ -16,9 +16,47 @@
 
 import optree
 import optree.typing as typing  # pylint: disable=unused-import
+import torch.distributed.rpc as rpc
 from optree import *  # pylint: disable=wildcard-import,unused-wildcard-import
 
+from torchopt.typing import Future, PyTree, RRef, T
 
-__all__ = optree.__all__.copy()
 
-del optree
+__all__ = [*optree.__all__, 'tree_wait']
+
+
+def tree_wait(future_tree: PyTree[Future[T]]) -> PyTree[T]:
+    r"""Convert a tree of :class:`Future`\s to a tree of results."""
+    import torch  # pylint: disable=import-outside-toplevel
+
+    futures, treedef = tree_flatten(future_tree)
+
+    results = torch.futures.wait_all(futures)
+
+    return tree_unflatten(treedef, results)
+
+
+if rpc.is_available():
+
+    def tree_as_rref(tree: PyTree[T]) -> 'PyTree[RRef[T]]':
+        r"""Convert a tree of local objects to a tree of :class:`RRef`\s."""
+        # pylint: disable-next=import-outside-toplevel,redefined-outer-name,reimported
+        from torch.distributed.rpc import RRef
+
+        return tree_map(RRef, tree)
+
+    def tree_to_here(
+        rref_tree: 'PyTree[RRef[T]]',
+        timeout: float = rpc.api.UNSET_RPC_TIMEOUT,
+    ) -> PyTree[T]:
+        r"""Convert a tree of :class:`RRef`\s to a tree of local objects."""
+        return tree_map(lambda x: x.to_here(timeout=timeout), rref_tree)
+
+    def tree_local_value(rref_tree: 'PyTree[RRef[T]]'):
+        r"""Return the local value of a tree of :class:`RRef`\s."""
+        return tree_map(lambda x: x.local_value(), rref_tree)
+
+    __all__.extend(['tree_as_rref', 'tree_to_here'])
+
+
+del optree, rpc, PyTree, T, RRef

@@ -16,8 +16,10 @@
 
 from typing import Callable, Optional, TypeVar, Union
 
+import torch.distributed.rpc as rpc
 from optree.typing import PyTree
 from torch import Tensor
+from torch.futures import Future
 
 from torchopt.base import ChainedGradientTransformation, EmptyState, GradientTransformation
 
@@ -43,6 +45,7 @@ __all__ = [
     'Tensor',
     'TensorTree',
     'OptionalTensorTree',
+    'Future',
 ]
 
 T = TypeVar('T')
@@ -60,3 +63,10 @@ OptionalTensorTree: TypeAlias = PyTree[Optional[Tensor]]
 Params: TypeAlias = TensorTree
 Updates: TypeAlias = Params  # Gradient updates are of the same type as parameters.
 OptState: TypeAlias = TensorTree  # States are arbitrary nests of `torch.Tensor`.
+
+if rpc.is_available():
+    from torch.distributed.rpc import RRef  # pylint: disable=ungrouped-imports,unused-import
+
+    __all__.extend(['RRef'])
+else:
+    RRef = None  # type: ignore[misc,assignment] # pylint: disable=invalid-name

@@ -56,6 +56,7 @@ iterable
 nan
 param
 Graphviz
+Autograd
 autograd
 attrs
 GradientTransformations
@@ -84,3 +85,5 @@ argnums
 matvec
 Hermitian
 deepcopy
+RRef
+rref

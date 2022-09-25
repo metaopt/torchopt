@@ -6,7 +6,7 @@ Code on MAML few-shot Omniglot classification in paper [Model-Agnostic Meta-Lear
 
 ```bash
 ### Run
-python3 maml_omniglot.py
+torchrun --nnode 1 --nproc_per_node 8 maml_omniglot.py
 ```
 
 ## Results
