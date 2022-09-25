@@ -90,6 +90,11 @@ jobs:
         run: |
           make addlicense
 
+      - name: Install dev version of mypy
+        run: |
+          python -m pip install git+https://github.com/python/mypy.git
+          python -m pip install types-setuptools
+
       - name: mypy
         run: |
           make mypy

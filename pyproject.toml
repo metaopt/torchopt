@@ -8,7 +8,7 @@ build-backend = "setuptools.build_meta"
 name = "torchopt"
 description = "A Jax-style optimizer for PyTorch."
 readme = "README.md"
-requires-python = ">= 3.7"
+requires-python = ">= 3.7, < 3.11.0a0"
 authors = [
     { name = "TorchOpt Contributors" },
     { name = "Jie Ren", email = "jieren9806@gmail.com" },
@@ -46,7 +46,7 @@ classifiers = [
 dependencies = [
     "torch >= 1.12",
     "functorch >= 0.2",
-    "optree",
+    "optree >= 0.2.0",
     "numpy",
     "graphviz",
     "typing-extensions",
@@ -88,7 +88,7 @@ include = ["torchopt", "torchopt.*"]
 # Wheel builder ################################################################
 # Reference: https://cibuildwheel.readthedocs.io
 [tool.cibuildwheel]
-archs = ["x86_64"]
+archs = ["auto64"]
 build = "*manylinux*"
 skip = "pp*"
 build-frontend = "pip"
@@ -174,16 +174,18 @@ lines_after_imports = 2
 multi_line_output = 3
 
 [tool.mypy]
+python_version = 3.7
+pretty = true
+show_error_codes = true
+show_error_context = true
+show_traceback = true
 allow_redefinition = true
+enable_recursive_aliases = true
 check_untyped_defs = true
 disallow_incomplete_defs = false
 disallow_untyped_defs = false
 ignore_missing_imports = true
 no_implicit_optional = true
-pretty = true
-show_error_codes = true
-show_error_context = true
-show_traceback = true
 strict_equality = true
 strict_optional = true
 warn_no_return = true
