@@ -30,10 +30,10 @@ dependencies:
   - pip
 
   # Learning
-  - pytorch::pytorch >= 1.12
+  - pytorch::pytorch >= 1.12  # sync with project.dependencies
   - pytorch::pytorch-mutex = *=*cpu*
   - pip:
-      - functorch >= 0.2
+      - functorch >= 0.2  # sync with project.dependencies
       - torchviz
       - sphinxcontrib-katex  # for documentation
   - tensorboard

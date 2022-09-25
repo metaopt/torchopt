@@ -53,7 +53,7 @@ persistent=yes
 
 # Minimum Python version to use for version dependent checks. Will default to
 # the version used to run pylint.
-py-version=3.7
+py-version=3.7  # the lowest version we support (sync with requires-python in pyproject.toml)
 
 # Discover python modules and packages in the file system subtree.
 recursive=no

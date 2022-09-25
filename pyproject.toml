@@ -1,6 +1,7 @@
 # Package ######################################################################
 
 [build-system]
+# Sync with project.dependencies
 requires = ["setuptools", "torch >= 1.12", "numpy", "pybind11"]
 build-backend = "setuptools.build_meta"
 
@@ -8,6 +9,8 @@ build-backend = "setuptools.build_meta"
 name = "torchopt"
 description = "A Jax-style optimizer for PyTorch."
 readme = "README.md"
+# Change this if wheels for `torch` is available
+# Search "requires-python" and update all corresponding items
 requires-python = ">= 3.7, < 3.11.0a0"
 authors = [
     { name = "TorchOpt Contributors" },
@@ -29,6 +32,7 @@ keywords = [
 classifiers = [
     "Development Status :: 4 - Beta",
     "License :: OSI Approved :: Apache Software License",
+    # Sync with requires-python
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
@@ -44,7 +48,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 dependencies = [
-    "torch >= 1.12",
+    "torch >= 1.12",     # see also build-system.requires and project.requires-python
     "functorch >= 0.2",
     "optree >= 0.2.0",
     "numpy",
@@ -163,6 +167,7 @@ repair-wheel-command = """
 safe = true
 line-length = 100
 skip-string-normalization = true
+# Sync with requires-python
 target-version = ["py37", "py38", "py39", "py310"]
 
 [tool.isort]
@@ -174,6 +179,7 @@ lines_after_imports = 2
 multi_line_output = 3
 
 [tool.mypy]
+# Sync with requires-python
 python_version = 3.7
 pretty = true
 show_error_codes = true
