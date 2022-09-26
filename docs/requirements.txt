@@ -5,7 +5,7 @@ functorch >= 0.2
 
 --requirement ../requirements.txt
 
-sphinx >= 5.0, < 5.2.0a0
+sphinx >= 5.2.1
 sphinx-autoapi
 sphinx-autobuild
 sphinx-copybutton
