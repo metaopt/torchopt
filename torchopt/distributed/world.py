@@ -31,6 +31,7 @@ __all__ = [
     'get_local_rank',
     'get_local_world_size',
     'get_worker_id',
+    'barrier',
     'auto_init_rpc',
     'on_rank',
     'not_on_rank',
@@ -124,6 +125,19 @@ def get_worker_id(id: Optional[Union[str, int]] = None) -> int:
     return rpc.get_worker_info(worker_name=id).id
 
 
+def barrier(worker_names: Optional[Iterable[str]] = None) -> None:
+    r"""Synchronizes local and remote RPC processes.
+
+    This will block until all local and remote RPC processes specified under worker_names
+    reach this method to wait for all outstanding work to complete.
+
+    Args:
+        worker_names: The set of workers to synchronize. If :data:`None`, all workers.
+    """
+    worker_names = {} if worker_names is None else set(worker_names)
+    rpc.api._barrier(worker_names)  # pylint: disable=protected-access
+
+
 def auto_init_rpc(
     worker_init_fn: Optional[Callable[[], None]] = None,
     worker_name_format: Callable[..., str] = 'worker{world_rank}'.format,
@@ -151,6 +165,7 @@ def auto_init_rpc(
             atexit.register(rpc.shutdown, graceful=True)
             if worker_init_fn is not None:
                 worker_init_fn()
+            barrier()
             return func(*args, **kwargs)
 
         return wrapped  # type: ignore[return-value]
