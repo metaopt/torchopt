@@ -164,6 +164,7 @@ def auto_init_rpc(
             )
             atexit.register(rpc.shutdown, graceful=True)
             if worker_init_fn is not None:
+                barrier()
                 worker_init_fn()
             barrier()
             return func(*args, **kwargs)
