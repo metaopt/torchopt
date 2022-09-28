@@ -40,9 +40,16 @@ __all__ = [
 ]
 
 
-F = TypeVar('F', bound=Callable[..., Any])
+# pylint: disable-next=unused-argument
+def default_worker_name_format(
+    world_rank: int, world_size: int, local_rank: int, local_world_size: int
+) -> str:
+    """Default worker name format."""
+    return f'worker{world_rank:0{len(str(world_size))}d}'
 
-_WORKER_NAME_FORMAT: Callable[..., str] = 'worker{world_rank}'.format
+
+F = TypeVar('F', bound=Callable[..., Any])
+_WORKER_NAME_FORMAT: Callable[..., str] = default_worker_name_format
 
 
 class WorldInfo(NamedTuple):
@@ -140,7 +147,7 @@ def barrier(worker_names: Optional[Iterable[str]] = None) -> None:
 
 def auto_init_rpc(
     worker_init_fn: Optional[Callable[[], None]] = None,
-    worker_name_format: Callable[..., str] = 'worker{world_rank}'.format,
+    worker_name_format: Callable[..., str] = default_worker_name_format,
     *,
     backend: Optional[rpc.BackendType] = None,
     rpc_backend_options: Optional[rpc.RpcBackendOptions] = None,
