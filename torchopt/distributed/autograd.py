@@ -29,7 +29,7 @@ LOCK = Lock()
 
 
 def is_available():
-    """Check if distributed is available."""
+    """Check if distributed autograd module is available."""
     return autograd.is_available()
 
 
@@ -122,7 +122,7 @@ if is_available():
                         'One of the differentiated Tensors appears to not have been used in the '
                         'graph. Set allow_unused=True if this is the desired behavior.'
                     ) from ex
-                grads.append(None)
+                grads.append(None)  # type: ignore[arg-type]
 
         return tuple(grads)
 
