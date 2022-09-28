@@ -40,9 +40,11 @@ __all__ = [
 ]
 
 
-# pylint: disable-next=unused-argument
 def default_worker_name_format(
-    world_rank: int, world_size: int, local_rank: int, local_world_size: int
+    world_rank: int,
+    world_size: int,
+    local_rank: int,  # pylint: disable=unused-argument
+    local_world_size: int,  # pylint: disable=unused-argument
 ) -> str:
     """Default worker name format."""
     return f'worker{world_rank:0{len(str(world_size))}d}'

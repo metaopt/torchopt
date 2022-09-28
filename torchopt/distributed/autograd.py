@@ -122,7 +122,7 @@ if is_available():
                         'One of the differentiated Tensors appears to not have been used in the '
                         'graph. Set allow_unused=True if this is the desired behavior.'
                     ) from ex
-                grads.append(torch.zeros_like(p))
+                grads.append(None)
 
         return tuple(grads)
 
