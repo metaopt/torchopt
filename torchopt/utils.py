@@ -38,6 +38,8 @@ __all__ = [
     'stop_gradient',
     'extract_state_dict',
     'recover_state_dict',
+    'module_clone',
+    'module_detach_',
 ]
 
 
@@ -271,3 +273,93 @@ def recover_state_dict(
         target.load_state_dict(state)
     else:
         raise RuntimeError(f'Unexpected class of {target}')
+
+
+def module_clone(
+    target: Union[TensorTree, nn.Module, 'MetaOptimizer'],
+    *,
+    by: Literal['reference', 'copy', 'deepcopy'] = 'reference',  # type: ignore[name-defined]
+    device: Optional[Union[int, str, torch.device]] = None,
+) -> Union[TensorTree, nn.Module, 'MetaOptimizer']:
+    """Clone a module.
+
+    Args:
+        target: The target to be cloned.
+        by: The extract policy of tensors in the target.
+            - :const:`'reference'`: The extracted tensors will be references to the original
+            tensors.
+            - :const:`'copy'`: The extracted tensors will be clones of the original tensors. This
+            makes the copied tensors have :attr:`grad_fn` to be a ``<CloneBackward>`` function
+            points to the original tensors.
+            - :const:`'deepcopy'`: The extracted tensors will be deep-copied from the original
+            tensors. The deep-copied tensors will detach from the original computation graph.
+        device: If specified, move the cloned module to the specified device.
+
+    Returns:
+        The cloned module.
+    """
+    assert by in ('reference', 'copy', 'deepcopy', 'clone', 'deepclone')
+    by = by.replace('clone', 'copy')
+    if device is not None:
+        device = torch.device(device)
+
+    # pylint: disable=import-outside-toplevel
+    import copy
+
+    from torchopt.optim.meta.base import MetaOptimizer
+
+    if isinstance(target, (nn.Module, MetaOptimizer)):
+        cloned = copy.deepcopy(target)
+        recover_state_dict(cloned, extract_state_dict(target, by=by, device=device))
+        return cloned
+
+    # Tree of tensors
+    if by == 'reference':
+        if device is not None:
+
+            def replicate(t):
+                return t.to(device=device)
+
+        else:
+
+            def replicate(t):
+                return t
+
+    elif by == 'copy':
+        if device is not None:
+
+            def replicate(t):
+                return t.clone().to(device=device)
+
+        else:
+
+            def replicate(t):
+                return t.clone()
+
+    else:
+        if device is not None:
+
+            def replicate(t):
+                return t.clone().detach_().to(device=device).requires_grad_(t.requires_grad)
+
+        else:
+
+            def replicate(t):
+                return t.clone().detach_().requires_grad_(t.requires_grad)
+
+    return pytree.tree_map(replicate, cast(TensorTree, target))
+
+
+def module_detach_(
+    target: Union['TensorTree', ModuleState, nn.Module, 'MetaOptimizer']
+) -> Union['TensorTree', ModuleState, nn.Module, 'MetaOptimizer']:
+    """Detach a module from the computation graph.
+
+    Args:
+        target: The target to be detached.
+
+    Returns:
+        The detached module.
+    """
+    stop_gradient(target)
+    return target

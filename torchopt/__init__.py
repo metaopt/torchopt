@@ -17,6 +17,7 @@
 from torchopt import (
     clip,
     combine,
+    distributed,
     hook,
     implicit_diff,
     linalg,
@@ -41,7 +42,13 @@ from torchopt.optim.meta import (
     MetaSGD,
 )
 from torchopt.update import apply_updates
-from torchopt.utils import extract_state_dict, recover_state_dict, stop_gradient
+from torchopt.utils import (
+    extract_state_dict,
+    module_clone,
+    module_detach_,
+    recover_state_dict,
+    stop_gradient,
+)
 from torchopt.version import __version__
 
 
@@ -70,4 +77,6 @@ __all__ = [
     'extract_state_dict',
     'recover_state_dict',
     'stop_gradient',
+    'module_clone',
+    'module_detach_',
 ]
