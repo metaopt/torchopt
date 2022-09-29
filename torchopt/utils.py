@@ -14,6 +14,7 @@
 # ==============================================================================
 """Utilities for TorchOpt."""
 
+import itertools
 from typing import TYPE_CHECKING, Dict, NamedTuple, Optional, Sequence, Tuple, Union, cast
 
 import torch
@@ -47,6 +48,7 @@ class ModuleState(NamedTuple):
     """Container for module state."""
 
     params: Tuple[Dict[str, torch.Tensor], ...]
+    buffers: Tuple[Dict[str, torch.Tensor], ...]
     visual_contents: Optional[Dict] = None
 
 
@@ -76,7 +78,7 @@ def stop_gradient(target: Union['TensorTree', ModuleState, nn.Module, 'MetaOptim
             obj.detach_().requires_grad_(obj.requires_grad)
 
     if isinstance(target, ModuleState):
-        true_target = cast(TensorTree, target.params)
+        true_target = cast(TensorTree, (target.params, target.buffers))
     elif isinstance(target, nn.Module):
         true_target = cast(TensorTree, tuple(target.parameters()))
     elif isinstance(target, MetaOptimizer):
@@ -185,26 +187,31 @@ def extract_state_dict(
             visual_contents = None
 
         params = []
+        buffers = []
 
-        def update_container(term):
-            if len(term) != 0:
-                params.append(
-                    type(term)(
-                        (k, replicate(v)) for k, v in term.items() if isinstance(v, torch.Tensor)
-                    )
+        def update_container(container, term):
+            container.append(
+                type(term)(
+                    (k, replicate(v)) for k, v in term.items() if isinstance(v, torch.Tensor)
                 )
+            )
 
         # pylint: disable=protected-access
-        update_container(target._parameters)
+        update_container(params, target._parameters)
         if with_buffer:
-            update_container(target._buffers)
+            update_container(buffers, target._buffers)
         for module in target.modules():
             if module is target:
                 continue
-            update_container(module._parameters)
+            update_container(params, module._parameters)
             if with_buffer:
-                update_container(module._buffers)
-        return ModuleState(params=tuple(params), visual_contents=visual_contents)
+                update_container(buffers, module._buffers)
+
+        return ModuleState(
+            params=tuple(params),
+            buffers=tuple(buffers),
+            visual_contents=visual_contents,
+        )
 
     elif isinstance(target, MetaOptimizer):
         state = target.state_dict()
@@ -222,25 +229,28 @@ def extract_state_dict(
 
 def _extract_container(
     module: nn.Module, with_buffer: bool = True
-) -> Tuple[Dict[str, Optional[torch.Tensor]], ...]:
+) -> Tuple[
+    Tuple[Dict[str, Optional[torch.Tensor]], ...],
+    Tuple[Dict[str, Optional[torch.Tensor]], ...],
+]:
     if isinstance(module, nn.Module):
-        containers = []
+        params = []
+        buffers = []
 
-        def update_container(term):
-            if len(term) != 0:
-                containers.append(term)  # we need references to original dicts
+        def update_container(container, term):
+            container.append(term)  # we need references to original dicts
 
         # pylint: disable=protected-access
-        update_container(module._parameters)
+        update_container(params, module._parameters)
         if with_buffer:
-            update_container(module._buffers)
+            update_container(buffers, module._buffers)
         for submodule in module.modules():
             if submodule is module:
                 continue
-            update_container(submodule._parameters)
+            update_container(params, submodule._parameters)
             if with_buffer:
-                update_container(submodule._buffers)
-        return tuple(containers)
+                update_container(buffers, submodule._buffers)
+        return tuple(params), tuple(buffers)
 
     raise RuntimeError(f'Unexpected class of {module}')
 
@@ -264,10 +274,13 @@ def recover_state_dict(
     from torchopt.optim.meta.base import MetaOptimizer
 
     if isinstance(target, nn.Module):
-        target_container = _extract_container(target)
         state = cast(ModuleState, state)
-        for tgt, source in zip(target_container, state.params):
-            tgt.update(source)
+        params_container, buffers_container = _extract_container(target, with_buffer=True)
+        for tgt, src in itertools.chain(
+            zip(params_container, state.params),
+            zip(buffers_container, state.buffers),
+        ):
+            tgt.update(src)
     elif isinstance(target, MetaOptimizer):
         state = cast(Sequence[OptState], state)
         target.load_state_dict(state)
@@ -279,6 +292,7 @@ def module_clone(
     target: Union[TensorTree, nn.Module, 'MetaOptimizer'],
     *,
     by: Literal['reference', 'copy', 'deepcopy'] = 'reference',  # type: ignore[name-defined]
+    detach_buffer: bool = False,
     device: Optional[Union[int, str, torch.device]] = None,
 ) -> Union[TensorTree, nn.Module, 'MetaOptimizer']:
     """Clone a module.
@@ -293,6 +307,7 @@ def module_clone(
             points to the original tensors.
             - :const:`'deepcopy'`: The extracted tensors will be deep-copied from the original
             tensors. The deep-copied tensors will detach from the original computation graph.
+        detach_buffer: Whether to detach the buffers.
         device: If specified, move the cloned module to the specified device.
 
     Returns:
@@ -310,7 +325,21 @@ def module_clone(
 
     if isinstance(target, (nn.Module, MetaOptimizer)):
         cloned = copy.deepcopy(target)
-        recover_state_dict(cloned, extract_state_dict(target, by=by, device=device))
+        state = extract_state_dict(
+            target,
+            by=by,
+            with_buffer=True,
+            device=device,
+        )
+        if by == 'reference' and detach_buffer:
+
+            def clone(t):
+                return t.clone().detach_().requires_grad_(t.requires_grad)
+
+            buffers = pytree.tree_map(clone, state.buffers)
+            state = ModuleState(params=state.params, buffers=buffers)
+
+        recover_state_dict(cloned, state)
         return cloned
 
     # Tree of tensors

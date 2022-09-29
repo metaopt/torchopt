@@ -178,7 +178,7 @@ def inner_loop(net_rref, x_spt, y_spt, x_qry, y_qry, n_inner_iter):
         device = None
 
     original_net = net_rref.to_here()
-    net = torchopt.module_clone(original_net, by='reference', device=device)
+    net = torchopt.module_clone(original_net, by='reference', detach_buffer=True, device=device)
     if device is not None:
         x_spt = x_spt.to(device)
         y_spt = y_spt.to(device)
