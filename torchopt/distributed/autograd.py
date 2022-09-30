@@ -78,7 +78,7 @@ if is_available():
 
         with LOCK:
             for p, g in all_local_grads.items():
-                if getattr(p, 'grad', None) is not None:
+                if p.grad is not None:
                     p.grad = p.grad.add(g)
                 else:
                     p.grad = g

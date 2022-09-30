@@ -15,7 +15,19 @@
 """Utilities for TorchOpt."""
 
 import itertools
-from typing import TYPE_CHECKING, Dict, NamedTuple, Optional, Sequence, Tuple, Union, cast
+from typing import (
+    TYPE_CHECKING,
+    Dict,
+    List,
+    NamedTuple,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+    Union,
+    cast,
+    overload,
+)
 
 import torch
 import torch.nn as nn
@@ -50,6 +62,7 @@ class ModuleState(NamedTuple):
     params: Tuple[Dict[str, torch.Tensor], ...]
     buffers: Tuple[Dict[str, torch.Tensor], ...]
     visual_contents: Optional[Dict] = None
+    detach_buffers: bool = False
 
 
 def stop_gradient(target: Union['TensorTree', ModuleState, nn.Module, 'MetaOptimizer']) -> None:
@@ -89,13 +102,43 @@ def stop_gradient(target: Union['TensorTree', ModuleState, nn.Module, 'MetaOptim
     pytree.tree_map(f, true_target)
 
 
+@overload
+def extract_state_dict(
+    target: nn.Module,
+    *,
+    # pylint: disable-next=line-too-long
+    by: Literal['reference', 'copy', 'deepcopy', 'ref', 'clone', 'deepclone'] = 'reference',  # type: ignore[name-defined]
+    device: Optional[Union[int, str, torch.device]] = None,
+    with_buffers: bool = True,
+    enable_visual: bool = False,
+    visual_prefix: str = '',
+) -> ModuleState:
+    ...
+
+
+@overload
+def extract_state_dict(
+    target: 'MetaOptimizer',
+    *,
+    # pylint: disable-next=line-too-long
+    by: Literal['reference', 'copy', 'deepcopy', 'ref', 'clone', 'deepclone'] = 'reference',  # type: ignore[name-defined]
+    device: Optional[Union[int, str, torch.device]] = None,
+    with_buffers: bool = True,
+    enable_visual: bool = False,
+    visual_prefix: str = '',
+) -> Tuple['OptState', ...]:
+    ...
+
+
 # pylint: disable-next=too-many-branches,too-many-locals
 def extract_state_dict(
     target: Union[nn.Module, 'MetaOptimizer'],
     *,
-    by: Literal['reference', 'copy', 'deepcopy'] = 'reference',  # type: ignore[name-defined]
+    # pylint: disable-next=line-too-long
+    by: Literal['reference', 'copy', 'deepcopy', 'ref', 'clone', 'deepclone'] = 'reference',  # type: ignore[name-defined]
     device: Optional[Union[int, str, torch.device]] = None,
-    with_buffer: bool = True,
+    with_buffers: bool = True,
+    detach_buffers: bool = False,
     enable_visual: bool = False,
     visual_prefix: str = '',
 ) -> Union[ModuleState, Tuple['OptState', ...]]:
@@ -120,59 +163,55 @@ def extract_state_dict(
             - :const:`'deepcopy'`: The extracted tensors will be deep-copied from the original
             tensors. The deep-copied tensors will detach from the original computation graph.
         device: If specified, move the extracted state to the specified device.
-        with_buffer:
-            Extract buffer together with parameters, this argument is only used if the input target
-            is :class:`nn.Module`.
-        enable_visual:
-            Add additional annotations, which could be used in computation graph visualization.
-            Currently, this flag only has effect on :class:`nn.Module` but we will support
-            :class:`torchopt.MetaOptimizer` later.
+        with_buffers: Extract buffer together with parameters, this argument is only used if the
+            input target is :class:`nn.Module`.
+        detach_buffers: Whether to detach the reference to the buffers, this argument is only used
+            if the input target is :class:`nn.Module` and ``by='reference'``.
+        enable_visual: Add additional annotations, which could be used in computation graph
+            visualization. Currently, this flag only has effect on :class:`nn.Module` but we will
+            support :class:`torchopt.MetaOptimizer` later.
         visual_prefix: Prefix for the visualization annotations.
 
     Returns:
         State extracted of the input object.
     """
-    assert by in ('reference', 'copy', 'deepcopy', 'clone', 'deepclone')
+    assert by in ('reference', 'copy', 'deepcopy', 'ref', 'clone', 'deepclone')
     by = by.replace('clone', 'copy')
+    by = 'reference' if by == 'ref' else by
     if device is not None:
         device = torch.device(device)
 
     # pylint: disable=import-outside-toplevel
     from torchopt.optim.meta.base import MetaOptimizer
 
-    if by == 'reference':
+    if device is not None:
 
-        if device is not None:
+        def reference(t: torch.Tensor) -> torch.Tensor:
+            return t.to(device=device)
 
-            def replicate(t):
-                return t.to(device=device)
+        def clone(t: torch.Tensor) -> torch.Tensor:
+            return t.clone().to(device=device)
 
-        else:
-
-            def replicate(t):
-                return t
-
-    elif by == 'copy':
-        if device is not None:
-
-            def replicate(t):
-                return t.clone().to(device=device)
-
-        else:
-
-            def replicate(t):
-                return t.clone()
+        def clone_detach_(t: torch.Tensor) -> torch.Tensor:
+            return t.clone().detach_().to(device=device).requires_grad_(t.requires_grad)
 
     else:
-        if device is not None:
 
-            def replicate(t):
-                return t.clone().detach_().to(device=device).requires_grad_(t.requires_grad)
+        def reference(t: torch.Tensor) -> torch.Tensor:
+            return t
 
-        else:
+        def clone(t: torch.Tensor) -> torch.Tensor:
+            return t.clone()
 
-            def replicate(t):
-                return t.clone().detach_().requires_grad_(t.requires_grad)
+        def clone_detach_(t: torch.Tensor) -> torch.Tensor:
+            return t.clone().detach_().requires_grad_(t.requires_grad)
+
+    if by == 'reference':
+        replicate = reference
+    elif by == 'copy':
+        replicate = clone
+    else:
+        replicate = clone_detach_
 
     if isinstance(target, nn.Module):  # pylint: disable=no-else-return
         if enable_visual:
@@ -186,31 +225,47 @@ def extract_state_dict(
         else:
             visual_contents = None
 
-        params = []
-        buffers = []
+        params: List[Dict[str, torch.Tensor]] = []
+        buffers: List[Dict[str, torch.Tensor]] = []
+        memo: Set[nn.Module] = set()
 
-        def update_container(container, term):
-            container.append(
-                type(term)(
-                    (k, replicate(v)) for k, v in term.items() if isinstance(v, torch.Tensor)
+        def update_params(container):
+            if len(container) > 0:
+                params.append(
+                    type(container)(
+                        (k, replicate(v))
+                        for k, v in container.items()
+                        if isinstance(v, torch.Tensor)
+                    )
                 )
-            )
+
+        def update_buffers(container):
+            if len(container) > 0:
+                fn = clone_detach_ if detach_buffers else replicate
+                buffers.append(
+                    type(container)(
+                        (k, fn(v)) for k, v in container.items() if isinstance(v, torch.Tensor)
+                    )
+                )
 
         # pylint: disable=protected-access
-        update_container(params, target._parameters)
-        if with_buffer:
-            update_container(buffers, target._buffers)
-        for module in target.modules():
-            if module is target:
+        update_params(target._parameters)
+        if with_buffers:
+            update_buffers(target._buffers)
+        memo.add(target)
+        for submodule in target.modules():
+            if submodule in memo:
                 continue
-            update_container(params, module._parameters)
-            if with_buffer:
-                update_container(buffers, module._buffers)
+            update_params(submodule._parameters)
+            if with_buffers:
+                update_buffers(submodule._buffers)
+            memo.add(submodule)
 
         return ModuleState(
             params=tuple(params),
             buffers=tuple(buffers),
             visual_contents=visual_contents,
+            detach_buffers=detach_buffers,
         )
 
     elif isinstance(target, MetaOptimizer):
@@ -228,28 +283,32 @@ def extract_state_dict(
 
 
 def _extract_container(
-    module: nn.Module, with_buffer: bool = True
+    module: nn.Module, with_buffers: bool = True
 ) -> Tuple[
     Tuple[Dict[str, Optional[torch.Tensor]], ...],
     Tuple[Dict[str, Optional[torch.Tensor]], ...],
 ]:
     if isinstance(module, nn.Module):
-        params = []
-        buffers = []
+        params: List[Dict[str, Optional[torch.Tensor]]] = []
+        buffers: List[Dict[str, Optional[torch.Tensor]]] = []
+        memo: Set[nn.Module] = set()
 
-        def update_container(container, term):
-            container.append(term)  # we need references to original dicts
+        def update_container(container, items):
+            if len(items) > 0:
+                container.append(items)  # we need references to original dicts
 
         # pylint: disable=protected-access
         update_container(params, module._parameters)
-        if with_buffer:
+        if with_buffers:
             update_container(buffers, module._buffers)
+        memo.add(module)
         for submodule in module.modules():
-            if submodule is module:
+            if submodule in memo:
                 continue
             update_container(params, submodule._parameters)
-            if with_buffer:
+            if with_buffers:
                 update_container(buffers, submodule._buffers)
+            memo.add(submodule)
         return tuple(params), tuple(buffers)
 
     raise RuntimeError(f'Unexpected class of {module}')
@@ -274,11 +333,19 @@ def recover_state_dict(
     from torchopt.optim.meta.base import MetaOptimizer
 
     if isinstance(target, nn.Module):
-        state = cast(ModuleState, state)
-        params_container, buffers_container = _extract_container(target, with_buffer=True)
+        params, buffers, *_ = state = cast(ModuleState, state)
+        params_container, buffers_container = _extract_container(target, with_buffers=True)
+
+        if state.detach_buffers:
+
+            def clone_detach_(t: torch.Tensor) -> torch.Tensor:
+                return t.clone().detach_().requires_grad_(t.requires_grad)
+
+            buffers = pytree.tree_map(clone_detach_, buffers)
+
         for tgt, src in itertools.chain(
-            zip(params_container, state.params),
-            zip(buffers_container, state.buffers),
+            zip(params_container, params),
+            zip(buffers_container, buffers),
         ):
             tgt.update(src)
     elif isinstance(target, MetaOptimizer):
@@ -288,13 +355,50 @@ def recover_state_dict(
         raise RuntimeError(f'Unexpected class of {target}')
 
 
+@overload
 def module_clone(
-    target: Union[TensorTree, nn.Module, 'MetaOptimizer'],
+    target: nn.Module,
     *,
-    by: Literal['reference', 'copy', 'deepcopy'] = 'reference',  # type: ignore[name-defined]
-    detach_buffer: bool = False,
+    # pylint: disable-next=line-too-long
+    by: Literal['reference', 'copy', 'deepcopy', 'ref', 'clone', 'deepclone'] = 'reference',  # type: ignore[name-defined]
+    detach_buffers: bool = False,
     device: Optional[Union[int, str, torch.device]] = None,
-) -> Union[TensorTree, nn.Module, 'MetaOptimizer']:
+) -> nn.Module:
+    ...
+
+
+@overload
+def module_clone(
+    target: 'MetaOptimizer',
+    *,
+    # pylint: disable-next=line-too-long
+    by: Literal['reference', 'copy', 'deepcopy', 'ref', 'clone', 'deepclone'] = 'reference',  # type: ignore[name-defined]
+    detach_buffers: bool = False,
+    device: Optional[Union[int, str, torch.device]] = None,
+) -> 'MetaOptimizer':
+    ...
+
+
+@overload
+def module_clone(
+    target: TensorTree,
+    *,
+    # pylint: disable-next=line-too-long
+    by: Literal['reference', 'copy', 'deepcopy', 'ref', 'clone', 'deepclone'] = 'reference',  # type: ignore[name-defined]
+    detach_buffers: bool = False,
+    device: Optional[Union[int, str, torch.device]] = None,
+) -> TensorTree:
+    ...
+
+
+def module_clone(
+    target: Union[nn.Module, 'MetaOptimizer', TensorTree],
+    *,
+    # pylint: disable-next=line-too-long
+    by: Literal['reference', 'copy', 'deepcopy', 'ref', 'clone', 'deepclone'] = 'reference',  # type: ignore[name-defined]
+    detach_buffers: bool = False,
+    device: Optional[Union[int, str, torch.device]] = None,
+) -> Union[nn.Module, 'MetaOptimizer', TensorTree]:
     """Clone a module.
 
     Args:
@@ -307,14 +411,16 @@ def module_clone(
             points to the original tensors.
             - :const:`'deepcopy'`: The extracted tensors will be deep-copied from the original
             tensors. The deep-copied tensors will detach from the original computation graph.
-        detach_buffer: Whether to detach the buffers.
+        detach_buffers: Whether to detach the reference to the buffers, this argument is only used
+            if the input target is :class:`nn.Module` and ``by='reference'``.
         device: If specified, move the cloned module to the specified device.
 
     Returns:
         The cloned module.
     """
-    assert by in ('reference', 'copy', 'deepcopy', 'clone', 'deepclone')
+    assert by in ('reference', 'copy', 'deepcopy', 'ref', 'clone', 'deepclone')
     by = by.replace('clone', 'copy')
+    by = 'reference' if by == 'ref' else by
     if device is not None:
         device = torch.device(device)
 
@@ -328,17 +434,10 @@ def module_clone(
         state = extract_state_dict(
             target,
             by=by,
-            with_buffer=True,
+            with_buffers=True,
+            detach_buffers=detach_buffers,
             device=device,
         )
-        if by == 'reference' and detach_buffer:
-
-            def clone(t):
-                return t.clone().detach_().requires_grad_(t.requires_grad)
-
-            buffers = pytree.tree_map(clone, state.buffers)
-            state = ModuleState(params=state.params, buffers=buffers)
-
         recover_state_dict(cloned, state)
         return cloned
 
@@ -346,34 +445,34 @@ def module_clone(
     if by == 'reference':
         if device is not None:
 
-            def replicate(t):
+            def replicate(t: torch.Tensor) -> torch.Tensor:
                 return t.to(device=device)
 
         else:
 
-            def replicate(t):
+            def replicate(t: torch.Tensor) -> torch.Tensor:
                 return t
 
     elif by == 'copy':
         if device is not None:
 
-            def replicate(t):
+            def replicate(t: torch.Tensor) -> torch.Tensor:
                 return t.clone().to(device=device)
 
         else:
 
-            def replicate(t):
+            def replicate(t: torch.Tensor) -> torch.Tensor:
                 return t.clone()
 
     else:
         if device is not None:
 
-            def replicate(t):
+            def replicate(t: torch.Tensor) -> torch.Tensor:
                 return t.clone().detach_().to(device=device).requires_grad_(t.requires_grad)
 
         else:
 
-            def replicate(t):
+            def replicate(t: torch.Tensor) -> torch.Tensor:
                 return t.clone().detach_().requires_grad_(t.requires_grad)
 
     return pytree.tree_map(replicate, cast(TensorTree, target))

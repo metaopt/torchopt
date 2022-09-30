@@ -147,8 +147,8 @@ def train(db, net, meta_opt, epoch, log):
         qry_accs = []
         meta_opt.zero_grad()
 
-        net_state_dict = torchopt.extract_state_dict(net)
-        optim_state_dict = torchopt.extract_state_dict(inner_opt)
+        net_state_dict = torchopt.extract_state_dict(net, by='reference', detach_buffers=True)
+        optim_state_dict = torchopt.extract_state_dict(inner_opt, by='reference')
         for i in range(task_num):
             # Optimize the likelihood of the support set by taking
             # gradient steps w.r.t. the model's parameters.
@@ -218,8 +218,8 @@ def test(db, net, epoch, log):
         # doesn't have to be duplicated between `train` and `test`?
         n_inner_iter = 5
 
-        net_state_dict = torchopt.extract_state_dict(net)
-        optim_state_dict = torchopt.extract_state_dict(inner_opt)
+        net_state_dict = torchopt.extract_state_dict(net, by='reference', detach_buffers=True)
+        optim_state_dict = torchopt.extract_state_dict(inner_opt, by='reference')
         for i in range(task_num):
             # Optimize the likelihood of the support set by taking
             # gradient steps w.r.t. the model's parameters.

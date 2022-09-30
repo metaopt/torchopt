@@ -19,7 +19,7 @@ from typing import Callable, Iterable, List, Optional, Sequence, Tuple, cast
 import torch
 
 from torchopt import pytree
-from torchopt.typing import GradientTransformation, OptState, Params
+from torchopt.typing import GradientTransformation, OptState, Params, TensorTree
 from torchopt.update import apply_updates
 
 
@@ -61,24 +61,23 @@ class Optimizer:
         Args:
             set_to_none (bool): Instead of setting to zero, set the ``grads`` to :data:`None`.
         """
-        for group in self.param_groups:
-            if set_to_none:
+        if set_to_none:
 
-                def f(p):
-                    p.grad = None
+            def f(p):
+                p.grad = None
 
-            else:
+        else:
 
-                def f(p):
-                    if p.grad is None:
-                        return
-                    if p.grad.grad_fn is not None:
-                        p.grad.detach_()
-                    else:
-                        p.grad.requires_grad_(False)
-                    p.grad.zero_()
+            def f(p):
+                if p.grad is None:
+                    return
+                if p.grad.grad_fn is not None:
+                    p.grad.detach_()
+                else:
+                    p.grad.requires_grad_(False)
+                p.grad.zero_()
 
-            pytree.tree_map(f, cast(Params, group))
+        pytree.tree_map(f, cast(TensorTree, self.param_groups))
 
     def state_dict(self) -> Tuple['OptState', ...]:
         """Returns the state of the optimizer."""

@@ -106,7 +106,7 @@ class MetaOptimizer:
         # pylint: disable-next=import-outside-toplevel
         from torchopt.utils import _extract_container
 
-        params_container, _ = _extract_container(net, with_buffer=False)
+        params_container, _ = _extract_container(net, with_buffers=False)
         flattened_params = tuple(
             filter(
                 torch.is_tensor,  # type: ignore[arg-type]
