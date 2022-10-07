@@ -273,8 +273,8 @@ make install-editable  # or run `pip3 install --no-build-isolation --editable .`
 
 ## Future Plan
 
-- [x] CPU-accelerated optimizer
-- [ ] Support general implicit differentiation with functional programing
+- [X] CPU-accelerated optimizer
+- [X] Support general implicit differentiation with functional programing
 - [X] Support more optimizers such as AdamW, RMSProp
 - [ ] Zero order optimization
 - [ ] Distributed optimizers
@@ -296,11 +296,11 @@ If you find TorchOpt useful, please cite it in your publications.
 
 ```bibtex
 @software{TorchOpt,
-  author = {Jie Ren and Xidong Feng and Bo Liu and Xuehai Pan and Luo Mai and Yaodong Yang},
-  title = {TorchOpt},
-  year = {2022},
-  publisher = {GitHub},
-  journal = {GitHub repository},
-  howpublished = {\url{https://github.com/metaopt/torchopt}},
+  author       = {Jie Ren and Xidong Feng and Bo Liu and Xuehai Pan and Luo Mai and Yaodong Yang},
+  title        = {TorchOpt},
+  year         = {2022},
+  publisher    = {GitHub},
+  journal      = {GitHub repository},
+  howpublished = {\url{https://github.com/metaopt/torchopt}}
 }
 ```

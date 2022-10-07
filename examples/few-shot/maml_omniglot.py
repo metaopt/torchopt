@@ -75,11 +75,13 @@ def main():
     torch.manual_seed(args.seed)
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(args.seed)
+        torch.backends.cudnn.benchmark = False
+        torch.backends.cudnn.deterministic = True
     np.random.seed(args.seed)
     rng = np.random.default_rng(args.seed)
 
     # Set up the Omniglot loader.
-    device = torch.device('cuda:0')
+    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     db = OmniglotNShot(
         '/tmp/omniglot-data',
         batchsz=args.task_num,
@@ -114,9 +116,10 @@ def main():
     meta_opt = optim.Adam(net.parameters(), lr=1e-3)
 
     log = []
+    test(db, net, epoch=-1, log=log)
     for epoch in range(10):
-        train(db, net, meta_opt, epoch, log)
-        test(db, net, epoch, log)
+        train(db, net, meta_opt, epoch=epoch, log=log)
+        test(db, net, epoch=epoch, log=log)
         plot(log)
 
 
@@ -257,15 +260,16 @@ def plot(log):
     # script but we are doing it here for brevity.
     df = pd.DataFrame(log)
 
-    fig, ax = plt.subplots(figsize=(6, 4))
+    fig, ax = plt.subplots(figsize=(8, 4), dpi=250)
     train_df = df[df['mode'] == 'train']
     test_df = df[df['mode'] == 'test']
     ax.plot(train_df['epoch'], train_df['acc'], label='Train')
     ax.plot(test_df['epoch'], test_df['acc'], label='Test')
     ax.set_xlabel('Epoch')
     ax.set_ylabel('Accuracy')
-    ax.set_ylim(70, 100)
-    fig.legend(ncol=2, loc='lower right')
+    ax.set_ylim(85, 100)
+    ax.set_title('MAML Omniglot')
+    ax.legend(ncol=2, loc='lower right')
     fig.tight_layout()
     fname = 'maml-accs.png'
     print(f'--- Plotting accuracy to {fname}')

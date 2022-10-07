@@ -96,7 +96,7 @@ def get_model_torch(
 def test_imaml(dtype: torch.dtype, lr: float, inner_lr: float, inner_update: int) -> None:
     np_dtype = helpers.dtype_torch2numpy(dtype)
 
-    jax_function, jax_params = get_model_jax(dtype=np_dtype)
+    jax_model, jax_params = get_model_jax(dtype=np_dtype)
     model, loader = get_model_torch(device='cpu', dtype=dtype)
 
     fmodel, params = functorch.make_functional(model)
@@ -116,7 +116,7 @@ def test_imaml(dtype: torch.dtype, lr: float, inner_lr: float, inner_update: int
         return loss
 
     @torchopt.implicit_diff.custom_root(
-        functorch.grad(imaml_objective_torchopt, argnums=0), argnums=1
+        functorch.grad(imaml_objective_torchopt, argnums=0), argnums=1, has_aux=True
     )
     def inner_solver_torchopt(init_params_copy, init_params, data):
         # Initial functional optimizer based on TorchOpt
@@ -137,10 +137,10 @@ def test_imaml(dtype: torch.dtype, lr: float, inner_lr: float, inner_update: int
                 grads = torch.autograd.grad(final_loss, params)  # compute gradients
                 updates, opt_state = optimizer.update(grads, opt_state)  # get updates
                 params = torchopt.apply_updates(params, updates)
-        return params
+        return params, (0, {'a': 1, 'b': 2})
 
     def imaml_objective_jax(optimal_params, init_params, x, y):
-        y_pred = jax_function(optimal_params, x)
+        y_pred = jax_model(optimal_params, x)
         loss = jnp.mean(optax.softmax_cross_entropy_with_integer_labels(y_pred, y))
         regularization_loss = 0
         for p1, p2 in zip(optimal_params.values(), init_params.values()):
@@ -148,7 +148,7 @@ def test_imaml(dtype: torch.dtype, lr: float, inner_lr: float, inner_update: int
         loss = loss + regularization_loss
         return loss
 
-    @jaxopt.implicit_diff.custom_root(jax.grad(imaml_objective_jax, argnums=0))
+    @jaxopt.implicit_diff.custom_root(jax.grad(imaml_objective_jax, argnums=0), has_aux=True)
     def inner_solver_jax(init_params_copy, init_params, x, y):
         """Solve ridge regression by conjugate gradient."""
         # Initial functional optimizer based on torchopt
@@ -157,7 +157,7 @@ def test_imaml(dtype: torch.dtype, lr: float, inner_lr: float, inner_update: int
         opt_state = optimizer.init(params)
 
         def compute_loss(params, init_params, x, y):
-            pred = jax_function(params, x)
+            pred = jax_model(params, x)
             loss = jnp.mean(optax.softmax_cross_entropy_with_integer_labels(pred, y))
             # Compute regularization loss
             regularization_loss = 0
@@ -170,7 +170,7 @@ def test_imaml(dtype: torch.dtype, lr: float, inner_lr: float, inner_update: int
             grads = jax.grad(compute_loss)(params, init_params, x, y)  # compute gradients
             updates, opt_state = optimizer.update(grads, opt_state)  # get updates
             params = optax.apply_updates(params, updates)
-        return params
+        return params, (0, {'a': 1, 'b': 2})
 
     for xs, ys in loader:
         xs = xs.to(dtype=dtype)
@@ -178,19 +178,21 @@ def test_imaml(dtype: torch.dtype, lr: float, inner_lr: float, inner_update: int
         init_params_copy = pytree.tree_map(
             lambda t: t.clone().detach_().requires_grad_(requires_grad=t.requires_grad), params
         )
-        optimal_params = inner_solver_torchopt(init_params_copy, params, data)
+        optimal_params, aux = inner_solver_torchopt(init_params_copy, params, data)
+        assert aux == (0, {'a': 1, 'b': 2})
         outer_loss = fmodel(optimal_params, xs).mean()
 
-        grad = torch.autograd.grad(outer_loss, params)
-        updates, optim_state = optim.update(grad, optim_state)
+        grads = torch.autograd.grad(outer_loss, params)
+        updates, optim_state = optim.update(grads, optim_state)
         params = torchopt.apply_updates(params, updates)
 
         xs = xs.numpy()
         ys = ys.numpy()
 
         def outer_level(p, xs, ys):
-            optimal_params = inner_solver_jax(copy.deepcopy(p), p, xs, ys)
-            outer_loss = jax_function(optimal_params, xs).mean()
+            optimal_params, aux = inner_solver_jax(copy.deepcopy(p), p, xs, ys)
+            assert aux == (0, {'a': 1, 'b': 2})
+            outer_loss = jax_model(optimal_params, xs).mean()
             return outer_loss
 
         grads_jax = jax.grad(outer_level, argnums=0)(jax_params, xs, ys)

@@ -14,5 +14,5 @@ python3 maml_omniglot.py
 The figure illustrate the experimental result.
 
 <div align=center>
-  <img src="./maml-accs.png" width="450" height="325" />
+  <img src="./maml-accs.png" width="800" />
 </div>

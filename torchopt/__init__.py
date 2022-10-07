@@ -14,22 +14,26 @@
 # ==============================================================================
 """TorchOpt: a high-performance optimizer library built upon PyTorch."""
 
-from torchopt._src import (
-    accelerated_op_available,
+from torchopt import (
     clip,
     combine,
+    distributed,
     hook,
     implicit_diff,
+    linalg,
     linear_solve,
+    pytree,
     schedule,
+    typing,
     visual,
 )
-from torchopt._src.alias import adam, adamw, rmsprop, sgd
-from torchopt._src.clip import clip_grad_norm
-from torchopt._src.combine import chain
-from torchopt._src.optimizer import SGD, Adam, AdamW, Optimizer, RMSProp, RMSprop, meta
-from torchopt._src.optimizer.func import FuncOptimizer
-from torchopt._src.optimizer.meta import (
+from torchopt.accelerated_op import is_available as accelerated_op_available
+from torchopt.alias import adam, adamw, rmsprop, sgd
+from torchopt.clip import clip_grad_norm
+from torchopt.combine import chain
+from torchopt.optim import SGD, Adam, AdamW, Optimizer, RMSProp, RMSprop, meta
+from torchopt.optim.func import FuncOptimizer
+from torchopt.optim.meta import (
     MetaAdam,
     MetaAdamW,
     MetaOptimizer,
@@ -37,20 +41,19 @@ from torchopt._src.optimizer.meta import (
     MetaRMSprop,
     MetaSGD,
 )
-from torchopt._src.update import apply_updates
-from torchopt._src.utils import extract_state_dict, pytree, recover_state_dict, stop_gradient
+from torchopt.update import apply_updates
+from torchopt.utils import (
+    extract_state_dict,
+    module_clone,
+    module_detach_,
+    recover_state_dict,
+    stop_gradient,
+)
 from torchopt.version import __version__
 
 
 __all__ = [
     'accelerated_op_available',
-    'clip',
-    'combine',
-    'hook',
-    'schedule',
-    'visual',
-    'implicit_diff',
-    'linear_solve',
     'adam',
     'adamw',
     'rmsprop',
@@ -74,4 +77,6 @@ __all__ = [
     'extract_state_dict',
     'recover_state_dict',
     'stop_gradient',
+    'module_clone',
+    'module_detach_',
 ]

@@ -1,6 +1,7 @@
+# Sync with project.dependencies
 torch >= 1.12
 functorch >= 0.2
-optree
+optree >= 0.2.0
 numpy
 graphviz
 typing-extensions

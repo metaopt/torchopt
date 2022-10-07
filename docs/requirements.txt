@@ -1,20 +1,21 @@
 --extra-index-url https://download.pytorch.org/whl/cpu
+# Sync with project.dependencies
 torch >= 1.12
 functorch >= 0.2
 
 --requirement ../requirements.txt
 
-sphinx >= 5.0
+sphinx >= 5.2.1
 sphinx-autoapi
 sphinx-autobuild
 sphinx-copybutton
 sphinx-rtd-theme
 sphinxcontrib-katex
 sphinxcontrib-bibtex
-sphinx-autodoc-typehints
+sphinx-autodoc-typehints >= 1.19.2
 IPython
 ipykernel
 pandoc
 myst_nb
-docutils == 0.16
+docutils
 matplotlib

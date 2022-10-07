@@ -2,6 +2,7 @@ import os
 import pathlib
 import shutil
 import sys
+import sysconfig
 
 from setuptools import setup
 
@@ -47,7 +48,6 @@ class cmake_build_ext(build_ext):
         extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
         print(self.get_ext_fullpath(ext.name))
 
-        PYTHON_INCLUDE_DIR = ';'.join(self.include_dirs)
         TORCH_INCLUDE_PATH = ';'.join(cpp_extension.include_paths())
         TORCH_LIBRARY_PATH = ';'.join(cpp_extension.library_paths())
 
@@ -57,7 +57,7 @@ class cmake_build_ext(build_ext):
             f'-DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_{config.upper()}={self.build_temp}',
             f'-DPYTHON_EXECUTABLE={sys.executable}',
             f'-DPYBIND11_CMAKE_DIR={pybind11.get_cmake_dir()}',
-            f'-DPYTHON_INCLUDE_DIR={PYTHON_INCLUDE_DIR}',
+            f'-DPYTHON_INCLUDE_DIR={sysconfig.get_path("platinclude")}',
             f'-DTORCH_INCLUDE_PATH={TORCH_INCLUDE_PATH}',
             f'-DTORCH_LIBRARY_PATH={TORCH_LIBRARY_PATH}',
         ]

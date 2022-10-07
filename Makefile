@@ -106,7 +106,7 @@ flake8: flake8-install
 	$(PYTHON) -m flake8 $(PYTHON_FILES) --count --select=E9,F63,F7,F82,E225,E251 --show-source --statistics
 
 py-format: py-format-install
-	$(PYTHON) -m isort --project torchopt --check $(PYTHON_FILES) && \
+	$(PYTHON) -m isort --project $(PROJECT_NAME) --check $(PYTHON_FILES) && \
 	$(PYTHON) -m black --check $(PYTHON_FILES)
 
 mypy: mypy-install
@@ -135,6 +135,7 @@ docs: docs-install
 	$(PYTHON) -m sphinx_autobuild --watch $(PROJECT_PATH) --open-browser docs/source docs/build
 
 spelling: docs-install
+	make -C docs clean
 	make -C docs spelling SPHINXOPTS="-W"
 
 clean-docs:
@@ -142,10 +143,10 @@ clean-docs:
 
 # Utility functions
 
-lint: flake8 py-format mypy clang-format cpplint docstyle spelling
+lint: flake8 py-format mypy pylint clang-format cpplint docstyle spelling
 
 format: py-format-install clang-format-install addlicense-install
-	$(PYTHON) -m isort --project torchopt $(PYTHON_FILES)
+	$(PYTHON) -m isort --project $(PROJECT_NAME) $(PYTHON_FILES)
 	$(PYTHON) -m black $(PYTHON_FILES)
 	clang-format -style=file -i $(CXX_FILES)
 	addlicense -c $(COPYRIGHT) -l apache -y 2022 $(SOURCE_FOLDERS)
