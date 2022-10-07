@@ -178,7 +178,7 @@ def inner_loop(net_rref, x_spt, y_spt, x_qry, y_qry, n_inner_iter):
         device = None
 
     original_net = net_rref.to_here()
-    net = torchopt.module_clone(original_net, by='reference', detach_buffers=True, device=device)
+    net = original_net.to(device=device)
     if device is not None:
         x_spt = x_spt.to(device)
         y_spt = y_spt.to(device)
@@ -205,7 +205,6 @@ def train(db: OmniglotNShot, net: nn.Module, meta_opt: optim.Adam, epoch: int, l
     net.train()
     n_train_iter = db.x_train.shape[0] // db.batchsz
 
-    net_rref = todist.rpc.RRef(net)
     for batch_idx in range(n_train_iter):
         start_time = time.time()
         # Sample a batch of support and query images and labels.
@@ -219,6 +218,7 @@ def train(db: OmniglotNShot, net: nn.Module, meta_opt: optim.Adam, epoch: int, l
         n_inner_iter = 5
 
         meta_opt.zero_grad()
+        net_rref = todist.rpc.RRef(torchopt.module_clone(net, by='copy'))
         with todist.autograd.context() as context_id:
             qry_loss, qry_acc = inner_loop(net_rref, x_spt, y_spt, x_qry, y_qry, n_inner_iter)
             todist.autograd.backward(context_id, qry_loss)

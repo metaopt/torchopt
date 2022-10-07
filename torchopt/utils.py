@@ -178,22 +178,21 @@ def extract_state_dict(
     assert by in ('reference', 'copy', 'deepcopy', 'ref', 'clone', 'deepclone')
     by = by.replace('clone', 'copy')
     by = 'reference' if by == 'ref' else by
-    if device is not None:
-        device = torch.device(device)
 
     # pylint: disable=import-outside-toplevel
     from torchopt.optim.meta.base import MetaOptimizer
 
     if device is not None:
+        target_device = torch.device(device)
 
         def reference(t: torch.Tensor) -> torch.Tensor:
-            return t.to(device=device)
+            return t.to(device=target_device)
 
         def clone(t: torch.Tensor) -> torch.Tensor:
-            return t.clone().to(device=device)
+            return t.clone().to(device=target_device)
 
         def clone_detach_(t: torch.Tensor) -> torch.Tensor:
-            return t.clone().detach_().to(device=device).requires_grad_(t.requires_grad)
+            return t.clone().detach_().to(device=target_device).requires_grad_(t.requires_grad)
 
     else:
 
@@ -341,7 +340,10 @@ def recover_state_dict(
             def clone_detach_(t: torch.Tensor) -> torch.Tensor:
                 return t.clone().detach_().requires_grad_(t.requires_grad)
 
-            buffers = pytree.tree_map(clone_detach_, buffers)
+            buffers = cast(
+                Tuple[Dict[str, torch.Tensor], ...],
+                pytree.tree_map(clone_detach_, buffers),  # type: ignore[arg-type]
+            )
 
         for tgt, src in itertools.chain(
             zip(params_container, params),
@@ -391,6 +393,7 @@ def module_clone(
     ...
 
 
+# pylint: disable-next=too-many-locals
 def module_clone(
     target: Union[nn.Module, 'MetaOptimizer', TensorTree],
     *,
@@ -430,8 +433,14 @@ def module_clone(
     from torchopt.optim.meta.base import MetaOptimizer
 
     if isinstance(target, (nn.Module, MetaOptimizer)):
-        cloned = copy.deepcopy(target)
-        state = extract_state_dict(
+        if isinstance(target, nn.Module):
+            containers = cast(TensorTree, _extract_container(target, with_buffers=True))
+        else:
+            containers = cast(TensorTree, target.state_dict())
+        tensors = pytree.tree_leaves(containers)
+        memo = {id(t): t for t in tensors}
+        cloned = copy.deepcopy(target, memo=memo)
+        state = extract_state_dict(  # type: ignore[call-overload]
             target,
             by=by,
             with_buffers=True,
@@ -442,38 +451,35 @@ def module_clone(
         return cloned
 
     # Tree of tensors
-    if by == 'reference':
-        if device is not None:
+    if device is not None:
+        target_device = torch.device(device)
 
-            def replicate(t: torch.Tensor) -> torch.Tensor:
-                return t.to(device=device)
+        def reference(t: torch.Tensor) -> torch.Tensor:
+            return t.to(device=target_device)
 
-        else:
+        def clone(t: torch.Tensor) -> torch.Tensor:
+            return t.clone().to(device=target_device)
 
-            def replicate(t: torch.Tensor) -> torch.Tensor:
-                return t
-
-    elif by == 'copy':
-        if device is not None:
-
-            def replicate(t: torch.Tensor) -> torch.Tensor:
-                return t.clone().to(device=device)
-
-        else:
-
-            def replicate(t: torch.Tensor) -> torch.Tensor:
-                return t.clone()
+        def clone_detach_(t: torch.Tensor) -> torch.Tensor:
+            return t.clone().detach_().to(device=target_device).requires_grad_(t.requires_grad)
 
     else:
-        if device is not None:
 
-            def replicate(t: torch.Tensor) -> torch.Tensor:
-                return t.clone().detach_().to(device=device).requires_grad_(t.requires_grad)
+        def reference(t: torch.Tensor) -> torch.Tensor:
+            return t
 
-        else:
+        def clone(t: torch.Tensor) -> torch.Tensor:
+            return t.clone()
 
-            def replicate(t: torch.Tensor) -> torch.Tensor:
-                return t.clone().detach_().requires_grad_(t.requires_grad)
+        def clone_detach_(t: torch.Tensor) -> torch.Tensor:
+            return t.clone().detach_().requires_grad_(t.requires_grad)
+
+    if by == 'reference':
+        replicate = reference
+    elif by == 'copy':
+        replicate = clone
+    else:
+        replicate = clone_detach_
 
     return pytree.tree_map(replicate, cast(TensorTree, target))
 
