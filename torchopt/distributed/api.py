@@ -365,7 +365,7 @@ def remote_sync_call(
 
 
 def parallelize_async(
-    partitioner: Partitioner = batch_partitioner,
+    partitioner: Optional[Partitioner] = None,
     reducer: Optional[Callable[[Iterable[T]], U]] = None,
     timeout: Optional[float] = UNSET_RPC_TIMEOUT,
 ) -> Callable[[Callable[..., T]], Callable[..., Union[Future[List[T]], Future[U]]]]:
@@ -379,13 +379,19 @@ def parallelize_async(
         partitioner (Partitioner, optional): A partitioner that partitions the arguments to multiple
             workers. Defaults to :func:`batch_partitioner`.
         reducer (Callable[[Iterable[T]], U], optional): A reducer that reduces the results from
-            multiple workers. Defaults to :data:`None`.
+            multiple workers. Defaults to :func:`mean_reducer` if the ``partitioner`` is not
+            specified, i.e., :func:`batch_partitioner`. Otherwise, it defaults to :data:`None`.
         timeout (float, optional): The timeout for the RPC call. Defaults to
             :data:`rpc.api.UNSET_RPC_TIMEOUT`.
 
     Returns:
         The decorated function.
     """
+
+    if partitioner is None:
+        partitioner = batch_partitioner
+        if reducer is None:
+            reducer = mean_reducer
 
     def wrapper(func: Callable[..., T]) -> Callable[..., Union[Future[List[T]], Future[U]]]:
         @functools.wraps(func)
@@ -418,7 +424,7 @@ def parallelize_async(
 
 
 def parallelize(
-    partitioner: Partitioner = batch_partitioner,
+    partitioner: Optional[Partitioner] = None,
     reducer: Optional[Callable[[Iterable[T]], U]] = None,
     timeout: Optional[float] = UNSET_RPC_TIMEOUT,
 ) -> Callable[[Callable[..., T]], Callable[..., Union[List[T], U]]]:
@@ -430,13 +436,19 @@ def parallelize(
         partitioner (Partitioner, optional): A partitioner that partitions the arguments to multiple
             workers. Defaults to :func:`batch_partitioner`.
         reducer (Callable[[Iterable[T]], U], optional): A reducer that reduces the results from
-            multiple workers. Defaults to :data:`None`.
+            multiple workers. Defaults to :func:`mean_reducer` if the ``partitioner`` is not
+            specified, i.e., :func:`batch_partitioner`. Otherwise, it defaults to :data:`None`.
         timeout (float, optional): The timeout for the RPC call. Defaults to
             :data:`rpc.api.UNSET_RPC_TIMEOUT`.
 
     Returns:
         The decorated function.
     """
+
+    if partitioner is None:
+        partitioner = batch_partitioner
+        if reducer is None:
+            reducer = mean_reducer
 
     def wrapper(func: Callable[..., T]) -> Callable[..., Union[List[T], U]]:
         @functools.wraps(func)
