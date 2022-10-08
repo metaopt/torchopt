@@ -79,7 +79,7 @@ def worker_init():
     world_info = todist.get_world_info()
 
     proctitle = f'{world_info.worker_name}: {getproctitle().strip()}'
-    print(f'worker_init => {proctitle}')
+    print(f'Worker init:=> {proctitle}')
     setproctitle(proctitle)
 
     seed = world_info.world_rank
@@ -217,7 +217,9 @@ def inner_loop(net_rref, n_inner_iter, task_id, task_num, mode):
     device = LOCAL_DEVICE
 
     original_net = net_rref.to_here()
-    net = torchopt.module_clone(original_net, by='reference', device=device)
+    # The local net can be shared across multiple RPC calls on the current worker
+    # We need to detach the buffers to avoid sharing the same buffers across
+    net = torchopt.module_clone(original_net, by='reference', detach_buffers=True, device=device)
 
     x_spt, y_spt, x_qry, y_qry = get_next_batch(task_id, mode)
     if device is not None:
@@ -261,6 +263,9 @@ def train(net: nn.Module, meta_opt: optim.Adam, epoch: int, log: list):
         n_inner_iter = 5
 
         meta_opt.zero_grad()
+        # Sending modules contains nn.Parameter will detach from the current computation graph
+        # Here we explicitly convert the parameters to tensors with `CloneBackward`
+        net_rref = todist.rpc.RRef(torchopt.module_clone(net, by='copy'))
         with todist.autograd.context() as context_id:
             qry_loss, qry_acc = inner_loop(net_rref, n_inner_iter, None, task_num, 'train')
             todist.autograd.backward(context_id, qry_loss)

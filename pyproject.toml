@@ -71,7 +71,7 @@ lint = [
     "mypy",
     "flake8",
     "flake8-bugbear",
-    "doc8 < 1.0.0a0",
+    "doc8",
     "pydocstyle",
     "pyenchant",
     "cpplint",
@@ -186,7 +186,6 @@ show_error_codes = true
 show_error_context = true
 show_traceback = true
 allow_redefinition = true
-enable_recursive_aliases = true
 check_untyped_defs = true
 disallow_incomplete_defs = false
 disallow_untyped_defs = false

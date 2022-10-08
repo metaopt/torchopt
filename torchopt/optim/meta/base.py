@@ -106,16 +106,16 @@ class MetaOptimizer:
         # pylint: disable-next=import-outside-toplevel
         from torchopt.utils import _extract_container
 
-        net_container = _extract_container(net, with_buffer=False)
+        params_container, _ = _extract_container(net, with_buffers=False)
         flattened_params = tuple(
             filter(
                 torch.is_tensor,  # type: ignore[arg-type]
                 # pylint: disable-next=line-too-long
-                cast(List[Optional[torch.Tensor]], pytree.tree_leaves(net_container)),  # type: ignore[arg-type]
+                cast(List[Optional[torch.Tensor]], pytree.tree_leaves(params_container)),  # type: ignore[arg-type]
             )
         )
         optimizer_state = self.impl.init(flattened_params)
-        self.param_containers_groups.append(net_container)
+        self.param_containers_groups.append(params_container)
         self.state_groups.append(optimizer_state)
 
     def state_dict(self) -> Tuple['OptState', ...]:

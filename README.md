@@ -154,8 +154,8 @@ outer_optim = torchopt.Adam(net.parameters())
 
 for train_iter in range(train_iters):
     outer_loss = 0
-    for task in range(tasks):
-        loader = Loader(tasks)
+    for task in range(num_tasks):
+        loader = Loader(num_tasks)
 
         # Store states at the initial points
         net_state = torchopt.extract_state_dict(net)  # extract state
@@ -176,7 +176,7 @@ for train_iter in range(train_iters):
         torchopt.recover_state_dict(inner_optim, optim_state)
         torchopt.recover_state_dict(net, net_state)
 
-    outer_loss = outer_loss / len(tasks)  # task average
+    outer_loss = outer_loss / num_tasks  # task average
     outer_optim.zero_grad()
     outer_loss.backward()
     outer_optim.step()

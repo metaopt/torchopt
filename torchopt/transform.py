@@ -43,7 +43,7 @@ from torchopt.typing import Params, PyTree, Schedule, TensorTree, Updates
 
 
 ScaleState = EmptyState
-INT32_MAX = torch.iinfo(torch.int32).max
+INT64_MAX = torch.iinfo(torch.int64).max
 TRIPLE_PYTREEDEF = pytree.tree_structure(cast(PyTree[int], (0, 1, 2)))
 
 
@@ -87,7 +87,7 @@ def _inc_count(
     updates: Updates, count: TensorTree, *, already_flattened: bool = False
 ) -> TensorTree:
     def f(c, g):
-        return c + (c != INT32_MAX).to(torch.int32) if g is not None else c
+        return c + (c != INT64_MAX).to(torch.int64) if g is not None else c
 
     if already_flattened:
         return map_flattened(f, count, updates)
@@ -162,7 +162,7 @@ def _scale_by_schedule(
 
     def init_fn(params):
         zero = tree_map(  # count init
-            lambda t: torch.zeros(1, dtype=torch.int32, device=t.device).squeeze_(), params
+            lambda t: torch.zeros(1, dtype=torch.int64, device=t.device).squeeze_(), params
         )
         return ScaleByScheduleState(count=zero)
 
@@ -305,7 +305,7 @@ def _scale_by_adam(
 
     def init_fn(params):
         zero = tree_map(  # count init
-            lambda t: torch.zeros(1, dtype=torch.int32, device=t.device).squeeze_(), params
+            lambda t: torch.zeros(1, dtype=torch.int64, device=t.device).squeeze_(), params
         )
         mu = tree_map(  # first moment
             lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params
@@ -435,7 +435,7 @@ def _scale_by_accelerated_adam(
 
     def init_fn(params):
         zero = tree_map(  # count init
-            lambda t: torch.zeros(1, dtype=torch.int32, device=t.device).squeeze_(), params
+            lambda t: torch.zeros(1, dtype=torch.int64, device=t.device).squeeze_(), params
         )
         mu = tree_map(  # first moment
             lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params

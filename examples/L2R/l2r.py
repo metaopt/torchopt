@@ -74,7 +74,7 @@ def run_baseline(args, mnist_train, mnist_test):
     test_loader = DataLoader(test_set, batch_size=args.batch_size, shuffle=True, num_workers=1)
     model = LeNet5(args).to(args.device)
 
-    model_optimiser = torch.optim.Adam(model.parameters(), lr=args.lr)
+    model_optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
 
     step = 0
     running_train_loss = []
@@ -85,9 +85,9 @@ def run_baseline(args, mnist_train, mnist_test):
             train_x, train_label = train_x.to(args.device), train_label.to(args.device)
             outer_loss = model.outer_loss(train_x, train_label)
 
-            model_optimiser.zero_grad()
+            model_optimizer.zero_grad()
             outer_loss.backward()
-            model_optimiser.step()
+            model_optimizer.step()
 
             running_train_loss.append(outer_loss.item())
             writer.add_scalar('train_loss', outer_loss.item(), step)
@@ -142,8 +142,8 @@ def run_L2R(args, mnist_train, mnist_test):
     valid_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=True, num_workers=1)
     test_loader = DataLoader(test_set, batch_size=args.batch_size, shuffle=True, num_workers=1)
     model = LeNet5(args).to(args.device)
-    model_optimiser = torchopt.MetaSGD(model, lr=args.lr)
-    real_model_optimiser = torch.optim.Adam(model.parameters(), lr=args.lr)
+    model_optimizer = torchopt.MetaSGD(model, lr=args.lr)
+    real_model_optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
 
     step = 0
     time_bp = 0
@@ -170,11 +170,11 @@ def run_L2R(args, mnist_train, mnist_test):
             model.reset_meta(size=train_x.size(0))
 
             net_state_dict = torchopt.extract_state_dict(model)
-            optim_state_dict = torchopt.extract_state_dict(model_optimiser)
+            optim_state_dict = torchopt.extract_state_dict(model_optimizer)
 
             for _ in range(1):
                 inner_loss = model.inner_loss(train_x, train_label)
-                model_optimiser.step(inner_loss)
+                model_optimizer.step(inner_loss)
 
             # caclulate outer_loss, deirve meta-gradient and normalise
             outer_loss = model.outer_loss(valid_x, valid_label)
@@ -186,17 +186,17 @@ def run_L2R(args, mnist_train, mnist_test):
             running_valid_loss.append(outer_loss.item())
             writer.add_scalar('validation_loss', outer_loss.item(), step)
 
-            # reset the model and model optimiser
+            # reset the model and model optimizer
             torchopt.recover_state_dict(model, net_state_dict)
-            torchopt.recover_state_dict(model_optimiser, optim_state_dict)
+            torchopt.recover_state_dict(model_optimizer, optim_state_dict)
 
             # reuse inner_adapt to conduct real update based on learned meta weights
             inner_loss = model.inner_loss(train_x, train_label)
             for _ in range(1):
                 inner_loss = model.inner_loss(train_x, train_label)
-                real_model_optimiser.zero_grad()
+                real_model_optimizer.zero_grad()
                 inner_loss.backward()
-                real_model_optimiser.step()
+                real_model_optimizer.step()
 
             running_train_loss.append(inner_loss.item())
             writer.add_scalar('weighted_train_loss', inner_loss.item(), step)
