@@ -276,7 +276,7 @@ def remote_async_call(
     *,
     args: Optional[Args] = None,
     kwargs: Optional[KwArgs] = None,
-    partitioner: Partitioner = batch_partitioner,
+    partitioner: Optional[Partitioner] = None,
     reducer: Optional[Callable[[Iterable[T]], U]] = None,
     timeout: Optional[float] = UNSET_RPC_TIMEOUT,
 ) -> Union[Future[List[T]], Future[U]]:
@@ -303,6 +303,8 @@ def remote_async_call(
         args = ()
     if kwargs is None:
         kwargs = {}
+    if partitioner is None:
+        partitioner = batch_partitioner
     if isinstance(partitioner, (int, str)):
         partitions = [(get_worker_id(id=partitioner), args, kwargs)]
     elif callable(partitioner):
@@ -332,7 +334,7 @@ def remote_sync_call(
     *,
     args: Optional[Args] = None,
     kwargs: Optional[KwArgs] = None,
-    partitioner: Partitioner = batch_partitioner,
+    partitioner: Optional[Partitioner] = None,
     reducer: Optional[Callable[[Iterable[T]], U]] = None,
     timeout: Optional[float] = UNSET_RPC_TIMEOUT,
 ) -> Union[List[T], U]:
@@ -391,7 +393,7 @@ def parallelize_async(
     if partitioner is None:
         partitioner = batch_partitioner
         if reducer is None:
-            reducer = mean_reducer
+            reducer = mean_reducer  # type: ignore[assignment]
 
     def wrapper(func: Callable[..., T]) -> Callable[..., Union[Future[List[T]], Future[U]]]:
         @functools.wraps(func)
@@ -448,7 +450,7 @@ def parallelize(
     if partitioner is None:
         partitioner = batch_partitioner
         if reducer is None:
-            reducer = mean_reducer
+            reducer = mean_reducer  # type: ignore[assignment]
 
     def wrapper(func: Callable[..., T]) -> Callable[..., Union[List[T], U]]:
         @functools.wraps(func)
