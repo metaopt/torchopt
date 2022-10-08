@@ -77,7 +77,7 @@ dependencies:
   - mypy
   - flake8
   - flake8-bugbear
-  - doc8 < 1.0.0a0
+  - doc8
   - pydocstyle
   - clang-format
   - clang-tools  # clang-tidy
