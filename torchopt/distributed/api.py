@@ -389,7 +389,6 @@ def parallelize_async(
     Returns:
         The decorator function.
     """
-
     if partitioner is None:
         partitioner = batch_partitioner
         if reducer is None:
@@ -446,7 +445,6 @@ def parallelize(
     Returns:
         The decorator function.
     """
-
     if partitioner is None:
         partitioner = batch_partitioner
         if reducer is None:
