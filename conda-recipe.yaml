@@ -72,7 +72,7 @@ dependencies:
   - pytest-cov
   - pytest-xdist
   - isort
-  - conda-forge::black >= 22.6.0
+  - conda-forge::black-jupyter >= 22.6.0
   - pylint
   - mypy
   - flake8

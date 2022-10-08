@@ -66,7 +66,7 @@ Documentation = "https://torchopt.readthedocs.io"
 [project.optional-dependencies]
 lint = [
     "isort",
-    "black >= 22.6.0",
+    "black[jupyter] >= 22.6.0",
     "pylint",
     "mypy",
     "flake8",
@@ -171,6 +171,7 @@ skip-string-normalization = true
 target-version = ["py37", "py38", "py39", "py310"]
 
 [tool.isort]
+atomic = true
 profile = "black"
 src_paths = ["torchopt", "examples", "tests"]
 indent = 4
