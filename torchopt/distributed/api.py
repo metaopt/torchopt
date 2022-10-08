@@ -387,7 +387,7 @@ def parallelize_async(
             :data:`rpc.api.UNSET_RPC_TIMEOUT`.
 
     Returns:
-        The decorated function.
+        The decorator function.
     """
 
     if partitioner is None:
@@ -444,7 +444,7 @@ def parallelize(
             :data:`rpc.api.UNSET_RPC_TIMEOUT`.
 
     Returns:
-        The decorated function.
+        The decorator function.
     """
 
     if partitioner is None:
