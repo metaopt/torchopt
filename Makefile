@@ -129,6 +129,7 @@ addlicense: addlicense-install
 	addlicense -c $(COPYRIGHT) -l apache -y 2022 -check $(SOURCE_FOLDERS)
 
 docstyle: docs-install
+	make -C docs clean
 	$(PYTHON) -m pydocstyle $(PROJECT_PATH) && doc8 docs && make -C docs html SPHINXOPTS="-W"
 
 docs: docs-install
