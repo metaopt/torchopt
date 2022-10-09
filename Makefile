@@ -54,7 +54,7 @@ pre-commit-install:
 
 docs-install:
 	$(call check_pip_install,pydocstyle)
-	$(call check_pip_install,doc8)
+	$(call check_install_extra, doc8, "doc8<1")
 	$(call check_pip_install,sphinx)
 	$(call check_pip_install,sphinx-rtd-theme)
 	$(call check_pip_install,sphinx-autoapi)
