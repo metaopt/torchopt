@@ -197,12 +197,12 @@ def cg(
             Starting guess for the solution. Must have the same structure as ``b``.
         rtol: (float, optional, default: :const:`1e-5`)
             Tolerances for convergence, ``norm(residual) <= max(rtol*norm(b), atol)``. We do not
-            implement SciPy's "legacy" behavior, so TorchOpt's tolerance will differ from SciPy unless
-            you explicitly pass ``atol`` to SciPy's ``cg``.
+            implement SciPy's "legacy" behavior, so TorchOpt's tolerance will differ from SciPy
+            unless you explicitly pass ``atol`` to SciPy's ``cg``.
         atol: (float, optional, default: :const:`0.0`)
             Tolerances for convergence, ``norm(residual) <= max(tol*norm(b), atol)``. We do not
-            implement SciPy's "legacy" behavior, so TorchOpt's tolerance will differ from SciPy unless
-            you explicitly pass ``atol`` to SciPy's ``cg``.
+            implement SciPy's "legacy" behavior, so TorchOpt's tolerance will differ from SciPy
+            unless you explicitly pass ``atol`` to SciPy's ``cg``.
         maxiter: (integer, optional)
             Maximum number of iterations. Iteration will stop after maxiter steps even if the
             specified tolerance has not been achieved.
