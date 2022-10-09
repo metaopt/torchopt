@@ -54,7 +54,8 @@ pre-commit-install:
 
 docs-install:
 	$(call check_pip_install,pydocstyle)
-	$(call check_pip_install,doc8)
+	$(PYTHON) -m pip uninstall --yes doc8
+	$(call check_pip_install_extra,doc8, "doc8<1")
 	$(PYTHON) -m pip uninstall --yes importlib_metadata
 	$(call check_pip_install_extra,importlib_metadata, "importlib_metadata<5")
 	$(call check_pip_install,sphinx)
