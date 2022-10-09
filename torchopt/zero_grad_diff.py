@@ -36,7 +36,7 @@ def _zero_order_a(
 
         class ZeroOrder(Function):  # pylint: disable=missing-class-docstring,abstract-method
             @staticmethod
-            def forward(ctx: Any, *args: Any) -> Any:  # pylint: disable=arguments-differ
+            def forward(ctx: Any, *args: Any, **kwargs: Any) -> Any:
                 flatten_diff_params = args[:-1]
                 origin_args = list(args[-1][0])
 
@@ -124,7 +124,9 @@ def _zero_order_b(
 
         class ZeroOrder(Function):  # pylint: disable=missing-class-docstring,abstract-method
             @staticmethod
-            def forward(ctx: Any, *args: Any) -> Any:  # pylint: disable=arguments-differ
+            def forward(
+                ctx: Any, *args: Any, **kwargs: Any
+            ) -> Any:  # pylint: disable=arguments-differ
                 flatten_diff_params = args[:-1]
                 origin_args = list(args[-1][0])
 
@@ -215,7 +217,7 @@ def _zero_order_c(
 
         class ZeroOrder(Function):  # pylint: disable=missing-class-docstring,abstract-method
             @staticmethod
-            def forward(ctx: Any, *args: Any) -> Any:  # pylint: disable=arguments-differ
+            def forward(ctx: Any, *args: Any, **kwargs: Any) -> Any:
                 flatten_diff_params = args[:-1]
                 origin_args = list(args[-1][0])
 
