@@ -63,16 +63,17 @@ TorchOpt supports any user-defined PyTorch networks. Here is an example:
 
     net = nn.Sequential(
         nn.Conv2d(1, 64, 3),
-        nn.BatchNorm2d(64, momentum=1., affine=True),
+        nn.BatchNorm2d(64, momentum=1.0, affine=True),
         nn.ReLU(inplace=False),
         nn.MaxPool2d(2, 2),
         nn.Conv2d(64, 64, 3),
-        nn.BatchNorm2d(64, momentum=1., affine=True),
+        nn.BatchNorm2d(64, momentum=1.0, affine=True),
         nn.ReLU(inplace=False),
         nn.MaxPool2d(2, 2),
         nn.Conv2d(64, 64, 3),
-        nn.BatchNorm2d(64, momentum=1., affine=True),
-        nn.ReLU(inplace=False), nn.MaxPool2d(2, 2),
+        nn.BatchNorm2d(64, momentum=1.0, affine=True),
+        nn.ReLU(inplace=False),
+        nn.MaxPool2d(2, 2),
         nn.Flatten(),
         nn.Linear(64, args.n_way),
     ).to(device)
@@ -132,14 +133,11 @@ Define the ``train`` function:
                 qry_acc = (qry_logits.argmax(dim=1) == y_qry[i]).sum().item() / querysz
                 qry_accs.append(qry_acc)
 
-                # Update the model's meta-parameters to optimize the query
-                # losses across all of the tasks sampled in this batch.
-                # This unrolls through the gradient steps.
-                qry_loss.backward()
-
                 torchopt.recover_state_dict(net, net_state_dict)
                 torchopt.recover_state_dict(inner_opt, optim_state_dict)
 
+            qry_losses = torch.mean(torch.stack(qry_losses))
+            qry_losses.backward()
             meta_opt.step()
             qry_losses = sum(qry_losses) / task_num
             qry_accs = 100. * sum(qry_accs) / task_num
@@ -210,7 +208,7 @@ Define the ``test`` function:
                 torchopt.recover_state_dict(net, net_state_dict)
                 torchopt.recover_state_dict(inner_opt, optim_state_dict)
 
-        qry_losses = torch.cat(qry_losses).mean().item()
+        qry_losses = torch.mean(torch.stack(qry_losses)).item()
         qry_accs = 100. * torch.cat(qry_accs).float().mean().item()
         print(f'[Epoch {epoch+1:.2f}] Test Loss: {qry_losses:.2f} | Acc: {qry_accs:.2f}')
         log.append(

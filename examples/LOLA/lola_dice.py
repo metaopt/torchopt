@@ -49,7 +49,7 @@ def main(args):
                 args,
             )
             inner_loss = memory1.dice_objective(use_baseline=args.use_baseline)
-            agent1.virtual_optimiser.step(inner_loss)
+            agent1.virtual_optimizer.step(inner_loss)
 
         # agent 1 assumes that agent 2 conducts n-step lookahead
         for _ in range(n_lookaheads):
@@ -60,7 +60,7 @@ def main(args):
                 args,
             )
             inner_loss = memory2.dice_objective(use_baseline=args.use_baseline)
-            agent2.virtual_optimiser.step(inner_loss)
+            agent2.virtual_optimizer.step(inner_loss)
 
         # update agent 1
         memory1, memory2 = sample(

@@ -43,7 +43,7 @@ flake8-install:
 
 py-format-install:
 	$(call check_pip_install,isort)
-	$(call check_pip_install,black)
+	$(call check_pip_install_extra,black,black[jupyter])
 
 mypy-install:
 	$(call check_pip_install,mypy)
@@ -54,7 +54,11 @@ pre-commit-install:
 
 docs-install:
 	$(call check_pip_install,pydocstyle)
-	$(call check_pip_install,doc8)
+	$(call check_pip_install_extra,doc8,"doc8<1.0.0a0")
+	if ! $(PYTHON) -c "import sys; exit(sys.version_info < (3, 8))"; then \
+		$(PYTHON) -m pip uninstall --yes importlib-metadata; \
+		$(call check_pip_install_extra,importlib-metadata,"importlib-metadata<5.0.0a0"); \
+	fi
 	$(call check_pip_install,sphinx)
 	$(call check_pip_install,sphinx-rtd-theme)
 	$(call check_pip_install,sphinx-autoapi)
@@ -107,7 +111,7 @@ flake8: flake8-install
 
 py-format: py-format-install
 	$(PYTHON) -m isort --project $(PROJECT_NAME) --check $(PYTHON_FILES) && \
-	$(PYTHON) -m black --check $(PYTHON_FILES)
+	$(PYTHON) -m black --check $(PYTHON_FILES) tutorials
 
 mypy: mypy-install
 	$(PYTHON) -m mypy $(PROJECT_PATH)
@@ -129,6 +133,7 @@ addlicense: addlicense-install
 	addlicense -c $(COPYRIGHT) -l apache -y 2022 -check $(SOURCE_FOLDERS)
 
 docstyle: docs-install
+	make -C docs clean
 	$(PYTHON) -m pydocstyle $(PROJECT_PATH) && doc8 docs && make -C docs html SPHINXOPTS="-W"
 
 docs: docs-install
@@ -147,7 +152,7 @@ lint: flake8 py-format mypy pylint clang-format cpplint docstyle spelling
 
 format: py-format-install clang-format-install addlicense-install
 	$(PYTHON) -m isort --project $(PROJECT_NAME) $(PYTHON_FILES)
-	$(PYTHON) -m black $(PYTHON_FILES)
+	$(PYTHON) -m black $(PYTHON_FILES) tutorials
 	clang-format -style=file -i $(CXX_FILES)
 	addlicense -c $(COPYRIGHT) -l apache -y 2022 $(SOURCE_FOLDERS)
 

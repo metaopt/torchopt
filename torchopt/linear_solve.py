@@ -68,7 +68,7 @@ def solve_cg(
 ) -> 'TensorTree':
     """Solves ``A x = b`` using conjugate gradient.
 
-    It assumes that ``A`` is a Hermitian, positive definite matrix.
+    It assumes that ``A`` is a hermitian, positive definite matrix.
 
     Args:
         matvec: a function that returns the product between ``A`` and a vector.
@@ -107,7 +107,7 @@ def _solve_normal_cg(
 ) -> TensorTree:
     """Solves the normal equation ``A^T A x = A^T b`` using conjugate gradient.
 
-    This can be used to solve ``A x = b`` using conjugate gradient when ``A`` is not Hermitian,
+    This can be used to solve ``A x = b`` using conjugate gradient when ``A`` is not hermitian,
     positive definite.
 
     Args:

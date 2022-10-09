@@ -83,7 +83,8 @@ subtrees
 optimality
 argnums
 matvec
-Hermitian
+hermitian
 deepcopy
+deepclone
 RRef
 rref

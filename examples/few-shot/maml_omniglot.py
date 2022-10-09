@@ -147,8 +147,8 @@ def train(db, net, meta_opt, epoch, log):
         qry_accs = []
         meta_opt.zero_grad()
 
-        net_state_dict = torchopt.extract_state_dict(net)
-        optim_state_dict = torchopt.extract_state_dict(inner_opt)
+        net_state_dict = torchopt.extract_state_dict(net, by='reference', detach_buffers=True)
+        optim_state_dict = torchopt.extract_state_dict(inner_opt, by='reference')
         for i in range(task_num):
             # Optimize the likelihood of the support set by taking
             # gradient steps w.r.t. the model's parameters.
@@ -165,20 +165,17 @@ def train(db, net, meta_opt, epoch, log):
             # These will be used to update the model's meta-parameters.
             qry_logits = net(x_qry[i])
             qry_loss = F.cross_entropy(qry_logits, y_qry[i])
-            qry_losses.append(qry_loss.detach())
+            qry_losses.append(qry_loss)
             qry_acc = (qry_logits.argmax(dim=1) == y_qry[i]).sum().item() / querysz
             qry_accs.append(qry_acc)
-
-            # Update the model's meta-parameters to optimize the query
-            # losses across all of the tasks sampled in this batch.
-            # This unrolls through the gradient steps.
-            qry_loss.backward()
 
             torchopt.recover_state_dict(net, net_state_dict)
             torchopt.recover_state_dict(inner_opt, optim_state_dict)
 
+        qry_losses = torch.mean(torch.stack(qry_losses))
+        qry_losses.backward()
         meta_opt.step()
-        qry_losses = sum(qry_losses) / task_num
+        qry_losses = qry_losses.item()
         qry_accs = 100.0 * sum(qry_accs) / task_num
         i = epoch + float(batch_idx) / n_train_iter
         iter_time = time.time() - start_time
@@ -221,8 +218,8 @@ def test(db, net, epoch, log):
         # doesn't have to be duplicated between `train` and `test`?
         n_inner_iter = 5
 
-        net_state_dict = torchopt.extract_state_dict(net)
-        optim_state_dict = torchopt.extract_state_dict(inner_opt)
+        net_state_dict = torchopt.extract_state_dict(net, by='reference', detach_buffers=True)
+        optim_state_dict = torchopt.extract_state_dict(inner_opt, by='reference')
         for i in range(task_num):
             # Optimize the likelihood of the support set by taking
             # gradient steps w.r.t. the model's parameters.
@@ -241,7 +238,7 @@ def test(db, net, epoch, log):
             torchopt.recover_state_dict(net, net_state_dict)
             torchopt.recover_state_dict(inner_opt, optim_state_dict)
 
-    qry_losses = torch.cat(qry_losses).mean().item()
+    qry_losses = torch.mean(torch.stack(qry_losses)).item()
     qry_accs = 100.0 * torch.cat(qry_accs).float().mean().item()
     print(f'[Epoch {epoch+1:.2f}] Test Loss: {qry_losses:.2f} | Acc: {qry_accs:.2f}')
     log.append(
