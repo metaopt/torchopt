@@ -71,7 +71,7 @@ lint = [
     "mypy",
     "flake8",
     "flake8-bugbear",
-    "doc8",
+    "doc8<1",
     "pydocstyle",
     "pyenchant",
     "cpplint",

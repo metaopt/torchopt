@@ -54,7 +54,6 @@ pre-commit-install:
 
 docs-install:
 	$(call check_pip_install,pydocstyle)
-	$(PYTHON) -m pip uninstall doc8
 	$(call check_pip_install_extra, doc8, "doc8<1")
 	$(call check_pip_install,sphinx)
 	$(call check_pip_install,sphinx-rtd-theme)
