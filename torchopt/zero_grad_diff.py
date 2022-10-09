@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+# ==============================================================================
 import functools
 from typing import Any, Callable, Dict, Tuple, Union
 
@@ -20,8 +20,11 @@ import torch
 from torch.autograd import Function
 
 
-def _zero_orderA(
-    fn: Callable, distribution: Any, argnums: Union[int, Tuple[int]], **kwargs: Dict[str, Any]
+def _zero_order_a(
+    fn: Callable,
+    distribution: Any,
+    argnums: Union[int, Tuple[int]],
+    **kwargs: Dict[str, Any],
 ) -> Callable:
     sigma = kwargs['sigma']
     if isinstance(argnums, int):
@@ -31,9 +34,9 @@ def _zero_orderA(
         diff_params = [args[argnum] for argnum in argnums]
         flatten_diff_params, diff_params_tree = optree.tree_flatten(diff_params)
 
-        class ZeroOrder(Function):
+        class ZeroOrder(Function):  # pylint: disable=missing-class-docstring,abstract-method
             @staticmethod
-            def forward(ctx: Any, *args: Any) -> Any:
+            def forward(ctx: Any, *args: Any) -> Any:  # pylint: disable=arguments-differ
                 flatten_diff_params = args[:-1]
                 origin_args = list(args[-1][0])
 
@@ -60,7 +63,7 @@ def _zero_orderA(
                 return fn(*origin_args)
 
             @staticmethod
-            def backward(ctx: Any, *grad_outputs: Any) -> Any:
+            def backward(ctx: Any, *grad_outputs: Any) -> Any:  # pylint: disable=too-many-locals
                 saved_tensors = ctx.saved_tensors
                 flatten_diff_params = saved_tensors[: ctx.len_params]
                 tensors = saved_tensors[ctx.len_params :]
@@ -105,8 +108,11 @@ def _zero_orderA(
     return apply
 
 
-def _zero_orderB(
-    fn: Callable, distribution: Any, argnums: Union[int, Tuple[int]], **kwargs: Dict[str, Any]
+def _zero_order_b(
+    fn: Callable,
+    distribution: Any,
+    argnums: Union[int, Tuple[int]],
+    **kwargs: Dict[str, Any],
 ) -> Callable:
     sigma = kwargs['sigma']
     if isinstance(argnums, int):
@@ -116,9 +122,9 @@ def _zero_orderB(
         diff_params = [args[argnum] for argnum in argnums]
         flatten_diff_params, diff_params_tree = optree.tree_flatten(diff_params)
 
-        class ZeroOrder(Function):
+        class ZeroOrder(Function):  # pylint: disable=missing-class-docstring,abstract-method
             @staticmethod
-            def forward(ctx: Any, *args: Any) -> Any:
+            def forward(ctx: Any, *args: Any) -> Any:  # pylint: disable=arguments-differ
                 flatten_diff_params = args[:-1]
                 origin_args = list(args[-1][0])
 
@@ -146,7 +152,7 @@ def _zero_orderB(
                 return loss
 
             @staticmethod
-            def backward(ctx: Any, *grad_outputs: Any) -> Any:
+            def backward(ctx: Any, *grad_outputs: Any) -> Any:  # pylint: disable=too-many-locals
                 saved_tensors = ctx.saved_tensors
                 flatten_diff_params = saved_tensors[: ctx.len_params]
                 tensors = saved_tensors[ctx.len_params : -1]
@@ -193,8 +199,11 @@ def _zero_orderB(
     return apply
 
 
-def _zero_orderC(
-    fn: Callable, distribution: Any, argnums: Union[int, Tuple[int]], **kwargs: Dict[str, Any]
+def _zero_order_c(
+    fn: Callable,
+    distribution: Any,
+    argnums: Union[int, Tuple[int]],
+    **kwargs: Dict[str, Any],
 ) -> Callable:
     sigma = kwargs['sigma']
     if isinstance(argnums, int):
@@ -204,9 +213,9 @@ def _zero_orderC(
         diff_params = [args[argnum] for argnum in argnums]
         flatten_diff_params, diff_params_tree = optree.tree_flatten(diff_params)
 
-        class ZeroOrder(Function):
+        class ZeroOrder(Function):  # pylint: disable=missing-class-docstring,abstract-method
             @staticmethod
-            def forward(ctx: Any, *args: Any) -> Any:
+            def forward(ctx: Any, *args: Any) -> Any:  # pylint: disable=arguments-differ
                 flatten_diff_params = args[:-1]
                 origin_args = list(args[-1][0])
 
@@ -233,7 +242,7 @@ def _zero_orderC(
                 return fn(*origin_args)
 
             @staticmethod
-            def backward(ctx: Any, *grad_outputs: Any) -> Any:
+            def backward(ctx: Any, *grad_outputs: Any) -> Any:  # pylint: disable=too-many-locals
                 saved_tensors = ctx.saved_tensors
                 flatten_diff_params = saved_tensors[: ctx.len_params]
                 tensors = saved_tensors[ctx.len_params :]
@@ -281,12 +290,18 @@ def _zero_orderC(
     return apply
 
 
-def zero_order(distribution: Any, algo: str, argnums: Union[int, Tuple[int]] = (0,), **kwargs):
+def zero_order(
+    distribution: Any,
+    algo: str,
+    argnums: Union[int, Tuple[int]] = (0,),
+    **kwargs,
+):
     """Decorator for applying zero order differentiation.
 
     Args:
         distribution: (object)
-            A sampler object, it should have method ``sample(sample_shape)`` to sample perturbations from the given distribution.
+            A sampler object, it should have method ``sample(sample_shape)`` to sample
+            perturbations from the given distribution.
         algo: (str)
             The algorithm to use.
         argnums: (int or tuple of int, default: :const:`0`)
@@ -295,4 +310,6 @@ def zero_order(distribution: Any, algo: str, argnums: Union[int, Tuple[int]] = (
     Returns:
         A zero order function decorator.
     """
-    return functools.partial(_zero_orderA, distribution=distribution, argnums=argnums, **kwargs)
+    return functools.partial(
+        _zero_order_a, distribution=distribution, algo=algo, argnums=argnums, **kwargs
+    )
