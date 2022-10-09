@@ -85,5 +85,6 @@ argnums
 matvec
 hermitian
 deepcopy
+deepclone
 RRef
 rref
