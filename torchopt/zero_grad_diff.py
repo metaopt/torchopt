@@ -20,7 +20,7 @@ import torch
 from torch.autograd import Function
 
 
-def _zero_order_a(
+def _zero_order_naive(
     fn: Callable,
     distribution: Any,
     argnums: Union[int, Tuple[int]],
@@ -108,7 +108,7 @@ def _zero_order_a(
     return apply
 
 
-def _zero_order_b(
+def _zero_order_forward(
     fn: Callable,
     distribution: Any,
     argnums: Union[int, Tuple[int]],
@@ -201,7 +201,7 @@ def _zero_order_b(
     return apply
 
 
-def _zero_order_c(
+def _zero_order_antithetic(
     fn: Callable,
     distribution: Any,
     argnums: Union[int, Tuple[int]],
@@ -294,7 +294,7 @@ def _zero_order_c(
 
 def zero_order(
     distribution: Any,
-    algo: str,
+    algo: str = 'naive',
     argnums: Union[int, Tuple[int]] = (0,),
     **kwargs,
 ):
@@ -312,6 +312,14 @@ def zero_order(
     Returns:
         A zero order function decorator.
     """
+    assert algo in ['naive', 'forward', 'antithetic']
+    if algo == 'naive':
+        fn = _zero_order_naive
+    elif algo == 'forward':
+        fn = _zero_order_forward
+    else:
+        fn = _zero_order_antithetic
+
     return functools.partial(
-        _zero_order_a, distribution=distribution, algo=algo, argnums=argnums, **kwargs
+        fn, distribution=distribution, argnums=argnums, **kwargs
     )
