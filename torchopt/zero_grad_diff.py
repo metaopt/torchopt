@@ -277,8 +277,8 @@ def _zero_order_antithetic(
 
                     return fn(*args)
 
-                loss = get_loss(lambda tensor, noise: torch.add(noise, alpha=sigma)) - get_loss(
-                    lambda tensor, noise: torch.sub(noise, alpha=sigma)
+                loss = get_loss(lambda tensor, noise: tensor.add(noise, alpha=sigma)) - get_loss(
+                    lambda tensor, noise: tensor.sub(noise, alpha=sigma)
                 )
                 weighted_grad = grad_outputs[0].mul(loss).mul_(0.5 / sigma)
 
