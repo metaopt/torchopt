@@ -320,6 +320,4 @@ def zero_order(
     else:
         fn = _zero_order_antithetic
 
-    return functools.partial(
-        fn, distribution=distribution, argnums=argnums, **kwargs
-    )
+    return functools.partial(fn, distribution=distribution, argnums=argnums, **kwargs)
