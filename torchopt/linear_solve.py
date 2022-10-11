@@ -74,7 +74,7 @@ def _make_ridge_matvec(
 
 
 def solve_cg(
-    matvec: Callable[['TensorTree'], 'TensorTree'],
+    matvec: Callable[['TensorTree'], 'TensorTree'],  # (x) -> A @ x
     b: 'TensorTree',
     ridge: Optional[float] = None,
     init: Optional['TensorTree'] = None,
@@ -100,7 +100,7 @@ def solve_cg(
 
 
 def _solve_normal_cg(
-    matvec: Callable[[TensorTree], TensorTree],
+    matvec: Callable[[TensorTree], TensorTree],  # (x) -> A @ x
     b: TensorTree,
     is_sdp: bool = False,
     ridge: Optional[float] = None,
