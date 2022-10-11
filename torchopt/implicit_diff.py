@@ -74,7 +74,7 @@ class MaskedOptimalityFn:  # pylint: disable=missing-class-docstring,too-few-pub
         return self.optimality_fn(self.solution, *true_args)
 
 
-# pylint: disable-next=too-many-arguments,too-many-locals
+# pylint: disable-next=too-many-arguments,too-many-locals,too-many-branches
 def _root_vjp(
     optimality_fn: Callable,
     solution: Any,
@@ -118,7 +118,7 @@ def _root_vjp(
         optimality_fn, solution, result_is_tensor, argnums, *args
     )
 
-    if getattr(solve, 'is_sdp'):
+    if getattr(solve, 'is_sdp', False):
         if result_is_tensor:
             result = u[0]
         else:
