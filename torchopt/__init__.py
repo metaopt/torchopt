@@ -26,6 +26,7 @@ from torchopt import (
     schedule,
     typing,
     visual,
+    zero_order_diff,
 )
 from torchopt.accelerated_op import is_available as accelerated_op_available
 from torchopt.alias import adam, adamw, rmsprop, sgd
