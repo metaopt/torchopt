@@ -101,6 +101,7 @@ def _normal_matvec(matvec: Callable[[TensorTree], TensorTree], x: TensorTree) ->
 def _solve_normal_cg(
     matvec: Callable[[TensorTree], TensorTree],
     b: TensorTree,
+    is_sdp: bool,
     ridge: Optional[float] = None,
     init: Optional[TensorTree] = None,
     **kwargs,
@@ -113,6 +114,7 @@ def _solve_normal_cg(
     Args:
       matvec: product between ``A`` and a vector.
       b: pytree.
+      is_sdp: if ``A`` is symmetric definite positive
       ridge: optional ridge regularization.
       init: optional initialization to be used by normal conjugate gradient.
       **kwargs: additional keyword arguments for solver.
@@ -125,19 +127,25 @@ def _solve_normal_cg(
     else:
         example_x = init
 
-    rmatvec = _make_rmatvec(matvec, example_x)
+    if is_sdp:
+        normal_matvec = matvec
+        Ab = matvec(b)
+    else:
+        rmatvec = _make_rmatvec(matvec, example_x)
 
-    def normal_matvec(x):
-        return _normal_matvec(matvec, x)
+        def normal_matvec(x):
+            return _normal_matvec(matvec, x)
 
-    if ridge is not None:
-        normal_matvec = _make_ridge_matvec(normal_matvec, ridge=ridge)
+        if ridge is not None:
+            normal_matvec = _make_ridge_matvec(normal_matvec, ridge=ridge)
 
-    Ab = rmatvec(b)  # A.T b
+        Ab = rmatvec(b)  # A.T b
 
     return linalg.cg(normal_matvec, Ab, x0=init, **kwargs)
 
 
 def solve_normal_cg(**kwargs):
     """Wrapper for :func:`solve_normal_cg`."""
-    return functools.partial(_solve_normal_cg, **kwargs)
+    partial_fn = functools.partial(_solve_normal_cg, **kwargs)
+    setattr(partial_fn, 'is_sdp', kwargs['is_sdp'] if 'is_sdp' in kwargs else False)
+    return partial_fn
