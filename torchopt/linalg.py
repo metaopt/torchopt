@@ -76,7 +76,7 @@ def _normalize_matvec(
     assert isinstance(f, torch.Tensor)
     if f.ndim != 2 or f.shape[0] != f.shape[1]:
         raise ValueError(f'linear operator must be a square matrix, but has shape: {f.shape}')
-    return partial(torch.matmul, f)
+    return partial(torch.matmul, f)  # type: ignore[return-value]
 
 
 # pylint: disable-next=too-many-locals
@@ -96,12 +96,12 @@ def _cg_solve(
     bs = tree_inner_product(b, b)
     atol2 = max(rtol**2 * bs, atol**2)
 
-    def cond_fun(value):
+    def cond_fn(value):
         _, r, gamma, _, k = value
         rs = gamma if M is _identity else tree_inner_product(r, r)
         return rs > atol2 and k < maxiter
 
-    def body_fun(value):
+    def body_fn(value):
         x, r, gamma, p, k = value
         Ap = A(p)
         alpha = gamma / tree_inner_product(p, Ap)
@@ -118,8 +118,8 @@ def _cg_solve(
     gamma0 = tree_inner_product(r0, z0)
 
     value = (x0, r0, gamma0, p0, 0)
-    while cond_fun(value):
-        value = body_fun(value)
+    while cond_fn(value):
+        value = body_fn(value)
 
     x_final, *_ = value
 
@@ -177,9 +177,9 @@ def cg(
 ) -> TensorTree:
     """Use Conjugate Gradient iteration to solve ``Ax = b``.
 
-    The numerics of JAX's ``cg`` should exact match SciPy's ``cg`` (up to numerical precision), but
-    note that the interface is slightly different: you need to supply the linear operator ``A`` as a
-    function instead of a sparse matrix or ``LinearOperator``.
+    The numerics of TorchOpt's ``cg`` should exact match SciPy's ``cg`` (up to numerical precision),
+    but note that the interface is slightly different: you need to supply the linear operator ``A``
+    as a function instead of a sparse matrix or ``LinearOperator``.
 
     Derivatives of :func:`cg` are implemented via implicit differentiation with another :func:`cg`
     solve, rather than by differentiating *through* the solver. They will be accurate only if both
@@ -197,12 +197,12 @@ def cg(
             Starting guess for the solution. Must have the same structure as ``b``.
         rtol: (float, optional, default: :const:`1e-5`)
             Tolerances for convergence, ``norm(residual) <= max(rtol*norm(b), atol)``. We do not
-            implement SciPy's "legacy" behavior, so JAX's tolerance will differ from SciPy unless
-            you explicitly pass ``atol`` to SciPy's ``cg``.
+            implement SciPy's "legacy" behavior, so TorchOpt's tolerance will differ from SciPy
+            unless you explicitly pass ``atol`` to SciPy's ``cg``.
         atol: (float, optional, default: :const:`0.0`)
             Tolerances for convergence, ``norm(residual) <= max(tol*norm(b), atol)``. We do not
-            implement SciPy's "legacy" behavior, so JAX's tolerance will differ from SciPy unless
-            you explicitly pass ``atol`` to SciPy's ``cg``.
+            implement SciPy's "legacy" behavior, so TorchOpt's tolerance will differ from SciPy
+            unless you explicitly pass ``atol`` to SciPy's ``cg``.
         maxiter: (integer, optional)
             Maximum number of iterations. Iteration will stop after maxiter steps even if the
             specified tolerance has not been achieved.

@@ -35,7 +35,7 @@ import torch.distributed.rpc as rpc
 
 import torchopt.pytree as pytree
 from torchopt.distributed.world import get_worker_id, get_world_rank, get_world_size
-from torchopt.typing import Future, PyTree
+from torchopt.typing import Future
 
 
 __all__ = [
@@ -116,11 +116,12 @@ class TensorDimensionPartitioner:
             workers = list(map(get_worker_id, self.workers))
         num_workers = len(workers)
 
-        args_tree = cast(PyTree[Any], (args, kwargs))
-        flattened_args, treedef = pytree.tree_flatten(args_tree)
+        args_tree = (args, kwargs)
+        flat_args: List[Any]
+        flat_args, treedef = pytree.tree_flatten(args_tree)  # type: ignore[arg-type]
 
         batch_size = None
-        for arg in flattened_args:
+        for arg in flat_args:
             if isinstance(arg, torch.Tensor):
                 if batch_size is None:
                     batch_size = arg.shape[self.dim]
@@ -134,7 +135,6 @@ class TensorDimensionPartitioner:
             return [(get_world_rank(), args, kwargs.copy())]
 
         dim_slices: List[Union[int, slice]]
-        # pylint: disable-next=line-too-long
         batch_slices: List[Tuple[Union[int, slice, Ellipsis.__class__], ...]]  # type: ignore[name-defined]
         if self.exclusive:
             num_replicas = batch_size
@@ -169,18 +169,18 @@ class TensorDimensionPartitioner:
                 for dim_slice in dim_slices
             ]
 
-        flattened_args_replicas: List[List[Any]] = [[] for _ in range(num_replicas)]
-        for arg in flattened_args:
+        flat_args_replicas: List[List[Any]] = [[] for _ in range(num_replicas)]
+        for arg in flat_args:
             if isinstance(arg, torch.Tensor):
                 for i, batch_slice in enumerate(batch_slices):
-                    flattened_args_replicas[i].append(arg[batch_slice])
+                    flat_args_replicas[i].append(arg[batch_slice])
             else:
                 for i in range(num_replicas):
-                    flattened_args_replicas[i].append(arg)
+                    flat_args_replicas[i].append(arg)
 
         args_replicas: List[Tuple[Args, KwArgs]] = [
             pytree.tree_unflatten(treedef, args_replica)  # type: ignore[misc]
-            for args_replica in flattened_args_replicas
+            for args_replica in flat_args_replicas
         ]
 
         return [
@@ -237,8 +237,6 @@ def dim_partitioner(
     return TensorDimensionPartitioner(dim, exclusive=exclusive, keepdim=keepdim, workers=workers)
 
 
-# fmt: off
-# pylint: disable=line-too-long
 batch_partitioner: PartitionFunction = dim_partitioner(dim=0, keepdim=True, exclusive=False)
 """Partitioner for batch dimension. Divide and replicates the arguments to all workers along the first dimension.
 
@@ -249,7 +247,7 @@ When ``batch_size > num_workers``, there can be multiple batch samples forward i
 All tensors in the ``args`` and ``kwargs`` will be partitioned along the dimension ``dim``,
 while the non-tensor values will be broadcasted to partitions.
 """
-exclusive_batch_partitioner: PartitionFunction = dim_partitioner(dim=0, keepdim=True, exclusive=True)
+exclusive_batch_partitioner: PartitionFunction = dim_partitioner(dim=0, keepdim=True, exclusive=True)  # fmt: skip
 """Partitioner for batch dimension. Divide and replicates the arguments to all workers along the first dimension.
 
 Each batch sample will be assigned to a separate RPC call.
@@ -257,8 +255,6 @@ Each batch sample will be assigned to a separate RPC call.
 All tensors in the ``args`` and ``kwargs`` will be partitioned along the dimension ``dim``,
 while the non-tensor values will be broadcasted to partitions.
 """
-# pylint: enable=line-too-long
-# fmt: on
 
 
 def mean_reducer(results: Iterable[torch.Tensor]) -> torch.Tensor:
@@ -280,7 +276,6 @@ def remote_async_call(
     reducer: Optional[Callable[[Iterable[T]], U]] = None,
     timeout: Optional[float] = UNSET_RPC_TIMEOUT,
 ) -> Union[Future[List[T]], Future[U]]:
-    # pylint: disable=line-too-long
     """Asynchronously do an RPC on remote workers and return the a :class:`torch.Future` instance at the current worker.
 
     Args:

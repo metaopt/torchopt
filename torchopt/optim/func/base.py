@@ -55,7 +55,7 @@ class FuncOptimizer:  # pylint: disable=too-few-public-methods
             raise TypeError(f'{impl} (type: {type(impl).__name__}) is not a GradientTransformation')
 
         self.impl: GradientTransformation = impl
-        self.optim_state: Optional[OptState] = self.__NOT_INITIALIZED
+        self.optim_state: Optional[OptState] = self.__NOT_INITIALIZED  # type: ignore[assignment]
         self.inplace: bool = bool(inplace)
 
     def step(
@@ -86,9 +86,9 @@ class FuncOptimizer:  # pylint: disable=too-few-public-methods
             inplace = self.inplace
 
         # Step parameter only
-        grads = torch.autograd.grad(loss, params, create_graph=True, allow_unused=True)
+        grads = torch.autograd.grad(loss, params, create_graph=True, allow_unused=True)  # type: ignore[arg-type]
         updates, self.optim_state = self.impl.update(
-            grads, self.optim_state, params=params, inplace=inplace
+            grads, self.optim_state, params=params, inplace=inplace  # type: ignore[arg-type]
         )
         new_params = apply_updates(params, updates, inplace=inplace)
         return new_params

@@ -14,12 +14,16 @@
 # ==============================================================================
 """The base class for optimizers."""
 
-from typing import Callable, Iterable, List, Optional, Sequence, Tuple, cast
+from typing import Callable, Iterable, List, Optional, Sequence, Tuple
 
 import torch
 
 from torchopt import pytree
-from torchopt.typing import GradientTransformation, OptState, Params, TensorTree
+from torchopt.typing import (  # pylint: disable=unused-import
+    GradientTransformation,
+    OptState,
+    Params,
+)
 from torchopt.update import apply_updates
 
 
@@ -49,9 +53,9 @@ class Optimizer:
         self.param_treedefs: List[pytree.PyTreeDef] = []
         self.state_groups: List[OptState] = []
 
-        if not isinstance(params, list):
-            params = list(params)
-        self.add_param_group(params)
+        if not isinstance(params, (list, tuple)):
+            params = tuple(params)
+        self.add_param_group(params)  # type: ignore[arg-type]
 
     def zero_grad(self, set_to_none: bool = False) -> None:
         r"""Sets the gradients of all optimized :class:`torch.Tensor`\s to zero.
@@ -77,7 +81,7 @@ class Optimizer:
                     p.grad.requires_grad_(False)
                 p.grad.zero_()
 
-        pytree.tree_map(f, cast(TensorTree, self.param_groups))
+        pytree.tree_map(f, self.param_groups)  # type: ignore[arg-type]
 
     def state_dict(self) -> Tuple['OptState', ...]:
         """Returns the state of the optimizer."""
@@ -109,17 +113,17 @@ class Optimizer:
             return p.grad
 
         for i, (params, state) in enumerate(zip(self.param_groups, self.state_groups)):
-            grads = pytree.tree_map(f, cast(Params, params))
-            updates, new_state = self.impl.update(grads, state, params=params, inplace=True)
-            self.param_groups[i] = apply_updates(params, updates, inplace=True)
+            grads = pytree.tree_map(f, params)  # type: ignore[arg-type]
+            updates, new_state = self.impl.update(grads, state, params=params, inplace=True)  # type: ignore[arg-type]
+            self.param_groups[i] = apply_updates(params, updates, inplace=True)  # type: ignore[arg-type,call-overload]
             self.state_groups[i] = new_state
 
         return loss
 
     def add_param_group(self, params: 'Params') -> None:
         """Add a param group to the optimizer's :attr:`param_groups`."""
-        flattened_params, params_treedef = pytree.tree_flatten(params)
-        flattened_params: Tuple[torch.Tensor] = tuple(flattened_params)  # type: ignore[assignment]
-        self.param_groups.append(flattened_params)
+        flat_params, params_treedef = pytree.tree_flatten(params)
+        flat_params: Tuple[torch.Tensor] = tuple(flat_params)  # type: ignore[assignment]
+        self.param_groups.append(flat_params)
         self.param_treedefs.append(params_treedef)
-        self.state_groups.append(self.impl.init(flattened_params))
+        self.state_groups.append(self.impl.init(flat_params))  # type: ignore[arg-type]

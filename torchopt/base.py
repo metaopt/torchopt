@@ -34,12 +34,7 @@
 import itertools
 from abc import abstractmethod
 from typing import TYPE_CHECKING, Callable, NamedTuple, Optional, Tuple
-
-
-try:
-    from typing import Protocol  # pylint: disable=unused-import
-except ImportError:
-    from typing_extensions import Protocol  # type: ignore[assignment]
+from typing_extensions import Protocol  # Python 3.8+
 
 
 if TYPE_CHECKING:
@@ -229,7 +224,7 @@ class IdentityGradientTransformation(GradientTransformation):
     @staticmethod
     def init_fn(params: 'Params') -> 'OptState':  # pylint: disable=unused-argument
         """Returns empty state."""
-        return EmptyState()
+        return EmptyState()  # type: ignore[return-value]
 
     @staticmethod
     def update_fn(
