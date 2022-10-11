@@ -95,7 +95,11 @@ def solve_cg(
         The solution with the same structure as ``b``.
     """
     if ridge is not None:
+        #      (x) -> A @ x + ridge * x
+        # i.e. (x) -> (A + ridge * I) @ x
         matvec = _make_ridge_matvec(matvec, ridge=ridge)
+
+    # Returns solution for `(A + ridge * I) @ x = b`.
     return linalg.cg(matvec, b, x0=init, **kwargs)
 
 
