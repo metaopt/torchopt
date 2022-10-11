@@ -76,7 +76,7 @@ def _normalize_matvec(
     assert isinstance(f, torch.Tensor)
     if f.ndim != 2 or f.shape[0] != f.shape[1]:
         raise ValueError(f'linear operator must be a square matrix, but has shape: {f.shape}')
-    return partial(torch.matmul, f)
+    return partial(torch.matmul, f)  # type: ignore[return-value]
 
 
 # pylint: disable-next=too-many-locals
@@ -96,12 +96,12 @@ def _cg_solve(
     bs = tree_inner_product(b, b)
     atol2 = max(rtol**2 * bs, atol**2)
 
-    def cond_fun(value):
+    def cond_fn(value):
         _, r, gamma, _, k = value
         rs = gamma if M is _identity else tree_inner_product(r, r)
         return rs > atol2 and k < maxiter
 
-    def body_fun(value):
+    def body_fn(value):
         x, r, gamma, p, k = value
         Ap = A(p)
         alpha = gamma / tree_inner_product(p, Ap)
@@ -118,8 +118,8 @@ def _cg_solve(
     gamma0 = tree_inner_product(r0, z0)
 
     value = (x0, r0, gamma0, p0, 0)
-    while cond_fun(value):
-        value = body_fun(value)
+    while cond_fn(value):
+        value = body_fn(value)
 
     x_final, *_ = value
 

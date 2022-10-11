@@ -28,18 +28,14 @@ from typing import (
     cast,
     overload,
 )
+from typing_extensions import Literal  # Python 3.8+
+from typing_extensions import TypeAlias  # Python 3.10+
 
 import torch
 import torch.nn as nn
 
 from torchopt import pytree
 from torchopt.typing import OptState, TensorTree  # pylint: disable=unused-import
-
-
-try:
-    from typing import Literal  # type: ignore[attr-defined]
-except ImportError:
-    from typing_extensions import Literal
 
 
 if TYPE_CHECKING:
@@ -63,6 +59,9 @@ class ModuleState(NamedTuple):
     buffers: Tuple[Dict[str, torch.Tensor], ...]
     visual_contents: Optional[Dict] = None
     detach_buffers: bool = False
+
+
+CopyMode: TypeAlias = Literal['reference', 'copy', 'deepcopy', 'ref', 'clone', 'deepclone']
 
 
 def stop_gradient(target: Union['TensorTree', ModuleState, nn.Module, 'MetaOptimizer']) -> None:
@@ -106,8 +105,7 @@ def stop_gradient(target: Union['TensorTree', ModuleState, nn.Module, 'MetaOptim
 def extract_state_dict(
     target: nn.Module,
     *,
-    # pylint: disable-next=line-too-long
-    by: Literal['reference', 'copy', 'deepcopy', 'ref', 'clone', 'deepclone'] = 'reference',  # type: ignore[name-defined]
+    by: CopyMode = 'reference',
     device: Optional[Union[int, str, torch.device]] = None,
     with_buffers: bool = True,
     enable_visual: bool = False,
@@ -120,8 +118,7 @@ def extract_state_dict(
 def extract_state_dict(
     target: 'MetaOptimizer',
     *,
-    # pylint: disable-next=line-too-long
-    by: Literal['reference', 'copy', 'deepcopy', 'ref', 'clone', 'deepclone'] = 'reference',  # type: ignore[name-defined]
+    by: CopyMode = 'reference',
     device: Optional[Union[int, str, torch.device]] = None,
     with_buffers: bool = True,
     enable_visual: bool = False,
@@ -134,8 +131,7 @@ def extract_state_dict(
 def extract_state_dict(
     target: Union[nn.Module, 'MetaOptimizer'],
     *,
-    # pylint: disable-next=line-too-long
-    by: Literal['reference', 'copy', 'deepcopy', 'ref', 'clone', 'deepclone'] = 'reference',  # type: ignore[name-defined]
+    by: CopyMode = 'reference',
     device: Optional[Union[int, str, torch.device]] = None,
     with_buffers: bool = True,
     detach_buffers: bool = False,
@@ -361,8 +357,7 @@ def recover_state_dict(
 def module_clone(
     target: nn.Module,
     *,
-    # pylint: disable-next=line-too-long
-    by: Literal['reference', 'copy', 'deepcopy', 'ref', 'clone', 'deepclone'] = 'reference',  # type: ignore[name-defined]
+    by: CopyMode = 'reference',
     detach_buffers: bool = False,
     device: Optional[Union[int, str, torch.device]] = None,
 ) -> nn.Module:
@@ -373,8 +368,7 @@ def module_clone(
 def module_clone(
     target: 'MetaOptimizer',
     *,
-    # pylint: disable-next=line-too-long
-    by: Literal['reference', 'copy', 'deepcopy', 'ref', 'clone', 'deepclone'] = 'reference',  # type: ignore[name-defined]
+    by: CopyMode = 'reference',
     detach_buffers: bool = False,
     device: Optional[Union[int, str, torch.device]] = None,
 ) -> 'MetaOptimizer':
@@ -385,8 +379,7 @@ def module_clone(
 def module_clone(
     target: TensorTree,
     *,
-    # pylint: disable-next=line-too-long
-    by: Literal['reference', 'copy', 'deepcopy', 'ref', 'clone', 'deepclone'] = 'reference',  # type: ignore[name-defined]
+    by: CopyMode = 'reference',
     detach_buffers: bool = False,
     device: Optional[Union[int, str, torch.device]] = None,
 ) -> TensorTree:
@@ -397,8 +390,7 @@ def module_clone(
 def module_clone(
     target: Union[nn.Module, 'MetaOptimizer', TensorTree],
     *,
-    # pylint: disable-next=line-too-long
-    by: Literal['reference', 'copy', 'deepcopy', 'ref', 'clone', 'deepclone'] = 'reference',  # type: ignore[name-defined]
+    by: CopyMode = 'reference',
     detach_buffers: bool = False,
     device: Optional[Union[int, str, torch.device]] = None,
 ) -> Union[nn.Module, 'MetaOptimizer', TensorTree]:

@@ -33,18 +33,18 @@
 
 # pylint: disable=invalid-name
 
-from typing import Any, Callable, List, NamedTuple, Optional, Sequence, Tuple, Union, cast
+from typing import Any, Callable, List, NamedTuple, Optional, Sequence, Union
 
 import torch
 
 from torchopt import pytree
 from torchopt.base import EmptyState, GradientTransformation, identity
-from torchopt.typing import Params, PyTree, Schedule, TensorTree, Updates
+from torchopt.typing import Params, Schedule, TensorTree, Updates
 
 
 ScaleState = EmptyState
 INT64_MAX = torch.iinfo(torch.int64).max
-TRIPLE_PYTREEDEF = pytree.tree_structure(cast(PyTree[int], (0, 1, 2)))
+TRIPLE_PYTREEDEF = pytree.tree_structure((0, 1, 2))  # type: ignore[arg-type]
 
 
 def map_flattened(func: Callable, *args: Any) -> List[Any]:
@@ -53,21 +53,21 @@ def map_flattened(func: Callable, *args: Any) -> List[Any]:
 
 
 def with_flattened_tree(inner: GradientTransformation) -> GradientTransformation:
-    # pylint: disable-next=line-too-long
     """Wraps around the inner transformation that manipulates the flattened tree structure (:class:``list``)."""
 
     def init_fn(params):
-        return inner.init(pytree.tree_leaves(params))
+        return inner.init(pytree.tree_leaves(params))  # type: ignore[arg-type]
 
     def update_fn(updates, state, *, params=None, inplace=True):
-        flattened_updates, treedef = pytree.tree_flatten(updates)
+        flat_updates, treedef = pytree.tree_flatten(updates)
         if params is not None:
             params = pytree.tree_leaves(params)
 
-        flattened_updates, state = inner.update(
-            flattened_updates, state, params=params, inplace=inplace
+        flat_updates, state = inner.update(
+            flat_updates, state, params=params, inplace=inplace  # type: ignore[arg-type]
         )
-        updates = pytree.tree_unflatten(treedef, flattened_updates)
+        updates: Updates
+        updates = pytree.tree_unflatten(treedef, flat_updates)  # type: ignore[arg-type]
 
         return updates, state
 
@@ -90,7 +90,7 @@ def _inc_count(
         return c + (c != INT64_MAX).to(torch.int64) if g is not None else c
 
     if already_flattened:
-        return map_flattened(f, count, updates)
+        return map_flattened(f, count, updates)  # type: ignore[return-value]
     return pytree.tree_map(f, count, updates)
 
 
@@ -183,7 +183,7 @@ def _scale_by_schedule(
         return (
             updates,
             ScaleByScheduleState(
-                count=_inc_count(updates, state.count, already_flattened=already_flattened)
+                count=_inc_count(updates, state.count, already_flattened=already_flattened)  # type: ignore[arg-type]
             ),
         )
 
@@ -313,7 +313,7 @@ def _scale_by_adam(
         nu = tree_map(  # second moment
             lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params
         )
-        return ScaleByAdamState(mu=mu, nu=nu, count=zero)
+        return ScaleByAdamState(mu=mu, nu=nu, count=zero)  # type: ignore[arg-type]
 
     def update_fn(updates, state, *, params=None, inplace=True):  # pylint: disable=unused-argument
         mu = _update_moment(
@@ -337,7 +337,7 @@ def _scale_by_adam(
                 return m.div(v.add(eps_root).sqrt_().add(eps)) if g is not None else None
 
         updates = tree_map(f, updates, mu_hat, nu_hat)
-        return updates, ScaleByAdamState(mu=mu, nu=nu, count=count_inc)
+        return updates, ScaleByAdamState(mu=mu, nu=nu, count=count_inc)  # type: ignore[arg-type]
 
     return GradientTransformation(init_fn, update_fn)
 
@@ -413,7 +413,7 @@ def _scale_by_accelerated_adam(
             out = map_flattened(op, state.mu, state.nu, updates, count_inc)
 
             new_mu, new_nu, new_updates = tuple(zip(*out))  # transpose
-            return new_updates, ScaleByAdamState(mu=new_mu, nu=new_nu, count=count_inc)
+            return new_updates, ScaleByAdamState(mu=new_mu, nu=new_nu, count=count_inc)  # type: ignore[arg-type]
 
     else:
         tree_map = pytree.tree_map  # type: ignore[assignment]
@@ -427,11 +427,11 @@ def _scale_by_accelerated_adam(
             op = AdamOp(b1=b1, b2=b2, eps=eps, eps_root=eps_root, inplace=inplace)
             out = pytree.tree_map(op, state.mu, state.nu, updates, count_inc)
 
-            new_mu, new_nu, new_updates = cast(
-                Tuple[TensorTree, TensorTree, TensorTree],
-                pytree.tree_transpose(treedef, TRIPLE_PYTREEDEF, out),
-            )
-            return new_updates, ScaleByAdamState(mu=new_mu, nu=new_nu, count=count_inc)
+            new_mu: Updates
+            new_nu: Updates
+            new_updates: Updates
+            new_mu, new_nu, new_updates = pytree.tree_transpose(treedef, TRIPLE_PYTREEDEF, out)  # type: ignore[misc]
+            return new_updates, ScaleByAdamState(mu=new_mu, nu=new_nu, count=count_inc)  # type: ignore[arg-type]
 
     def init_fn(params):
         zero = tree_map(  # count init
@@ -443,7 +443,7 @@ def _scale_by_accelerated_adam(
         nu = tree_map(  # second moment
             lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params
         )
-        return ScaleByAdamState(mu=mu, nu=nu, count=zero)
+        return ScaleByAdamState(mu=mu, nu=nu, count=zero)  # type: ignore[arg-type]
 
     return GradientTransformation(init_fn, update_fn)
 
@@ -513,7 +513,7 @@ def _trace(
 
     def init_fn(params):
         return TraceState(
-            trace=tree_map(
+            trace=tree_map(  # type: ignore[arg-type]
                 lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params
             )
         )
@@ -572,7 +572,7 @@ def _trace(
                 updates = tree_map(torch.clone, new_trace)
 
         first_call = False
-        return updates, TraceState(trace=new_trace)
+        return updates, TraceState(trace=new_trace)  # type: ignore[arg-type]
 
     return GradientTransformation(init_fn, update_fn)
 
@@ -631,7 +631,7 @@ def _scale_by_rms(
 
     def init_fn(params):
         nu = tree_map(lambda n: torch.full_like(n, initial_scale), params)  # second moment
-        return ScaleByRmsState(nu=nu)
+        return ScaleByRmsState(nu=nu)  # type: ignore[arg-type]
 
     def update_fn(updates, state, *, params=None, inplace=True):  # pylint: disable=unused-argument
         nu = _update_moment(
@@ -710,7 +710,7 @@ def _scale_by_stddev(
     def init_fn(params):
         mu = tree_map(torch.zeros_like, params)  # first moment
         nu = tree_map(lambda n: torch.full_like(n, initial_scale), params)  # second moment
-        return ScaleByRStdDevState(mu=mu, nu=nu)
+        return ScaleByRStdDevState(mu=mu, nu=nu)  # type: ignore[arg-type]
 
     def update_fn(updates, state, *, params=None, inplace=True):  # pylint: disable=unused-argument
         mu = _update_moment(

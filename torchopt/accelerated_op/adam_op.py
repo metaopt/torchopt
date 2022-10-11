@@ -31,7 +31,6 @@ class AdamOp:  # pylint: disable=too-few-public-methods
 
         @staticmethod
         def jvp(ctx: Any, *grad_inputs: Any) -> Any:
-            # pylint: disable-next=line-too-long
             """Defines a formula for differentiating the operation with forward mode automatic differentiation."""
 
         @staticmethod
@@ -58,7 +57,6 @@ class AdamOp:  # pylint: disable=too-few-public-methods
 
         @staticmethod
         def jvp(ctx: Any, *grad_inputs: Any) -> Any:
-            # pylint: disable-next=line-too-long
             """Defines a formula for differentiating the operation with forward mode automatic differentiation."""
 
         @staticmethod
@@ -85,7 +83,6 @@ class AdamOp:  # pylint: disable=too-few-public-methods
 
         @staticmethod
         def jvp(ctx: Any, *grad_inputs: Any) -> Any:
-            # pylint: disable-next=line-too-long
             """Defines a formula for differentiating the operation with forward mode automatic differentiation."""
 
         @staticmethod

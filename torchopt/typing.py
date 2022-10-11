@@ -15,6 +15,7 @@
 """Typing utilities."""
 
 from typing import Callable, Optional, TypeVar, Union
+from typing_extensions import TypeAlias  # Python 3.10+
 
 import torch.distributed.rpc as rpc
 from optree.typing import PyTree
@@ -22,12 +23,6 @@ from torch import Tensor
 from torch.futures import Future
 
 from torchopt.base import ChainedGradientTransformation, EmptyState, GradientTransformation
-
-
-try:
-    from typing import TypeAlias  # type: ignore[attr-defined]
-except ImportError:
-    from typing_extensions import TypeAlias
 
 
 __all__ = [
