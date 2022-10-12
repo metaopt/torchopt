@@ -50,44 +50,10 @@ def tree_add(tree_x: TensorTree, tree_y: TensorTree, alpha: float = 1.0) -> Tens
     return pytree.tree_map(lambda x, y: x.add(y, alpha=alpha), tree_x, tree_y)
 
 
-def _make_ridge_matvec(
-    matvec: Callable[[TensorTree], TensorTree], ridge: float = 0.0
-) -> Callable[[TensorTree], TensorTree]:
-    def ridge_matvec(v: TensorTree) -> TensorTree:
-        return tree_add(matvec(v), v, alpha=ridge)
-
-    return ridge_matvec
-
-
-def solve_cg(
-    matvec: Callable[['TensorTree'], 'TensorTree'],
-    b: 'TensorTree',
-    ridge: Optional[float] = None,
-    init: Optional['TensorTree'] = None,
-    **kwargs,
-) -> 'TensorTree':
-    """Solves ``A x = b`` using conjugate gradient.
-
-    It assumes that ``A`` is a hermitian, positive definite matrix.
-
-    Args:
-        matvec: a function that returns the product between ``A`` and a vector.
-        b: a tree of tensors.
-        ridge: optional ridge regularization.
-        init: optional initialization to be used by conjugate gradient.
-        **kwargs: additional keyword arguments for solver.
-
-    Returns:
-        The solution with the same structure as ``b``.
-    """
-    if ridge is not None:
-        matvec = _make_ridge_matvec(matvec, ridge=ridge)
-    return linalg.cg(matvec, b, x0=init, **kwargs)
-
-
 def _make_rmatvec(
     matvec: Callable[[TensorTree], TensorTree], x: TensorTree
 ) -> Callable[[TensorTree], TensorTree]:
+    """Returns a function that computes A^T y from matvec(x) = A x."""
     _, vjp, *_ = functorch.vjp(matvec, x)
     return lambda y: vjp(y)[0]
 
@@ -98,9 +64,49 @@ def _normal_matvec(matvec: Callable[[TensorTree], TensorTree], x: TensorTree) ->
     return vjp(matvec_x)[0]
 
 
+def _make_ridge_matvec(
+    matvec: Callable[[TensorTree], TensorTree], ridge: float = 0.0
+) -> Callable[[TensorTree], TensorTree]:
+    def ridge_matvec(v: TensorTree) -> TensorTree:
+        return tree_add(matvec(v), v, alpha=ridge)
+
+    return ridge_matvec
+
+
+def solve_cg(
+    matvec: Callable[['TensorTree'], 'TensorTree'],  # (x) -> A @ x
+    b: 'TensorTree',
+    ridge: Optional[float] = None,
+    init: Optional['TensorTree'] = None,
+    **kwargs,
+) -> 'TensorTree':
+    """Solves ``A x = b`` using conjugate gradient.
+
+    It assumes that ``A`` is a hermitian, positive definite matrix.
+
+    Args:
+        matvec: A function that returns the product between ``A`` and a vector.
+        b: A tree of tensors for the right hand side of the equation.
+        ridge: Optional ridge regularization.
+        init: Optional initialization to be used by conjugate gradient.
+        **kwargs: Additional keyword arguments for the conjugate gradient solver.
+
+    Returns:
+        The solution with the same structure as ``b``.
+    """
+    if ridge is not None:
+        #      (x) -> A @ x + ridge * x
+        # i.e. (x) -> (A + ridge * I) @ x
+        matvec = _make_ridge_matvec(matvec, ridge=ridge)
+
+    # Returns solution for `(A + ridge * I) @ x = b`.
+    return linalg.cg(matvec, b, x0=init, **kwargs)
+
+
 def _solve_normal_cg(
-    matvec: Callable[[TensorTree], TensorTree],
+    matvec: Callable[[TensorTree], TensorTree],  # (x) -> A @ x
     b: TensorTree,
+    is_sdp: bool = False,
     ridge: Optional[float] = None,
     init: Optional[TensorTree] = None,
     **kwargs,
@@ -111,11 +117,12 @@ def _solve_normal_cg(
     positive definite.
 
     Args:
-      matvec: product between ``A`` and a vector.
-      b: pytree.
-      ridge: optional ridge regularization.
-      init: optional initialization to be used by normal conjugate gradient.
-      **kwargs: additional keyword arguments for solver.
+        matvec: A function that returns the product between ``A`` and a vector.
+        b: A tree of tensors for the right hand side of the equation.
+        is_sdp: Whether to assume matrix ``A`` is symmetric definite positive to speedup computation.
+        ridge: Optional ridge regularization. Solves the equation for ``(A.T @ A + ridge * I) @ x = A.T @ b``.
+        init: Optional initialization to be used by normal conjugate gradient.
+        **kwargs: Additional keyword arguments for the conjugate gradient solver.
 
     Returns:
         The solution with the same structure as ``b``.
@@ -125,19 +132,30 @@ def _solve_normal_cg(
     else:
         example_x = init
 
-    rmatvec = _make_rmatvec(matvec, example_x)
+    if is_sdp:
+        if ridge is not None:
+            raise ValueError('ridge must be specified with `is_sdp=False`.')
+        # Returns solution for `A @ x = b`.
+        return linalg.cg(matvec, b, x0=init, **kwargs)
 
-    def normal_matvec(x):
+    rmatvec = _make_rmatvec(matvec, example_x)  # (x) -> A.T @ x
+
+    def normal_matvec(x):  # (x) -> A.T @ A @ x
         return _normal_matvec(matvec, x)
 
     if ridge is not None:
+        #      (x) -> A.T @ A @ x + ridge * x
+        # i.e. (x) -> (A.T @ A + ridge * I) @ x
         normal_matvec = _make_ridge_matvec(normal_matvec, ridge=ridge)
 
-    Ab = rmatvec(b)  # A.T b
+    Ab = rmatvec(b)  # A.T @ b
 
+    # Returns solution for `(A.T @ A + ridge * I) @ x = A.T @ b`.
     return linalg.cg(normal_matvec, Ab, x0=init, **kwargs)
 
 
 def solve_normal_cg(**kwargs):
     """Wrapper for :func:`solve_normal_cg`."""
-    return functools.partial(_solve_normal_cg, **kwargs)
+    partial_fn = functools.partial(_solve_normal_cg, **kwargs)
+    setattr(partial_fn, 'is_sdp', kwargs.get('is_sdp', False))
+    return partial_fn
