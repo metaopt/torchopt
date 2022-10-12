@@ -19,14 +19,14 @@ from torchopt import (
     combine,
     distributed,
     hook,
-    implicit_diff,
+    implicit,
     linalg,
     linear_solve,
     pytree,
     schedule,
     typing,
     visual,
-    zero_order_diff,
+    zero_order,
 )
 from torchopt.accelerated_op import is_available as accelerated_op_available
 from torchopt.alias import adam, adamw, rmsprop, sgd
