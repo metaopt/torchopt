@@ -18,7 +18,7 @@ from typing import Iterable
 
 import torch
 
-from torchopt.alias import rmsprop
+from torchopt import alias
 from torchopt.optim.base import Optimizer
 from torchopt.typing import ScalarOrSchedule
 
@@ -79,7 +79,7 @@ class RMSProp(Optimizer):
         """
         super().__init__(
             params,
-            rmsprop(
+            alias.rmsprop(
                 lr=lr,
                 alpha=alpha,
                 eps=eps,

@@ -31,13 +31,15 @@
 # ==============================================================================
 """Utilities to define a chained transformation."""
 
-from torchopt.base import ChainedGradientTransformation, GradientTransformation
+from torchopt import pytree
+from torchopt.base import ChainedGradientTransformation, GradientTransformation, identity
+from torchopt.typing import Updates
 
 
-__all__ = ['chain']
+__all__ = ['chain', 'chain_flat']
 
 
-def chain(*args: GradientTransformation) -> GradientTransformation:
+def chain(*transformations: GradientTransformation) -> GradientTransformation:
     """Applies a list of chainable update transformations.
 
     Given a sequence of chainable transforms, :func:`chain` returns an :func:`init_fn` that
@@ -45,10 +47,53 @@ def chain(*args: GradientTransformation) -> GradientTransformation:
     :func:`update_fn` which chains the update transformations feeding the appropriate state to each.
 
     Args:
-        *args:
+        *transformations:
             A sequence of chainable ``(init_fn, update_fn)`` tuples.
 
     Returns:
         A single ``(init_fn, update_fn)`` tuple.
     """
-    return ChainedGradientTransformation(*args)
+    if len(transformations) == 0:
+        return identity()
+    if len(transformations) == 1:
+        return transformations[0]
+    return ChainedGradientTransformation(*transformations)
+
+
+def chain_flat(*transformations: GradientTransformation) -> GradientTransformation:
+    """Wraps around the inner transformations that manipulates the flattened tree structure (:class:``list``).
+
+    Args:
+        *transformations:
+            A sequence of chainable ``(init_fn, update_fn)`` tuples.
+
+    Returns:
+        A single ``(init_fn, update_fn)`` tuple.
+    """
+    if len(transformations) == 0:
+        return identity()
+    if len(transformations) == 1:
+        inner = transformations[0]
+    else:
+        inner = chain(*transformations)
+
+    def init_fn(params):
+        return inner.init(pytree.tree_leaves(params))  # type: ignore[arg-type]
+
+    def update_fn(updates, state, *, params=None, inplace=True):
+        flat_updates, treedef = pytree.tree_flatten(updates)
+        if params is not None:
+            params = pytree.tree_leaves(params)
+
+        flat_updates, state = inner.update(
+            flat_updates, state, params=params, inplace=inplace  # type: ignore[arg-type]
+        )
+        updates: Updates
+        updates = pytree.tree_unflatten(treedef, flat_updates)  # type: ignore[arg-type]
+
+        return updates, state
+
+    return GradientTransformation(init_fn, update_fn)
+
+
+chain.flat = chain_flat  # type: ignore[attr-defined]

@@ -134,7 +134,7 @@ Differentiable Meta-RMSProp Optimizer
 Implicit differentiation
 ========================
 
-.. currentmodule:: torchopt.implicit_diff
+.. currentmodule:: torchopt.diff.implicit
 
 .. autosummary::
 

@@ -17,16 +17,14 @@
 from torchopt import (
     clip,
     combine,
+    diff,
     distributed,
     hook,
-    implicit_diff,
-    linalg,
     linear_solve,
     pytree,
     schedule,
     typing,
     visual,
-    zero_order_diff,
 )
 from torchopt.accelerated_op import is_available as accelerated_op_available
 from torchopt.alias import adam, adamw, rmsprop, sgd
@@ -55,6 +53,7 @@ from torchopt.version import __version__
 
 __all__ = [
     'accelerated_op_available',
+    'diff',
     'adam',
     'adamw',
     'rmsprop',

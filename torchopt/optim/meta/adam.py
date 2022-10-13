@@ -18,7 +18,7 @@ from typing import Tuple
 
 import torch.nn as nn
 
-from torchopt.alias import adam
+from torchopt import alias
 from torchopt.optim.meta.base import MetaOptimizer
 from torchopt.typing import ScalarOrSchedule
 
@@ -76,7 +76,7 @@ class MetaAdam(MetaOptimizer):
         """
         super().__init__(
             net,
-            adam(
+            alias.adam(
                 lr=lr,
                 betas=betas,
                 eps=eps,

@@ -18,7 +18,7 @@ from typing import Iterable
 
 import torch
 
-from torchopt.alias import sgd
+from torchopt import alias
 from torchopt.optim.base import Optimizer
 from torchopt.typing import ScalarOrSchedule
 
@@ -65,7 +65,7 @@ class SGD(Optimizer):
         """
         super().__init__(
             params,
-            sgd(
+            alias.sgd(
                 lr=lr,
                 momentum=momentum,
                 weight_decay=weight_decay,

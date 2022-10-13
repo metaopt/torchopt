@@ -29,7 +29,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""Linear algebra functions."""
+"""Conjugate Gradient iteration to solve ``Ax = b``."""
 
 # pylint: disable=invalid-name
 
@@ -45,21 +45,21 @@ from torchopt.typing import TensorTree
 __all__ = ['cg']
 
 
-def _inner_product_kernel(x: torch.Tensor, y: torch.Tensor) -> float:
-    """Computes (x.conj() * y).real."""
-    x = x.reshape(-1)
-    y = y.reshape(-1)
+def _vdot_real_kernel(x: torch.Tensor, y: torch.Tensor) -> float:
+    """Computes dot(x.conj(), y).real."""
+    x = x.contiguous().view(-1)
+    y = y.contiguous().view(-1)
     prod = torch.dot(x.real, y.real).item()
-    if x.is_complex() or y.is_complex():
+    if x.is_complex() and y.is_complex():
         prod += torch.dot(x.imag, y.imag).item()
     return prod
 
 
-def tree_inner_product(tree_x: TensorTree, tree_y: TensorTree) -> float:
-    """Computes (tree_x.conj() * tree_y).real.sum()."""
+def tree_vdot_real(tree_x: TensorTree, tree_y: TensorTree) -> float:
+    """Computes dot(tree_x.conj(), tree_y).real.sum()."""
     leaves_x, treedef = pytree.tree_flatten(tree_x)
     leaves_y = treedef.flatten_up_to(tree_y)
-    return sum(map(_inner_product_kernel, leaves_x, leaves_y))  # type: ignore[arg-type]
+    return sum(map(_vdot_real_kernel, leaves_x, leaves_y))  # type: ignore[arg-type]
 
 
 def _identity(x: TensorTree) -> TensorTree:
@@ -93,29 +93,29 @@ def _cg_solve(
     # https://en.wikipedia.org/wiki/Conjugate_gradient_method#The_preconditioned_conjugate_gradient_method
 
     # tolerance handling uses the "non-legacy" behavior of `scipy.sparse.linalg.cg`
-    bs = tree_inner_product(b, b)
-    atol2 = max(rtol**2 * bs, atol**2)
+    b2 = tree_vdot_real(b, b)
+    atol2 = max(rtol**2 * b2, atol**2)
 
     def cond_fn(value):
         _, r, gamma, _, k = value
-        rs = gamma if M is _identity else tree_inner_product(r, r)
+        rs = gamma if M is _identity else tree_vdot_real(r, r)
         return rs > atol2 and k < maxiter
 
     def body_fn(value):
         x, r, gamma, p, k = value
         Ap = A(p)
-        alpha = gamma / tree_inner_product(p, Ap)
+        alpha = gamma / tree_vdot_real(p, Ap)
         x_ = pytree.tree_map(lambda a, b: a.add(b, alpha=alpha), x, p)
         r_ = pytree.tree_map(lambda a, b: a.sub(b, alpha=alpha), r, Ap)
         z_ = M(r_)
-        gamma_ = tree_inner_product(r_, z_)
+        gamma_ = tree_vdot_real(r_, z_)
         beta_ = gamma_ / gamma
         p_ = pytree.tree_map(lambda a, b: a.add(b, alpha=beta_), z_, p)
         return x_, r_, gamma_, p_, k + 1
 
     r0 = pytree.tree_map(torch.sub, b, A(x0))
     p0 = z0 = M(r0)
-    gamma0 = tree_inner_product(r0, z0)
+    gamma0 = tree_vdot_real(r0, z0)
 
     value = (x0, r0, gamma0, p0, 0)
     while cond_fn(value):

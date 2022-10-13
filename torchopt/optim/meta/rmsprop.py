@@ -16,7 +16,7 @@
 
 import torch.nn as nn
 
-from torchopt.alias import rmsprop
+from torchopt import alias
 from torchopt.optim.meta.base import MetaOptimizer
 from torchopt.typing import ScalarOrSchedule
 
@@ -77,7 +77,7 @@ class MetaRMSProp(MetaOptimizer):
         """
         super().__init__(
             net,
-            rmsprop(
+            alias.rmsprop(
                 lr=lr,
                 alpha=alpha,
                 eps=eps,

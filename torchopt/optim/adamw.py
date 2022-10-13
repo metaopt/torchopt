@@ -18,7 +18,7 @@ from typing import Any, Callable, Iterable, Optional, Tuple, Union
 
 import torch
 
-from torchopt.alias import adamw
+from torchopt import alias
 from torchopt.optim.base import Optimizer
 from torchopt.typing import Params, ScalarOrSchedule  # pylint: disable=unused-import
 
@@ -82,7 +82,7 @@ class AdamW(Optimizer):
         """
         super().__init__(
             params,
-            adamw(
+            alias.adamw(
                 lr=lr,
                 betas=betas,
                 eps=eps,
