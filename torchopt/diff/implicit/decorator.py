@@ -39,13 +39,13 @@ class MaskedOptimalityFn:  # pylint: disable=missing-class-docstring,too-few-pub
         self,
         optimality_fn: Callable,
         solution: Any,
-        result_is_tensor: bool,
+        output_is_tensor: bool,
         argnums: Tuple[int, ...],
         *args,
     ) -> None:
         self.optimality_fn = optimality_fn
         self.solution = solution
-        self.result_is_tensor = result_is_tensor
+        self.output_is_tensor = output_is_tensor
         self.argnums = argnums
 
         pre_filled = []
@@ -69,7 +69,7 @@ class MaskedOptimalityFn:  # pylint: disable=missing-class-docstring,too-few-pub
                 arg = self.pre_filled[pre_filled_counter]
                 pre_filled_counter += 1
             true_args.append(arg)
-        if self.result_is_tensor:
+        if self.output_is_tensor:
             return self.optimality_fn(self.solution[0], *true_args)
         return self.optimality_fn(self.solution, *true_args)
 
@@ -80,12 +80,12 @@ def _root_vjp(
     solution: Any,
     args: Args,
     grad_outputs: Any,
-    result_is_tensor: bool,
+    output_is_tensor: bool,
     argnums: Tuple[int, ...],
     solve: Callable = linear_solve.solve_normal_cg(),
 ) -> Tuple[Any, ...]:
 
-    if result_is_tensor:
+    if output_is_tensor:
 
         def optimality_cond(solution):
             return optimality_fn(solution[0], *args)
@@ -98,7 +98,7 @@ def _root_vjp(
     _, vjp_optimality_cond, *_ = functorch.vjp(optimality_cond, solution)
 
     # Compute the multiplication A^T u = (u^T A)^T.
-    if result_is_tensor:
+    if output_is_tensor:
 
         def matvec(u):
             return vjp_optimality_cond(u[0])[0]
@@ -115,32 +115,32 @@ def _root_vjp(
     u = solve(matvec, v)
 
     masked_optimality_fn = MaskedOptimalityFn(
-        optimality_fn, solution, result_is_tensor, argnums, *args
+        optimality_fn, solution, output_is_tensor, argnums, *args
     )
 
     if getattr(solve, 'is_sdp', False):
-        if result_is_tensor:
-            result = u[0]
+        if output_is_tensor:
+            output = u[0]
         else:
-            result = u
+            output = u
     else:
         _, vjp_optimality_fn, *_ = functorch.vjp(
             masked_optimality_fn, *masked_optimality_fn.post_filled
         )
 
-        if result_is_tensor:
-            result = vjp_optimality_fn(u[0])
+        if output_is_tensor:
+            output = vjp_optimality_fn(u[0])
         else:
-            result = vjp_optimality_fn(u)
+            output = vjp_optimality_fn(u)
 
-    true_result = [None]
+    true_output = [None]
     for idx in range(masked_optimality_fn.len_args):
         if idx + 1 in argnums:  # plus 1 because we exclude the first argument
-            true_result.append(result[idx])
+            true_output.append(output[idx])
         else:
-            true_result.append(None)
+            true_output.append(None)
 
-    return tuple(true_result)
+    return tuple(true_output)
 
 
 def _extract_kwargs(kwarg_keys: Sequence[str], flat_args: Tuple[Any, ...]) -> Tuple[Args, KwArgs]:
@@ -251,6 +251,8 @@ def _custom_root(
         class ImplicitMetaGradient(Function):
             @staticmethod
             def forward(ctx, *flat_args):  # pylint: disable=arguments-differ
+                output, aux, output_is_tensor = None, None, False
+
                 args = []
                 for idx, (start_point, is_tuple) in enumerate(args_sign):
                     if is_tuple:
@@ -260,7 +262,23 @@ def _custom_root(
                 args = tuple(args)
 
                 args, kwargs = _extract_kwargs(kwarg_keys, args)
-                res = solver_fn(*args, **kwargs)
+                output = solver_fn(*args, **kwargs)
+                if has_aux:
+                    if not (isinstance(output, tuple) and len(output) == 2):
+                        raise RuntimeError(
+                            'custom_root(optimality_fn)(solver_fn)(*args): output of function '
+                            'solver_fn should be a tuple: (output, aux) if has_aux is True'
+                        )
+                    output, aux = output
+                if isinstance(output, torch.Tensor):
+                    output_is_tensor = True
+                    output = (output,)
+                elif not (isinstance(output, tuple) and all(map(torch.is_tensor, output))):
+                    raise RuntimeError(
+                        'custom_root(optimality_fn)(solver_fn)(*args): output of function '
+                        'solver_fn should be a torch.Tensor or a tuple of torch.Tensor'
+                    )
+
                 (
                     args_treedef,
                     args_is_tensor_mask,
@@ -270,34 +288,19 @@ def _custom_root(
                 ctx.args_treedef = args_treedef
                 ctx.args_is_tensor_mask = args_is_tensor_mask
                 ctx.args_non_tensors = args_non_tensors
-                if has_aux:
-                    res, aux = res
-                    if torch.is_tensor(res):
-                        ctx.save_for_backward(res, *args_tensors)
-                        ctx.result_is_tensor = True
-                        return (res, aux, True, torch.tensor)
 
-                    ctx.save_for_backward(*res, *args_tensors)
-                    ctx.result_is_tensor = False
-                    return (*res, aux, False, type(res))
+                ctx.save_for_backward(*output, *args_tensors)
+                ctx.output_is_tensor = output_is_tensor
 
-                if isinstance(res, torch.Tensor):
-                    ctx.save_for_backward(res, *args_tensors)
-                else:
-                    ctx.save_for_backward(*res, *args_tensors)
-                ctx.result_is_tensor = isinstance(res, torch.Tensor)
-                return res
+                return (*output, aux, output_is_tensor, type(output))
 
             @staticmethod
             def backward(ctx, *grad_outputs):  # pylint: disable=too-many-locals
-                if has_aux:
-                    grad_outputs = grad_outputs[:-3]
+                grad_outputs = grad_outputs[:-3]
 
                 saved_tensors = ctx.saved_tensors
-                res, args_tensors = (
-                    saved_tensors[: len(grad_outputs)],
-                    saved_tensors[len(grad_outputs) :],
-                )
+                output = saved_tensors[: len(grad_outputs)]
+                args_tensors = saved_tensors[len(grad_outputs) :]
                 args_treedef = ctx.args_treedef
                 args_is_tensor_mask = ctx.args_is_tensor_mask
                 args_non_tensors = ctx.args_non_tensors
@@ -307,7 +310,6 @@ def _custom_root(
 
                 args, kwargs = _extract_kwargs(kwarg_keys, args)
 
-                solution = res
                 bound_args, bound_kwargs, map_args_back = _signature_bind_and_match(
                     reference_signature, *args, **kwargs  # type: ignore[arg-type]
                 )
@@ -323,10 +325,10 @@ def _custom_root(
                 # Compute VJPs w.r.t. args.
                 vjps = _root_vjp(
                     optimality_fn=optimality_fn,
-                    solution=solution,
+                    solution=output,
                     args=bound_args[1:],
                     grad_outputs=grad_outputs,
-                    result_is_tensor=ctx.result_is_tensor,
+                    output_is_tensor=ctx.output_is_tensor,
                     argnums=argnums,
                     solve=solve,
                 )
@@ -374,20 +376,21 @@ def _custom_root(
         flat_args = tuple(flat_args)
 
         result = make_custom_vjp_solver_fn(solver_fn, keys, args_sign).apply(*flat_args, *vals)
+        *output, aux, output_is_tensor, output_type = result
+        if output_is_tensor:
+            output = output[0]
+        else:
+            output = output_type(output)
         if has_aux:
-            *res, aux, result_is_tensor, res_type = result
-            if result_is_tensor:
-                return res[0], aux
-            res = res_type(res)
-            return res, aux
-        return result
+            return output, aux
+        return output
 
     return wrapped_solver_fn
 
 
 def custom_root(
     optimality_fn: Callable,
-    argnums: Union[int, Tuple[int, ...]] = 0,
+    argnums: Union[int, Tuple[int, ...]],
     has_aux: bool = False,
     solve: Callable = linear_solve.solve_normal_cg(),
 ) -> Callable[[Callable], Callable]:
@@ -417,7 +420,7 @@ def custom_root(
         optimality_fn: (callable)
             An equation function, ``optimality_fn(params, *args)``. The invariant is
             ``optimality_fn(solution, *args) == 0`` at the solution / root of ``solution``.
-        argnums: (int or tuple of int, default: :const:`0`)
+        argnums: (int or tuple of ints)
             Specifies arguments to compute gradients with respect to. The ``argnums`` can be an
             integer or a tuple of integers, which respect to the zero-based indices of the arguments
             of the ``solver_fn(params, *args)`` function. The argument ``params`` is included

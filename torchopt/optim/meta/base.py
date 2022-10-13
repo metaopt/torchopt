@@ -22,6 +22,7 @@ import torch.nn as nn
 from torchopt import pytree
 from torchopt.typing import GradientTransformation, OptState
 from torchopt.update import apply_updates
+from torchopt.utils import extract_module_containers
 
 
 __all__ = ['MetaOptimizer']
@@ -102,10 +103,7 @@ class MetaOptimizer:
 
     def add_param_group(self, net: nn.Module) -> None:
         """Add a param group to the optimizer's :attr:`state_groups`."""
-        # pylint: disable-next=import-outside-toplevel
-        from torchopt.utils import _extract_container
-
-        params_container, _ = _extract_container(net, with_buffers=False)
+        params_container = extract_module_containers(net, with_buffers=False)[0]
         flat_params = tuple(
             filter(
                 torch.is_tensor,  # type: ignore[arg-type]

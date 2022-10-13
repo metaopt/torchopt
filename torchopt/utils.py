@@ -277,12 +277,13 @@ def extract_state_dict(
     raise RuntimeError(f'Unexpected class of {target}')
 
 
-def _extract_container(
+def extract_module_containers(
     module: nn.Module, with_buffers: bool = True
 ) -> Tuple[
     Tuple[Dict[str, Optional[torch.Tensor]], ...],
     Tuple[Dict[str, Optional[torch.Tensor]], ...],
 ]:
+    """Extract the references to the containers of parameters and buffers from a module."""
     if isinstance(module, nn.Module):
         params: List[Dict[str, Optional[torch.Tensor]]] = []
         buffers: List[Dict[str, Optional[torch.Tensor]]] = []
@@ -329,7 +330,7 @@ def recover_state_dict(
 
     if isinstance(target, nn.Module):
         params, buffers, *_ = state = cast(ModuleState, state)
-        params_container, buffers_container = _extract_container(target, with_buffers=True)
+        params_containers, buffers_containers = extract_module_containers(target, with_buffers=True)
 
         if state.detach_buffers:
 
@@ -342,8 +343,8 @@ def recover_state_dict(
             )
 
         for tgt, src in itertools.chain(
-            zip(params_container, params),
-            zip(buffers_container, buffers),
+            zip(params_containers, params),
+            zip(buffers_containers, buffers),
         ):
             tgt.update(src)
     elif isinstance(target, MetaOptimizer):
@@ -426,7 +427,7 @@ def module_clone(
 
     if isinstance(target, (nn.Module, MetaOptimizer)):
         if isinstance(target, nn.Module):
-            containers = cast(TensorTree, _extract_container(target, with_buffers=True))
+            containers = cast(TensorTree, extract_module_containers(target, with_buffers=True))
         else:
             containers = cast(TensorTree, target.state_dict())
         tensors = pytree.tree_leaves(containers)
