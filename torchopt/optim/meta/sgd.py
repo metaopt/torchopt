@@ -16,7 +16,7 @@
 
 import torch.nn as nn
 
-from torchopt.alias import sgd
+from torchopt import alias
 from torchopt.optim.meta.base import MetaOptimizer
 from torchopt.typing import ScalarOrSchedule
 
@@ -67,7 +67,7 @@ class MetaSGD(MetaOptimizer):
         """
         super().__init__(
             net,
-            sgd(
+            alias.sgd(
                 lr=lr,
                 momentum=momentum,
                 weight_decay=weight_decay,

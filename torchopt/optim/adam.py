@@ -18,7 +18,7 @@ from typing import Iterable, Tuple
 
 import torch
 
-from torchopt.alias import adam
+from torchopt import alias
 from torchopt.optim.base import Optimizer
 from torchopt.typing import ScalarOrSchedule
 
@@ -72,7 +72,7 @@ class Adam(Optimizer):
         """
         super().__init__(
             params,
-            adam(
+            alias.adam(
                 lr=lr,
                 betas=betas,
                 eps=eps,

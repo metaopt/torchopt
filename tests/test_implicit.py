@@ -115,7 +115,7 @@ def test_imaml(dtype: torch.dtype, lr: float, inner_lr: float, inner_update: int
         loss = F.cross_entropy(y_pred, y) + regularization_loss
         return loss
 
-    @torchopt.implicit.custom_root(
+    @torchopt.diff.implicit.custom_root(
         functorch.grad(imaml_objective_torchopt, argnums=0), argnums=1, has_aux=True
     )
     def inner_solver_torchopt(init_params_copy, init_params, data):
@@ -257,7 +257,7 @@ def test_rr(
         regularization_loss = 0.5 * l2reg * torch.sum(torch.square(params))
         return 0.5 * torch.mean(torch.square(residuals)) + regularization_loss
 
-    @torchopt.implicit.custom_root(functorch.grad(ridge_objective_torch, argnums=0), argnums=1)
+    @torchopt.diff.implicit.custom_root(functorch.grad(ridge_objective_torch, argnums=0), argnums=1)
     def ridge_solver_torch(init_params, l2reg, data):
         """Solve ridge regression by conjugate gradient."""
         X_tr, y_tr = data
@@ -265,13 +265,13 @@ def test_rr(
         def matvec(u):
             return X_tr.T @ (X_tr @ u)
 
-        return torchopt.linear_solve.solve_cg(
-            matvec=matvec,
-            b=X_tr.T @ y_tr,
+        solve = torchopt.linear_solve.solve_cg(
             ridge=len(y_tr) * l2reg.item(),
             init=init_params,
             maxiter=20,
         )
+
+        return solve(matvec=matvec, b=X_tr.T @ y_tr)
 
     def ridge_objective_jax(params, l2reg, X_tr, y_tr):
         """Ridge objective function."""

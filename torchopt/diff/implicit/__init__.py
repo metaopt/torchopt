@@ -14,4 +14,4 @@
 # ==============================================================================
 """Implicit Meta-Gradient."""
 
-from torchopt.implicit.decorator import custom_root
+from torchopt.diff.implicit.decorator import custom_root

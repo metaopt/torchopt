@@ -18,7 +18,7 @@ from typing import Any, Callable, Optional, Tuple, Union
 
 import torch.nn as nn
 
-from torchopt.alias import adamw
+from torchopt import alias
 from torchopt.optim.meta.base import MetaOptimizer
 from torchopt.typing import Params, ScalarOrSchedule  # pylint: disable=unused-import
 
@@ -86,7 +86,7 @@ class MetaAdamW(MetaOptimizer):
         """
         super().__init__(
             net,
-            adamw(
+            alias.adamw(
                 lr=lr,
                 betas=betas,
                 eps=eps,
