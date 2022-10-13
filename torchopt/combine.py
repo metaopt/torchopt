@@ -32,7 +32,7 @@
 """Utilities to define a chained transformation."""
 
 from torchopt import pytree
-from torchopt.base import ChainedGradientTransformation, GradientTransformation
+from torchopt.base import ChainedGradientTransformation, GradientTransformation, identity
 from torchopt.typing import Updates
 
 
@@ -47,19 +47,35 @@ def chain(*transformations: GradientTransformation) -> GradientTransformation:
     :func:`update_fn` which chains the update transformations feeding the appropriate state to each.
 
     Args:
-        *args:
+        *transformations:
             A sequence of chainable ``(init_fn, update_fn)`` tuples.
 
     Returns:
         A single ``(init_fn, update_fn)`` tuple.
     """
+    if len(transformations) == 0:
+        return identity()
+    if len(transformations) == 1:
+        return transformations[0]
     return ChainedGradientTransformation(*transformations)
 
 
 def chain_flat(*transformations: GradientTransformation) -> GradientTransformation:
-    """Wraps around the inner transformations that manipulates the flattened tree structure (:class:``list``)."""
+    """Wraps around the inner transformations that manipulates the flattened tree structure (:class:``list``).
 
-    inner = chain(*transformations)
+    Args:
+        *transformations:
+            A sequence of chainable ``(init_fn, update_fn)`` tuples.
+
+    Returns:
+        A single ``(init_fn, update_fn)`` tuple.
+    """
+    if len(transformations) == 0:
+        return identity()
+    if len(transformations) == 1:
+        inner = transformations[0]
+    else:
+        inner = chain(*transformations)
 
     def init_fn(params):
         return inner.init(pytree.tree_leaves(params))  # type: ignore[arg-type]
