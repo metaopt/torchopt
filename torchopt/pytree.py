@@ -14,17 +14,29 @@
 # ==============================================================================
 """The PyTree utilities."""
 
+import functools
+import operator
 from typing import Callable, List, Optional, Tuple
 
 import optree
 import optree.typing as typing  # pylint: disable=unused-import
+import torch
 import torch.distributed.rpc as rpc
 from optree import *  # pylint: disable=wildcard-import,unused-wildcard-import
 
-from torchopt.typing import Future, PyTree, RRef, T
+from torchopt.typing import Future, PyTree, RRef, T, TensorTree
 
 
-__all__ = [*optree.__all__, 'tree_flatten_as_tuple', 'tree_wait']
+__all__ = [
+    *optree.__all__,
+    'tree_flatten_as_tuple',
+    'tree_add',
+    'tree_sub',
+    'tree_mul',
+    'tree_div',
+    'tree_vdot_real',
+    'tree_wait',
+]
 
 
 def tree_flatten_as_tuple(
@@ -48,10 +60,51 @@ def tree_flatten_as_tuple(
     return tuple(leaves), treespec
 
 
+def acc_add(*args: T) -> T:
+    """Accumulate addition."""
+    return functools.reduce(operator.add, args)
+
+
+def acc_mul(*args: T) -> T:
+    """Accumulate multiplication."""
+    return functools.reduce(operator.mul, args)
+
+
+tree_add = functools.partial(tree_map, acc_add)
+tree_add.__doc__ = 'Tree addition over leaves.'
+# tree_add.__annotations__['return'] = 'TensorTree'
+
+tree_sub = functools.partial(tree_map, operator.sub)
+tree_sub.__doc__ = 'Tree subtraction over leaves.'
+# tree_sub.__annotations__['return'] = 'TensorTree'
+
+tree_mul = functools.partial(tree_map, acc_mul)
+tree_mul.__doc__ = 'Tree multiplication over leaves.'
+# tree_mul.__annotations__['return'] = 'TensorTree'
+
+tree_div = functools.partial(tree_map, operator.truediv)
+tree_div.__doc__ = 'Tree division over leaves.'
+
+
+def _vdot_real_kernel(x: torch.Tensor, y: torch.Tensor) -> float:
+    """Computes dot(x.conj(), y).real."""
+    x = x.contiguous().view(-1)
+    y = y.contiguous().view(-1)
+    vdot = torch.dot(x.real, y.real).item()
+    if x.is_complex() and y.is_complex():
+        vdot += torch.dot(x.imag, y.imag).item()
+    return vdot
+
+
+def tree_vdot_real(tree_x: TensorTree, tree_y: TensorTree) -> float:
+    """Computes dot(tree_x.conj(), tree_y).real.sum()."""
+    leaves_x, treespec = tree_flatten(tree_x)
+    leaves_y = treespec.flatten_up_to(tree_y)
+    return sum(map(_vdot_real_kernel, leaves_x, leaves_y))  # type: ignore[arg-type]
+
+
 def tree_wait(future_tree: PyTree[Future[T]]) -> PyTree[T]:
     r"""Convert a tree of :class:`Future`\s to a tree of results."""
-    import torch  # pylint: disable=import-outside-toplevel
-
     futures, treespec = tree_flatten(future_tree)
 
     results = torch.futures.wait_all(futures)
@@ -61,7 +114,7 @@ def tree_wait(future_tree: PyTree[Future[T]]) -> PyTree[T]:
 
 if rpc.is_available():
 
-    def tree_as_rref(tree: PyTree[T]) -> 'PyTree[RRef[T]]':
+    def tree_as_rref(tree: PyTree[T]) -> PyTree[RRef[T]]:
         r"""Convert a tree of local objects to a tree of :class:`RRef`\s."""
         # pylint: disable-next=import-outside-toplevel,redefined-outer-name,reimported
         from torch.distributed.rpc import RRef
@@ -69,17 +122,31 @@ if rpc.is_available():
         return tree_map(RRef, tree)
 
     def tree_to_here(
-        rref_tree: 'PyTree[RRef[T]]',
+        rref_tree: PyTree[RRef[T]],
         timeout: float = rpc.api.UNSET_RPC_TIMEOUT,
     ) -> PyTree[T]:
         r"""Convert a tree of :class:`RRef`\s to a tree of local objects."""
         return tree_map(lambda x: x.to_here(timeout=timeout), rref_tree)
 
-    def tree_local_value(rref_tree: 'PyTree[RRef[T]]'):
+    def tree_local_value(rref_tree: PyTree[RRef[T]]) -> PyTree[T]:
         r"""Return the local value of a tree of :class:`RRef`\s."""
         return tree_map(lambda x: x.local_value(), rref_tree)
 
     __all__.extend(['tree_as_rref', 'tree_to_here'])
 
 
-del Callable, List, Optional, Tuple, optree, rpc, PyTree, T, RRef
+del (
+    functools,
+    operator,
+    Callable,
+    List,
+    Optional,
+    Tuple,
+    optree,
+    rpc,
+    PyTree,
+    T,
+    RRef,
+    acc_add,
+    acc_mul,
+)
