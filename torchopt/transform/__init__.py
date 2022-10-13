@@ -35,6 +35,7 @@ from torchopt.transform.add_decayed_weights import add_decayed_weights
 from torchopt.transform.scale import scale
 from torchopt.transform.scale_by_adam import scale_by_accelerated_adam, scale_by_adam
 from torchopt.transform.scale_by_rms import scale_by_rms
+from torchopt.transform.scale_by_rss import scale_by_rss
 from torchopt.transform.scale_by_schedule import scale_by_schedule
 from torchopt.transform.scale_by_stddev import scale_by_stddev
 from torchopt.transform.trace import trace
@@ -47,6 +48,7 @@ __all__ = [
     'add_decayed_weights',
     'scale_by_adam',
     'scale_by_accelerated_adam',
+    'scale_by_rss',
     'scale_by_rms',
     'scale_by_stddev',
 ]
