@@ -139,11 +139,21 @@ Implicit differentiation
 .. autosummary::
 
     custom_root
+    nn.ImplicitMetaGradientModule
 
 Custom solvers
 ~~~~~~~~~~~~~~
 
 .. autofunction:: custom_root
+
+
+Implicit Meta-Gradient Module
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. currentmodule:: torchopt.diff.implicit.nn
+
+.. autoclass:: ImplicitMetaGradientModule
+    :members:
 
 ------
 
