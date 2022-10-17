@@ -24,7 +24,7 @@ import torch
 import torchopt.nn
 from torchopt import pytree
 from torchopt.diff.implicit.decorator import custom_root
-from torchopt.typing import TensorTree
+from torchopt.typing import TensorTree  # pylint: disable=unused-import
 from torchopt.utils import extract_module_containers
 
 
@@ -240,6 +240,9 @@ class ImplicitMetaGradientModule(torchopt.nn.MetaGradientModule):
                         loss.backward(inputs=parameters)
                         optimizer.step()
                 return self
+
+        Returns:
+            The module itself after solving the inner optimization problem.
         """
         raise NotImplementedError  # update parameters
 
@@ -255,10 +258,10 @@ class ImplicitMetaGradientModule(torchopt.nn.MetaGradientModule):
             module.solve(*input, **kwargs)
             module.residual(*input, **kwargs)  # -> 0
 
-        1. For gradient-based optimization, the :meth:`residual` is the KKT condition, usually the
-        gradients of the :meth`objective` function with respect to the module parameters (not the
-        meta-parameters). If this method is not implemented, it will be automatically calculated
-        from the gradient of the :meth:`objective` function.
+        1. For gradient-based optimization, the :meth:`residual` function is the KKT condition,
+        usually it is the gradients of the :meth:`objective` function with respect to the module
+        parameters (not the meta-parameters). If this method is not implemented, it will be
+        automatically derived from the gradient of the :meth:`objective` function.
 
         .. math::
 
@@ -270,7 +273,7 @@ class ImplicitMetaGradientModule(torchopt.nn.MetaGradientModule):
         References:
             - Karush-Kuhn-Tucker (KKT) conditions: https://en.wikipedia.org/wiki/Karush-Kuhn-Tucker_conditions
 
-        2. For fixed point iteration, the :meth:`residual` can be the residual of the
+        2. For fixed point iteration, the :meth:`residual` function can be the residual of the
         parameters between iterations, i.e.:
 
         .. math::
@@ -279,6 +282,10 @@ class ImplicitMetaGradientModule(torchopt.nn.MetaGradientModule):
 
         where :math:`\boldsymbol{x}` is the joint vector of the module parameters and
         :math:`\boldsymbol{\theta}` is the joint vector of the meta-parameters.
+
+        Returns:
+            A tree of tensors, the residual to the optimal parameters after solving the inner
+            optimization problem.
         """
         raise NotImplementedError
 
@@ -288,5 +295,8 @@ class ImplicitMetaGradientModule(torchopt.nn.MetaGradientModule):
 
         This method is used to calculate the :meth:`residual` if it is not implemented.
         Otherwise, this method is optional.
+
+        Returns:
+            A scalar tensor (``dim=0``), the objective function value.
         """
         raise NotImplementedError
