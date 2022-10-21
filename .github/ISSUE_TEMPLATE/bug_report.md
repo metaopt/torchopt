@@ -1,5 +1,5 @@
 ---
-name: Bug report
+name: Bug Report
 about: Create a report to help us improve
 title: "[BUG]"
 labels: ["bug"]
@@ -59,6 +59,6 @@ If you know or suspect the reason for this bug, paste the code lines and suggest
 
 ## Checklist
 
-- [ ] I have checked that there is no similar issue in the repo (**required**)
-- [ ] I have read the [documentation](https://torchopt.readthedocs.io/) (**required**)
-- [ ] I have provided a minimal working example to reproduce the bug (**required**)
+- [ ] I have checked that there is no similar issue in the repo. (**required**)
+- [ ] I have read the [documentation](https://torchopt.readthedocs.io). (**required**)
+- [ ] I have provided a minimal working example to reproduce the bug. (**required**)

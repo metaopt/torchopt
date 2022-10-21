@@ -59,9 +59,11 @@ jobs:
           update-environment: true
 
       - name: Set __release__
-        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+        if: |
+          startsWith(github.ref, 'refs/tags/') ||
+          (github.event_name == 'workflow_dispatch' && github.event.inputs.task == 'build-and-publish')
         run: |
-          sed -i -E 's/^__release__\s*=.*$/__release__ = True/' torchopt/version.py
+          python .github/workflows/set_release.py
 
       - name: Print version
         run: python setup.py --version
@@ -99,15 +101,17 @@ jobs:
           update-environment: true
 
       - name: Set __release__
-        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+        if: |
+          startsWith(github.ref, 'refs/tags/') ||
+          (github.event_name == 'workflow_dispatch' && github.event.inputs.task == 'build-and-publish')
         run: |
-          sed -i -E 's/^__release__\s*=.*$/__release__ = True/' torchopt/version.py
+          python .github/workflows/set_release.py
 
       - name: Print version
         run: python setup.py --version
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.10.2
+        uses: pypa/cibuildwheel@v2.11.1
         with:
           package-dir: .
           output-dir: wheelhouse
@@ -141,6 +145,14 @@ jobs:
           python-version: "3.7 - 3.10" # sync with requires-python in pyproject.toml
           update-environment: true
 
+      - name: Set __release__
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+        run: |
+          python .github/workflows/set_release.py
+
+      - name: Print version
+        run: python setup.py --version
+
       - name: Check consistency between the package version and release tag
         if: startsWith(github.ref, 'refs/tags/')
         run: |
@@ -166,6 +178,10 @@ jobs:
           # if `name: artifact` is omitted, the action will create extra parent dir
           name: wheels
           path: dist
+
+      - name: List distributions
+        run:
+          ls -lh dist/*
 
       - name: Publish to TestPyPI
         if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'

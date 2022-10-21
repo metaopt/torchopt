@@ -13,5 +13,5 @@ assignees: Benjamin-eecs
 
 ## Checklist
 
-- [ ] I have checked that there is no similar issue in the repo (**required**)
-- [ ] I have read the [documentation](https://torchopt.readthedocs.io/) (**required**)
+- [ ] I have checked that there is no similar issue in the repo. (**required**)
+- [ ] I have read the [documentation](https://torchopt.readthedocs.io). (**required**)

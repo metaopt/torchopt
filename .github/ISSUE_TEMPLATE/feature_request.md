@@ -1,5 +1,5 @@
 ---
-name: Feature request
+name: Feature Request
 about: Suggest an idea for this project
 title: "[Feature Request]"
 labels: ["enhancement"]
@@ -10,7 +10,7 @@ assignees: Benjamin-eecs
 ## Motivation
 
 Please outline the motivation for the proposal.
-Is your feature request related to a problem? e.g., "I'm always frustrated when [...]".
+Is your feature request related to a problem? E.g., "I'm always frustrated when [...]".
 If this is related to another issue, please link here too.
 
 ## Solution
@@ -27,4 +27,4 @@ Add any other context or screenshots about the feature request here.
 
 ## Checklist
 
-- [ ] I have checked that there is no similar issue in the repo (**required**)
+- [ ] I have checked that there is no similar issue in the repo. (**required**)
