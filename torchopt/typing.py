@@ -18,7 +18,7 @@ from typing import Callable, Optional, TypeVar, Union
 from typing_extensions import TypeAlias  # Python 3.10+
 
 import torch.distributed.rpc as rpc
-from optree.typing import PyTree
+from optree.typing import PyTree, PyTreeTypeVar
 from torch import Tensor
 from torch.futures import Future
 
@@ -51,8 +51,8 @@ Numeric: TypeAlias = Union[Tensor, Scalar]
 Schedule: TypeAlias = Callable[[Numeric], Numeric]
 ScalarOrSchedule: TypeAlias = Union[float, Schedule]
 
-TensorTree: TypeAlias = PyTree[Tensor]
-OptionalTensorTree: TypeAlias = PyTree[Optional[Tensor]]
+TensorTree: TypeAlias = PyTreeTypeVar('TensorTree', Tensor)  # type: ignore[valid-type]
+OptionalTensorTree: TypeAlias = PyTreeTypeVar('OptionalTensorTree', Optional[Tensor])  # type: ignore[valid-type]
 
 # Parameters are arbitrary nests of `torch.Tensor`.
 Params: TypeAlias = TensorTree

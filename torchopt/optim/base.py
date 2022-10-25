@@ -55,7 +55,7 @@ class Optimizer:
 
         if not isinstance(params, (list, tuple)):
             params = tuple(params)
-        self.add_param_group(params)  # type: ignore[arg-type]
+        self.add_param_group(params)
 
     def zero_grad(self, set_to_none: bool = False) -> None:
         r"""Sets the gradients of all optimized :class:`torch.Tensor`\s to zero.
@@ -114,8 +114,8 @@ class Optimizer:
 
         for i, (params, state) in enumerate(zip(self.param_groups, self.state_groups)):
             grads = pytree.tree_map(f, params)  # type: ignore[arg-type]
-            updates, new_state = self.impl.update(grads, state, params=params, inplace=True)  # type: ignore[arg-type]
-            self.param_groups[i] = apply_updates(params, updates, inplace=True)  # type: ignore[arg-type,call-overload]
+            updates, new_state = self.impl.update(grads, state, params=params, inplace=True)
+            self.param_groups[i] = apply_updates(params, updates, inplace=True)
             self.state_groups[i] = new_state
 
         return loss
@@ -126,4 +126,4 @@ class Optimizer:
         flat_params: Tuple[torch.Tensor] = tuple(flat_params)  # type: ignore[assignment]
         self.param_groups.append(flat_params)
         self.param_treedefs.append(params_treedef)
-        self.state_groups.append(self.impl.init(flat_params))  # type: ignore[arg-type]
+        self.state_groups.append(self.impl.init(flat_params))

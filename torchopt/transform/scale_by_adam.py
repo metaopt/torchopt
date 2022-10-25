@@ -156,7 +156,7 @@ def _scale_by_adam(
         nu = tree_map(  # second moment
             lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params
         )
-        return ScaleByAdamState(mu=mu, nu=nu, count=zero)  # type: ignore[arg-type]
+        return ScaleByAdamState(mu=mu, nu=nu, count=zero)
 
     def update_fn(updates, state, *, params=None, inplace=True):  # pylint: disable=unused-argument
         mu = update_moment.impl(  # type: ignore[attr-defined]
@@ -308,7 +308,7 @@ def _scale_by_accelerated_adam(
         nu = tree_map(  # second moment
             lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params
         )
-        return ScaleByAdamState(mu=mu, nu=nu, count=zero)  # type: ignore[arg-type]
+        return ScaleByAdamState(mu=mu, nu=nu, count=zero)
 
     return GradientTransformation(init_fn, update_fn)
 

@@ -78,19 +78,16 @@ def chain_flat(*transformations: GradientTransformation) -> GradientTransformati
         inner = chain(*transformations)
 
     def init_fn(params):
-        return inner.init(pytree.tree_leaves(params))  # type: ignore[arg-type]
+        return inner.init(pytree.tree_leaves(params))
 
     def update_fn(updates, state, *, params=None, inplace=True):
         flat_updates, treedef = pytree.tree_flatten(updates)
         if params is not None:
             params = pytree.tree_leaves(params)
 
-        flat_updates, state = inner.update(
-            flat_updates, state, params=params, inplace=inplace  # type: ignore[arg-type]
-        )
+        flat_updates, state = inner.update(flat_updates, state, params=params, inplace=inplace)
         updates: Updates
-        updates = pytree.tree_unflatten(treedef, flat_updates)  # type: ignore[arg-type]
-
+        updates = pytree.tree_unflatten(treedef, flat_updates)
         return updates, state
 
     return GradientTransformation(init_fn, update_fn)

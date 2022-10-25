@@ -50,7 +50,7 @@ classifiers = [
 dependencies = [
     "torch >= 1.12",     # see also build-system.requires and project.requires-python
     "functorch >= 0.2",
-    "optree >= 0.2.0",
+    "optree >= 0.3.0",
     "numpy",
     "graphviz",
     "typing-extensions",

@@ -70,7 +70,7 @@ def _inc_count(
         return c + (c != INT64_MAX).to(torch.int64) if g is not None else c
 
     if already_flattened:
-        return tree_map_flat(f, count, updates)  # type: ignore[return-value]
+        return tree_map_flat(f, count, updates)
     return pytree.tree_map(f, count, updates)
 
 

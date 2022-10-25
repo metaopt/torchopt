@@ -79,14 +79,14 @@ class MetaOptimizer:
                 allow_unused=True,
             )
             updates, new_state = self.impl.update(
-                grads,  # type: ignore[arg-type]
+                grads,
                 new_state,
-                params=flat_params,  # type: ignore[arg-type]
+                params=flat_params,
                 inplace=False,
             )
             self.state_groups[i] = new_state
-            flat_new_params = apply_updates(flat_params, updates, inplace=False)  # type: ignore[arg-type]
-            new_params_iter = iter(flat_new_params)  # type: ignore[call-overload]
+            flat_new_params = apply_updates(flat_params, updates, inplace=False)
+            new_params_iter = iter(flat_new_params)
             flat_new_params_or_none = [
                 next(new_params_iter)
                 if isinstance(old_param_or_none, torch.Tensor)
@@ -112,7 +112,7 @@ class MetaOptimizer:
                 pytree.tree_leaves(params_container),  # type: ignore[arg-type]
             )
         )
-        optimizer_state = self.impl.init(flat_params)  # type: ignore[arg-type]
+        optimizer_state = self.impl.init(flat_params)
         self.param_containers_groups.append(params_container)
         self.state_groups.append(optimizer_state)
 

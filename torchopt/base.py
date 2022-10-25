@@ -224,7 +224,7 @@ class IdentityGradientTransformation(GradientTransformation):
     @staticmethod
     def init_fn(params: 'Params') -> 'OptState':  # pylint: disable=unused-argument
         """Returns empty state."""
-        return EmptyState()  # type: ignore[return-value]
+        return EmptyState()
 
     @staticmethod
     def update_fn(
