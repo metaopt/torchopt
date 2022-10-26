@@ -92,7 +92,7 @@ def test_lr_linear_schedule(
         loss = F.cross_entropy(pred, ys)
         loss_ref = F.cross_entropy(pred_ref, ys)
 
-        grads = torch.autograd.grad(loss, params)
+        grads = torch.autograd.grad(loss, params, allow_unused=True)
         updates, optim_state = optim.update(grads, optim_state, params=params, inplace=inplace)
         params = torchopt.apply_updates(params, updates, inplace=inplace)
 

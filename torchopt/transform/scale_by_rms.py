@@ -109,7 +109,7 @@ def _scale_by_rms(
 
     def init_fn(params):
         nu = tree_map(lambda n: torch.full_like(n, initial_scale), params)  # second moment
-        return ScaleByRmsState(nu=nu)  # type: ignore[arg-type]
+        return ScaleByRmsState(nu=nu)
 
     def update_fn(updates, state, *, params=None, inplace=True):  # pylint: disable=unused-argument
         nu = update_moment.impl(  # type: ignore[attr-defined]

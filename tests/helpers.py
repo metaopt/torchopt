@@ -54,6 +54,8 @@ def parametrize(**argvalues) -> pytest.mark.parametrize:
         argvalues = list(itertools.product(*tuple(map(argvalues.get, arguments))))
         first_product = argvalues[0]
         argvalues.extend((dtype,) + first_product[1:] for dtype in dtypes[1:])
+    else:
+        argvalues = list(itertools.product(*tuple(map(argvalues.get, arguments))))
 
     ids = tuple(
         '-'.join(f'{arg}({val})' for arg, val in zip(arguments, values)) for values in argvalues
@@ -77,6 +79,25 @@ def seed_everything(seed: int) -> None:
         pass
 
 
+class MyLinear(nn.Module):
+    def __init__(
+        self, in_features: int, out_features: int, bias: bool = True, device=None, dtype=None
+    ) -> None:
+        super().__init__()
+        self.linear = nn.Linear(
+            in_features=in_features,
+            out_features=out_features,
+            bias=bias,
+            device=device,
+            dtype=dtype,
+        )
+        self.unused_module = nn.Linear(1, 1, bias=False)
+        self.unused_parameter = nn.Parameter(torch.zeros(1, 1), requires_grad=True)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.linear(x)
+
+
 @torch.no_grad()
 def get_models(
     device: Optional[Union[str, torch.device]] = None, dtype: torch.dtype = torch.float32
@@ -84,7 +105,7 @@ def get_models(
     seed_everything(seed=42)
 
     model_base = nn.Sequential(
-        nn.Linear(
+        MyLinear(
             in_features=MODEL_NUM_INPUTS,
             out_features=MODEL_HIDDEN_SIZE,
             bias=True,
@@ -178,8 +199,8 @@ def assert_all_close(
         from torch.testing._comparison import get_tolerances
 
         rtol, atol = get_tolerances(actual, expected, rtol=rtol, atol=atol)
-        rtol *= 4 * NUM_UPDATES
-        atol *= 4 * NUM_UPDATES
+        rtol *= 5 * NUM_UPDATES
+        atol *= 5 * NUM_UPDATES
 
     torch.testing.assert_close(
         actual,

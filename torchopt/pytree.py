@@ -29,11 +29,11 @@ def tree_wait(future_tree: PyTree[Future[T]]) -> PyTree[T]:
     r"""Convert a tree of :class:`Future`\s to a tree of results."""
     import torch  # pylint: disable=import-outside-toplevel
 
-    futures, treedef = tree_flatten(future_tree)
+    futures, treespec = tree_flatten(future_tree)
 
     results = torch.futures.wait_all(futures)
 
-    return tree_unflatten(treedef, results)
+    return tree_unflatten(treespec, results)
 
 
 if rpc.is_available():

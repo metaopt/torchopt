@@ -45,9 +45,16 @@ __all__ = ['tree_map_flat', 'inc_count', 'update_moment']
 INT64_MAX = torch.iinfo(torch.int64).max
 
 
-def tree_map_flat(func: Callable, *args: Any) -> List[Any]:
+def tree_map_flat(func: Callable, *flat_args: Any, none_is_leaf: bool = False) -> List[Any]:
     """Apply a function to each element of a flattened list."""
-    return list(map(func, *args))
+    if none_is_leaf:
+        fn = func
+    else:
+
+        def fn(x, *xs):
+            return func(x, *xs) if x is not None else None
+
+    return list(map(fn, *flat_args))
 
 
 def inc_count(updates: Updates, count: TensorTree) -> TensorTree:
@@ -70,7 +77,7 @@ def _inc_count(
         return c + (c != INT64_MAX).to(torch.int64) if g is not None else c
 
     if already_flattened:
-        return tree_map_flat(f, count, updates)  # type: ignore[return-value]
+        return tree_map_flat(f, count, updates)
     return pytree.tree_map(f, count, updates)
 
 
@@ -120,7 +127,7 @@ def _update_moment(updates, moments, decay, *, order, inplace=True, already_flat
 
     if already_flattened:
         return tree_map_flat(f, updates, moments)
-    return pytree.tree_map(f, updates, moments)
+    return pytree.tree_map(f, updates, moments, none_is_leaf=True)
 
 
 update_moment.flat = _update_moment_flat  # type: ignore[attr-defined]

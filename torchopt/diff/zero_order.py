@@ -53,7 +53,7 @@ def _zero_order_naive(
     def apply(*args: Any) -> torch.Tensor:
         diff_params = [args[argnum] for argnum in argnums]
         flat_diff_params: List[Any]
-        flat_diff_params, diff_params_treedef = pytree.tree_flatten(diff_params)  # type: ignore[arg-type]
+        flat_diff_params, diff_params_treespec = pytree.tree_flatten(diff_params)  # type: ignore[arg-type]
 
         class ZeroOrder(Function):  # pylint: disable=missing-class-docstring,abstract-method
             @staticmethod
@@ -61,8 +61,8 @@ def _zero_order_naive(
                 flat_diff_params = args[:-1]
                 origin_args = list(args[-1][0])
                 flat_args: List[Any]
-                flat_args, args_treedef = pytree.tree_flatten(origin_args)  # type: ignore[arg-type]
-                ctx.args_treedef = args_treedef
+                flat_args, args_treespec = pytree.tree_flatten(origin_args, none_is_leaf=True)  # type: ignore[arg-type]
+                ctx.args_treespec = args_treespec
 
                 is_tensor_mask = []
                 tensors = []
@@ -101,7 +101,7 @@ def _zero_order_naive(
                         flat_args.append(non_tensors[non_tensors_counter])
                         non_tensors_counter += 1
 
-                args: List[Any] = pytree.tree_unflatten(ctx.args_treedef, flat_args)  # type: ignore[assignment]
+                args: List[Any] = pytree.tree_unflatten(ctx.args_treespec, flat_args)  # type: ignore[assignment]
 
                 def add_perturbation(tensor, noise):
                     return tensor.add(noise, alpha=sigma)
@@ -111,7 +111,7 @@ def _zero_order_naive(
                     add_perturbation(t, n) for t, n in zip(flat_diff_params, noise)
                 ]
                 noisy_params: List[Any] = pytree.tree_unflatten(  # type: ignore[assignment]
-                    diff_params_treedef, flat_noisy_params
+                    diff_params_treespec, flat_noisy_params
                 )
 
                 for argnum, noisy_param in zip(argnums, noisy_params):
@@ -139,7 +139,7 @@ def _zero_order_forward(
     def apply(*args: Any) -> torch.Tensor:
         diff_params = [args[argnum] for argnum in argnums]
         flat_diff_params: List[Any]
-        flat_diff_params, diff_params_treedef = pytree.tree_flatten(diff_params)  # type: ignore[arg-type]
+        flat_diff_params, diff_params_treespec = pytree.tree_flatten(diff_params)  # type: ignore[arg-type]
 
         class ZeroOrder(Function):  # pylint: disable=missing-class-docstring,abstract-method
             @staticmethod
@@ -149,8 +149,8 @@ def _zero_order_forward(
                 flat_diff_params = args[:-1]
                 origin_args = list(args[-1][0])
                 flat_args: List[Any]
-                flat_args, args_treedef = pytree.tree_flatten(origin_args)  # type: ignore[arg-type]
-                ctx.args_treedef = args_treedef
+                flat_args, args_treespec = pytree.tree_flatten(origin_args, none_is_leaf=True)  # type: ignore[arg-type]
+                ctx.args_treespec = args_treespec
 
                 is_tensor_mask = []
                 tensors = []
@@ -191,7 +191,7 @@ def _zero_order_forward(
                         flat_args.append(non_tensors[non_tensors_counter])
                         non_tensors_counter += 1
 
-                args: List[Any] = pytree.tree_unflatten(ctx.args_treedef, flat_args)  # type: ignore[assignment]
+                args: List[Any] = pytree.tree_unflatten(ctx.args_treespec, flat_args)  # type: ignore[assignment]
 
                 def add_perturbation(tensor, noise):
                     return tensor.add(noise, alpha=sigma)
@@ -201,7 +201,7 @@ def _zero_order_forward(
                     add_perturbation(t, n) for t, n in zip(flat_diff_params, noise)
                 ]
                 noisy_params: List[Any] = pytree.tree_unflatten(  # type: ignore[assignment]
-                    diff_params_treedef, flat_noisy_params
+                    diff_params_treespec, flat_noisy_params
                 )
 
                 for argnum, noisy_param in zip(argnums, noisy_params):
@@ -230,7 +230,7 @@ def _zero_order_antithetic(
     def apply(*args: Any) -> torch.Tensor:
         diff_params = [args[argnum] for argnum in argnums]
         flat_diff_params: List[Any]
-        flat_diff_params, diff_params_treedef = pytree.tree_flatten(diff_params)  # type: ignore[arg-type]
+        flat_diff_params, diff_params_treespec = pytree.tree_flatten(diff_params)  # type: ignore[arg-type]
 
         class ZeroOrder(Function):  # pylint: disable=missing-class-docstring,abstract-method
             @staticmethod
@@ -238,8 +238,8 @@ def _zero_order_antithetic(
                 flat_diff_params = args[:-1]
                 origin_args = list(args[-1][0])
                 flat_args: List[Any]
-                flat_args, args_treedef = pytree.tree_flatten(origin_args)  # type: ignore[arg-type]
-                ctx.args_treedef = args_treedef
+                flat_args, args_treespec = pytree.tree_flatten(origin_args, none_is_leaf=True)  # type: ignore[arg-type]
+                ctx.args_treespec = args_treespec
 
                 is_tensor_mask = []
                 tensors = []
@@ -278,7 +278,7 @@ def _zero_order_antithetic(
                         flat_args.append(non_tensors[non_tensors_counter])
                         non_tensors_counter += 1
 
-                args: List[Any] = pytree.tree_unflatten(ctx.args_treedef, flat_args)  # type: ignore[assignment]
+                args: List[Any] = pytree.tree_unflatten(ctx.args_treespec, flat_args)  # type: ignore[assignment]
 
                 noise = [distribution.sample(sample_shape=p.shape) for p in flat_diff_params]
 
@@ -288,7 +288,7 @@ def _zero_order_antithetic(
                         for t, n in zip(flat_diff_params, noise)
                     ]
                     noisy_params: List[Any] = pytree.tree_unflatten(  # type: ignore[assignment]
-                        diff_params_treedef, flat_noisy_params
+                        diff_params_treespec, flat_noisy_params
                     )
 
                     for argnum, noisy_param in zip(argnums, noisy_params):

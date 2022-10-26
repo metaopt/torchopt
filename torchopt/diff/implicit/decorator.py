@@ -192,9 +192,9 @@ def _signature_bind_and_match(
 
 def _split_tensor_and_others(
     mixed_tuple: Tuple[Any, ...],
-) -> Tuple[pytree.PyTreeDef, Tuple[bool, ...], Tuple[torch.Tensor, ...], Tuple[Any, ...]]:
+) -> Tuple[pytree.PyTreeSpec, Tuple[bool, ...], Tuple[torch.Tensor, ...], Tuple[Any, ...]]:
     flattened: List[Any]
-    flattened, treedef = pytree.tree_flatten(mixed_tuple)  # type: ignore[arg-type]
+    flattened, treespec = pytree.tree_flatten(mixed_tuple, none_is_leaf=True)  # type: ignore[arg-type]
     tensors: List[torch.Tensor] = []
     non_tensors: List[Any] = []
     is_tensor_mask: List[bool] = []
@@ -205,11 +205,11 @@ def _split_tensor_and_others(
             tensors.append(item.data)
         else:
             non_tensors.append(item)
-    return treedef, tuple(is_tensor_mask), tuple(tensors), tuple(non_tensors)
+    return treespec, tuple(is_tensor_mask), tuple(tensors), tuple(non_tensors)
 
 
 def _merge_tensor_and_others(
-    treedef: pytree.PyTreeDef,
+    treespec: pytree.PyTreeSpec,
     is_tensor_mask: Tuple[bool, ...],
     tensors: Tuple[torch.Tensor, ...],
     non_tensors: Tuple[Any, ...],
@@ -224,7 +224,7 @@ def _merge_tensor_and_others(
         else:
             results.append(non_tensors[non_tensor_counter])
             non_tensor_counter += 1
-    return pytree.tree_unflatten(treedef, results)
+    return pytree.tree_unflatten(treespec, results)
 
 
 # pylint: disable-next=too-many-arguments,too-many-statements
@@ -280,12 +280,12 @@ def _custom_root(
                     )
 
                 (
-                    args_treedef,
+                    args_treespec,
                     args_is_tensor_mask,
                     args_tensors,
                     args_non_tensors,
                 ) = _split_tensor_and_others(args)
-                ctx.args_treedef = args_treedef
+                ctx.args_treespec = args_treespec
                 ctx.args_is_tensor_mask = args_is_tensor_mask
                 ctx.args_non_tensors = args_non_tensors
 
@@ -301,11 +301,11 @@ def _custom_root(
                 saved_tensors = ctx.saved_tensors
                 output = saved_tensors[: len(grad_outputs)]
                 args_tensors = saved_tensors[len(grad_outputs) :]
-                args_treedef = ctx.args_treedef
+                args_treespec = ctx.args_treespec
                 args_is_tensor_mask = ctx.args_is_tensor_mask
                 args_non_tensors = ctx.args_non_tensors
                 args = _merge_tensor_and_others(
-                    args_treedef, args_is_tensor_mask, args_tensors, args_non_tensors
+                    args_treespec, args_is_tensor_mask, args_tensors, args_non_tensors
                 )
 
                 args, kwargs = _extract_kwargs(kwarg_keys, args)

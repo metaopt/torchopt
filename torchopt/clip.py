@@ -75,12 +75,12 @@ def clip_grad_norm(
         if inplace:
 
             def f(g):
-                return g.mul_(clip_coef_clamped) if g is not None else None
+                return g.mul_(clip_coef_clamped)
 
         else:
 
             def f(g):
-                return g.mul(clip_coef_clamped) if g is not None else None
+                return g.mul(clip_coef_clamped)
 
         new_updates = pytree.tree_map(f, updates)
         return new_updates, state

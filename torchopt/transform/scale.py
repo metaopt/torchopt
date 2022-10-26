@@ -71,12 +71,12 @@ def _scale(step_size: float, *, already_flattened: bool = False) -> GradientTran
         if inplace:
 
             def f(g):
-                return g.mul_(step_size) if g is not None else None
+                return g.mul_(step_size)
 
         else:
 
             def f(g):
-                return g.mul(step_size) if g is not None else None
+                return g.mul(step_size)
 
         updates = tree_map(f, updates)
         return updates, state
