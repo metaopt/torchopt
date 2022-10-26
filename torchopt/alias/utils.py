@@ -44,16 +44,14 @@ def flip_sign_and_add_weight_decay(weight_decay: float = 0.0, maximize=False):
             if inplace:
 
                 def f(g, p):
-                    if g is not None:
-                        if g.requires_grad:
-                            return g.add_(p, alpha=weight_decay)
-                        return g.add_(p.data, alpha=weight_decay)
-                    return None
+                    if g.requires_grad:
+                        return g.add_(p, alpha=weight_decay)
+                    return g.add_(p.data, alpha=weight_decay)
 
             else:
 
                 def f(g, p):
-                    return g.add(p, alpha=weight_decay) if g is not None else None
+                    return g.add(p, alpha=weight_decay)
 
             updates = tree_map_flat(f, updates, params)
             return updates, state
@@ -66,12 +64,12 @@ def flip_sign_and_add_weight_decay(weight_decay: float = 0.0, maximize=False):
                 if inplace:
 
                     def f(g):
-                        return g.neg_() if g is not None else None
+                        return g.neg_()
 
                 else:
 
                     def f(g):
-                        return g.neg() if g is not None else None
+                        return g.neg()
 
                 updates = tree_map_flat(f, updates)
                 return updates, state
@@ -96,7 +94,7 @@ def flip_sign_and_add_weight_decay(weight_decay: float = 0.0, maximize=False):
                 else:
 
                     def f(g, p):
-                        return g.neg().add_(p, alpha=weight_decay) if g is not None else None
+                        return g.neg().add_(p, alpha=weight_decay)
 
                 updates = tree_map_flat(f, updates, params)
                 return updates, state

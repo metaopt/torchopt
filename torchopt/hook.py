@@ -42,7 +42,7 @@ def register_hook(hook) -> GradientTransformation:
 
     def update_fn(updates, state, *, params=None, inplace=True):  # pylint: disable=unused-argument
         def f(g):
-            return g.register_hook(hook) if g is not None else None
+            return g.register_hook(hook)
 
         pytree.tree_map(f, updates)
         return updates, state

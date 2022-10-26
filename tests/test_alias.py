@@ -76,7 +76,7 @@ def test_sgd(
         loss = F.cross_entropy(pred, ys)
         loss_ref = F.cross_entropy(pred_ref, ys)
 
-        grads = torch.autograd.grad(loss, params)
+        grads = torch.autograd.grad(loss, params, allow_unused=True)
         updates, optim_state = optim.update(grads, optim_state, params=params, inplace=inplace)
         params = torchopt.apply_updates(params, updates, inplace=inplace)
 
@@ -134,7 +134,7 @@ def test_adam(
         loss = F.cross_entropy(pred, ys)
         loss_ref = F.cross_entropy(pred_ref, ys)
 
-        grads = torch.autograd.grad(loss, params)
+        grads = torch.autograd.grad(loss, params, allow_unused=True)
         updates, optim_state = optim.update(grads, optim_state, params=params, inplace=inplace)
         params = torchopt.apply_updates(params, updates, inplace=inplace)
 
@@ -192,7 +192,7 @@ def test_adamw(
         loss = F.cross_entropy(pred, ys)
         loss_ref = F.cross_entropy(pred_ref, ys)
 
-        grads = torch.autograd.grad(loss, params)
+        grads = torch.autograd.grad(loss, params, allow_unused=True)
         updates, optim_state = optim.update(grads, optim_state, params=params, inplace=inplace)
         params = torchopt.apply_updates(params, updates, inplace=inplace)
 
@@ -251,7 +251,7 @@ def test_adam_accelerated_cpu(
         loss = F.cross_entropy(pred, ys)
         loss_ref = F.cross_entropy(pred_ref, ys)
 
-        grads = torch.autograd.grad(loss, params)
+        grads = torch.autograd.grad(loss, params, allow_unused=True)
         updates, optim_state = optim.update(grads, optim_state, params=params, inplace=inplace)
         params = torchopt.apply_updates(params, updates, inplace=inplace)
 
@@ -313,7 +313,7 @@ def test_adam_accelerated_cuda(
         loss = F.cross_entropy(pred, ys)
         loss_ref = F.cross_entropy(pred_ref, ys)
 
-        grads = torch.autograd.grad(loss, params)
+        grads = torch.autograd.grad(loss, params, allow_unused=True)
         updates, optim_state = optim.update(grads, optim_state, params=params, inplace=inplace)
         params = torchopt.apply_updates(params, updates, inplace=inplace)
 
@@ -374,7 +374,7 @@ def test_rmsprop(
         loss = F.cross_entropy(pred, ys)
         loss_ref = F.cross_entropy(pred_ref, ys)
 
-        grads = torch.autograd.grad(loss, params)
+        grads = torch.autograd.grad(loss, params, allow_unused=True)
         updates, optim_state = optim.update(grads, optim_state, params=params, inplace=inplace)
         params = torchopt.apply_updates(params, updates, inplace=inplace)
 

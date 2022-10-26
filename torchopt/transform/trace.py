@@ -126,7 +126,7 @@ def _trace(
 
     def init_fn(params):
         return TraceState(
-            trace=tree_map(  # type: ignore[arg-type]
+            trace=tree_map(
                 lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params
             )
         )
@@ -185,7 +185,7 @@ def _trace(
                 updates = tree_map(torch.clone, new_trace)
 
         first_call = False
-        return updates, TraceState(trace=new_trace)  # type: ignore[arg-type]
+        return updates, TraceState(trace=new_trace)
 
     return GradientTransformation(init_fn, update_fn)
 

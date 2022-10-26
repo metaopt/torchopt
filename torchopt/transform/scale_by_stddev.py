@@ -113,7 +113,7 @@ def _scale_by_stddev(
     def init_fn(params):
         mu = tree_map(torch.zeros_like, params)  # first moment
         nu = tree_map(lambda n: torch.full_like(n, initial_scale), params)  # second moment
-        return ScaleByRStdDevState(mu=mu, nu=nu)  # type: ignore[arg-type]
+        return ScaleByRStdDevState(mu=mu, nu=nu)
 
     def update_fn(updates, state, *, params=None, inplace=True):  # pylint: disable=unused-argument
         mu = update_moment.impl(  # type: ignore[attr-defined]

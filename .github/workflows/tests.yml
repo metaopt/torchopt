@@ -81,9 +81,9 @@ jobs:
           make pytest
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v3
         with:
-          token: ${{ secrets.CODECOV }}
+          token: ${{ secrets.CODECOV_TOKEN }}
           file: ./tests/coverage.xml
           flags: unittests
           name: codecov-umbrella

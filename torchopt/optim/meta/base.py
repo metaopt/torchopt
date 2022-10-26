@@ -67,11 +67,9 @@ class MetaOptimizer:
         for i, (param_container, new_state) in enumerate(
             zip(self.param_containers_groups, self.state_groups)
         ):
-            flat_params_or_none: List[Optional[torch.Tensor]]
-            flat_params_or_none, container_treedef = pytree.tree_flatten(param_container)  # type: ignore[arg-type]
-            flat_params: Tuple[torch.Tensor, ...] = tuple(
-                filter(torch.is_tensor, flat_params_or_none)  # type: ignore[arg-type]
-            )
+            flat_params: Tuple[torch.Tensor, ...]
+            flat_params, container_treespec = pytree.tree_flatten(param_container)  # type: ignore[arg-type,assignment]
+            flat_params = tuple(flat_params)
             grads = torch.autograd.grad(
                 loss,
                 flat_params,
@@ -79,23 +77,16 @@ class MetaOptimizer:
                 allow_unused=True,
             )
             updates, new_state = self.impl.update(
-                grads,  # type: ignore[arg-type]
+                grads,
                 new_state,
-                params=flat_params,  # type: ignore[arg-type]
+                params=flat_params,
                 inplace=False,
             )
             self.state_groups[i] = new_state
-            flat_new_params = apply_updates(flat_params, updates, inplace=False)  # type: ignore[arg-type]
-            new_params_iter = iter(flat_new_params)  # type: ignore[call-overload]
-            flat_new_params_or_none = [
-                next(new_params_iter)
-                if isinstance(old_param_or_none, torch.Tensor)
-                else old_param_or_none
-                for old_param_or_none in flat_params_or_none
-            ]
+            flat_new_params = apply_updates(flat_params, updates, inplace=False)
             new_params = cast(
                 Tuple[Dict[str, Optional[torch.Tensor]], ...],
-                pytree.tree_unflatten(container_treedef, flat_new_params_or_none),
+                pytree.tree_unflatten(container_treespec, flat_new_params),
             )
             for container, new_param in zip(param_container, new_params):
                 container.update(new_param)
@@ -106,13 +97,8 @@ class MetaOptimizer:
         from torchopt.utils import _extract_container
 
         params_container, _ = _extract_container(net, with_buffers=False)
-        flat_params = tuple(
-            filter(
-                torch.is_tensor,  # type: ignore[arg-type]
-                pytree.tree_leaves(params_container),  # type: ignore[arg-type]
-            )
-        )
-        optimizer_state = self.impl.init(flat_params)  # type: ignore[arg-type]
+        flat_params: Tuple[torch.Tensor, ...] = tuple(pytree.tree_leaves(params_container))  # type: ignore[arg-type]
+        optimizer_state = self.impl.init(flat_params)
         self.param_containers_groups.append(params_container)
         self.state_groups.append(optimizer_state)
 

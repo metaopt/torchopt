@@ -43,7 +43,7 @@ in the main directory. This installation is removable by:
 
 .. code-block:: bash
 
-    pip3 uninstall torchopt
+    make uninstall
 
 
 Lint Check
