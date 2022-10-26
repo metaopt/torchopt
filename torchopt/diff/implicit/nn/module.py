@@ -39,23 +39,16 @@ def make_residual_from_objective(
     def residual(self: 'ImplicitMetaGradientModule', *input, **kwargs) -> Tuple[torch.Tensor, ...]:
         params_containers = extract_module_containers(self, with_buffers=False)[0]
         params_containers_backups = [container.copy() for container in params_containers]
-        flat_params_or_none: List[Optional[torch.Tensor]]
-        flat_params_or_none, params_containers_treedef = pytree.tree_flatten(
-            params_containers  # type: ignore[arg-type]
-        )
+        flat_params: List[torch.Tensor]
+        flat_params, params_containers_treespec = pytree.tree_flatten(params_containers)  # type: ignore[arg-type]
 
         # pylint: disable-next=redefined-builtin
         def objective_fn(flat_params: Tuple[torch.Tensor, ...], *input, **kwargs) -> torch.Tensor:
-            grad_tracking_params_iter = iter(flat_params)
-            flat_grad_tracking_params_or_none = [
-                next(grad_tracking_params_iter)
-                if isinstance(old_param_or_none, torch.Tensor)
-                else old_param_or_none
-                for old_param_or_none in flat_params_or_none
-            ]
-            grad_tracking_params_containers: Tuple[Dict[str, Optional[torch.Tensor]], ...]
-            grad_tracking_params_containers = pytree.tree_unflatten(  # type: ignore[assignment]
-                params_containers_treedef, flat_grad_tracking_params_or_none
+            flat_grad_tracking_params = flat_params
+            grad_tracking_params_containers: Tuple[
+                Dict[str, Optional[torch.Tensor]], ...
+            ] = pytree.tree_unflatten(  # type: ignore[assignment]
+                params_containers_treespec, flat_grad_tracking_params
             )
 
             try:
@@ -72,7 +65,6 @@ def make_residual_from_objective(
                     container.update(container_backup)
 
         objective_grad_fn = functorch.grad(objective_fn, argnums=0)
-        flat_params = tuple(filter(torch.is_tensor, flat_params_or_none))
         flat_grads = objective_grad_fn(flat_params, *input, **kwargs)
         return flat_grads
 
@@ -103,12 +95,12 @@ def enable_implicit_gradients(
             container.copy() for container in meta_params_containers
         )
 
-        flat_params_or_none: List[Optional[torch.Tensor]]
-        flat_meta_params_or_none: List[Optional[torch.Tensor]]
-        flat_params_or_none, params_containers_treedef = pytree.tree_flatten(
+        flat_params: List[torch.Tensor]
+        flat_meta_params: List[torch.Tensor]
+        flat_params, params_containers_treespec = pytree.tree_flatten(
             params_containers  # type: ignore[arg-type]
         )
-        flat_meta_params_or_none, meta_params_containers_treedef = pytree.tree_flatten(
+        flat_meta_params, meta_params_containers_treespec = pytree.tree_flatten(
             meta_params_containers  # type: ignore[arg-type]
         )
 
@@ -118,27 +110,17 @@ def enable_implicit_gradients(
             *input,  # pylint: disable=redefined-builtin
             **kwargs,
         ) -> Tuple[torch.Tensor, ...]:
-            grad_tracking_params_iter = iter(flat_params)
-            flat_grad_tracking_params_or_none = [
-                next(grad_tracking_params_iter)
-                if isinstance(old_params_or_none, torch.Tensor)
-                else old_params_or_none
-                for old_params_or_none in flat_params_or_none
-            ]
-            grad_tracking_params_containers: Tuple[Dict[str, Optional[torch.Tensor]], ...]
-            grad_tracking_params_containers = pytree.tree_unflatten(  # type: ignore[assignment]
-                params_containers_treedef, flat_grad_tracking_params_or_none
+            flat_grad_tracking_params = flat_params
+            grad_tracking_params_containers: Tuple[
+                Dict[str, Optional[torch.Tensor]], ...
+            ] = pytree.tree_unflatten(  # type: ignore[assignment]
+                params_containers_treespec, flat_grad_tracking_params
             )
-            grad_tracking_meta_params_iter = iter(flat_meta_params)
-            flat_grad_tracking_meta_params_or_none = [
-                next(grad_tracking_meta_params_iter)
-                if isinstance(old_meta_param_or_none, torch.Tensor)
-                else old_meta_param_or_none
-                for old_meta_param_or_none in flat_meta_params_or_none
-            ]
-            grad_tracking_meta_params_containers: Tuple[Dict[str, Optional[torch.Tensor]], ...]
-            grad_tracking_meta_params_containers = pytree.tree_unflatten(  # type: ignore[assignment]
-                meta_params_containers_treedef, flat_grad_tracking_meta_params_or_none
+            flat_grad_tracking_meta_params = flat_meta_params
+            grad_tracking_meta_params_containers: Tuple[
+                Dict[str, Optional[torch.Tensor]], ...
+            ] = pytree.tree_unflatten(  # type: ignore[assignment]
+                meta_params_containers_treespec, flat_grad_tracking_meta_params
             )
 
             try:
@@ -148,7 +130,7 @@ def enable_implicit_gradients(
                 ):
                     container.update(grad_tracking_container)
 
-                return self.residual(*input, **kwargs)  # type: ignore[return-value]
+                return self.residual(*input, **kwargs)
             finally:
                 for container, container_backup in itertools.chain(
                     zip(params_containers, params_containers_backups),
@@ -166,8 +148,6 @@ def enable_implicit_gradients(
             solve(self, *input, **kwargs)
             return tuple(filter(torch.is_tensor, pytree.tree_leaves(params_containers)))  # type: ignore[arg-type]
 
-        flat_params = tuple(filter(torch.is_tensor, flat_params_or_none))
-        flat_meta_params = tuple(filter(torch.is_tensor, flat_meta_params_or_none))
         # pylint: disable-next=unused-variable
         flat_optimal_params = solve_fn(flat_params, flat_meta_params, *input, **kwargs)
         return self

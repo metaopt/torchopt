@@ -96,7 +96,7 @@ class MetaOptimizer:
         """Add a param group to the optimizer's :attr:`state_groups`."""
         params_container = extract_module_containers(net, with_buffers=False)[0]
         flat_params: Tuple[torch.Tensor, ...] = tuple(pytree.tree_leaves(params_container))  # type: ignore[arg-type]
-        optimizer_state = self.impl.init(flat_params)  # type: ignore[arg-type]
+        optimizer_state = self.impl.init(flat_params)
         self.param_containers_groups.append(params_container)
         self.state_groups.append(optimizer_state)
 
