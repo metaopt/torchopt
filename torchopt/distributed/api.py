@@ -118,7 +118,7 @@ class TensorDimensionPartitioner:
 
         args_tree = (args, kwargs)
         flat_args: List[Any]
-        flat_args, treedef = pytree.tree_flatten(args_tree)  # type: ignore[arg-type]
+        flat_args, treespec = pytree.tree_flatten(args_tree)  # type: ignore[arg-type]
 
         batch_size = None
         for arg in flat_args:
@@ -179,7 +179,7 @@ class TensorDimensionPartitioner:
                     flat_args_replicas[i].append(arg)
 
         args_replicas: List[Tuple[Args, KwArgs]] = [
-            pytree.tree_unflatten(treedef, args_replica)  # type: ignore[misc]
+            pytree.tree_unflatten(treespec, args_replica)  # type: ignore[misc]
             for args_replica in flat_args_replicas
         ]
 

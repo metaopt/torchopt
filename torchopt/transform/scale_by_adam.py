@@ -46,7 +46,7 @@ from torchopt.typing import Updates
 __all__ = ['scale_by_adam', 'scale_by_accelerated_adam']
 
 
-TRIPLE_PYTREEDEF = pytree.tree_structure((0, 1, 2))  # type: ignore[arg-type]
+TRIPLE_PYTREE_SPEC = pytree.tree_structure((0, 1, 2))  # type: ignore[arg-type]
 
 
 class ScaleByAdamState(NamedTuple):
@@ -172,13 +172,13 @@ def _scale_by_adam(
 
         if inplace:
 
-            def f(g, m, v):
-                return m.div_(v.add_(eps_root).sqrt_().add(eps)) if g is not None else None
+            def f(g, m, v):  # pylint: disable=unused-argument
+                return m.div_(v.add_(eps_root).sqrt_().add(eps))
 
         else:
 
-            def f(g, m, v):
-                return m.div(v.add(eps_root).sqrt_().add(eps)) if g is not None else None
+            def f(g, m, v):  # pylint: disable=unused-argument
+                return m.div(v.add(eps_root).sqrt_().add(eps))
 
         updates = tree_map(f, updates, mu_hat, nu_hat)
         return updates, ScaleByAdamState(mu=mu, nu=nu, count=count_inc)
@@ -287,7 +287,7 @@ def _scale_by_accelerated_adam(
         def update_fn(updates, state, *, params=None, inplace=True):
             count_inc = inc_count.impl(updates, state.count, already_flattened=False)  # type: ignore[attr-defined]
 
-            treedef = pytree.tree_structure(updates)
+            treespec = pytree.tree_structure(updates)
 
             op = AdamOp(b1=b1, b2=b2, eps=eps, eps_root=eps_root, inplace=inplace)
             out = pytree.tree_map(op, state.mu, state.nu, updates, count_inc)
@@ -295,7 +295,7 @@ def _scale_by_accelerated_adam(
             new_mu: Updates
             new_nu: Updates
             new_updates: Updates
-            new_mu, new_nu, new_updates = pytree.tree_transpose(treedef, TRIPLE_PYTREEDEF, out)  # type: ignore[misc]
+            new_mu, new_nu, new_updates = pytree.tree_transpose(treespec, TRIPLE_PYTREE_SPEC, out)  # type: ignore[misc]
             return new_updates, ScaleByAdamState(mu=new_mu, nu=new_nu, count=count_inc)
 
     def init_fn(params):

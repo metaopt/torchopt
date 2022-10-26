@@ -57,8 +57,8 @@ def _vdot_real_kernel(x: torch.Tensor, y: torch.Tensor) -> float:
 
 def tree_vdot_real(tree_x: TensorTree, tree_y: TensorTree) -> float:
     """Computes dot(tree_x.conj(), tree_y).real.sum()."""
-    leaves_x, treedef = pytree.tree_flatten(tree_x)
-    leaves_y = treedef.flatten_up_to(tree_y)
+    leaves_x, treespec = pytree.tree_flatten(tree_x)
+    leaves_y = treespec.flatten_up_to(tree_y)
     return sum(map(_vdot_real_kernel, leaves_x, leaves_y))  # type: ignore[arg-type]
 
 

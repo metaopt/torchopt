@@ -201,16 +201,14 @@ def _add_decayed_weights(
         if inplace:
 
             def f(g, p):
-                if g is not None:
-                    if g.requires_grad:
-                        return g.add_(p, alpha=weight_decay)
-                    return g.add_(p.data, alpha=weight_decay)
-                return None
+                if g.requires_grad:
+                    return g.add_(p, alpha=weight_decay)
+                return g.add_(p.data, alpha=weight_decay)
 
         else:
 
             def f(g, p):
-                return g.add(p, alpha=weight_decay) if g is not None else None
+                return g.add(p, alpha=weight_decay)
 
         updates = tree_map(f, updates, params)
         return updates, state
