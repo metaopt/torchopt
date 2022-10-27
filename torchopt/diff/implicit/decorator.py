@@ -25,7 +25,13 @@ import torch
 from torch.autograd import Function
 
 from torchopt import linear_solve, pytree
-from torchopt.typing import ListOfTensors, TensorOrTensors, TupleOfTensors
+from torchopt.typing import (
+    ListOfOptionalTensors,
+    ListOfTensors,
+    TensorOrTensors,
+    TupleOfOptionalTensors,
+    TupleOfTensors,
+)
 
 
 __all__ = ['custom_root']
@@ -84,7 +90,7 @@ def _root_vjp(
     output_is_tensor: bool,
     argnums: Tuple[int, ...],
     solve: Callable[..., TensorOrTensors] = linear_solve.solve_normal_cg(),
-) -> Tuple[Optional[torch.Tensor], ...]:
+) -> TupleOfOptionalTensors:
 
     if output_is_tensor:
 
@@ -119,24 +125,18 @@ def _root_vjp(
         optimality_fn, solution, output_is_tensor, argnums, *args
     )
 
-    output: TupleOfTensors
-    if getattr(solve, 'is_spd', False):
-        if output_is_tensor:
-            output = u
-        else:
-            output = (u,)  # type: ignore[assignment]
-    else:
-        _, optimality_vjp_fn, *_ = functorch.vjp(
-            masked_optimality_fn, *masked_optimality_fn.post_filled
-        )
+    _, optimality_vjp_fn, *_ = functorch.vjp(
+        masked_optimality_fn, *masked_optimality_fn.post_filled
+    )
 
-        if output_is_tensor:
-            output = optimality_vjp_fn(u[0])
-        else:
-            output = optimality_vjp_fn(u)
+    output: TupleOfTensors
+    if output_is_tensor:
+        output = optimality_vjp_fn(u[0])
+    else:
+        output = optimality_vjp_fn(u)
 
     # Prepend None as the vjp for init_params.
-    true_output: List[Optional[torch.Tensor]] = [None]
+    true_output: ListOfOptionalTensors = [None]
     for idx in range(masked_optimality_fn.len_args):
         if idx + 1 in argnums:  # plus 1 because we exclude the first argument
             true_output.append(output[idx])
