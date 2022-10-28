@@ -91,8 +91,8 @@ To build compatible **manylinux2014** (:pep:`599`) wheels for distribution, you 
 
     pip3 install --upgrade cibuildwheel
 
-    export TEST_TORCH_SPECS="cpu cu113 cu116"  # `torch` builds for testing
-    export CUDA_VERSION="11.6"                 # version of `nvcc` for compilation
+    export TEST_TORCH_SPECS="cpu cu116"  # `torch` builds for testing
+    export CUDA_VERSION="11.7"           # version of `nvcc` for compilation
     python3 -m cibuildwheel --platform=linux --output-dir=wheelhouse --config-file=pyproject.toml
 
 It will install the CUDA compiler with ``CUDA_VERSION`` in the build container. Then build wheel binaries for all supported CPython versions. The outputs will be placed in the ``wheelhouse`` directory.

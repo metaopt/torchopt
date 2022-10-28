@@ -31,7 +31,7 @@ dependencies:
 
   # Learning
   - pytorch::pytorch >= 1.13  # sync with project.dependencies
-  - pytorch::pytorch-mutex = *=*cpu*
+  - pytorch::cpuonly
   - pip:
       - torchviz
       - sphinxcontrib-katex  # for documentation
@@ -43,8 +43,8 @@ dependencies:
   - make
   - cxx-compiler
   - gxx = 10
-  - nvidia/label/cuda-11.6.2::cuda-nvcc
-  - nvidia/label/cuda-11.6.2::cuda-cudart-dev
+  - nvidia/label/cuda-11.7.1::cuda-nvcc
+  - nvidia/label/cuda-11.7.1::cuda-cudart-dev
   - pybind11
 
   # Misc

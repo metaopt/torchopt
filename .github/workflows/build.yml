@@ -37,8 +37,8 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
-  CUDA_VERSION: "11.6"
-  TEST_TORCH_SPECS: "cpu cu113 cu116"
+  CUDA_VERSION: "11.7"
+  TEST_TORCH_SPECS: "cpu cu116"
 
 jobs:
   build-sdist:

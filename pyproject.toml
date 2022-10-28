@@ -100,8 +100,8 @@ build-verbosity = 3
 environment.USE_FP16 = "ON"
 environment.CUDACXX = "/usr/local/cuda/bin/nvcc"
 environment.TORCH_CUDA_ARCH_LIST = "Common"
-environment.DEFAULT_CUDA_VERSION = "11.6"
-environment.DEFAULT_TEST_TORCH_SPECS = "cpu cu113 cu116"
+environment.DEFAULT_CUDA_VERSION = "11.7"
+environment.DEFAULT_TEST_TORCH_SPECS = "cpu cu116"
 environment-pass = ["CUDA_VERSION", "TEST_TORCH_SPECS"]
 container-engine = "docker"
 
