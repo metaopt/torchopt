@@ -23,6 +23,7 @@ from torchopt.typing import (  # pylint: disable=unused-import
     GradientTransformation,
     OptState,
     Params,
+    TupleOfTensors,
 )
 from torchopt.update import apply_updates
 
@@ -49,7 +50,7 @@ class Optimizer:
             raise TypeError(f'{impl} (type: {type(impl).__name__}) is not a GradientTransformation')
 
         self.impl: GradientTransformation = impl
-        self.param_groups: List[Tuple[torch.Tensor]] = []
+        self.param_groups: List[TupleOfTensors] = []
         self.param_treespecs: List[pytree.PyTreeSpec] = []
         self.state_groups: List[OptState] = []
 
@@ -123,7 +124,7 @@ class Optimizer:
     def add_param_group(self, params: 'Params') -> None:
         """Add a param group to the optimizer's :attr:`param_groups`."""
         flat_params, params_treespec = pytree.tree_flatten(params)
-        flat_params: Tuple[torch.Tensor] = tuple(flat_params)  # type: ignore[assignment]
+        flat_params: TupleOfTensors = tuple(flat_params)
         self.param_groups.append(flat_params)
         self.param_treespecs.append(params_treespec)
         self.state_groups.append(self.impl.init(flat_params))

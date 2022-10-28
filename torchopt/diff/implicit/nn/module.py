@@ -16,7 +16,7 @@
 
 import functools
 import itertools
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable, Dict, Optional, Tuple
 
 import functorch
 import torch
@@ -24,7 +24,7 @@ import torch
 import torchopt.nn
 from torchopt import pytree
 from torchopt.diff.implicit.decorator import custom_root
-from torchopt.typing import TensorTree  # pylint: disable=unused-import
+from torchopt.typing import TensorTree, TupleOfTensors  # pylint: disable=unused-import
 from torchopt.utils import extract_module_containers
 
 
@@ -33,17 +33,18 @@ __all__ = ['ImplicitMetaGradientModule']
 
 def make_residual_from_objective(
     objective: Callable[..., torch.Tensor]
-) -> Callable[..., Tuple[torch.Tensor, ...]]:
+) -> Callable[..., TupleOfTensors]:
     """Make a function that computes the optimality residual of the objective function."""
     # pylint: disable-next=redefined-builtin
-    def residual(self: 'ImplicitMetaGradientModule', *input, **kwargs) -> Tuple[torch.Tensor, ...]:
+    def residual(self: 'ImplicitMetaGradientModule', *input, **kwargs) -> TupleOfTensors:
         params_containers = extract_module_containers(self, with_buffers=False)[0]
         params_containers_backups = [container.copy() for container in params_containers]
-        flat_params: List[torch.Tensor]
-        flat_params, params_containers_treespec = pytree.tree_flatten(params_containers)  # type: ignore[arg-type]
+        flat_params: TupleOfTensors
+        # pylint: disable-next=line-too-long
+        flat_params, params_containers_treespec = pytree.tree_flatten_as_tuple(params_containers)  # type: ignore[arg-type]
 
         # pylint: disable-next=redefined-builtin
-        def objective_fn(flat_params: Tuple[torch.Tensor, ...], *input, **kwargs) -> torch.Tensor:
+        def objective_fn(flat_params: TupleOfTensors, *input, **kwargs) -> torch.Tensor:
             flat_grad_tracking_params = flat_params
             grad_tracking_params_containers: Tuple[
                 Dict[str, Optional[torch.Tensor]], ...
@@ -95,21 +96,21 @@ def enable_implicit_gradients(
             container.copy() for container in meta_params_containers
         )
 
-        flat_params: List[torch.Tensor]
-        flat_meta_params: List[torch.Tensor]
-        flat_params, params_containers_treespec = pytree.tree_flatten(
+        flat_params: TupleOfTensors
+        flat_meta_params: TupleOfTensors
+        flat_params, params_containers_treespec = pytree.tree_flatten_as_tuple(
             params_containers  # type: ignore[arg-type]
         )
-        flat_meta_params, meta_params_containers_treespec = pytree.tree_flatten(
+        flat_meta_params, meta_params_containers_treespec = pytree.tree_flatten_as_tuple(
             meta_params_containers  # type: ignore[arg-type]
         )
 
         def optimality_fn(
-            flat_params: Tuple[torch.Tensor, ...],
-            flat_meta_params: Tuple[torch.Tensor, ...],
+            flat_params: TupleOfTensors,
+            flat_meta_params: TupleOfTensors,
             *input,  # pylint: disable=redefined-builtin
             **kwargs,
-        ) -> Tuple[torch.Tensor, ...]:
+        ) -> TupleOfTensors:
             flat_grad_tracking_params = flat_params
             grad_tracking_params_containers: Tuple[
                 Dict[str, Optional[torch.Tensor]], ...
@@ -140,13 +141,13 @@ def enable_implicit_gradients(
 
         @custom_root(optimality_fn, argnums=1)
         def solve_fn(
-            flat_params: Tuple[torch.Tensor, ...],  # pylint: disable=unused-argument
-            flat_meta_params: Tuple[torch.Tensor, ...],  # pylint: disable=unused-argument
+            flat_params: TupleOfTensors,  # pylint: disable=unused-argument
+            flat_meta_params: TupleOfTensors,  # pylint: disable=unused-argument
             *input,  # pylint: disable=redefined-builtin
             **kwargs,
-        ) -> Tuple[torch.Tensor, ...]:
+        ) -> TupleOfTensors:
             solve(self, *input, **kwargs)
-            return tuple(filter(torch.is_tensor, pytree.tree_leaves(params_containers)))  # type: ignore[arg-type]
+            return tuple(pytree.tree_leaves(params_containers))  # type: ignore[arg-type]
 
         # pylint: disable-next=unused-variable
         flat_optimal_params = solve_fn(flat_params, flat_meta_params, *input, **kwargs)

@@ -14,6 +14,8 @@
 # ==============================================================================
 """The PyTree utilities."""
 
+from typing import Callable, List, Optional, Tuple
+
 import optree
 import optree.typing as typing  # pylint: disable=unused-import
 import torch.distributed.rpc as rpc
@@ -22,7 +24,28 @@ from optree import *  # pylint: disable=wildcard-import,unused-wildcard-import
 from torchopt.typing import Future, PyTree, RRef, T
 
 
-__all__ = [*optree.__all__, 'tree_wait']
+__all__ = [*optree.__all__, 'tree_flatten_as_tuple', 'tree_wait']
+
+
+def tree_flatten_as_tuple(
+    tree: PyTree[T],
+    is_leaf: Optional[Callable[[T], bool]] = None,
+    *,
+    none_is_leaf: bool = False,
+) -> Tuple[Tuple[T, ...], PyTreeSpec]:
+    """Flatten a pytree to a tuple of leaves and a PyTreeSpec.
+
+    Args:
+        tree: The pytree to flatten.
+        is_leaf: A function that returns True if a given node is a leaf.
+        none_is_leaf: If :data:`True`, None is considered a leaf rather than a internal node with no
+            children.
+
+    Returns:
+        A tuple of (leaves, treespec).
+    """
+    leaves, treespec = tree_flatten(tree, is_leaf, none_is_leaf=none_is_leaf)
+    return tuple(leaves), treespec
 
 
 def tree_wait(future_tree: PyTree[Future[T]]) -> PyTree[T]:
@@ -59,4 +82,4 @@ if rpc.is_available():
     __all__.extend(['tree_as_rref', 'tree_to_here'])
 
 
-del optree, rpc, PyTree, T, RRef
+del Callable, List, Optional, Tuple, optree, rpc, PyTree, T, RRef

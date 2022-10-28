@@ -19,12 +19,13 @@
 
 import warnings
 from collections import namedtuple
-from typing import Generator, Iterable, Mapping, Optional, Sequence, Union, cast
+from typing import Generator, Iterable, Mapping, Optional, Union, cast
 
 import torch
 from graphviz import Digraph
 from pkg_resources import parse_version
 
+from torchopt.typing import TensorOrTensors
 from torchopt.utils import ModuleState
 
 
@@ -71,7 +72,7 @@ def get_fn_name(fn, show_attrs, max_attr_chars):
 
 # pylint: disable-next=too-many-branches,too-many-statements,too-many-locals
 def make_dot(
-    var: Union[torch.Tensor, Sequence[torch.Tensor]],
+    var: TensorOrTensors,
     params: Optional[
         Union[
             Mapping[str, torch.Tensor],

@@ -31,14 +31,14 @@
 # ==============================================================================
 """Preset transformation for scaling updates by learning rate schedules."""
 
-from typing import NamedTuple, Sequence
+from typing import NamedTuple
 
 import torch
 
 from torchopt import pytree
 from torchopt.base import GradientTransformation
 from torchopt.transform.utils import inc_count, tree_map_flat
-from torchopt.typing import Schedule
+from torchopt.typing import Schedule, SequenceOfTensors
 
 
 __all__ = ['scale_by_schedule']
@@ -47,7 +47,7 @@ __all__ = ['scale_by_schedule']
 class ScaleByScheduleState(NamedTuple):
     """Maintains count for scale scheduling."""
 
-    count: Sequence[torch.Tensor]  # type: ignore
+    count: SequenceOfTensors  # type: ignore
 
 
 def scale_by_schedule(step_size_fn: Schedule) -> GradientTransformation:

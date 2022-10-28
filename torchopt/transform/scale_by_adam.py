@@ -33,14 +33,14 @@
 
 # pylint: disable=invalid-name
 
-from typing import NamedTuple, Sequence
+from typing import NamedTuple
 
 import torch
 
 from torchopt import pytree
 from torchopt.base import GradientTransformation
 from torchopt.transform.utils import inc_count, tree_map_flat, update_moment
-from torchopt.typing import Updates
+from torchopt.typing import SequenceOfTensors, Updates
 
 
 __all__ = ['scale_by_adam', 'scale_by_accelerated_adam']
@@ -54,7 +54,7 @@ class ScaleByAdamState(NamedTuple):
 
     mu: Updates
     nu: Updates
-    count: Sequence[torch.Tensor]  # type: ignore
+    count: SequenceOfTensors  # type: ignore
 
 
 def _bias_correction(moment, decay, count, *, already_flattened=False):
