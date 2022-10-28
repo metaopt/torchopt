@@ -32,7 +32,7 @@ import torchopt
     nesterov=[False, True],
     inplace=[True, False],
     weight_decay=[0.0, 1e-2],
-    maximize=[False],  # TODO: test maximize after PyTorch 1.13
+    maximize=[False, True],
 )
 def test_sgd(
     dtype: torch.dtype,

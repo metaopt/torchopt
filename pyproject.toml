@@ -2,7 +2,7 @@
 
 [build-system]
 # Sync with project.dependencies
-requires = ["setuptools", "torch >= 1.12", "numpy", "pybind11"]
+requires = ["setuptools", "torch >= 1.13", "numpy", "pybind11"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -48,8 +48,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 dependencies = [
-    "torch >= 1.12",     # see also build-system.requires and project.requires-python
-    "functorch >= 0.2",
+    "torch >= 1.13",     # see also build-system.requires and project.requires-python
     "optree >= 0.3.0",
     "numpy",
     "graphviz",

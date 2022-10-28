@@ -1,6 +1,5 @@
 # Sync with project.dependencies
-torch >= 1.12
-functorch >= 0.2
+torch >= 1.13
 optree >= 0.3.0
 numpy
 graphviz
