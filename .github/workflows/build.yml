@@ -55,7 +55,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.7 - 3.10" # sync with requires-python in pyproject.toml
+          python-version: "3.7 - 3.11" # sync with requires-python in pyproject.toml
           update-environment: true
 
       - name: Set __release__
@@ -138,7 +138,7 @@ jobs:
     if: github.repository == 'metaopt/torchopt' && (github.event_name != 'push' || startsWith(github.ref, 'refs/tags/'))
     strategy:
       matrix:
-        python-version: ["3.8", "3.9", "3.10"] # sync with requires-python in pyproject.toml
+        python-version: ["3.8", "3.9", "3.10", "3.11"] # sync with requires-python in pyproject.toml
       fail-fast: false
     timeout-minutes: 30
     steps:
@@ -200,7 +200,7 @@ jobs:
         uses: actions/setup-python@v4
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          python-version: "3.7 - 3.10" # sync with requires-python in pyproject.toml
+          python-version: "3.7 - 3.11" # sync with requires-python in pyproject.toml
           update-environment: true
 
       - name: Set __release__
