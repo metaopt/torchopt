@@ -48,7 +48,7 @@ dependencies:
   - pybind11
 
   # Misc
-  - typing-extensions
+  - typing-extensions >= 4.0.0
   - numpy
   - matplotlib-base
   - seaborn
