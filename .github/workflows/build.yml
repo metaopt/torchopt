@@ -37,8 +37,8 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
-  CUDA_VERSION: "11.6"
-  TEST_TORCH_SPECS: "cpu cu113 cu116"
+  CUDA_VERSION: "11.7"
+  TEST_TORCH_SPECS: "cpu cu116"
 
 jobs:
   build-sdist:
@@ -55,7 +55,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.7 - 3.10" # sync with requires-python in pyproject.toml
+          python-version: "3.7 - 3.11" # sync with requires-python in pyproject.toml
           update-environment: true
 
       - name: Set __release__
@@ -117,7 +117,7 @@ jobs:
         run: python .github/workflows/set_cibw_build.py
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.11.1
+        uses: pypa/cibuildwheel@v2.11.2
         env:
           CIBW_BUILD: ${{ env.CIBW_BUILD }}
         with:
@@ -167,7 +167,7 @@ jobs:
         run: python .github/workflows/set_cibw_build.py
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.11.1
+        uses: pypa/cibuildwheel@v2.11.2
         env:
           CIBW_BUILD: ${{ env.CIBW_BUILD }}
         with:
@@ -200,7 +200,7 @@ jobs:
         uses: actions/setup-python@v4
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          python-version: "3.7 - 3.10" # sync with requires-python in pyproject.toml
+          python-version: "3.7 - 3.11" # sync with requires-python in pyproject.toml
           update-environment: true
 
       - name: Set __release__
