@@ -11,7 +11,7 @@ description = "A Jax-style optimizer for PyTorch."
 readme = "README.md"
 # Change this if wheels for `torch` is available
 # Search "requires-python" and update all corresponding items
-requires-python = ">= 3.7, < 3.12.0a0"
+requires-python = ">= 3.7"
 authors = [
     { name = "TorchOpt Contributors" },
     { name = "Jie Ren", email = "jieren9806@gmail.com" },
