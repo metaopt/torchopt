@@ -3,7 +3,7 @@
 TorchOpt
 --------
 
-**TorchOpt** is a high-performance optimizer library built upon `PyTorch <https://pytorch.org/>`_ for easy implementation of functional optimization and gradient-based meta-learning. It consists of two main features:
+**TorchOpt** is a high-performance optimizer library built upon `PyTorch <https://pytorch.org>`_ for easy implementation of functional optimization and gradient-based meta-learning. It consists of two main features:
 
 * TorchOpt provides functional optimizer which enables `JAX-like <https://github.com/google/jax>`_ composable functional optimizer for PyTorch. With TorchOpt, one can easily conduct neural network optimization in PyTorch with functional style optimizer, similar to `Optax <https://github.com/deepmind/optax>`_ in JAX.
 * With the design of functional programming, TorchOpt provides efficient, flexible, and easy-to-implement differentiable optimizer for gradient-based meta-learning research. It largely reduces the efforts required to implement sophisticated meta-learning algorithms.
@@ -13,8 +13,8 @@ Installation
 
 Requirements:
 
-* `PyTorch <https://pytorch.org/>`_
-* (Optional) `Graphviz <https://graphviz.org/download/>`_
+* `PyTorch <https://pytorch.org>`_
+* (Optional) `Graphviz <https://graphviz.org/download>`_
 
 Please follow the instructions at https://pytorch.org to install PyTorch in your Python environment first. Then run the following command to install TorchOpt from PyPI:
 

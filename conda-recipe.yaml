@@ -22,12 +22,12 @@ name: torchopt
 
 channels:
   - pytorch
+  - nvidia/label/cuda-11.7.1
   - defaults
-  - nvidia
   - conda-forge
 
 dependencies:
-  - python = 3.8
+  - python = 3.9
   - pip
 
   # Learning
@@ -40,20 +40,20 @@ dependencies:
   - jax                      # for tutorials
   - jaxlib >= 0.3=*cuda*     # for tutorials
   - optax                    # for tutorials
+  - jaxopt                   # for tests
   - tensorboard              # for examples
   - wandb
 
   # Device select
-  - pytorch::pytorch-cuda = 11.7
-  - cudnn
+  - nvidia/label/cuda-11.7.1::cuda-toolkit = 11.7
 
   # Build toolchain
   - cmake >= 3.4
   - make
   - cxx-compiler
   - gxx = 10
-  - nvidia::cuda-nvcc
-  - nvidia::cuda-cudart-dev
+  - nvidia/label/cuda-11.7.1::cuda-nvcc
+  - nvidia/label/cuda-11.7.1::cuda-cudart-dev
   - patchelf >= 0.9
   - pybind11
 
@@ -75,6 +75,7 @@ dependencies:
   - sphinxcontrib-bibtex
   - sphinx-autodoc-typehints
   - pyenchant
+  - hunspell-en
   - myst-nb
   - ipykernel
   - pandoc

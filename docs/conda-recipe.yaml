@@ -22,11 +22,12 @@ name: torchopt-docs
 
 channels:
   - pytorch
+  - nvidia/label/cuda-11.7.1
   - defaults
   - conda-forge
 
 dependencies:
-  - python = 3.8
+  - python = 3.9
   - pip
 
   # Learning
@@ -35,8 +36,6 @@ dependencies:
   - pip:
       - torchviz
       - sphinxcontrib-katex  # for documentation
-  - tensorboard
-  - wandb
 
   # Build toolchain
   - cmake >= 3.4
@@ -64,6 +63,7 @@ dependencies:
   - sphinxcontrib-bibtex
   - sphinx-autodoc-typehints
   - pyenchant
+  - hunspell-en
   - myst-nb
   - ipykernel
   - pandoc

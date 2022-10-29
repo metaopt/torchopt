@@ -6,15 +6,14 @@
 </div>
 
 ![Python 3.7+](https://img.shields.io/badge/Python-3.7%2B-brightgreen.svg)
-[![PyPI](https://img.shields.io/pypi/v/torchopt?label=PyPI)](https://pypi.org/project/torchopt)
-![Status](https://img.shields.io/pypi/status/torchopt?label=Status)
+[![PyPI](https://img.shields.io/pypi/v/torchopt?logo=pypi)](https://pypi.org/project/torchopt)
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/metaopt/torchopt/Tests?label=tests&logo=github)
-[![Documentation Status](https://readthedocs.org/projects/torchopt/badge/?version=latest)](https://torchopt.readthedocs.io/en/latest/?badge=latest)
-[![Downloads](https://static.pepy.tech/personalized-badge/torchopt?period=month&left_color=grey&right_color=blue&left_text=Downloads/month)](https://pepy.tech/project/torchopt)
-[![GitHub Repo Stars](https://img.shields.io/github/stars/metaopt/torchopt?label=Stars&logo=github&color=brightgreen)](https://github.com/metaopt/torchopt/stargazers)
-[![License](https://img.shields.io/github/license/metaopt/torchopt?label=License)](#license)
+[![Documentation Status](https://img.shields.io/readthedocs/torchopt?logo=readthedocs)](https://torchopt.readthedocs.io)
+[![Downloads](https://static.pepy.tech/personalized-badge/torchopt?period=total&left_color=grey&right_color=blue&left_text=downloads)](https://pepy.tech/project/torchopt)
+[![GitHub Repo Stars](https://img.shields.io/github/stars/metaopt/torchopt?color=brightgreen&logo=github)](https://github.com/metaopt/torchopt/stargazers)
+[![License](https://img.shields.io/github/license/metaopt/torchopt?label=license)](#license)
 
-**TorchOpt** is a high-performance optimizer library built upon [PyTorch](https://pytorch.org/) for easy implementation of functional optimization and gradient-based meta-learning. It consists of two main features:
+**TorchOpt** is a high-performance optimizer library built upon [PyTorch](https://pytorch.org) for easy implementation of functional optimization and gradient-based meta-learning. It consists of two main features:
 
 - TorchOpt provides functional optimizer which enables [JAX-like](https://github.com/google/jax) composable functional optimizer for PyTorch. With TorchOpt, one can easily conduct neural network optimization in PyTorch with functional style optimizer, similar to  [Optax](https://github.com/deepmind/optax) in JAX.
 - With the design of functional programing, TorchOpt provides efficient, flexible, and easy-to-implement differentiable optimizer for gradient-based meta-learning research. It largely reduces the efforts required to implement sophisticated meta-learning algorithms.
@@ -232,9 +231,9 @@ Requirements
 
 - PyTorch
 - (Optional) For visualizing computation graphs
-  - [Graphviz](https://graphviz.org/download/) (for Linux users use `apt/yum install graphviz` or `conda install -c anaconda python-graphviz`)
+  - [Graphviz](https://graphviz.org/download) (for Linux users use `apt/yum install graphviz` or `conda install -c anaconda python-graphviz`)
 
-**Please follow the instructions at <https://pytorch.org> to install PyTorch in your Python environment first.** Then run the following command to install TorchOpt from PyPI ([![PyPI](https://img.shields.io/pypi/v/torchopt?label=PyPI)](https://pypi.org/project/torchopt) / ![Status](https://img.shields.io/pypi/status/torchopt?label=Status)):
+**Please follow the instructions at <https://pytorch.org> to install PyTorch in your Python environment first.** Then run the following command to install TorchOpt from PyPI ([![PyPI](https://img.shields.io/pypi/v/torchopt?label=pypi&logo=pypi)](https://pypi.org/project/torchopt) / ![Status](https://img.shields.io/pypi/status/torchopt?label=status)):
 
 ```bash
 pip3 install torchopt
