@@ -3,6 +3,10 @@ torch >= 1.13
 
 --requirement ../requirements.txt
 
+jax[cpu] >= 0.3
+jaxopt
+optax
+
 pytest
 pytest-cov
 pytest-xdist
@@ -18,6 +22,3 @@ pydocstyle
 pyenchant
 cpplint
 pre-commit
-jax[cpu] >= 0.3
-jaxopt
-optax

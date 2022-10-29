@@ -43,7 +43,7 @@ pylint-install:
 
 flake8-install:
 	$(call check_pip_install,flake8)
-	$(call check_pip_install_extra,bugbear,flake8_bugbear)
+	$(call check_pip_install_extra,flake8-bugbear,flake8-bugbear)
 
 py-format-install:
 	$(call check_pip_install,isort)
