@@ -44,10 +44,10 @@ jobs:
           update-environment: true
 
       - name: Setup CUDA Toolkit
-        uses: Jimver/cuda-toolkit@v0.2.7
+        uses: Jimver/cuda-toolkit@v0.2.8
         id: cuda-toolkit
         with:
-          cuda: "11.6.2"
+          cuda: "11.7.0"
           method: network
           sub-packages: '["nvcc"]'
       - run: |

@@ -31,7 +31,7 @@ import torchopt
     dampening=[0.0, 0.5],
     nesterov=[False, True],
     weight_decay=[0.0, 1e-2],
-    maximize=[False],  # TODO: test maximize after PyTorch 1.13
+    maximize=[False, True],
 )
 def test_SGD(
     dtype: torch.dtype,

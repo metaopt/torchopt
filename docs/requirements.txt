@@ -1,7 +1,6 @@
 --extra-index-url https://download.pytorch.org/whl/cpu
 # Sync with project.dependencies
-torch >= 1.12
-functorch >= 0.2
+torch >= 1.13
 
 --requirement ../requirements.txt
 

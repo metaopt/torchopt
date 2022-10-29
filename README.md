@@ -240,10 +240,10 @@ Requirements
 pip3 install torchopt
 ```
 
-If the minimum version of PyTorch is not satisfied, `pip` will install/upgrade it for you. Please be careful about the `torch` build for CPU / CUDA support (e.g. `cpu`, `cu102`, `cu113`). You may need to specify the extra index URL for the `torch` package:
+If the minimum version of PyTorch is not satisfied, `pip` will install/upgrade it for you. Please be careful about the `torch` build for CPU / CUDA support (e.g. `cpu`, `cu116`, `cu117`). You may need to specify the extra index URL for the `torch` package:
 
 ```bash
-pip3 install torchopt --extra-index-url https://download.pytorch.org/whl/cu116
+pip3 install torchopt --extra-index-url https://download.pytorch.org/whl/cu117
 ```
 
 See <https://pytorch.org> for more information about installing PyTorch.
