@@ -32,13 +32,13 @@
 """Helper functions for applying updates."""
 
 from torchopt import pytree
-from torchopt.typing import Params, Updates  # pylint: disable=unused-import
+from torchopt.typing import Params, Updates
 
 
 __all__ = ['apply_updates']
 
 
-def apply_updates(params: 'Params', updates: 'Updates', *, inplace: bool = True) -> 'Params':
+def apply_updates(params: Params, updates: Updates, *, inplace: bool = True) -> Params:
     """Applies an update to the corresponding parameters.
 
     This is a utility functions that applies an update to a set of parameters, and then returns the

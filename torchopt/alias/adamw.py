@@ -36,8 +36,7 @@ from typing import Any, Callable, Optional, Tuple, Union
 from torchopt.alias.utils import flip_sign_and_add_weight_decay, scale_by_neg_lr
 from torchopt.combine import chain_flat
 from torchopt.transform import add_decayed_weights, scale_by_accelerated_adam, scale_by_adam
-from torchopt.typing import Params  # pylint: disable=unused-import
-from torchopt.typing import GradientTransformation, ScalarOrSchedule
+from torchopt.typing import GradientTransformation, Params, ScalarOrSchedule
 
 
 __all__ = ['adamw']
@@ -51,7 +50,7 @@ def adamw(
     weight_decay: float = 1e-2,
     *,
     eps_root: float = 0.0,
-    mask: Optional[Union[Any, Callable[['Params'], Any]]] = None,
+    mask: Optional[Union[Any, Callable[[Params], Any]]] = None,
     moment_requires_grad: bool = False,
     maximize: bool = False,
     use_accelerated_op: bool = False,

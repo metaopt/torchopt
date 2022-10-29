@@ -99,7 +99,7 @@ class MetaOptimizer:
         self.param_containers_groups.append(params_container)
         self.state_groups.append(optimizer_state)
 
-    def state_dict(self) -> Tuple['OptState', ...]:
+    def state_dict(self) -> Tuple[OptState, ...]:
         """Extract the references of the optimizer states.
 
         Note that the states are references, so any in-place operations will change the states
@@ -107,6 +107,6 @@ class MetaOptimizer:
         """
         return tuple(self.state_groups)
 
-    def load_state_dict(self, state_dict: Sequence['OptState']) -> None:
+    def load_state_dict(self, state_dict: Sequence[OptState]) -> None:
         """Load the references of the optimizer states."""
         self.state_groups[:] = list(state_dict)

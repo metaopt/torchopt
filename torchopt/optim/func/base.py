@@ -19,7 +19,7 @@ from typing import Optional
 import torch
 
 from torchopt.base import GradientTransformation
-from torchopt.typing import OptState, Params  # pylint: disable=unused-import
+from torchopt.typing import OptState, Params
 from torchopt.update import apply_updates
 
 
@@ -61,9 +61,9 @@ class FuncOptimizer:  # pylint: disable=too-few-public-methods
     def step(
         self,
         loss: torch.Tensor,
-        params: 'Params',
+        params: Params,
         inplace: Optional[bool] = None,
-    ) -> 'Params':
+    ) -> Params:
         r"""Compute the gradients of loss to the network parameters and update network parameters.
 
         Graph of the derivative will be constructed, allowing to compute higher order derivative

@@ -24,7 +24,7 @@ import torch
 import torchopt.nn
 from torchopt import pytree
 from torchopt.diff.implicit.decorator import custom_root
-from torchopt.typing import TensorTree, TupleOfTensors  # pylint: disable=unused-import
+from torchopt.typing import TensorTree, TupleOfTensors
 from torchopt.utils import extract_module_containers
 
 
@@ -228,7 +228,7 @@ class ImplicitMetaGradientModule(torchopt.nn.MetaGradientModule):
         raise NotImplementedError  # update parameters
 
     # pylint: disable-next=redefined-builtin
-    def residual(self, *input, **kwargs) -> 'TensorTree':
+    def residual(self, *input, **kwargs) -> TensorTree:
         r"""Computes the optimality residual.
 
         This method stands for the residual to the optimal parameters after solving the inner

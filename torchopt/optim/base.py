@@ -19,12 +19,7 @@ from typing import Callable, Iterable, List, Optional, Sequence, Tuple
 import torch
 
 from torchopt import pytree
-from torchopt.typing import (  # pylint: disable=unused-import
-    GradientTransformation,
-    OptState,
-    Params,
-    TupleOfTensors,
-)
+from torchopt.typing import GradientTransformation, OptState, Params, TupleOfTensors
 from torchopt.update import apply_updates
 
 
@@ -84,11 +79,11 @@ class Optimizer:
 
         pytree.tree_map(f, self.param_groups)  # type: ignore[arg-type]
 
-    def state_dict(self) -> Tuple['OptState', ...]:
+    def state_dict(self) -> Tuple[OptState, ...]:
         """Returns the state of the optimizer."""
         return tuple(self.state_groups)
 
-    def load_state_dict(self, state_dict: Sequence['OptState']) -> None:
+    def load_state_dict(self, state_dict: Sequence[OptState]) -> None:
         """Loads the optimizer state.
 
         Args:
@@ -121,7 +116,7 @@ class Optimizer:
 
         return loss
 
-    def add_param_group(self, params: 'Params') -> None:
+    def add_param_group(self, params: Params) -> None:
         """Add a param group to the optimizer's :attr:`param_groups`."""
         flat_params, params_treespec = pytree.tree_flatten(params)
         flat_params: TupleOfTensors = tuple(flat_params)
