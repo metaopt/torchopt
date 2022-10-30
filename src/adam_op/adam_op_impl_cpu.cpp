@@ -67,20 +67,18 @@ TensorArray<3> adamForwardInplaceCPU(const torch::Tensor &updates,
   const other_t inv_one_minus_pow_b1 = 1 / (1 - std::pow(b1, count));
   const other_t inv_one_minus_pow_b2 = 1 / (1 - std::pow(b2, count));
 
-  const size_t n = getTensorPlainSize(updates);
-  AT_DISPATCH_SCALAR_TYPES(updates.scalar_type(), "adamForwardInplaceCPU", ([&] {
-                             adamForwardInplaceCPUKernel<scalar_t, scalar_t>(
-                                 scalar_t(b1),
-                                 scalar_t(inv_one_minus_pow_b1),
-                                 scalar_t(b2),
-                                 scalar_t(inv_one_minus_pow_b2),
-                                 scalar_t(eps),
-                                 scalar_t(eps_root),
-                                 n,
-                                 updates.data_ptr<scalar_t>(),
-                                 mu.data_ptr<scalar_t>(),
-                                 nu.data_ptr<scalar_t>());
-                           }));
+  AT_DISPATCH_SCALAR_TYPES(
+      updates.scalar_type(), "adamForwardInplaceCPU", ([&] {
+        mu.mul_(scalar_t(b1)).add_(updates, 1 - scalar_t(b1));
+
+        nu.mul_(scalar_t(b2)).addcmul_(updates, updates.conj(), 1 - scalar_t(b2));
+
+        updates.copy_(mu.mul(scalar_t(inv_one_minus_pow_b1))
+                          .div_(nu.mul(inv_one_minus_pow_b2)
+                                    .add_(scalar_t(eps_root))
+                                    .sqrt_()
+                                    .add_(scalar_t(eps))));
+      }));
   return TensorArray<3>{updates, mu, nu};
 }
 
@@ -102,16 +100,10 @@ void adamForwardMuCPUKernel(const scalar_t *__restrict__ updates_ptr,
 torch::Tensor adamForwardMuCPU(const torch::Tensor &updates,
                                const torch::Tensor &mu,
                                const pyfloat_t b1) {
-  auto mu_out = torch::empty_like(mu);
+  torch::Tensor mu_out;
 
-  const size_t n = getTensorPlainSize(updates);
   AT_DISPATCH_SCALAR_TYPES(updates.scalar_type(), "adamForwardMuCPU", ([&] {
-                             adamForwardMuCPUKernel<scalar_t, scalar_t>(
-                                 updates.data_ptr<scalar_t>(),
-                                 mu.data_ptr<scalar_t>(),
-                                 scalar_t(b1),
-                                 n,
-                                 mu_out.data_ptr<scalar_t>());
+                             mu_out = mu.mul(b1).add_(updates, 1 - scalar_t(b1));
                            }));
   return mu_out;
 }
@@ -135,16 +127,11 @@ void adamForwardNuCPUKernel(const scalar_t *__restrict__ updates_ptr,
 torch::Tensor adamForwardNuCPU(const torch::Tensor &updates,
                                const torch::Tensor &nu,
                                const pyfloat_t b2) {
-  auto nu_out = torch::empty_like(nu);
+  torch::Tensor nu_out;
 
-  const size_t n = getTensorPlainSize(updates);
   AT_DISPATCH_SCALAR_TYPES(updates.scalar_type(), "adamForwardNuCPU", ([&] {
-                             adamForwardNuCPUKernel<scalar_t, scalar_t>(
-                                 updates.data_ptr<scalar_t>(),
-                                 nu.data_ptr<scalar_t>(),
-                                 scalar_t(b2),
-                                 n,
-                                 nu_out.data_ptr<scalar_t>());
+                             nu_out =
+                                 nu.mul(b2).addcmul_(updates, updates.conj(), 1 - scalar_t(b2));
                            }));
   return nu_out;
 }
@@ -177,24 +164,19 @@ torch::Tensor adamForwardUpdatesCPU(const torch::Tensor &new_mu,
                                     const pyuint_t count) {
   using other_t = pyfloat_t;
 
-  auto updates_out = torch::empty_like(new_mu);
+  torch::Tensor updates_out;
 
   const other_t one_minus_pow_b1 = 1 - std::pow(b1, count);
   const other_t inv_one_minus_pow_b1 = 1 / one_minus_pow_b1;
   const other_t one_minus_pow_b2 = 1 - std::pow(b2, count);
   const other_t inv_one_minus_pow_b2 = 1 / one_minus_pow_b2;
 
-  const size_t n = getTensorPlainSize(new_mu);
   AT_DISPATCH_SCALAR_TYPES(new_mu.scalar_type(), "adamForwardUpdatesCPU", ([&] {
-                             adamForwardUpdatesCPUKernel<scalar_t, scalar_t>(
-                                 new_mu.data_ptr<scalar_t>(),
-                                 new_nu.data_ptr<scalar_t>(),
-                                 scalar_t(inv_one_minus_pow_b1),
-                                 scalar_t(inv_one_minus_pow_b2),
-                                 scalar_t(eps),
-                                 scalar_t(eps_root),
-                                 n,
-                                 updates_out.data_ptr<scalar_t>());
+                             updates_out = new_mu.mul(scalar_t(inv_one_minus_pow_b1))
+                                               .div_(new_nu.mul(scalar_t(inv_one_minus_pow_b2))
+                                                         .add_(scalar_t(eps_root))
+                                                         .sqrt_()
+                                                         .add_(scalar_t(eps)));
                            }));
   return updates_out;
 }
@@ -218,17 +200,12 @@ TensorArray<2> adamBackwardMuCPU(const torch::Tensor &dmu,
                                  const torch::Tensor &updates,
                                  const torch::Tensor &mu,
                                  const pyfloat_t b1) {
-  auto dupdates_out = torch::empty_like(updates);
-  auto dmu_out = torch::empty_like(mu);
+  torch::Tensor dupdates_out;
+  torch::Tensor dmu_out;
 
-  const size_t n = getTensorPlainSize(dmu);
   AT_DISPATCH_SCALAR_TYPES(dmu.scalar_type(), "adamBackwardMuCPU", ([&] {
-                             adamBackwardMuCPUKernel<scalar_t, scalar_t>(
-                                 dmu.data_ptr<scalar_t>(),
-                                 scalar_t(b1),
-                                 n,
-                                 dupdates_out.data_ptr<scalar_t>(),
-                                 dmu_out.data_ptr<scalar_t>());
+                             dupdates_out = dmu.mul(1 - scalar_t(b1));
+                             dmu_out = dmu.mul(scalar_t(b1));
                            }));
   return TensorArray<2>{std::move(dupdates_out), std::move(dmu_out)};
 }
@@ -254,18 +231,12 @@ TensorArray<2> adamBackwardNuCPU(const torch::Tensor &dnu,
                                  const torch::Tensor &updates,
                                  const torch::Tensor &nu,
                                  const pyfloat_t b2) {
-  auto dupdates_out = torch::empty_like(updates);
-  auto dnu_out = torch::empty_like(nu);
+  torch::Tensor dupdates_out;
+  torch::Tensor dnu_out;
 
-  const size_t n = getTensorPlainSize(dnu);
   AT_DISPATCH_SCALAR_TYPES(dnu.scalar_type(), "adamForwardNuCPU", ([&] {
-                             adamBackwardNuCPUKernel<scalar_t, scalar_t>(
-                                 dnu.data_ptr<scalar_t>(),
-                                 updates.data_ptr<scalar_t>(),
-                                 scalar_t(b2),
-                                 n,
-                                 dupdates_out.data_ptr<scalar_t>(),
-                                 dnu_out.data_ptr<scalar_t>());
+                             dupdates_out = updates.mul(2 - 2 * scalar_t(b2)).mul_(dnu);
+                             dnu_out = dnu.mul(scalar_t(b2));
                            }));
   return TensorArray<2>{std::move(dupdates_out), std::move(dnu_out)};
 }
