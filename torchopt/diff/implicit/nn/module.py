@@ -31,12 +31,12 @@ from torchopt.utils import extract_module_containers
 __all__ = ['ImplicitMetaGradientModule']
 
 
-def make_residual_from_objective(
+def make_optimality_from_objective(
     objective: Callable[..., torch.Tensor]
 ) -> Callable[..., TupleOfTensors]:
-    """Make a function that computes the optimality residual of the objective function."""
+    """Make a function that computes the optimality function of the objective function."""
     # pylint: disable-next=redefined-builtin
-    def residual(self: 'ImplicitMetaGradientModule', *input, **kwargs) -> TupleOfTensors:
+    def optimality(self: 'ImplicitMetaGradientModule', *input, **kwargs) -> TupleOfTensors:
         params_containers = extract_module_containers(self, with_buffers=False)[0]
         params_containers_backups = [container.copy() for container in params_containers]
         flat_params: TupleOfTensors
@@ -69,7 +69,7 @@ def make_residual_from_objective(
         flat_grads = objective_grad_fn(flat_params, *input, **kwargs)
         return flat_grads
 
-    return residual
+    return optimality
 
 
 def enable_implicit_gradients(
@@ -131,7 +131,7 @@ def enable_implicit_gradients(
                 ):
                     container.update(grad_tracking_container)
 
-                return self.residual(*input, **kwargs)
+                return self.optimality(*input, **kwargs)
             finally:
                 for container, container_backup in itertools.chain(
                     zip(params_containers, params_containers_backups),
@@ -160,28 +160,28 @@ def enable_implicit_gradients(
 class ImplicitMetaGradientModule(torchopt.nn.MetaGradientModule):
     """The base class for differentiable implicit meta-gradient models."""
 
-    _custom_residual: bool
+    _custom_optimality: bool
     _custom_objective: bool
 
     def __init_subclass__(cls) -> None:
         """Initialize the subclass."""
         super().__init_subclass__()
 
-        residual = getattr(cls, 'residual', ImplicitMetaGradientModule.residual)
+        optimality = getattr(cls, 'optimality', ImplicitMetaGradientModule.optimality)
         objective = getattr(cls, 'objective', ImplicitMetaGradientModule.objective)
-        cls._custom_residual = residual is not ImplicitMetaGradientModule.residual
+        cls._custom_optimality = optimality is not ImplicitMetaGradientModule.optimality
         cls._custom_objective = objective is not ImplicitMetaGradientModule.objective
 
-        if cls._custom_residual:
-            if isinstance(residual, staticmethod):
-                raise TypeError('residual() must not be a staticmethod.')
-            if isinstance(residual, classmethod):
-                raise TypeError('residual() must not be a classmethod.')
-            if not callable(residual):
-                raise TypeError('residual() must be callable.')
+        if cls._custom_optimality:
+            if isinstance(optimality, staticmethod):
+                raise TypeError('optimality() must not be a staticmethod.')
+            if isinstance(optimality, classmethod):
+                raise TypeError('optimality() must not be a classmethod.')
+            if not callable(optimality):
+                raise TypeError('optimality() must be callable.')
         elif not cls._custom_objective:
             raise TypeError(
-                'ImplicitMetaGradientModule requires either an residual() or an objective() function'
+                'ImplicitMetaGradientModule requires either an optimality() or an objective() function'
             )
         else:
             if isinstance(objective, staticmethod):
@@ -191,7 +191,7 @@ class ImplicitMetaGradientModule(torchopt.nn.MetaGradientModule):
             if not callable(objective):
                 raise TypeError('objective() must be callable.')
 
-            cls.residual = make_residual_from_objective(objective)  # type: ignore[assignment]
+            cls.optimality = make_optimality_from_objective(objective)  # type: ignore[assignment]
 
         cls.solve = enable_implicit_gradients(cls.solve)  # type: ignore[assignment]
 
@@ -228,25 +228,25 @@ class ImplicitMetaGradientModule(torchopt.nn.MetaGradientModule):
         raise NotImplementedError  # update parameters
 
     # pylint: disable-next=redefined-builtin
-    def residual(self, *input, **kwargs) -> TensorTree:
+    def optimality(self, *input, **kwargs) -> TensorTree:
         r"""Computes the optimality residual.
 
-        This method stands for the residual to the optimal parameters after solving the inner
-        optimization problem (:meth:`solve`), i.e.:
+        This method stands for the optimality residual to the optimal parameters after solving the
+        inner optimization problem (:meth:`solve`), i.e.:
 
         .. code-block:: python
 
             module.solve(*input, **kwargs)
-            module.residual(*input, **kwargs)  # -> 0
+            module.optimality(*input, **kwargs)  # -> 0
 
-        1. For gradient-based optimization, the :meth:`residual` function is the KKT condition,
+        1. For gradient-based optimization, the :meth:`optimality` function is the KKT condition,
         usually it is the gradients of the :meth:`objective` function with respect to the module
         parameters (not the meta-parameters). If this method is not implemented, it will be
         automatically derived from the gradient of the :meth:`objective` function.
 
         .. math::
 
-            \text{residual} = \nabla_{\boldsymbol{x}} f (\boldsymbol{x}, \boldsymbol{\theta}) \to \boldsymbol{0}
+            \text{optimality residual} = \nabla_{\boldsymbol{x}} f (\boldsymbol{x}, \boldsymbol{\theta}) \to \boldsymbol{0}
 
         where :math:`\boldsymbol{x}` is the joint vector of the module parameters and
         :math:`\boldsymbol{\theta}` is the joint vector of the meta-parameters.
@@ -254,27 +254,27 @@ class ImplicitMetaGradientModule(torchopt.nn.MetaGradientModule):
         References:
             - Karush-Kuhn-Tucker (KKT) conditions: https://en.wikipedia.org/wiki/Karush-Kuhn-Tucker_conditions
 
-        2. For fixed point iteration, the :meth:`residual` function can be the residual of the
+        2. For fixed point iteration, the :meth:`optimality` function can be the residual of the
         parameters between iterations, i.e.:
 
         .. math::
 
-            \text{residual} = f (\boldsymbol{x}, \boldsymbol{\theta}) - \boldsymbol{x} \to \boldsymbol{0}
+            \text{optimality residual} = f (\boldsymbol{x}, \boldsymbol{\theta}) - \boldsymbol{x} \to \boldsymbol{0}
 
         where :math:`\boldsymbol{x}` is the joint vector of the module parameters and
         :math:`\boldsymbol{\theta}` is the joint vector of the meta-parameters.
 
         Returns:
-            A tree of tensors, the residual to the optimal parameters after solving the inner
-            optimization problem.
-        """
+            A tree of tensors, the optimality residual to the optimal parameters after solving the
+            inner optimization problem.
+        """  # pylint: disable=line-too-long
         raise NotImplementedError
 
     # pylint: disable-next=redefined-builtin
     def objective(self, *input, **kwargs) -> torch.Tensor:
         """Computes the objective function value.
 
-        This method is used to calculate the :meth:`residual` if it is not implemented.
+        This method is used to calculate the :meth:`optimality` if it is not implemented.
         Otherwise, this method is optional.
 
         Returns:
