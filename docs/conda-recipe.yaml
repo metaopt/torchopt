@@ -33,6 +33,7 @@ dependencies:
   # Learning
   - pytorch::pytorch >= 1.13  # sync with project.dependencies
   - pytorch::cpuonly
+  - pytorch::pytorch-mutex = *=*cpu*
   - pip:
       - torchviz
       - sphinxcontrib-katex  # for documentation
@@ -47,6 +48,7 @@ dependencies:
   - pybind11
 
   # Misc
+  - optree >= 0.3.0
   - typing-extensions >= 4.0.0
   - numpy
   - matplotlib-base

@@ -54,10 +54,11 @@ dependencies:
   - gxx = 10
   - nvidia/label/cuda-11.7.1::cuda-nvcc
   - nvidia/label/cuda-11.7.1::cuda-cudart-dev
-  - patchelf >= 0.9
+  - patchelf >= 0.14
   - pybind11
 
   # Misc
+  - optree >= 0.3.0
   - typing-extensions >= 4.0.0
   - numpy
   - matplotlib-base
