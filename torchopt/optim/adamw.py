@@ -20,7 +20,7 @@ import torch
 
 from torchopt import alias
 from torchopt.optim.base import Optimizer
-from torchopt.typing import Params, ScalarOrSchedule  # pylint: disable=unused-import
+from torchopt.typing import Params, ScalarOrSchedule
 
 
 __all__ = ['AdamW']
@@ -44,7 +44,7 @@ class AdamW(Optimizer):
         weight_decay: float = 1e-2,
         *,
         eps_root: float = 0.0,
-        mask: Optional[Union[Any, Callable[['Params'], Any]]] = None,
+        mask: Optional[Union[Any, Callable[[Params], Any]]] = None,
         maximize: bool = False,
         use_accelerated_op: bool = False,
     ) -> None:

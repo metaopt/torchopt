@@ -15,11 +15,13 @@
 """Distributed Autograd."""
 
 from threading import Lock
-from typing import Optional, Sequence, Tuple, Union
+from typing import Optional, overload
 
 import torch
 import torch.distributed.autograd as autograd
 from torch.distributed.autograd import context
+
+from torchopt.typing import TensorOrTensors, TupleOfOptionalTensors, TupleOfTensors
 
 
 __all__ = ['is_available', 'context']
@@ -34,14 +36,14 @@ def is_available():
 
 
 if is_available():
-    # pylint: disable-next=unused-import
+    # pylint: disable-next=unused-import,ungrouped-imports
     from torch.distributed.autograd import DistAutogradContext, get_gradients
 
     def backward(
         autograd_ctx_id: int,
-        tensors: Union[torch.Tensor, Sequence[torch.Tensor]],
+        tensors: TensorOrTensors,
         retain_graph: bool = False,
-        inputs: Optional[Union[torch.Tensor, Sequence[torch.Tensor]]] = None,
+        inputs: Optional[TensorOrTensors] = None,
     ) -> None:
         """Perform distributed backward pass for local parameters.
 
@@ -83,13 +85,32 @@ if is_available():
                 else:
                     p.grad = g
 
+    @overload
     def grad(
         autograd_ctx_id: int,
-        outputs: Union[torch.Tensor, Sequence[torch.Tensor]],
-        inputs: Union[torch.Tensor, Sequence[torch.Tensor]],
+        outputs: TensorOrTensors,
+        inputs: TensorOrTensors,
+        retain_graph: bool = False,
+    ) -> TupleOfTensors:
+        ...
+
+    @overload
+    def grad(
+        autograd_ctx_id: int,
+        outputs: TensorOrTensors,
+        inputs: TensorOrTensors,
         retain_graph: bool = False,
         allow_unused: bool = False,
-    ) -> Tuple[torch.Tensor, ...]:
+    ) -> TupleOfOptionalTensors:
+        ...
+
+    def grad(
+        autograd_ctx_id: int,
+        outputs: TensorOrTensors,
+        inputs: TensorOrTensors,
+        retain_graph: bool = False,
+        allow_unused: bool = False,
+    ) -> TupleOfOptionalTensors:
         """Computes and returns the sum of gradients of outputs with respect to the inputs.
 
         Args:

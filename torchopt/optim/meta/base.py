@@ -20,8 +20,9 @@ import torch
 import torch.nn as nn
 
 from torchopt import pytree
-from torchopt.typing import GradientTransformation, OptState
+from torchopt.typing import GradientTransformation, OptState, TupleOfTensors
 from torchopt.update import apply_updates
+from torchopt.utils import extract_module_containers
 
 
 __all__ = ['MetaOptimizer']
@@ -67,9 +68,8 @@ class MetaOptimizer:
         for i, (param_container, new_state) in enumerate(
             zip(self.param_containers_groups, self.state_groups)
         ):
-            flat_params: Tuple[torch.Tensor, ...]
-            flat_params, container_treespec = pytree.tree_flatten(param_container)  # type: ignore[arg-type,assignment]
-            flat_params = tuple(flat_params)
+            flat_params: TupleOfTensors
+            flat_params, container_treespec = pytree.tree_flatten_as_tuple(param_container)  # type: ignore[arg-type]
             grads = torch.autograd.grad(
                 loss,
                 flat_params,
@@ -93,16 +93,13 @@ class MetaOptimizer:
 
     def add_param_group(self, net: nn.Module) -> None:
         """Add a param group to the optimizer's :attr:`state_groups`."""
-        # pylint: disable-next=import-outside-toplevel
-        from torchopt.utils import _extract_container
-
-        params_container, _ = _extract_container(net, with_buffers=False)
-        flat_params: Tuple[torch.Tensor, ...] = tuple(pytree.tree_leaves(params_container))  # type: ignore[arg-type]
+        params_container = extract_module_containers(net, with_buffers=False)[0]
+        flat_params: TupleOfTensors = tuple(pytree.tree_leaves(params_container))  # type: ignore[arg-type]
         optimizer_state = self.impl.init(flat_params)
         self.param_containers_groups.append(params_container)
         self.state_groups.append(optimizer_state)
 
-    def state_dict(self) -> Tuple['OptState', ...]:
+    def state_dict(self) -> Tuple[OptState, ...]:
         """Extract the references of the optimizer states.
 
         Note that the states are references, so any in-place operations will change the states
@@ -110,6 +107,6 @@ class MetaOptimizer:
         """
         return tuple(self.state_groups)
 
-    def load_state_dict(self, state_dict: Sequence['OptState']) -> None:
+    def load_state_dict(self, state_dict: Sequence[OptState]) -> None:
         """Load the references of the optimizer states."""
         self.state_groups[:] = list(state_dict)

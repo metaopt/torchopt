@@ -47,7 +47,7 @@ __all__ = ['solve_normal_cg']
 def _solve_normal_cg(
     matvec: Callable[[TensorTree], TensorTree],  # (x) -> A @ x
     b: TensorTree,
-    is_sdp: bool = False,
+    is_spd: bool = False,
     ridge: Optional[float] = None,
     init: Optional[TensorTree] = None,
     **kwargs,
@@ -60,7 +60,7 @@ def _solve_normal_cg(
     Args:
         matvec: A function that returns the product between ``A`` and a vector.
         b: A tree of tensors for the right hand side of the equation.
-        is_sdp: Whether to assume matrix ``A`` is symmetric definite positive to speedup computation.
+        is_spd: Whether to assume matrix ``A`` is symmetric definite positive to speedup computation.
         ridge: Optional ridge regularization. Solves the equation for ``(A.T @ A + ridge * I) @ x = A.T @ b``.
         init: Optional initialization to be used by normal conjugate gradient.
         **kwargs: Additional keyword arguments for the conjugate gradient solver.
@@ -73,9 +73,9 @@ def _solve_normal_cg(
     else:
         example_x = init
 
-    if is_sdp:
+    if is_spd:
         if ridge is not None:
-            raise ValueError('ridge must be specified with `is_sdp=False`.')
+            raise ValueError('ridge must be specified with `is_spd=False`.')
         # Returns solution for `A @ x = b`.
         return linalg.cg(matvec, b, x0=init, **kwargs)
 
@@ -96,5 +96,5 @@ def _solve_normal_cg(
 def solve_normal_cg(**kwargs):
     """Wrapper for :func:`solve_normal_cg`."""
     partial_fn = functools.partial(_solve_normal_cg, **kwargs)
-    setattr(partial_fn, 'is_sdp', kwargs.get('is_sdp', False))
+    setattr(partial_fn, 'is_spd', kwargs.get('is_spd', False))
     return partial_fn

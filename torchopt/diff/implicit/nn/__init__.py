@@ -12,11 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""Implicit Meta-Gradient."""
+"""The base class for differentiable implicit meta-gradient models."""
 
-from torchopt.diff.implicit import nn
-from torchopt.diff.implicit.decorator import custom_root
-from torchopt.diff.implicit.nn import ImplicitMetaGradientModule
+from torchopt.diff.implicit.nn.module import ImplicitMetaGradientModule
 
 
-__all__ = ['custom_root', 'ImplicitMetaGradientModule']
+__all__ = ['ImplicitMetaGradientModule']

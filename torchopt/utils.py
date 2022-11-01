@@ -35,7 +35,7 @@ import torch
 import torch.nn as nn
 
 from torchopt import pytree
-from torchopt.typing import OptState, TensorTree  # pylint: disable=unused-import
+from torchopt.typing import OptState, TensorTree
 
 
 if TYPE_CHECKING:
@@ -64,7 +64,7 @@ class ModuleState(NamedTuple):
 CopyMode: TypeAlias = Literal['reference', 'copy', 'deepcopy', 'ref', 'clone', 'deepclone']
 
 
-def stop_gradient(target: Union['TensorTree', ModuleState, nn.Module, 'MetaOptimizer']) -> None:
+def stop_gradient(target: Union[TensorTree, ModuleState, nn.Module, 'MetaOptimizer']) -> None:
     """Stop the gradient for the input object.
 
     Since a tensor use :attr:`grad_fn` to connect itself with the previous computation graph, the
@@ -123,7 +123,7 @@ def extract_state_dict(
     with_buffers: bool = True,
     enable_visual: bool = False,
     visual_prefix: str = '',
-) -> Tuple['OptState', ...]:
+) -> Tuple[OptState, ...]:
     ...
 
 
@@ -137,7 +137,7 @@ def extract_state_dict(
     detach_buffers: bool = False,
     enable_visual: bool = False,
     visual_prefix: str = '',
-) -> Union[ModuleState, Tuple['OptState', ...]]:
+) -> Union[ModuleState, Tuple[OptState, ...]]:
     """Extract target state.
 
     Since a tensor use :attr:`grad_fn` to connect itself with the previous computation graph, the
@@ -277,12 +277,13 @@ def extract_state_dict(
     raise RuntimeError(f'Unexpected class of {target}')
 
 
-def _extract_container(
+def extract_module_containers(
     module: nn.Module, with_buffers: bool = True
 ) -> Tuple[
     Tuple[Dict[str, Optional[torch.Tensor]], ...],
     Tuple[Dict[str, Optional[torch.Tensor]], ...],
 ]:
+    """Extract the references to the containers of parameters and buffers from a module."""
     if isinstance(module, nn.Module):
         params: List[Dict[str, Optional[torch.Tensor]]] = []
         buffers: List[Dict[str, Optional[torch.Tensor]]] = []
@@ -311,7 +312,7 @@ def _extract_container(
 
 def recover_state_dict(
     target: Union[nn.Module, 'MetaOptimizer'],
-    state: Union[ModuleState, Sequence['OptState']],
+    state: Union[ModuleState, Sequence[OptState]],
 ) -> None:
     """Recover state.
 
@@ -329,7 +330,7 @@ def recover_state_dict(
 
     if isinstance(target, nn.Module):
         params, buffers, *_ = state = cast(ModuleState, state)
-        params_container, buffers_container = _extract_container(target, with_buffers=True)
+        params_containers, buffers_containers = extract_module_containers(target, with_buffers=True)
 
         if state.detach_buffers:
 
@@ -342,8 +343,8 @@ def recover_state_dict(
             )
 
         for tgt, src in itertools.chain(
-            zip(params_container, params),
-            zip(buffers_container, buffers),
+            zip(params_containers, params),
+            zip(buffers_containers, buffers),
         ):
             tgt.update(src)
     elif isinstance(target, MetaOptimizer):
@@ -426,7 +427,7 @@ def module_clone(
 
     if isinstance(target, (nn.Module, MetaOptimizer)):
         if isinstance(target, nn.Module):
-            containers = cast(TensorTree, _extract_container(target, with_buffers=True))
+            containers = cast(TensorTree, extract_module_containers(target, with_buffers=True))
         else:
             containers = cast(TensorTree, target.state_dict())
         tensors = pytree.tree_leaves(containers)
@@ -477,8 +478,8 @@ def module_clone(
 
 
 def module_detach_(
-    target: Union['TensorTree', ModuleState, nn.Module, 'MetaOptimizer']
-) -> Union['TensorTree', ModuleState, nn.Module, 'MetaOptimizer']:
+    target: Union[TensorTree, ModuleState, nn.Module, 'MetaOptimizer']
+) -> Union[TensorTree, ModuleState, nn.Module, 'MetaOptimizer']:
     """Detach a module from the computation graph.
 
     Args:

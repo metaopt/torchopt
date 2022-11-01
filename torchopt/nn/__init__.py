@@ -12,11 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""Implicit Meta-Gradient."""
+"""Base class for neural network modules that hold meta-parameters and meta-modules."""
 
-from torchopt.diff.implicit import nn
-from torchopt.diff.implicit.decorator import custom_root
-from torchopt.diff.implicit.nn import ImplicitMetaGradientModule
-
-
-__all__ = ['custom_root', 'ImplicitMetaGradientModule']
+from torchopt.nn.module import MetaGradientModule

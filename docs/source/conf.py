@@ -25,6 +25,7 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
+import logging
 import os
 import pathlib
 import sys
@@ -41,6 +42,24 @@ def get_version() -> str:
     import version  # noqa
 
     return version.__version__
+
+
+try:
+    import sphinx_autodoc_typehints
+except ImportError:
+    pass
+else:
+
+    class RecursiveForwardRefFilter(logging.Filter):
+        def filter(self, record):
+            if (
+                "name 'TensorTree' is not defined" in record.getMessage()
+                or "name 'OptionalTensorTree' is not defined" in record.getMessage()
+            ):
+                return False
+            return super().filter(record)
+
+    sphinx_autodoc_typehints._LOGGER.logger.addFilter(RecursiveForwardRefFilter())
 
 
 # -- Project information -----------------------------------------------------
@@ -75,7 +94,7 @@ extensions = [
     'sphinxcontrib.bibtex',
     'sphinxcontrib.katex',
     'sphinx_autodoc_typehints',
-    'myst_nb',  # This is used for the .ipynb notebooks
+    'myst_nb',  # this is used for the .ipynb notebooks
 ]
 
 if not os.getenv('READTHEDOCS', None):
@@ -120,6 +139,7 @@ autodoc_default_options = {
     'exclude-members': '__module__, __dict__, __repr__, __str__, __weakref__',
 }
 autoclass_content = 'both'
+simplify_optional_unions = False
 
 # -- Options for bibtex -----------------------------------------------------
 
