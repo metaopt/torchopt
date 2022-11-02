@@ -60,7 +60,7 @@ import torchopt
 import torchopt.distributed as todist
 
 
-from support.omniglot_loaders import OmniglotNShot  # isort: skip
+from helpers.omniglot_loaders import OmniglotNShot  # isort: skip
 
 
 mpl.use('Agg')
@@ -228,7 +228,6 @@ def inner_loop(net_rref, n_inner_iter, task_id, task_num, mode):
         x_qry = x_qry.to(device)
         y_qry = y_qry.to(device)
 
-    querysz = x_qry.size(0)
     inner_opt = torchopt.MetaSGD(net, lr=1e-1)
 
     for _ in range(n_inner_iter):
@@ -238,7 +237,7 @@ def inner_loop(net_rref, n_inner_iter, task_id, task_num, mode):
 
     qry_logits = net(x_qry)
     qry_loss = F.cross_entropy(qry_logits, y_qry).cpu()
-    qry_acc = (qry_logits.argmax(dim=1) == y_qry).sum().cpu().item() / querysz
+    qry_acc = (qry_logits.argmax(dim=1) == y_qry).mean().cpu().item()
 
     return qry_loss, qry_acc
 
@@ -275,11 +274,11 @@ def train(net: nn.Module, meta_opt: optim.Adam, epoch: int, log: list):
         qry_acc = 100.0 * qry_acc
         i = epoch + float(batch_idx) / n_train_iter
         iter_time = time.time() - start_time
+        torch.cuda.empty_cache()
 
         print(
             f'[Epoch {i:.2f}] Train Loss: {qry_loss:.2f} | Acc: {qry_acc:.2f} | Time: {iter_time:.2f}'
         )
-
         log.append(
             {
                 'epoch': i,
@@ -319,6 +318,8 @@ def test(net, epoch, log):
 
     qry_losses = np.mean(qry_losses)
     qry_accs = 100.0 * np.mean(qry_accs)
+    torch.cuda.empty_cache()
+
     print(f'[Epoch {epoch+1:.2f}] Test Loss: {qry_losses:.2f} | Acc: {qry_accs:.2f}')
     log.append(
         {

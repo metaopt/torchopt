@@ -39,9 +39,9 @@ import torchopt
 
 
 # isort: off
-from helper.argument import parse_args
-from helper.model import LeNet5
-from helper.utils import get_imbalance_dataset, plot, set_seed
+from helpers.argument import parse_args
+from helpers.model import LeNet5
+from helpers.utils import get_imbalance_dataset, plot, set_seed
 
 
 def run_baseline(args, mnist_train, mnist_test):

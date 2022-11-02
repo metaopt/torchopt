@@ -6,7 +6,8 @@ Code on implicit MAML few-shot Omniglot classification in paper [Meta-Learning w
 
 ```bash
 ### Run
-python3 imaml_omniglot.py --inner_steps 5
+python3 imaml_omniglot.py --inner_steps 5             # use OOP APIs
+python3 imaml_omniglot_functional.py --inner_steps 5  # use functional APIs
 ```
 
 ## Results
@@ -15,4 +16,8 @@ The figure illustrate the experimental result.
 
 <div align=center>
   <img src="./imaml-accs.png" width="800" />
+</div>
+
+<div align=center>
+  <img src="./imaml-accs-functional.png" width="800" />
 </div>

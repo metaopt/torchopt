@@ -39,16 +39,10 @@ Our MAML++ fork and experiments are available at:
 https://github.com/bamos/HowToTrainYourMAMLPytorch
 """
 
-
-import os
-import sys
-
-
-cur = os.path.abspath(os.path.dirname(__file__))
-root = os.path.split(cur)[0]
-sys.path.append(root + '/few-shot')
 import argparse
 import functools
+import pathlib
+import sys
 import time
 
 import functorch
@@ -59,10 +53,15 @@ import pandas as pd
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
-from support.omniglot_loaders import OmniglotNShot
 from torch import nn
 
 import torchopt
+
+
+CWD = pathlib(__file__).absolute().parent
+sys.path.append(str(CWD.parent / 'few-shot'))
+
+from helpers.omniglot_loaders import OmniglotNShot
 
 
 mpl.use('Agg')
@@ -148,8 +147,6 @@ def loss_for_task(net, n_inner_iter, x_spt, y_spt, x_qry, y_qry):
     opt = torchopt.sgd(lr=1e-1)
     opt_state = opt.init(params)
 
-    querysz = x_qry.size(0)
-
     def compute_loss(new_params, buffers, x, y):
         logits = fnet(new_params, buffers, x)
         loss = F.cross_entropy(logits, y)
@@ -167,7 +164,7 @@ def loss_for_task(net, n_inner_iter, x_spt, y_spt, x_qry, y_qry):
     # These will be used to update the model's meta-parameters.
     qry_logits = fnet(new_params, buffers, x_qry)
     qry_loss = F.cross_entropy(qry_logits, y_qry)
-    qry_acc = (qry_logits.argmax(dim=1) == y_qry).sum() / querysz
+    qry_acc = (qry_logits.argmax(dim=1) == y_qry).mean()
 
     return qry_loss, qry_acc
 
@@ -192,18 +189,19 @@ def train(db, net, device, meta_opt, epoch, log):
         qry_losses, qry_accs = functorch.vmap(compute_loss_for_task)(x_spt, y_spt, x_qry, y_qry)
 
         # Compute the maml loss by summing together the returned losses.
-        qry_losses.sum().backward()
-
+        qry_losses = torch.mean(torch.stack(qry_losses))
+        qry_losses.backward()
         meta_opt.step()
-        qry_losses = qry_losses.detach().sum() / task_num
-        qry_accs = 100.0 * qry_accs.sum() / task_num
+        qry_losses = qry_losses.item()
+        qry_accs = 100.0 * torch.mean(torch.stack(qry_accs)).item()
         i = epoch + float(batch_idx) / n_train_iter
         iter_time = time.time() - start_time
+        torch.cuda.empty_cache()
+
         if batch_idx % 4 == 0:
             print(
                 f'[Epoch {i:.2f}] Train Loss: {qry_losses:.2f} | Acc: {qry_accs:.2f} | Time: {iter_time:.2f}'
             )
-
         log.append(
             {
                 'epoch': i,
@@ -249,8 +247,10 @@ def test(db, net, device, epoch, log):
             qry_losses.append(qry_loss.detach())
             qry_accs.append((qry_logits.argmax(dim=1) == y_qry[i]).detach())
 
-    qry_losses = torch.cat(qry_losses).mean().item()
-    qry_accs = 100.0 * torch.cat(qry_accs).float().mean().item()
+    qry_losses = torch.mean(torch.stack(qry_losses)).item()
+    qry_accs = 100.0 * torch.mean(torch.stack(qry_accs)).item()
+    torch.cuda.empty_cache()
+
     print(f'[Epoch {epoch+1:.2f}] Test Loss: {qry_losses:.2f} | Acc: {qry_accs:.2f}')
     log.append(
         {

@@ -21,10 +21,10 @@ import torch
 
 
 # isort: off
-from helper.agent import Agent
-from helper.argument import parse_args
-from helper.env import IPD
-from helper.utils import sample, step
+from helpers.agent import Agent
+from helpers.argument import parse_args
+from helpers.env import IPD
+from helpers.utils import sample, step
 
 
 def main(args):
