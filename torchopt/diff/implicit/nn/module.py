@@ -16,7 +16,7 @@
 
 import functools
 import itertools
-from typing import Callable, Dict, Optional, Tuple
+from typing import Any, Callable, Dict, Optional, Tuple, Type, Union
 
 import functorch
 import torch
@@ -73,16 +73,18 @@ def make_optimality_from_objective(
 
 
 def enable_implicit_gradients(
-    solve: Callable[..., 'ImplicitMetaGradientModule']
-) -> Callable[..., 'ImplicitMetaGradientModule']:
+    cls: Type['ImplicitMetaGradientModule'],
+) -> Type['ImplicitMetaGradientModule']:
     """Enable implicit gradients for the :func:`solve` function."""
+    solve = cls.solve
+    has_aux = cls.has_aux
     if getattr(solve, '__implicit_gradients_enabled__', False):
         raise ValueError('Implicit gradients are already enabled for the solve function.')
 
     @functools.wraps(solve)
     def wrapped(  # pylint: disable=too-many-locals
         self: 'ImplicitMetaGradientModule', *input, **kwargs  # pylint: disable=redefined-builtin
-    ) -> 'ImplicitMetaGradientModule':
+    ) -> Union['ImplicitMetaGradientModule', Tuple['ImplicitMetaGradientModule', Any]]:
         """Solve the optimization problem."""
         params_containers = extract_module_containers(self, with_buffers=False)[0]
         meta_params_containers = [self._meta_parameters]  # pylint: disable=protected-access
@@ -139,22 +141,41 @@ def enable_implicit_gradients(
                 ):
                     container.update(container_backup)
 
-        @custom_root(optimality_fn, argnums=1)
-        def solve_fn(
+        @custom_root(optimality_fn, argnums=1, has_aux=has_aux)
+        def solver_fn(
             flat_params: TupleOfTensors,  # pylint: disable=unused-argument
             flat_meta_params: TupleOfTensors,  # pylint: disable=unused-argument
             *input,  # pylint: disable=redefined-builtin
             **kwargs,
-        ) -> TupleOfTensors:
-            solve(self, *input, **kwargs)
-            return tuple(pytree.tree_leaves(params_containers))  # type: ignore[arg-type]
+        ) -> Union[TupleOfTensors, Tuple[TupleOfTensors, Any]]:
+            output = solve(self, *input, **kwargs)
+            if has_aux:
+                if not (isinstance(output, tuple) and len(output) == 2):
+                    raise RuntimeError(
+                        f'Output of method ImplicitMetaGradientModule.solve should be a '
+                        f'tuple: (self, aux) if has_aux is True. Got {output}'
+                    )
+                output, aux = output
+            if not isinstance(output, ImplicitMetaGradientModule):
+                raise RuntimeError(
+                    f'Output of method ImplicitMetaGradientModule.solve should be a '
+                    f'instance of class ImplicitMetaGradientModule. Got {output}'
+                )
 
-        # pylint: disable-next=unused-variable
-        flat_optimal_params = solve_fn(flat_params, flat_meta_params, *input, **kwargs)
+            flat_optimal_params: TupleOfTensors = tuple(pytree.tree_leaves(params_containers))  # type: ignore[arg-type]
+            if has_aux:
+                return flat_optimal_params, aux
+            return flat_optimal_params
+
+        output = solver_fn(flat_params, flat_meta_params, *input, **kwargs)
+        if has_aux:
+            _, aux = output
+            return self, aux
         return self
 
     wrapped.__implicit_gradients_enabled__ = True  # type: ignore[attr-defined]
-    return wrapped
+    cls.solve = wrapped  # type: ignore[assignment]
+    return cls
 
 
 class ImplicitMetaGradientModule(torchopt.nn.MetaGradientModule):
@@ -162,10 +183,12 @@ class ImplicitMetaGradientModule(torchopt.nn.MetaGradientModule):
 
     _custom_optimality: bool
     _custom_objective: bool
+    has_aux: bool
 
-    def __init_subclass__(cls) -> None:
+    def __init_subclass__(cls, has_aux=False) -> None:
         """Initialize the subclass."""
         super().__init_subclass__()
+        cls.has_aux = has_aux
 
         optimality = getattr(cls, 'optimality', ImplicitMetaGradientModule.optimality)
         objective = getattr(cls, 'objective', ImplicitMetaGradientModule.objective)
@@ -193,10 +216,11 @@ class ImplicitMetaGradientModule(torchopt.nn.MetaGradientModule):
 
             cls.optimality = make_optimality_from_objective(objective)  # type: ignore[assignment]
 
-        cls.solve = enable_implicit_gradients(cls.solve)  # type: ignore[assignment]
+        enable_implicit_gradients(cls)
 
-    # pylint: disable-next=redefined-builtin
-    def solve(self, *input, **kwargs) -> 'ImplicitMetaGradientModule':
+    def solve(
+        self, *input, **kwargs  # pylint: disable=redefined-builtin
+    ) -> Union['ImplicitMetaGradientModule', Tuple['ImplicitMetaGradientModule', Any]]:
         """Solves the inner optimization problem.
 
         .. warning::
