@@ -106,6 +106,7 @@ def main():
     meta_opt = torchopt.adam(lr=1e-3)
     meta_opt_state = meta_opt.init(params)
     log = []
+    test(db, [params, fnet], epoch=-1, log=log, args=args)
     for epoch in range(10):
         meta_opt, meta_opt_state = train(
             db, [params, fnet], (meta_opt, meta_opt_state), epoch, log, args
@@ -265,7 +266,7 @@ def imaml_objective(optimal_params, init_params, data, aux):
     functorch.grad(imaml_objective, argnums=0),
     argnums=1,
     has_aux=False,
-    solve=torchopt.linear_solve.solve_normal_cg(maxiter=5, atol=0, is_spd=False),
+    solve=torchopt.linear_solve.solve_normal_cg(maxiter=5, atol=0),
 )
 def train_imaml_inner_solver(init_params_copy, init_params, data, aux):
     x_spt, y_spt = data
@@ -302,7 +303,11 @@ def test_imaml_inner_solver(init_params_copy, init_params, data, aux):
         for _ in range(n_inner_iter):
             pred = fnet(params, x_spt)
             loss = F.cross_entropy(pred, y_spt)  # compute loss
-            final_loss = loss
+            # Compute regularization loss
+            regularization_loss = 0
+            for p1, p2 in zip(params, init_params):
+                regularization_loss += 0.5 * reg_param * torch.sum(torch.square(p1 - p2))
+            final_loss = loss + regularization_loss
             grads = torch.autograd.grad(final_loss, params)  # compute gradients
             updates, inner_opt_state = inner_opt.update(grads, inner_opt_state)  # get updates
             params = torchopt.apply_updates(params, updates)
@@ -313,20 +318,24 @@ def plot(log):
     # Generally you should pull your plotting code out of your training
     # script but we are doing it here for brevity.
     df = pd.DataFrame(log)
-    fig, ax = plt.subplots(figsize=(6, 4))
+    fig, ax = plt.subplots(figsize=(8, 4), dpi=250)
     train_df = df[df['mode'] == 'train']
     test_df = df[df['mode'] == 'test']
     ax.plot(train_df['epoch'], train_df['acc'], label='Train')
     ax.plot(test_df['epoch'], test_df['acc'], label='Test')
     ax.set_xlabel('Epoch')
     ax.set_ylabel('Accuracy')
-    ax.set_ylim(70, 100)
+    ax.set_ylim(85, 100)
+    ax.set_title('iMAML Omniglot')
     fig.legend(ncol=2, loc='lower right')
     fig.tight_layout()
     fname = 'imaml-accs.png'
     print(f'--- Plotting accuracy to {fname}')
     fig.savefig(fname)
     plt.close(fig)
+
+
+
 
 
 if __name__ == '__main__':
