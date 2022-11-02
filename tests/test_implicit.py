@@ -32,6 +32,7 @@ from torch.utils import data
 import helpers
 import torchopt
 from torchopt import pytree
+from torchopt.diff.implicit import ImplicitMetaGradientModule
 
 
 BATCH_SIZE = 8
@@ -39,6 +40,17 @@ NUM_UPDATES = 3
 
 MODEL_NUM_INPUTS = 10
 MODEL_NUM_CLASSES = 10
+
+
+class FcNet(nn.Module):
+    def __init__(self, dim, out):
+        super().__init__()
+        self.fc = nn.Linear(in_features=dim, out_features=out, bias=True)
+        nn.init.ones_(self.fc.weight)
+        nn.init.zeros_(self.fc.bias)
+
+    def forward(self, x):
+        return self.fc(x)
 
 
 def get_model_jax(dtype: np.dtype = np.float32) -> Tuple[FunctionType, OrderedDict]:
@@ -62,16 +74,6 @@ def get_model_torch(
 ) -> Tuple[nn.Module, data.DataLoader]:
     helpers.seed_everything(seed=42)
 
-    class FcNet(nn.Module):
-        def __init__(self, dim, out):
-            super().__init__()
-            self.fc = nn.Linear(in_features=dim, out_features=out, bias=True)
-            nn.init.ones_(self.fc.weight)
-            nn.init.zeros_(self.fc.bias)
-
-        def forward(self, x):
-            return self.fc(x)
-
     model = FcNet(MODEL_NUM_INPUTS, MODEL_NUM_CLASSES).to(dtype=dtype)
 
     if device is not None:
@@ -85,6 +87,23 @@ def get_model_torch(
     loader = data.DataLoader(dataset, BATCH_SIZE, shuffle=False)
 
     return model, loader
+
+
+@torch.no_grad()
+def get_rr_dataset_torch() -> data.DataLoader:
+    helpers.seed_everything(seed=42)
+
+    BATCH_SIZE = 1024
+    NUM_UPDATES = 4
+    dataset = data.TensorDataset(
+        torch.randn((BATCH_SIZE * NUM_UPDATES, MODEL_NUM_INPUTS)),
+        torch.randn((BATCH_SIZE * NUM_UPDATES)),
+        torch.randn((BATCH_SIZE * NUM_UPDATES, MODEL_NUM_INPUTS)),
+        torch.randn((BATCH_SIZE * NUM_UPDATES)),
+    )
+    loader = data.DataLoader(dataset, BATCH_SIZE, shuffle=False)
+
+    return loader
 
 
 @helpers.parametrize(
@@ -207,21 +226,117 @@ def test_imaml(dtype: torch.dtype, lr: float, inner_lr: float, inner_update: int
         helpers.assert_all_close(p, p_ref)
 
 
-@torch.no_grad()
-def get_rr_dataset_torch() -> data.DataLoader:
-    helpers.seed_everything(seed=42)
+@helpers.parametrize(
+    dtype=[torch.float64, torch.float32],
+    lr=[1e-3, 1e-4],
+    inner_lr=[2e-2, 2e-3],
+    inner_update=[20, 50, 100],
+)
+def test_imaml_module(dtype: torch.dtype, lr: float, inner_lr: float, inner_update: int) -> None:
+    np_dtype = helpers.dtype_torch2numpy(dtype)
 
-    BATCH_SIZE = 1024
-    NUM_UPDATES = 4
-    dataset = data.TensorDataset(
-        torch.randn((BATCH_SIZE * NUM_UPDATES, MODEL_NUM_INPUTS)),
-        torch.randn((BATCH_SIZE * NUM_UPDATES)),
-        torch.randn((BATCH_SIZE * NUM_UPDATES, MODEL_NUM_INPUTS)),
-        torch.randn((BATCH_SIZE * NUM_UPDATES)),
+    jax_model, jax_params = get_model_jax(dtype=np_dtype)
+    model, loader = get_model_torch(device='cpu', dtype=dtype)
+
+    class InnerNet(ImplicitMetaGradientModule, has_aux=True):
+        def __init__(self, meta_model):
+            super().__init__()
+            self.meta_model = meta_model
+            self.model = copy.deepcopy(meta_model)
+
+        def forward(self, x):
+            return self.model(x)
+
+        def objective(self, x, y):
+            y_pred = self.model(x)
+            loss = F.cross_entropy(y_pred, y)
+            regularization_loss = 0
+            for p1, p2 in zip(self.parameters(), self.meta_parameters()):
+                regularization_loss += 0.5 * torch.sum(torch.square(p1 - p2))
+            loss = loss + regularization_loss
+            return loss
+
+        def solve(self, x, y):
+            params = tuple(self.parameters())
+            optim_inner = torchopt.SGD(params, lr=inner_lr)
+            with torch.enable_grad():
+                # Temporarily enable gradient computation for conducting the optimization
+                for _ in range(inner_update):
+                    loss = self.objective(x, y)
+                    optim_inner.zero_grad()
+                    loss.backward(inputs=params)
+                    optim_inner.step()
+
+            return self, (0, {'a': 1, 'b': 2})
+
+    outer_optim = torchopt.SGD(model.parameters(), lr)
+
+    optim_jax = optax.sgd(lr)
+    optim_state_jax = optim_jax.init(jax_params)
+
+    def imaml_objective_jax(optimal_params, init_params, x, y):
+        y_pred = jax_model(optimal_params, x)
+        loss = jnp.mean(optax.softmax_cross_entropy_with_integer_labels(y_pred, y))
+        regularization_loss = 0
+        for p1, p2 in zip(optimal_params.values(), init_params.values()):
+            regularization_loss += 0.5 * jnp.sum(jnp.square((p1 - p2)))
+        loss = loss + regularization_loss
+        return loss
+
+    @jaxopt.implicit_diff.custom_root(jax.grad(imaml_objective_jax, argnums=0), has_aux=True)
+    def inner_solver_jax(init_params_copy, init_params, x, y):
+        """Solve ridge regression by conjugate gradient."""
+        # Initial functional optimizer based on torchopt
+        params = init_params_copy
+        optimizer = optax.sgd(inner_lr)
+        opt_state = optimizer.init(params)
+
+        def compute_loss(params, init_params, x, y):
+            pred = jax_model(params, x)
+            loss = jnp.mean(optax.softmax_cross_entropy_with_integer_labels(pred, y))
+            # Compute regularization loss
+            regularization_loss = 0
+            for p1, p2 in zip(params.values(), init_params.values()):
+                regularization_loss += 0.5 * jnp.sum(jnp.square((p1 - p2)))
+            final_loss = loss + regularization_loss
+            return final_loss
+
+        for i in range(inner_update):
+            grads = jax.grad(compute_loss)(params, init_params, x, y)  # compute gradients
+            updates, opt_state = optimizer.update(grads, opt_state)  # get updates
+            params = optax.apply_updates(params, updates)
+        return params, (0, {'a': 1, 'b': 2})
+
+    for xs, ys in loader:
+        xs = xs.to(dtype=dtype)
+        inner_model = InnerNet(model)
+        optimal_inner_model, aux = inner_model.solve(xs, ys)
+        assert aux == (0, {'a': 1, 'b': 2})
+        outer_loss = optimal_inner_model(xs).mean()
+
+        outer_optim.zero_grad()
+        outer_loss.backward()
+        outer_optim.step()
+
+        xs = xs.numpy()
+        ys = ys.numpy()
+
+        def outer_level(p, xs, ys):
+            optimal_params, aux = inner_solver_jax(copy.deepcopy(p), p, xs, ys)
+            assert aux == (0, {'a': 1, 'b': 2})
+            outer_loss = jax_model(optimal_params, xs).mean()
+            return outer_loss
+
+        grads_jax = jax.grad(outer_level, argnums=0)(jax_params, xs, ys)
+        updates_jax, optim_state_jax = optim_jax.update(grads_jax, optim_state_jax)  # get updates
+        jax_params = optax.apply_updates(jax_params, updates_jax)
+
+    jax_params_as_tensor = tuple(
+        nn.Parameter(torch.tensor(np.asarray(jax_params[j]), dtype=dtype)) for j in jax_params
     )
-    loader = data.DataLoader(dataset, BATCH_SIZE, shuffle=False)
 
-    return loader
+    for p, p_ref in zip(model.parameters(), jax_params_as_tensor):
+        helpers.assert_all_close(p, p_ref)
 
 
 @helpers.parametrize(

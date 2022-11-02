@@ -275,8 +275,9 @@ def _custom_root(
                 if has_aux:
                     if not (isinstance(output, tuple) and len(output) == 2):
                         raise RuntimeError(
-                            'custom_root(optimality_fn)(solver_fn)(*args): output of function '
-                            'solver_fn should be a tuple: (output, aux) if has_aux is True'
+                            f'custom_root(optimality_fn)(solver_fn)(*args): output of function '
+                            f'solver_fn should be a tuple: (output, aux) if has_aux is True. '
+                            f'Got {output}'
                         )
                     output, aux = output
                 if isinstance(output, torch.Tensor):
@@ -284,8 +285,9 @@ def _custom_root(
                     output = (output,)
                 elif not (isinstance(output, tuple) and all(map(torch.is_tensor, output))):
                     raise RuntimeError(
-                        'custom_root(optimality_fn)(solver_fn)(*args): output of function '
-                        'solver_fn should be a torch.Tensor or a tuple of torch.Tensor'
+                        f'custom_root(optimality_fn)(solver_fn)(*args): output of function '
+                        f'solver_fn should be a torch.Tensor or a tuple of torch.Tensor. '
+                        f'Got {output}'
                     )
 
                 (
