@@ -243,7 +243,7 @@ def test_imaml_module(dtype: torch.dtype, lr: float, inner_lr: float, inner_upda
         def __init__(self, meta_model):
             super().__init__()
             self.meta_model = meta_model
-            self.model = copy.deepcopy(meta_model)
+            self.model = torchopt.module_clone(meta_model, by='deepcopy', detach_buffers=True)
 
         def forward(self, x):
             return self.model(x)

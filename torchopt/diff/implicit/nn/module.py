@@ -81,9 +81,9 @@ def enable_implicit_gradients(
         raise ValueError('Implicit gradients are already enabled for the solve function.')
 
     cls_has_aux = cls.has_aux
-    custom_root_kwargs = dict(has_aux=cls_has_aux)
-    if cls.linear_solve is not None:
-        custom_root_kwargs.update(solve=cls.linear_solve)
+    custom_root_kwargs = dict(has_aux=cls_has_aux, solve=cls.linear_solve)
+    if cls.linear_solve is None:
+        custom_root_kwargs.pop('solve')
 
     @functools.wraps(cls_solve)
     def wrapped(  # pylint: disable=too-many-locals
@@ -145,7 +145,7 @@ def enable_implicit_gradients(
                 ):
                     container.update(container_backup)
 
-        @custom_root(optimality_fn, argnums=1, **custom_root_kwargs)
+        @custom_root(optimality_fn, argnums=1, **custom_root_kwargs)  # type: ignore[arg-type]
         def solver_fn(
             flat_params: TupleOfTensors,  # pylint: disable=unused-argument
             flat_meta_params: TupleOfTensors,  # pylint: disable=unused-argument

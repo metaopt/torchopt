@@ -51,7 +51,7 @@ class InnerNet(
     def __init__(self, meta_net, n_inner_iter, reg_param):
         super().__init__()
         self.meta_net = meta_net
-        self.net = copy.deepcopy(meta_net)
+        self.net = torchopt.module_clone(meta_net, by='deepcopy', detach_buffers=True)
         self.n_inner_iter = n_inner_iter
         self.reg_param = reg_param
 
