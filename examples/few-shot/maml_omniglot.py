@@ -133,8 +133,7 @@ def train(db, net, meta_opt, epoch, log):
         # Sample a batch of support and query images and labels.
         x_spt, y_spt, x_qry, y_qry = db.next()
 
-        task_num, setsz, c_, h, w = x_spt.size()
-        querysz = x_qry.size(1)
+        task_num = x_spt.size(0)
 
         # TODO: Maybe pull this out into a separate module so it
         # doesn't have to be duplicated between `train` and `test`?
@@ -165,9 +164,9 @@ def train(db, net, meta_opt, epoch, log):
             # These will be used to update the model's meta-parameters.
             qry_logits = net(x_qry[i])
             qry_loss = F.cross_entropy(qry_logits, y_qry[i])
+            qry_acc = (qry_logits.argmax(dim=1) == y_qry[i]).float().mean()
             qry_losses.append(qry_loss)
-            qry_acc = (qry_logits.argmax(dim=1) == y_qry[i]).sum().item() / querysz
-            qry_accs.append(qry_acc)
+            qry_accs.append(qry_acc.item())
 
             torchopt.recover_state_dict(net, net_state_dict)
             torchopt.recover_state_dict(inner_opt, optim_state_dict)
@@ -176,14 +175,14 @@ def train(db, net, meta_opt, epoch, log):
         qry_losses.backward()
         meta_opt.step()
         qry_losses = qry_losses.item()
-        qry_accs = 100.0 * sum(qry_accs) / task_num
+        qry_accs = 100.0 * np.mean(qry_accs)
         i = epoch + float(batch_idx) / n_train_iter
         iter_time = time.time() - start_time
+        torch.cuda.empty_cache()
 
         print(
             f'[Epoch {i:.2f}] Train Loss: {qry_losses:.2f} | Acc: {qry_accs:.2f} | Time: {iter_time:.2f}'
         )
-
         log.append(
             {
                 'epoch': i,
@@ -211,8 +210,7 @@ def test(db, net, epoch, log):
     for batch_idx in range(n_test_iter):
         x_spt, y_spt, x_qry, y_qry = db.next('test')
 
-        task_num, setsz, c_, h, w = x_spt.size()
-        querysz = x_qry.size(1)
+        task_num = x_spt.size(0)
 
         # TODO: Maybe pull this out into a separate module so it
         # doesn't have to be duplicated between `train` and `test`?
@@ -231,15 +229,18 @@ def test(db, net, epoch, log):
 
             # The query loss and acc induced by these parameters.
             qry_logits = net(x_qry[i]).detach()
-            qry_loss = F.cross_entropy(qry_logits, y_qry[i], reduction='none')
-            qry_losses.append(qry_loss.detach())
-            qry_accs.append((qry_logits.argmax(dim=1) == y_qry[i]).detach())
+            qry_loss = F.cross_entropy(qry_logits, y_qry[i])
+            qry_acc = (qry_logits.argmax(dim=1) == y_qry[i]).float().mean()
+            qry_losses.append(qry_loss.item())
+            qry_accs.append(qry_acc.item())
 
             torchopt.recover_state_dict(net, net_state_dict)
             torchopt.recover_state_dict(inner_opt, optim_state_dict)
 
-    qry_losses = torch.mean(torch.stack(qry_losses)).item()
-    qry_accs = 100.0 * torch.cat(qry_accs).float().mean().item()
+    qry_losses = np.mean(qry_losses)
+    qry_accs = 100.0 * np.mean(qry_accs)
+    torch.cuda.empty_cache()
+
     print(f'[Epoch {epoch+1:.2f}] Test Loss: {qry_losses:.2f} | Acc: {qry_accs:.2f}')
     log.append(
         {

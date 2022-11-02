@@ -21,6 +21,7 @@ import torch.distributed.rpc as rpc
 from optree.typing import PyTree, PyTreeTypeVar
 from torch import Tensor
 from torch.futures import Future
+from torch.types import Device
 
 from torchopt.base import ChainedGradientTransformation, EmptyState, GradientTransformation
 
@@ -50,6 +51,8 @@ __all__ = [
     'OptionalTensorOrOptionalTensors',
     'OptionalTensorTree',
     'Future',
+    'LinearSolver',
+    'Device',
 ]
 
 T = TypeVar('T')
@@ -85,3 +88,6 @@ if rpc.is_available():
     __all__.extend(['RRef'])
 else:
     RRef = None  # type: ignore[misc,assignment] # pylint: disable=invalid-name
+
+# solver(matvec, b) -> solution
+LinearSolver: TypeAlias = Callable[[Callable[[TensorTree], TensorTree], TensorTree], TensorTree]

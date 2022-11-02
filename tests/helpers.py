@@ -23,6 +23,7 @@ import numpy as np
 import pytest
 import torch
 import torch.nn as nn
+import torch.types
 from torch.utils import data
 
 
@@ -100,7 +101,7 @@ class MyLinear(nn.Module):
 
 @torch.no_grad()
 def get_models(
-    device: Optional[Union[str, torch.device]] = None, dtype: torch.dtype = torch.float32
+    device: torch.types.Device = None, dtype: torch.dtype = torch.float32
 ) -> Tuple[nn.Module, nn.Module, nn.Module, data.DataLoader]:
     seed_everything(seed=42)
 

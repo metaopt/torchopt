@@ -16,7 +16,7 @@
 import copy
 from collections import OrderedDict
 from types import FunctionType
-from typing import Optional, Tuple, Union
+from typing import Tuple
 
 import functorch
 import jax
@@ -27,6 +27,7 @@ import optax
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torch.types
 from torch.utils import data
 
 import helpers
@@ -70,7 +71,7 @@ def get_model_jax(dtype: np.dtype = np.float32) -> Tuple[FunctionType, OrderedDi
 
 @torch.no_grad()
 def get_model_torch(
-    device: Optional[Union[str, torch.device]] = None, dtype: torch.dtype = torch.float32
+    device: torch.types.Device = None, dtype: torch.dtype = torch.float32
 ) -> Tuple[nn.Module, data.DataLoader]:
     helpers.seed_everything(seed=42)
 

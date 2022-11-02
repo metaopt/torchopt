@@ -35,7 +35,7 @@ import torch
 import torch.nn as nn
 
 from torchopt import pytree
-from torchopt.typing import OptState, TensorTree
+from torchopt.typing import Device, OptState, TensorTree
 
 
 if TYPE_CHECKING:
@@ -106,7 +106,7 @@ def extract_state_dict(
     target: nn.Module,
     *,
     by: CopyMode = 'reference',
-    device: Optional[Union[int, str, torch.device]] = None,
+    device: Device = None,
     with_buffers: bool = True,
     enable_visual: bool = False,
     visual_prefix: str = '',
@@ -119,7 +119,7 @@ def extract_state_dict(
     target: 'MetaOptimizer',
     *,
     by: CopyMode = 'reference',
-    device: Optional[Union[int, str, torch.device]] = None,
+    device: Device = None,
     with_buffers: bool = True,
     enable_visual: bool = False,
     visual_prefix: str = '',
@@ -132,7 +132,7 @@ def extract_state_dict(
     target: Union[nn.Module, 'MetaOptimizer'],
     *,
     by: CopyMode = 'reference',
-    device: Optional[Union[int, str, torch.device]] = None,
+    device: Device = None,
     with_buffers: bool = True,
     detach_buffers: bool = False,
     enable_visual: bool = False,
@@ -360,7 +360,7 @@ def module_clone(
     *,
     by: CopyMode = 'reference',
     detach_buffers: bool = False,
-    device: Optional[Union[int, str, torch.device]] = None,
+    device: Device = None,
 ) -> nn.Module:
     ...
 
@@ -371,7 +371,7 @@ def module_clone(
     *,
     by: CopyMode = 'reference',
     detach_buffers: bool = False,
-    device: Optional[Union[int, str, torch.device]] = None,
+    device: Device = None,
 ) -> 'MetaOptimizer':
     ...
 
@@ -382,7 +382,7 @@ def module_clone(
     *,
     by: CopyMode = 'reference',
     detach_buffers: bool = False,
-    device: Optional[Union[int, str, torch.device]] = None,
+    device: Device = None,
 ) -> TensorTree:
     ...
 
@@ -393,7 +393,7 @@ def module_clone(
     *,
     by: CopyMode = 'reference',
     detach_buffers: bool = False,
-    device: Optional[Union[int, str, torch.device]] = None,
+    device: Device = None,
 ) -> Union[nn.Module, 'MetaOptimizer', TensorTree]:
     """Clone a module.
 
