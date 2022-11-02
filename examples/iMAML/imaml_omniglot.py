@@ -22,7 +22,6 @@ for few-shot Omniglot classification.
 """
 
 import argparse
-import copy
 import time
 
 import matplotlib as mpl
@@ -37,7 +36,7 @@ import torchopt
 from torchopt.diff.implicit import ImplicitMetaGradientModule
 
 
-from support.omniglot_loaders import OmniglotNShot  # isort: skip
+from helpers.omniglot_loaders import OmniglotNShot  # isort: skip
 
 
 mpl.use('Agg')

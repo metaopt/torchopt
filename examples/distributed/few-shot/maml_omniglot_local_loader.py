@@ -60,7 +60,7 @@ import torchopt
 import torchopt.distributed as todist
 
 
-from support.omniglot_loaders import OmniglotNShot  # isort: skip
+from helpers.omniglot_loaders import OmniglotNShot  # isort: skip
 
 
 mpl.use('Agg')

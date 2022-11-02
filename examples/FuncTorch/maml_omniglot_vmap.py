@@ -61,7 +61,7 @@ import torchopt
 CWD = pathlib(__file__).absolute().parent
 sys.path.append(str(CWD.parent / 'few-shot'))
 
-from support.omniglot_loaders import OmniglotNShot
+from helpers.omniglot_loaders import OmniglotNShot
 
 
 mpl.use('Agg')
