@@ -69,7 +69,7 @@ def main():
     rng = np.random.default_rng(args.seed)
 
     # Set up the Omniglot loader.
-    device = torch.device('cuda:0')
+    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     db = OmniglotNShot(
         '/tmp/omniglot-data',
         batchsz=args.task_num,
@@ -98,13 +98,14 @@ def main():
         nn.Flatten(),
         nn.Linear(64, args.n_way),
     ).to(device)
+
     # We will use Adam to (meta-)optimize the initial parameters
     # to be adapted.
     net.train()
-
     fnet, params = functorch.make_functional(net)
     meta_opt = torchopt.adam(lr=1e-3)
     meta_opt_state = meta_opt.init(params)
+
     log = []
     test(db, [params, fnet], epoch=-1, log=log, args=args)
     for epoch in range(10):
@@ -160,8 +161,8 @@ def train(db, net, meta_opt_and_state, epoch, log, args):
             # Update the model's meta-parameters to optimize the query
             # losses across all of the tasks sampled in this batch.
             # qry_loss = qry_loss / task_num  # scale gradients
-            meta_grad = torch.autograd.grad(qry_loss / task_num, params)
-            meta_updates, meta_opt_state = meta_opt.update(meta_grad, meta_opt_state)
+            meta_grads = torch.autograd.grad(qry_loss / task_num, params)
+            meta_updates, meta_opt_state = meta_opt.update(meta_grads, meta_opt_state)
             params = torchopt.apply_updates(params, meta_updates)
             qry_acc = (qry_logits.argmax(dim=1) == y_qry[i]).sum().item() / querysz
 
@@ -318,6 +319,7 @@ def plot(log):
     # Generally you should pull your plotting code out of your training
     # script but we are doing it here for brevity.
     df = pd.DataFrame(log)
+
     fig, ax = plt.subplots(figsize=(8, 4), dpi=250)
     train_df = df[df['mode'] == 'train']
     test_df = df[df['mode'] == 'test']
@@ -325,17 +327,14 @@ def plot(log):
     ax.plot(test_df['epoch'], test_df['acc'], label='Test')
     ax.set_xlabel('Epoch')
     ax.set_ylabel('Accuracy')
-    ax.set_ylim(85, 100)
+    ax.set_ylim(80, 100)
     ax.set_title('iMAML Omniglot')
-    fig.legend(ncol=2, loc='lower right')
+    ax.legend(ncol=2, loc='lower right')
     fig.tight_layout()
     fname = 'imaml-accs.png'
     print(f'--- Plotting accuracy to {fname}')
     fig.savefig(fname)
     plt.close(fig)
-
-
-
 
 
 if __name__ == '__main__':
