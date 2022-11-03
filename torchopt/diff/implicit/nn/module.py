@@ -16,9 +16,10 @@
 
 # pylint: disable=redefined-builtin
 
+import contextlib
 import functools
 import itertools
-from typing import Any, Callable, Dict, Optional, Tuple, Type, Union
+from typing import Any, Callable, Dict, Generator, Iterable, Optional, Tuple, Type, Union
 
 import functorch
 import torch
@@ -33,6 +34,32 @@ from torchopt.utils import extract_module_containers
 __all__ = ['ImplicitMetaGradientModule']
 
 
+def update_containers(
+    dst_containers: Iterable[Dict[str, Optional[torch.Tensor]]],
+    src_containers: Iterable[Dict[str, Optional[torch.Tensor]]],
+) -> None:
+    """Update the tensor containers in ``dst_containers`` with the ones in ``src_containers``."""
+    for src_container, dst_container in zip(src_containers, dst_containers):
+        dst_container.update(src_container)
+
+
+@contextlib.contextmanager
+def container_context(
+    orig_containers: Iterable[Dict[str, Optional[torch.Tensor]]],
+    args_containers: Iterable[Dict[str, Optional[torch.Tensor]]],
+) -> Generator[None, None, None]:
+    # pylint: disable-next=line-too-long
+    """A context manager that temporarily updates the containers in ``orig_containers`` with the ones in ``args_containers``."""
+    if not isinstance(orig_containers, (list, tuple)):
+        orig_containers = list(orig_containers)
+    orig_containers_backups = [container.copy() for container in orig_containers]
+    try:
+        update_containers(orig_containers, args_containers)
+        yield
+    finally:
+        update_containers(orig_containers, orig_containers_backups)
+
+
 def make_optimality_from_objective(
     objective: Callable[..., torch.Tensor]
 ) -> Callable[..., TupleOfTensors]:
@@ -40,7 +67,6 @@ def make_optimality_from_objective(
 
     def optimality(self: 'ImplicitMetaGradientModule', *input, **kwargs) -> TupleOfTensors:
         params_containers = extract_module_containers(self, with_buffers=False)[0]
-        params_containers_backups = [container.copy() for container in params_containers]
         flat_params: TupleOfTensors
         # pylint: disable-next=line-too-long
         flat_params, params_containers_treespec = pytree.tree_flatten_as_tuple(params_containers)  # type: ignore[arg-type]
@@ -53,18 +79,8 @@ def make_optimality_from_objective(
                 params_containers_treespec, flat_grad_tracking_params
             )
 
-            try:
-                for container, grad_tracking_container in zip(
-                    params_containers, grad_tracking_params_containers
-                ):
-                    container.update(grad_tracking_container)
-
+            with container_context(params_containers, grad_tracking_params_containers):
                 return objective(self, *input, **kwargs)
-            finally:
-                for container, container_backup in zip(
-                    params_containers, params_containers_backups
-                ):
-                    container.update(container_backup)
 
         objective_grad_fn = functorch.grad(objective_fn, argnums=0)
         flat_grads = objective_grad_fn(flat_params, *input, **kwargs)
@@ -98,10 +114,6 @@ def enable_implicit_gradients(
                 extract_module_containers(meta_module, with_buffers=False)[0]
             )
         meta_params_containers = tuple(meta_params_containers)
-        params_containers_backups = tuple(container.copy() for container in params_containers)
-        meta_params_containers_backups = tuple(
-            container.copy() for container in meta_params_containers
-        )
 
         flat_params: TupleOfTensors
         flat_meta_params: TupleOfTensors
@@ -131,20 +143,17 @@ def enable_implicit_gradients(
                 meta_params_containers_treespec, flat_grad_tracking_meta_params
             )
 
-            try:
-                for container, grad_tracking_container in itertools.chain(
-                    zip(params_containers, grad_tracking_params_containers),
-                    zip(meta_params_containers, grad_tracking_meta_params_containers),
-                ):
-                    container.update(grad_tracking_container)
-
+            with container_context(
+                itertools.chain(
+                    params_containers,
+                    meta_params_containers,
+                ),
+                itertools.chain(
+                    grad_tracking_params_containers,
+                    grad_tracking_meta_params_containers,
+                ),
+            ):
                 return self.optimality(*input, **kwargs)
-            finally:
-                for container, container_backup in itertools.chain(
-                    zip(params_containers, params_containers_backups),
-                    zip(meta_params_containers, meta_params_containers_backups),
-                ):
-                    container.update(container_backup)
 
         @custom_root(optimality_fn, argnums=1, **custom_root_kwargs)  # type: ignore[arg-type]
         def solver_fn(

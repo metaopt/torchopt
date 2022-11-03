@@ -85,9 +85,10 @@ def stop_gradient(target: Union[TensorTree, ModuleState, nn.Module, 'MetaOptimiz
     # pylint: disable-next=import-outside-toplevel
     from torchopt.optim.meta.base import MetaOptimizer
 
-    def f(obj):
+    def fn_(obj):
         if isinstance(obj, torch.Tensor):
-            obj.detach_().requires_grad_(obj.requires_grad)
+            requires_grad = obj.requires_grad
+            obj.detach_().requires_grad_(requires_grad)
 
     if isinstance(target, ModuleState):
         true_target = cast(TensorTree, (target.params, target.buffers))
@@ -98,7 +99,7 @@ def stop_gradient(target: Union[TensorTree, ModuleState, nn.Module, 'MetaOptimiz
     else:
         true_target = cast(TensorTree, target)  # tree of tensors
 
-    pytree.tree_map(f, true_target)
+    pytree.tree_map(fn_, true_target)
 
 
 @overload
