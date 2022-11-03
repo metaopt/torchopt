@@ -27,7 +27,7 @@ using std::size_t;
 
 namespace adam_op {
 
-constexpr int min_elements_use_omp = 1000;
+constexpr size_t MIN_NUMEL_USE_OMP = 1000;
 
 template <typename scalar_t, typename other_t>
 void adamForwardInplaceCPUKernel(const other_t b1,
@@ -41,7 +41,7 @@ void adamForwardInplaceCPUKernel(const other_t b1,
                                  scalar_t *__restrict__ mu_ptr,
                                  scalar_t *__restrict__ nu_ptr) {
 #pragma omp parallel for num_threads(std::min( \
-    n / (size_t)min_elements_use_omp, (size_t)omp_get_num_procs())) if (n > min_elements_use_omp)
+    n / MIN_NUMEL_USE_OMP, (size_t)omp_get_num_procs())) if (n > MIN_NUMEL_USE_OMP)  // NOLINT
   for (size_t tid = 0; tid < n; ++tid) {
     const scalar_t updates = updates_ptr[tid];
     const scalar_t mu = mu_ptr[tid];
@@ -94,7 +94,7 @@ void adamForwardMuCPUKernel(const scalar_t *__restrict__ updates_ptr,
                             const size_t n,
                             scalar_t *__restrict__ mu_out_ptr) {
 #pragma omp parallel for num_threads(std::min( \
-    n / (size_t)min_elements_use_omp, (size_t)omp_get_num_procs())) if (n > min_elements_use_omp)
+    n / MIN_NUMEL_USE_OMP, (size_t)omp_get_num_procs())) if (n > MIN_NUMEL_USE_OMP)  // NOLINT
   for (size_t tid = 0; tid < n; ++tid) {
     const scalar_t updates = updates_ptr[tid];
     const scalar_t mu = mu_ptr[tid];
@@ -127,7 +127,7 @@ void adamForwardNuCPUKernel(const scalar_t *__restrict__ updates_ptr,
                             const size_t n,
                             scalar_t *__restrict__ nu_out_ptr) {
 #pragma omp parallel for num_threads(std::min( \
-    n / (size_t)min_elements_use_omp, (size_t)omp_get_num_procs())) if (n > min_elements_use_omp)
+    n / MIN_NUMEL_USE_OMP, (size_t)omp_get_num_procs())) if (n > MIN_NUMEL_USE_OMP)  // NOLINT
   for (size_t tid = 0; tid < n; ++tid) {
     const scalar_t updates = updates_ptr[tid];
     const scalar_t nu = nu_ptr[tid];
@@ -164,7 +164,7 @@ void adamForwardUpdatesCPUKernel(const scalar_t *__restrict__ new_mu_ptr,
                                  const size_t n,
                                  scalar_t *__restrict__ updates_out_ptr) {
 #pragma omp parallel for num_threads(std::min( \
-    n / (size_t)min_elements_use_omp, (size_t)omp_get_num_procs())) if (n > min_elements_use_omp)
+    n / MIN_NUMEL_USE_OMP, (size_t)omp_get_num_procs())) if (n > MIN_NUMEL_USE_OMP)  // NOLINT
   for (size_t tid = 0; tid < n; ++tid) {
     const scalar_t new_mu = new_mu_ptr[tid];
     const scalar_t new_nu = new_nu_ptr[tid];
@@ -212,7 +212,7 @@ void adamBackwardMuCPUKernel(const scalar_t *__restrict__ dmu_ptr,
                              scalar_t *__restrict__ dupdates_out_ptr,
                              scalar_t *__restrict__ dmu_out_ptr) {
 #pragma omp parallel for num_threads(std::min( \
-    n / (size_t)min_elements_use_omp, (size_t)omp_get_num_procs())) if (n > min_elements_use_omp)
+    n / MIN_NUMEL_USE_OMP, (size_t)omp_get_num_procs())) if (n > MIN_NUMEL_USE_OMP)  // NOLINT
   for (size_t tid = 0; tid < n; ++tid) {
     const scalar_t dmu = dmu_ptr[tid];
 
@@ -248,7 +248,7 @@ void adamBackwardNuCPUKernel(const scalar_t *__restrict__ dnu_ptr,
                              scalar_t *__restrict__ dupdates_out_ptr,
                              scalar_t *__restrict__ dnu_out_ptr) {
 #pragma omp parallel for num_threads(std::min( \
-    n / (size_t)min_elements_use_omp, (size_t)omp_get_num_procs())) if (n > min_elements_use_omp)
+    n / MIN_NUMEL_USE_OMP, (size_t)omp_get_num_procs())) if (n > MIN_NUMEL_USE_OMP)  // NOLINT
   for (size_t tid = 0; tid < n; ++tid) {
     const scalar_t dnu = dnu_ptr[tid];
     const scalar_t updates = updates_ptr[tid];
@@ -288,7 +288,7 @@ void adamBackwardUpdatesCPUKernel(const scalar_t *__restrict__ dupdates_ptr,
                                   scalar_t *__restrict__ dnew_mu_out_ptr,
                                   scalar_t *__restrict__ dnew_nu_out_ptr) {
 #pragma omp parallel for num_threads(std::min( \
-    n / (size_t)min_elements_use_omp, (size_t)omp_get_num_procs())) if (n > min_elements_use_omp)
+    n / MIN_NUMEL_USE_OMP, (size_t)omp_get_num_procs())) if (n > MIN_NUMEL_USE_OMP)  // NOLINT
   for (size_t tid = 0; tid < n; ++tid) {
     const scalar_t dupdates = dupdates_ptr[tid];
     const scalar_t updates = updates_ptr[tid];
