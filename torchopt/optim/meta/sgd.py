@@ -35,7 +35,7 @@ class MetaSGD(MetaOptimizer):
     # pylint: disable-next=too-many-arguments
     def __init__(
         self,
-        net: nn.Module,
+        module: nn.Module,
         lr: ScalarOrSchedule,
         momentum: float = 0.0,
         weight_decay: float = 0.0,
@@ -47,7 +47,7 @@ class MetaSGD(MetaOptimizer):
         """The :meth:`init` function.
 
         Args:
-            net: (nn.Module)
+            module: (nn.Module)
                 A network whose parameters should be optimized.
             lr: This is a fixed global scaling factor.
             momentum: (default: :const:`0.0`)
@@ -66,7 +66,7 @@ class MetaSGD(MetaOptimizer):
                 Maximize the params based on the objective, instead of minimizing.
         """
         super().__init__(
-            net,
+            module,
             alias.sgd(
                 lr=lr,
                 momentum=momentum,

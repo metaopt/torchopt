@@ -126,11 +126,11 @@ def test_imaml(dtype: torch.dtype, lr: float, inner_lr: float, inner_update: int
     optim_jax = optax.sgd(lr)
     optim_state_jax = optim_jax.init(jax_params)
 
-    def imaml_objective_torchopt(optimal_params, init_params, data):
+    def imaml_objective_torchopt(params, meta_params, data):
         x, y, f = data
-        y_pred = f(optimal_params, x)
+        y_pred = f(params, x)
         regularization_loss = 0
-        for p1, p2 in zip(optimal_params, init_params):
+        for p1, p2 in zip(params, meta_params):
             regularization_loss += 0.5 * torch.sum(torch.square(p1 - p2))
         loss = F.cross_entropy(y_pred, y) + regularization_loss
         return loss
@@ -138,10 +138,9 @@ def test_imaml(dtype: torch.dtype, lr: float, inner_lr: float, inner_update: int
     @torchopt.diff.implicit.custom_root(
         functorch.grad(imaml_objective_torchopt, argnums=0), argnums=1, has_aux=True
     )
-    def inner_solver_torchopt(init_params_copy, init_params, data):
+    def inner_solver_torchopt(params, meta_params, data):
         # Initial functional optimizer based on TorchOpt
         x, y, f = data
-        params = init_params_copy
         optimizer = torchopt.sgd(lr=inner_lr)
         opt_state = optimizer.init(params)
         with torch.enable_grad():
@@ -151,43 +150,42 @@ def test_imaml(dtype: torch.dtype, lr: float, inner_lr: float, inner_update: int
                 loss = F.cross_entropy(pred, y)  # compute loss
                 # Compute regularization loss
                 regularization_loss = 0
-                for p1, p2 in zip(params, init_params):
+                for p1, p2 in zip(params, meta_params):
                     regularization_loss += 0.5 * torch.sum(torch.square(p1 - p2))
                 final_loss = loss + regularization_loss
                 grads = torch.autograd.grad(final_loss, params)  # compute gradients
-                updates, opt_state = optimizer.update(grads, opt_state)  # get updates
-                params = torchopt.apply_updates(params, updates)
+                updates, opt_state = optimizer.update(grads, opt_state, inplace=True)  # get updates
+                params = torchopt.apply_updates(params, updates, inplace=True)
         return params, (0, {'a': 1, 'b': 2})
 
-    def imaml_objective_jax(optimal_params, init_params, x, y):
-        y_pred = jax_model(optimal_params, x)
+    def imaml_objective_jax(params, meta_params, x, y):
+        y_pred = jax_model(params, x)
         loss = jnp.mean(optax.softmax_cross_entropy_with_integer_labels(y_pred, y))
         regularization_loss = 0
-        for p1, p2 in zip(optimal_params.values(), init_params.values()):
+        for p1, p2 in zip(params.values(), meta_params.values()):
             regularization_loss += 0.5 * jnp.sum(jnp.square((p1 - p2)))
         loss = loss + regularization_loss
         return loss
 
     @jaxopt.implicit_diff.custom_root(jax.grad(imaml_objective_jax, argnums=0), has_aux=True)
-    def inner_solver_jax(init_params_copy, init_params, x, y):
+    def inner_solver_jax(params, meta_params, x, y):
         """Solve ridge regression by conjugate gradient."""
         # Initial functional optimizer based on torchopt
-        params = init_params_copy
         optimizer = optax.sgd(inner_lr)
         opt_state = optimizer.init(params)
 
-        def compute_loss(params, init_params, x, y):
+        def compute_loss(params, meta_params, x, y):
             pred = jax_model(params, x)
             loss = jnp.mean(optax.softmax_cross_entropy_with_integer_labels(pred, y))
             # Compute regularization loss
             regularization_loss = 0
-            for p1, p2 in zip(params.values(), init_params.values()):
+            for p1, p2 in zip(params.values(), meta_params.values()):
                 regularization_loss += 0.5 * jnp.sum(jnp.square((p1 - p2)))
             final_loss = loss + regularization_loss
             return final_loss
 
         for i in range(inner_update):
-            grads = jax.grad(compute_loss)(params, init_params, x, y)  # compute gradients
+            grads = jax.grad(compute_loss)(params, meta_params, x, y)  # compute gradients
             updates, opt_state = optimizer.update(grads, opt_state)  # get updates
             params = optax.apply_updates(params, updates)
         return params, (0, {'a': 1, 'b': 2})
@@ -195,10 +193,10 @@ def test_imaml(dtype: torch.dtype, lr: float, inner_lr: float, inner_update: int
     for xs, ys in loader:
         xs = xs.to(dtype=dtype)
         data = (xs, ys, fmodel)
-        init_params_copy = pytree.tree_map(
+        meta_params_copy = pytree.tree_map(
             lambda t: t.clone().detach_().requires_grad_(requires_grad=t.requires_grad), params
         )
-        optimal_params, aux = inner_solver_torchopt(init_params_copy, params, data)
+        optimal_params, aux = inner_solver_torchopt(meta_params_copy, params, data)
         assert aux == (0, {'a': 1, 'b': 2})
         outer_loss = fmodel(optimal_params, xs).mean()
 
@@ -275,35 +273,34 @@ def test_imaml_module(dtype: torch.dtype, lr: float, inner_lr: float, inner_upda
     optim_jax = optax.sgd(lr)
     optim_state_jax = optim_jax.init(jax_params)
 
-    def imaml_objective_jax(optimal_params, init_params, x, y):
-        y_pred = jax_model(optimal_params, x)
+    def imaml_objective_jax(params, meta_params, x, y):
+        y_pred = jax_model(params, x)
         loss = jnp.mean(optax.softmax_cross_entropy_with_integer_labels(y_pred, y))
         regularization_loss = 0
-        for p1, p2 in zip(optimal_params.values(), init_params.values()):
+        for p1, p2 in zip(params.values(), meta_params.values()):
             regularization_loss += 0.5 * jnp.sum(jnp.square((p1 - p2)))
         loss = loss + regularization_loss
         return loss
 
     @jaxopt.implicit_diff.custom_root(jax.grad(imaml_objective_jax, argnums=0), has_aux=True)
-    def inner_solver_jax(init_params_copy, init_params, x, y):
+    def inner_solver_jax(params, meta_params, x, y):
         """Solve ridge regression by conjugate gradient."""
         # Initial functional optimizer based on torchopt
-        params = init_params_copy
         optimizer = optax.sgd(inner_lr)
         opt_state = optimizer.init(params)
 
-        def compute_loss(params, init_params, x, y):
+        def compute_loss(params, meta_params, x, y):
             pred = jax_model(params, x)
             loss = jnp.mean(optax.softmax_cross_entropy_with_integer_labels(pred, y))
             # Compute regularization loss
             regularization_loss = 0
-            for p1, p2 in zip(params.values(), init_params.values()):
+            for p1, p2 in zip(params.values(), meta_params.values()):
                 regularization_loss += 0.5 * jnp.sum(jnp.square((p1 - p2)))
             final_loss = loss + regularization_loss
             return final_loss
 
         for i in range(inner_update):
-            grads = jax.grad(compute_loss)(params, init_params, x, y)  # compute gradients
+            grads = jax.grad(compute_loss)(params, meta_params, x, y)  # compute gradients
             updates, opt_state = optimizer.update(grads, opt_state)  # get updates
             params = optax.apply_updates(params, updates)
         return params, (0, {'a': 1, 'b': 2})
@@ -374,7 +371,7 @@ def test_rr(
         return 0.5 * torch.mean(torch.square(residuals)) + regularization_loss
 
     @torchopt.diff.implicit.custom_root(functorch.grad(ridge_objective_torch, argnums=0), argnums=1)
-    def ridge_solver_torch(init_params, l2reg, data):
+    def ridge_solver_torch(params, l2reg, data):
         """Solve ridge regression by conjugate gradient."""
         X_tr, y_tr = data
 
@@ -383,7 +380,7 @@ def test_rr(
 
         solve = torchopt.linear_solve.solve_cg(
             ridge=len(y_tr) * l2reg.item(),
-            init=init_params,
+            init=params,
             maxiter=20,
         )
 
@@ -396,7 +393,7 @@ def test_rr(
         return 0.5 * jnp.mean(jnp.square(residuals)) + regularization_loss
 
     @jaxopt.implicit_diff.custom_root(jax.grad(ridge_objective_jax, argnums=0))
-    def ridge_solver_jax(init_params, l2reg, X_tr, y_tr):
+    def ridge_solver_jax(params, l2reg, X_tr, y_tr):
         """Solve ridge regression by conjugate gradient."""
 
         def matvec(u):
@@ -406,7 +403,7 @@ def test_rr(
             matvec=matvec,
             b=X_tr.T @ y_tr,
             ridge=len(y_tr) * l2reg.item(),
-            init=init_params,
+            init=params,
             maxiter=20,
         )
 
@@ -428,8 +425,8 @@ def test_rr(
         xq = jnp.array(xq.numpy(), dtype=np_dtype)
         yq = jnp.array(yq.numpy(), dtype=np_dtype)
 
-        def outer_level(init_params_jax, l2reg_jax, xs, ys, xq, yq):
-            w_fit = ridge_solver_jax(init_params_jax, l2reg_jax, xs, ys)
+        def outer_level(params_jax, l2reg_jax, xs, ys, xq, yq):
+            w_fit = ridge_solver_jax(params_jax, l2reg_jax, xs, ys)
             y_pred = xq @ w_fit
             loss_value = jnp.mean(jnp.square(y_pred - yq))
             return loss_value

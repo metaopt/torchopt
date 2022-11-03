@@ -101,23 +101,21 @@ def main():
     # We will use Adam to (meta-)optimize the initial parameters
     # to be adapted.
     net.train()
-    fnet, params = functorch.make_functional(net)
+    fnet, meta_params = model = functorch.make_functional(net)
     meta_opt = torchopt.adam(lr=1e-3)
-    meta_opt_state = meta_opt.init(params)
+    meta_opt_state = meta_opt.init(meta_params)
 
     log = []
-    test(db, [params, fnet], epoch=-1, log=log, args=args)
+    test(db, model, epoch=-1, log=log, args=args)
     for epoch in range(10):
-        meta_opt, meta_opt_state = train(
-            db, [params, fnet], (meta_opt, meta_opt_state), epoch, log, args
-        )
-        test(db, [params, fnet], epoch, log, args)
+        meta_opt, meta_opt_state = train(db, model, (meta_opt, meta_opt_state), epoch, log, args)
+        test(db, model, epoch, log, args)
         plot(log)
 
 
-def train(db, net, meta_opt_and_state, epoch, log, args):
+def train(db, model, meta_opt_and_state, epoch, log, args):
     n_train_iter = db.x_train.shape[0] // db.batchsz
-    params, fnet = net
+    fnet, meta_params = model
     meta_opt, meta_opt_state = meta_opt_and_state
     # Given this module we've created, rip out the parameters and buffers
     # and return a functional version of the module. `fnet` is stateless
@@ -133,21 +131,22 @@ def train(db, net, meta_opt_and_state, epoch, log, args):
 
         n_inner_iter = args.inner_steps
         reg_param = args.reg_params
+
         qry_losses = []
         qry_accs = []
-
-        init_params_copy = pytree.tree_map(
-            lambda t: t.clone().detach_().requires_grad_(requires_grad=t.requires_grad), params
-        )
 
         for i in range(task_num):
             # Optimize the likelihood of the support set by taking
             # gradient steps w.r.t. the model's parameters.
             # This adapts the model's meta-parameters to the task.
 
+            init_params = pytree.tree_map(
+                lambda t: t.clone().detach_().requires_grad_(requires_grad=t.requires_grad),
+                meta_params,
+            )
             optimal_params = train_imaml_inner_solver(
-                init_params_copy,
-                params,
+                init_params,
+                meta_params,
                 (x_spt[i], y_spt[i]),
                 (fnet, n_inner_iter, reg_param),
             )
@@ -156,17 +155,15 @@ def train(db, net, meta_opt_and_state, epoch, log, args):
             # These will be used to update the model's meta-parameters.
             qry_logits = fnet(optimal_params, x_qry[i])
             qry_loss = F.cross_entropy(qry_logits, y_qry[i])
-            # Update the model's meta-parameters to optimize the query
-            # losses across all of the tasks sampled in this batch.
-            # qry_loss = qry_loss / task_num  # scale gradients
-            meta_grads = torch.autograd.grad(qry_loss / task_num, params)
-            meta_updates, meta_opt_state = meta_opt.update(meta_grads, meta_opt_state)
-            params = torchopt.apply_updates(params, meta_updates)
             qry_acc = (qry_logits.argmax(dim=1) == y_qry[i]).float().mean()
-            qry_losses.append(qry_loss.item())
+            qry_losses.append(qry_loss)
             qry_accs.append(qry_acc.item())
 
-        qry_losses = np.mean(qry_losses)
+        qry_losses = torch.mean(torch.stack(qry_losses))
+        meta_grads = torch.autograd.grad(qry_losses, meta_params)
+        meta_updates, meta_opt_state = meta_opt.update(meta_grads, meta_opt_state)
+        meta_params = torchopt.apply_updates(meta_params, meta_updates)
+        qry_losses = qry_losses.item()
         qry_accs = 100.0 * np.mean(qry_accs)
         i = epoch + float(batch_idx) / n_train_iter
         iter_time = time.time() - start_time
@@ -188,26 +185,19 @@ def train(db, net, meta_opt_and_state, epoch, log, args):
     return (meta_opt, meta_opt_state)
 
 
-def test(db, net, epoch, log, args):
+def test(db, model, epoch, log, args):
     # Crucially in our testing procedure here, we do *not* fine-tune
     # the model during testing for simplicity.
     # Most research papers using MAML for this task do an extra
     # stage of fine-tuning here that should be added if you are
     # adapting this code for research.
-    params, fnet = net
-    # fnet, params, buffers = functorch.make_functional_with_buffers(net)
+    fnet, meta_params = model
     n_test_iter = db.x_test.shape[0] // db.batchsz
 
-    qry_losses = []
-    qry_accs = []
-
-    # TODO: Maybe pull this out into a separate module so it
-    # doesn't have to be duplicated between `train` and `test`?
     n_inner_iter = args.inner_steps
     reg_param = args.reg_params
-    init_params_copy = pytree.tree_map(
-        lambda t: t.clone().detach_().requires_grad_(requires_grad=t.requires_grad), params
-    )
+    qry_losses = []
+    qry_accs = []
 
     for batch_idx in range(n_test_iter):
         x_spt, y_spt, x_qry, y_qry = db.next('test')
@@ -219,9 +209,13 @@ def test(db, net, epoch, log, args):
             # gradient steps w.r.t. the model's parameters.
             # This adapts the model's meta-parameters to the task.
 
+            init_params = pytree.tree_map(
+                lambda t: t.clone().detach_().requires_grad_(requires_grad=t.requires_grad),
+                meta_params,
+            )
             optimal_params = test_imaml_inner_solver(
-                init_params_copy,
-                params,
+                init_params,
+                meta_params,
                 (x_spt[i], y_spt[i]),
                 (fnet, n_inner_iter, reg_param),
             )
@@ -249,12 +243,12 @@ def test(db, net, epoch, log, args):
     )
 
 
-def imaml_objective(optimal_params, init_params, data, aux):
+def imaml_objective(params, meta_params, data, aux):
     x_spt, y_spt = data
     fnet, n_inner_iter, reg_param = aux
-    y_pred = fnet(optimal_params, x_spt)
+    y_pred = fnet(params, x_spt)
     regularization_loss = 0
-    for p1, p2 in zip(optimal_params, init_params):
+    for p1, p2 in zip(params, meta_params):
         regularization_loss += 0.5 * reg_param * torch.sum(torch.square(p1 - p2))
     loss = F.cross_entropy(y_pred, y_spt) + regularization_loss
     return loss
@@ -266,11 +260,10 @@ def imaml_objective(optimal_params, init_params, data, aux):
     has_aux=False,
     solve=torchopt.linear_solve.solve_normal_cg(maxiter=5, atol=0),
 )
-def train_imaml_inner_solver(init_params_copy, init_params, data, aux):
+def train_imaml_inner_solver(params, meta_params, data, aux):
     x_spt, y_spt = data
     fnet, n_inner_iter, reg_param = aux
     # Initial functional optimizer based on TorchOpt
-    params = init_params_copy
     inner_opt = torchopt.sgd(lr=1e-1)
     inner_opt_state = inner_opt.init(params)
     with torch.enable_grad():
@@ -280,20 +273,21 @@ def train_imaml_inner_solver(init_params_copy, init_params, data, aux):
             loss = F.cross_entropy(pred, y_spt)  # compute loss
             # Compute regularization loss
             regularization_loss = 0
-            for p1, p2 in zip(params, init_params):
+            for p1, p2 in zip(params, meta_params):
                 regularization_loss += 0.5 * reg_param * torch.sum(torch.square(p1 - p2))
             final_loss = loss + regularization_loss
             grads = torch.autograd.grad(final_loss, params)  # compute gradients
-            updates, inner_opt_state = inner_opt.update(grads, inner_opt_state)  # get updates
-            params = torchopt.apply_updates(params, updates)
+            updates, inner_opt_state = inner_opt.update(
+                grads, inner_opt_state, inplace=True
+            )  # get updates
+            params = torchopt.apply_updates(params, updates, inplace=True)
     return params
 
 
-def test_imaml_inner_solver(init_params_copy, init_params, data, aux):
+def test_imaml_inner_solver(params, meta_params, data, aux):
     x_spt, y_spt = data
     fnet, n_inner_iter, reg_param = aux
     # Initial functional optimizer based on TorchOpt
-    params = init_params_copy
     inner_opt = torchopt.sgd(lr=1e-1)
     inner_opt_state = inner_opt.init(params)
     with torch.enable_grad():
@@ -303,12 +297,14 @@ def test_imaml_inner_solver(init_params_copy, init_params, data, aux):
             loss = F.cross_entropy(pred, y_spt)  # compute loss
             # Compute regularization loss
             regularization_loss = 0
-            for p1, p2 in zip(params, init_params):
+            for p1, p2 in zip(params, meta_params):
                 regularization_loss += 0.5 * reg_param * torch.sum(torch.square(p1 - p2))
             final_loss = loss + regularization_loss
             grads = torch.autograd.grad(final_loss, params)  # compute gradients
-            updates, inner_opt_state = inner_opt.update(grads, inner_opt_state)  # get updates
-            params = torchopt.apply_updates(params, updates)
+            updates, inner_opt_state = inner_opt.update(
+                grads, inner_opt_state, inplace=True
+            )  # get updates
+            params = torchopt.apply_updates(params, updates, inplace=True)
     return params
 
 
