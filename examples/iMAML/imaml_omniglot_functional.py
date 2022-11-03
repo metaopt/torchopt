@@ -131,12 +131,9 @@ def train(db, model, meta_opt_and_state, epoch, log, args):
 
         n_inner_iter = args.inner_steps
         reg_param = args.reg_params
+
         qry_losses = []
         qry_accs = []
-
-        meta_params_backup = pytree.tree_map(
-            lambda t: t.clone().detach_().requires_grad_(requires_grad=t.requires_grad), meta_params
-        )
 
         for i in range(task_num):
             # Optimize the likelihood of the support set by taking
@@ -145,11 +142,11 @@ def train(db, model, meta_opt_and_state, epoch, log, args):
 
             init_params = pytree.tree_map(
                 lambda t: t.clone().detach_().requires_grad_(requires_grad=t.requires_grad),
-                meta_params_backup,
+                meta_params,
             )
             optimal_params = train_imaml_inner_solver(
                 init_params,
-                meta_params_backup,
+                meta_params,
                 (x_spt[i], y_spt[i]),
                 (fnet, n_inner_iter, reg_param),
             )
@@ -158,17 +155,15 @@ def train(db, model, meta_opt_and_state, epoch, log, args):
             # These will be used to update the model's meta-parameters.
             qry_logits = fnet(optimal_params, x_qry[i])
             qry_loss = F.cross_entropy(qry_logits, y_qry[i])
-            # Update the model's meta-parameters to optimize the query
-            # losses across all of the tasks sampled in this batch.
-            # qry_loss = qry_loss / task_num  # scale gradients
-            meta_grads = torch.autograd.grad(qry_loss / task_num, meta_params)
-            meta_updates, meta_opt_state = meta_opt.update(meta_grads, meta_opt_state)
-            meta_params = torchopt.apply_updates(meta_params, meta_updates)
             qry_acc = (qry_logits.argmax(dim=1) == y_qry[i]).float().mean()
-            qry_losses.append(qry_loss.item())
+            qry_losses.append(qry_loss)
             qry_accs.append(qry_acc.item())
 
-        qry_losses = np.mean(qry_losses)
+        qry_losses = torch.mean(torch.stack(qry_losses))
+        meta_grads = torch.autograd.grad(qry_losses, meta_params)
+        meta_updates, meta_opt_state = meta_opt.update(meta_grads, meta_opt_state)
+        meta_params = torchopt.apply_updates(meta_params, meta_updates)
+        qry_losses = qry_losses.item()
         qry_accs = 100.0 * np.mean(qry_accs)
         i = epoch + float(batch_idx) / n_train_iter
         iter_time = time.time() - start_time
