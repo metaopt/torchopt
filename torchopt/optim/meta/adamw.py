@@ -37,7 +37,7 @@ class MetaAdamW(MetaOptimizer):
     # pylint: disable-next=too-many-arguments
     def __init__(
         self,
-        net: nn.Module,
+        module: nn.Module,
         lr: ScalarOrSchedule = 1e-3,
         betas: Tuple[float, float] = (0.9, 0.999),
         eps: float = 1e-8,
@@ -52,7 +52,7 @@ class MetaAdamW(MetaOptimizer):
         """The :meth:`init` function.
 
         Args:
-            net: (nn.Module)
+            module: (nn.Module)
                 A network whose parameters should be optimized.
             lr: (default: :const:`1e-3`)
                 This is a fixed global scaling factor.
@@ -85,7 +85,7 @@ class MetaAdamW(MetaOptimizer):
                 If :data:`True` use our implemented fused operator.
         """
         super().__init__(
-            net,
+            module,
             alias.adamw(
                 lr=lr,
                 betas=betas,

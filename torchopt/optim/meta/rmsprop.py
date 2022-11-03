@@ -35,7 +35,7 @@ class MetaRMSProp(MetaOptimizer):
     # pylint: disable-next=too-many-arguments
     def __init__(
         self,
-        net: nn.Module,
+        module: nn.Module,
         lr: ScalarOrSchedule = 1e-2,
         alpha: float = 0.99,
         eps: float = 1e-8,
@@ -50,7 +50,7 @@ class MetaRMSProp(MetaOptimizer):
         """The :meth:`init` function.
 
         Args:
-            net: (nn.Module)
+            module: (nn.Module)
                 A network whose parameters should be optimized.
             lr: (default: :const:`1e-2`)
                 This is a fixed global scaling factor.
@@ -76,7 +76,7 @@ class MetaRMSProp(MetaOptimizer):
                 Maximize the params based on the objective, instead of minimizing.
         """
         super().__init__(
-            net,
+            module,
             alias.rmsprop(
                 lr=lr,
                 alpha=alpha,

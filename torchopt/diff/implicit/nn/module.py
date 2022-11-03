@@ -14,6 +14,8 @@
 # ==============================================================================
 """The base class for differentiable implicit meta-gradient models."""
 
+# pylint: disable=redefined-builtin
+
 import functools
 import itertools
 from typing import Any, Callable, Dict, Optional, Tuple, Type, Union
@@ -35,7 +37,7 @@ def make_optimality_from_objective(
     objective: Callable[..., torch.Tensor]
 ) -> Callable[..., TupleOfTensors]:
     """Make a function that computes the optimality function of the objective function."""
-    # pylint: disable-next=redefined-builtin
+
     def optimality(self: 'ImplicitMetaGradientModule', *input, **kwargs) -> TupleOfTensors:
         params_containers = extract_module_containers(self, with_buffers=False)[0]
         params_containers_backups = [container.copy() for container in params_containers]
@@ -43,7 +45,6 @@ def make_optimality_from_objective(
         # pylint: disable-next=line-too-long
         flat_params, params_containers_treespec = pytree.tree_flatten_as_tuple(params_containers)  # type: ignore[arg-type]
 
-        # pylint: disable-next=redefined-builtin
         def objective_fn(flat_params: TupleOfTensors, *input, **kwargs) -> torch.Tensor:
             flat_grad_tracking_params = flat_params
             grad_tracking_params_containers: Tuple[
@@ -87,7 +88,7 @@ def enable_implicit_gradients(
 
     @functools.wraps(cls_solve)
     def wrapped(  # pylint: disable=too-many-locals
-        self: 'ImplicitMetaGradientModule', *input, **kwargs  # pylint: disable=redefined-builtin
+        self: 'ImplicitMetaGradientModule', *input, **kwargs
     ) -> Union['ImplicitMetaGradientModule', Tuple['ImplicitMetaGradientModule', Any]]:
         """Solve the optimization problem."""
         params_containers = extract_module_containers(self, with_buffers=False)[0]
@@ -114,7 +115,7 @@ def enable_implicit_gradients(
         def optimality_fn(
             flat_params: TupleOfTensors,
             flat_meta_params: TupleOfTensors,
-            *input,  # pylint: disable=redefined-builtin
+            *input,
             **kwargs,
         ) -> TupleOfTensors:
             flat_grad_tracking_params = flat_params
@@ -149,7 +150,7 @@ def enable_implicit_gradients(
         def solver_fn(
             flat_params: TupleOfTensors,  # pylint: disable=unused-argument
             flat_meta_params: TupleOfTensors,  # pylint: disable=unused-argument
-            *input,  # pylint: disable=redefined-builtin
+            *input,
             **kwargs,
         ) -> Union[TupleOfTensors, Tuple[TupleOfTensors, Any]]:
             output = cls_solve(self, *input, **kwargs)
@@ -227,7 +228,7 @@ class ImplicitMetaGradientModule(torchopt.nn.MetaGradientModule):
         enable_implicit_gradients(cls)
 
     def solve(
-        self, *input, **kwargs  # pylint: disable=redefined-builtin
+        self, *input, **kwargs
     ) -> Union['ImplicitMetaGradientModule', Tuple['ImplicitMetaGradientModule', Any]]:
         """Solves the inner optimization problem.
 
@@ -259,7 +260,6 @@ class ImplicitMetaGradientModule(torchopt.nn.MetaGradientModule):
         """
         raise NotImplementedError  # update parameters
 
-    # pylint: disable-next=redefined-builtin
     def optimality(self, *input, **kwargs) -> TensorTree:
         r"""Computes the optimality residual.
 
@@ -302,7 +302,6 @@ class ImplicitMetaGradientModule(torchopt.nn.MetaGradientModule):
         """  # pylint: disable=line-too-long
         raise NotImplementedError
 
-    # pylint: disable-next=redefined-builtin
     def objective(self, *input, **kwargs) -> torch.Tensor:
         """Computes the objective function value.
 
