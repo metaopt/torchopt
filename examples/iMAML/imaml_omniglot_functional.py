@@ -199,10 +199,6 @@ def test(db, model, epoch, log, args):
     qry_losses = []
     qry_accs = []
 
-    meta_params_backup = pytree.tree_map(
-        lambda t: t.clone().detach_().requires_grad_(requires_grad=t.requires_grad), meta_params
-    )
-
     for batch_idx in range(n_test_iter):
         x_spt, y_spt, x_qry, y_qry = db.next('test')
 
@@ -215,11 +211,11 @@ def test(db, model, epoch, log, args):
 
             init_params = pytree.tree_map(
                 lambda t: t.clone().detach_().requires_grad_(requires_grad=t.requires_grad),
-                meta_params_backup,
+                meta_params,
             )
             optimal_params = test_imaml_inner_solver(
                 init_params,
-                meta_params_backup,
+                meta_params,
                 (x_spt[i], y_spt[i]),
                 (fnet, n_inner_iter, reg_param),
             )
