@@ -13,10 +13,13 @@
 [![GitHub Repo Stars](https://img.shields.io/github/stars/metaopt/torchopt?color=brightgreen&logo=github)](https://github.com/metaopt/torchopt/stargazers)
 [![License](https://img.shields.io/github/license/metaopt/torchopt?label=license)](#license)
 
-**TorchOpt** is a high-performance optimizer library built upon [PyTorch](https://pytorch.org) for easy implementation of functional optimization and gradient-based meta-learning. It consists of two main features:
+**TorchOpt** is an efficient library for differentiable optimization built upon [PyTorch](https://pytorch.org). TorchOpt has the following three characteristics:
 
-- TorchOpt provides functional optimizer which enables [JAX-like](https://github.com/google/jax) composable functional optimizer for PyTorch. With TorchOpt, one can easily conduct neural network optimization in PyTorch with functional style optimizer, similar to  [Optax](https://github.com/deepmind/optax) in JAX.
-- With the design of functional programing, TorchOpt provides efficient, flexible, and easy-to-implement differentiable optimizer for gradient-based meta-learning research. It largely reduces the efforts required to implement sophisticated meta-learning algorithms.
+- **Comprehensive**: TorchOpt provides three differentiation mode
+- **Flexible**:TorchOpt provides both functional and OOP API for users different preferences.
+- **Efficient**:TorchOpt 
+
+  - **comprehensive**, flexible (Functional and OOP API) and efficient (High performance and distributed training) differentiable optimizer for bi-level optimization research.
 
 --------------------------------------------------------------------------------
 
@@ -26,11 +29,13 @@ The README is organized as follows:
   - [Optax-Like API](#optax-like-api)
   - [PyTorch-Like API](#pytorch-like-api)
   - [Differentiable](#differentiable)
-- [TorchOpt as Differentiable Optimizer for Meta-Learning](#torchopt-as-differentiable-optimizer-for-meta-learning)
-  - [Meta-Learning API](#meta-learning-api)
-- [Examples](#examples)
-- [High-Performance](#high-performance)
+- [TorchOpt for Differentiable topimization](#torchopt-for-differentiable-optimization)
+  - [Explicit Gradient](#meta-learning-api)
+  - [Implicit Gradient](#meta-learning-api)
+  - [Zero-order Gradient](#meta-learning-api)
+- [High-Performance and Distributed Training](#high-performance)
 - [Visualization](#visualization)
+- [Examples](#examples)
 - [Installation](#installation)
 - [Future Plan](#future-plan)
 - [Changelog](#changelog)
@@ -123,7 +128,7 @@ params = torchopt.apply_updates(params, updates, inplace=False)
 
 --------------------------------------------------------------------------------
 
-## TorchOpt as Differentiable Optimizer for Meta-Learning
+## TorchOpt for Differentiable Optimization
 
 Meta-Learning has gained enormous attention in both Supervised Learning and Reinforcement Learning. Meta-Learning algorithms often contain a bi-level optimization process with *inner loop* updating the network parameters and *outer loop* updating meta parameters. The figure below illustrates the basic formulation for meta-optimization in Meta-Learning. The main feature is that the gradients of *outer loss* will back-propagate through all `inner.step` operations.
 
@@ -135,8 +140,10 @@ Since network parameters become a node of computation graph, a flexible Meta-Lea
 
 In contrast to them, TorchOpt realizes differentiable optimizer with functional programing, where Meta-Learning researchers could control the network parameters or optimizer states as normal variables (a.k.a. `torch.Tensor`). This functional optimizer design of TorchOpt is beneficial for implementing complex gradient flow Meta-Learning algorithms and allow us to improve computational efficiency by using techniques like operator fusion.
 
-### Meta-Learning API
-
+### Explicit Gradient
+#### Functional API
+functional optimizer which enables [JAX-like](https://github.com/google/jax) composable functional optimizer for PyTorch. With TorchOpt, one can easily conduct neural network optimization in PyTorch with functional style optimizer, similar to  [Optax](https://github.com/deepmind/optax) in JAX.
+### OOP API
 - We design a base class `torchopt.MetaOptimizer` for managing network updates in Meta-Learning. The constructor of `MetaOptimizer` takes as input the network rather than network parameters. `MetaOptimizer` exposed interface `step(loss)` takes as input the loss for step the network parameter. Refer to the tutorial notebook [Meta Optimizer](tutorials/3_Meta_Optimizer.ipynb) for more details.
 - We offer `torchopt.chain` which can apply a list of chainable update transformations. Combined with `MetaOptimizer`, it can help you conduct gradient transformation such as gradient clip before the Meta optimizer steps. Refer to the tutorial notebook [Meta Optimizer](tutorials/3_Meta_Optimizer.ipynb) for more details.
 - We observe that different Meta-Learning algorithms vary in inner-loop parameter recovery. TorchOpt provides basic functions for users to extract or recover network parameters and optimizer states anytime anywhere they want.
@@ -184,7 +191,9 @@ for train_iter in range(train_iters):
     torchopt.stop_gradient(net)
     torchopt.stop_gradient(inner_optim)
 ```
+### Implicit Gradient
 
+### Zero-order gradient
 --------------------------------------------------------------------------------
 
 ## Examples
@@ -270,15 +279,6 @@ make install-editable  # or run `pip3 install --no-build-isolation --editable .`
 
 --------------------------------------------------------------------------------
 
-## Future Plan
-
-- [X] CPU-accelerated optimizer
-- [X] Support more optimizers such as AdamW, RMSProp
-- [X] Support general implicit differentiation
-- [X] Zero order optimization
-- [X] Distributed optimization
-- [ ] Support `complex` data type
-
 ## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md).
@@ -287,7 +287,7 @@ See [CHANGELOG.md](CHANGELOG.md).
 
 ## The Team
 
-TorchOpt is a work by Jie Ren, Xidong Feng, [Bo Liu](https://github.com/Benjamin-eecs), [Xuehai Pan](https://github.com/XuehaiPan), [Luo Mai](https://luomai.github.io/) and [Yaodong Yang](https://www.yangyaodong.com/).
+TorchOpt is a work by Jie Ren, Xidong Feng(https://github.com/waterhorse1), [Bo Liu](https://github.com/Benjamin-eecs), [Xuehai Pan](https://github.com/XuehaiPan), [Luo Mai](https://luomai.github.io/) and [Yaodong Yang](https://www.yangyaodong.com/).
 
 ## Citing TorchOpt
 
