@@ -19,7 +19,7 @@
 - **Flexible**: TorchOpt provides both functional and OOP API for user different preferences. Users can implement differentiable optimization in JAX-like or PyTorch-like style.
 - **Efficient**: TorchOpt provides (1) CPU/GPU acceleration differentiable optimizer (2) RPC-based distributed training framework (3) Tree Operation parallelism, to largely increase the training efficiency for bi-level optimization problem.
 
-Beyond differentiable optimization, torchopt can also be purely regarded as a functional optimizer which enables [JAX-like](https://github.com/google/jax) composable functional optimizer for PyTorch. With TorchOpt, one can easily conduct neural network optimization in PyTorch with functional style optimizer, similar to  [Optax](https://github.com/deepmind/optax) in JAX.
+Beyond differentiable optimization, torchopt can also be regarded as a functional optimizer which enables [JAX-like](https://github.com/google/jax) composable functional optimizer for PyTorch. With TorchOpt, one can easily conduct neural network optimization in PyTorch with functional style optimizer, similar to  [Optax](https://github.com/deepmind/optax) in JAX.
 
 --------------------------------------------------------------------------------
 
@@ -32,7 +32,7 @@ The README is organized as follows:
   - [Explicit Gradient](#explicit-gradient)
   - [Implicit Gradient](#implicit-gradient)
   - [Zero-order Gradient](#zero-order-gradient)
-- [High-Performance and Distributed Training](#high-performance)
+- [High-Performance and Distributed Training](#high-performance-and-distributed-training)
 - [Visualization](#visualization)
 - [Examples](#examples)
 - [Installation](#installation)
@@ -108,7 +108,7 @@ optimizer.step()                  # step updates
 
 ### Differentiable
 
-On top of the same optimization function as `torch.optim`, an important benefit of functional optimizer is that one can implement differentiable optimization easily. This is particularly helpful when the algorithm requires to differentiate through optimization update (such as meta learning practices). We take as the inputs the gradients and optimizer states, use non-in-place operators to compute and output the updates. The processes can be automatically implemented, with the only need from users being to pass the argument `inplace=False` to the functions. You canCheck [Explicit Gradient](#explicit-gradient) functional API for example.
+On top of the same optimization function as `torch.optim`, an important benefit of functional optimizer is that one can implement differentiable optimization easily. This is particularly helpful when the algorithm requires to differentiate through optimization update (such as meta learning practices). We take as the inputs the gradients and optimizer states, use non-in-place operators to compute and output the updates. The processes can be automatically implemented, with the only need from users being to pass the argument `inplace=False` to the functions. You can check [Explicit Gradient](#explicit-gradient) functional API for example.
 
 --------------------------------------------------------------------------------
 
@@ -120,9 +120,6 @@ Meta-Learning has gained enormous attention in both Supervised Learning and Rein
   <img src="https://github.com/metaopt/torchopt/raw/HEAD/image/TorchOpt.png" width="85%" />
 </div>
 
-Since network parameters become a node of computation graph, a flexible Meta-Learning library should enable users manually control the gradient graph connection which means that users should have access to the network parameters and optimizer states for manually detaching or connecting the computation graph. In PyTorch designing, the network parameters or optimizer states are members of network (a.k.a. `torch.nn.Module`) or optimizer (a.k.a. `torch.optim.Optimizer`), this design significantly introducing difficulty for user control network parameters or optimizer states. Previous differentiable optimizer Repo [`higher`](https://github.com/facebookresearch/higher), [`learn2learn`](https://github.com/learnables/learn2learn) follows the PyTorch designing which leads to inflexible API.
-
-In contrast to them, TorchOpt realizes differentiable optimizer with functional programing, where Meta-Learning researchers could control the network parameters or optimizer states as normal variables (a.k.a. `torch.Tensor`). This functional optimizer design of TorchOpt is beneficial for implementing complex gradient flow Meta-Learning algorithms and allow us to improve computational efficiency by using techniques like operator fusion.
 
 ### Explicit Gradient
 #### Functional API
@@ -142,7 +139,7 @@ for iter in range(iter_times):
     updates, state = optimizer.update(grads, state, inplace=False)
     params = torchopt.apply_updates(params, updates)   
     
-loss = outer_loss(fmodel, params, meta_p)
+loss = outer_loss(fmodel, params, meta_params)
 meta_grads = torch.autograd.grad(loss, meta_params)
 ```
 functional optimizer which enables [JAX-like](https://github.com/google/jax) composable functional optimizer for PyTorch. With TorchOpt, one can easily conduct neural network optimization in PyTorch with functional style optimizer, similar to  [Optax](https://github.com/deepmind/optax) in JAX.
@@ -203,19 +200,17 @@ def forward(meta_params, data):
 --------------------------------------------------------------------------------
 ## High-Performance and Distributed Training
 ### CPU/GPU accelerated differentiable optimizer
-One can think of the scale procedures on gradients of optimizer algorithms as a combination of several operations. For example, the implementation of the Adam algorithm often includes addition, multiplication, power and square operations, one can fuse these operations into several compound functions. The operator fusion could greatly simplify the computation graph and reduce the GPU function launching stall. In addition, one can also implement the optimizer backward function and manually reuse some intermediate tensors to improve the backward performance. Users can pass argument `use_accelerated_op=True` to `adam`, `Adam` and `MetaAdam` to enable the fused accelerated operator. The arguments are the same between the two kinds of implementations.
+We take the optimizer as a whole instead of separating it into several basic operators (e.g., *sqrt* and *div*}). Therefore, by manually writing the forward and backward functions, we can perform the symbolic reduction. In addition, we can store some intermediate data that can be reused during the back-propagation. We write the accelerated functions in C++ OpenMP and CUDA, bind them by `pybind11` to allow they can be called by Python, and then we define the forward and backward behavior using `torch.autograd.Function`. User can use by simply setting the `use_accelerated_op` flag as `True`.
 
-Here we evaluate the performance using the MAML-Omniglot code with the inner-loop Adam optimizer on GPU. We comparable the run time of the overall algorithm and the meta-optimization (outer-loop optimization) under different network architecture/inner-step numbers. We choose [`higher`](https://github.com/facebookresearch/higher) as our baseline. The figure below illustrate that our accelerated Adam can achieve at least $1/3$ efficiency improvement over the baseline.
-
-<div align="center">
-  <img src="https://github.com/metaopt/torchopt/raw/HEAD/image/time.png" width="80%" />
-</div>
+```python
+optimizer = torchopt.MetaAdam(net, lr, use_accelerated_op=True)
+```
 
 ### Distributed Training
-### OpTree
+`TorchOpt` provides distributed training features based on the PyTorch RPC module for better training speed and multi-node multi-GPU support. Different from the MPI-like parallelization paradigm, which uses multiple homogenous workers and requires carefully designed communication hooks, the RPC APIs allow users to build their optimization pipeline more flexibly. Experimental results show that we achieve approximately linear relationship between the speed-up ratio and the number of workers. Check the [distributed MAML example](https://github.com/metaopt/torchopt/tree/main/examples/distributed/few-shot) for more specific guidance.
 
-[`OpTree`]([https://github.com/facebookresearch/higher](https://github.com/metaopt/optree))
-Notably, the operator fusion not only increases performance but also help simplify the computation graph, which will be discussed in the next section.
+### OpTree
+We implement the *PyTree* to enable fast nested structure flatten using C++. The tree operations (e.g., flatten and unflatten) are very important in enabling functional and Just-In-Time (JIT) features of deep learning frameworks. By implementing it in C++, we can use some cache/memory friendly structures (e.g., `absl::InlinedVector`) to improve the performance. For more guidance and comparison results, refer to our open source project [`OpTree`](https://github.com/metaopt/optree).
 
 --------------------------------------------------------------------------------
 
