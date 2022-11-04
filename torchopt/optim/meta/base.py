@@ -14,7 +14,7 @@
 # ==============================================================================
 """The base class for differentiable meta-optimizers."""
 
-from typing import Dict, List, Optional, Sequence, Tuple, cast
+from typing import Dict, List, Optional, Sequence, Tuple
 
 import torch
 import torch.nn as nn
@@ -31,11 +31,11 @@ __all__ = ['MetaOptimizer']
 class MetaOptimizer:
     """The base class for high-level differentiable optimizers."""
 
-    def __init__(self, net: nn.Module, impl: GradientTransformation):
+    def __init__(self, module: nn.Module, impl: GradientTransformation) -> None:
         """The :meth:`init` function.
 
         Args:
-            net: (nn.Module)
+            module: (nn.Module)
                 A network whose parameters should be optimized.
             impl: (GradientTransformation)
                 A low level optimizer function, it could be a optimizer function provided by
@@ -51,9 +51,9 @@ class MetaOptimizer:
         self.param_containers_groups: List[Tuple[Dict[str, Optional[torch.Tensor]], ...]] = []
         self.state_groups: List[OptState] = []
 
-        self.add_param_group(net)
+        self.add_param_group(module)
 
-    def step(self, loss: torch.Tensor):  # pylint: disable=too-many-locals
+    def step(self, loss: torch.Tensor) -> None:  # pylint: disable=too-many-locals
         """Compute the gradients of the loss to the network parameters and update network parameters.
 
         Graph of the derivative will be constructed, allowing to compute higher order derivative
@@ -84,16 +84,17 @@ class MetaOptimizer:
             )
             self.state_groups[i] = new_state
             flat_new_params = apply_updates(flat_params, updates, inplace=False)
-            new_params = cast(
-                Tuple[Dict[str, Optional[torch.Tensor]], ...],
-                pytree.tree_unflatten(container_treespec, flat_new_params),
+            new_params: Tuple[
+                Dict[str, Optional[torch.Tensor]], ...
+            ] = pytree.tree_unflatten(  # type: ignore[assignment]
+                container_treespec, flat_new_params
             )
             for container, new_param in zip(param_container, new_params):
                 container.update(new_param)
 
-    def add_param_group(self, net: nn.Module) -> None:
+    def add_param_group(self, module: nn.Module) -> None:
         """Add a param group to the optimizer's :attr:`state_groups`."""
-        params_container = extract_module_containers(net, with_buffers=False)[0]
+        params_container = extract_module_containers(module, with_buffers=False)[0]
         flat_params: TupleOfTensors = tuple(pytree.tree_leaves(params_container))  # type: ignore[arg-type]
         optimizer_state = self.impl.init(flat_params)
         self.param_containers_groups.append(params_container)
