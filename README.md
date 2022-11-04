@@ -16,7 +16,7 @@
 **TorchOpt** is an efficient library for differentiable optimization built upon [PyTorch](https://pytorch.org). TorchOpt is:
 
 - **Comprehensive**: TorchOpt provides three differentiation mode - explicit differentiation, implicit differentiation and zero-order differentiation for handling different differenable optimization situations.
-- **Flexible**: TorchOpt provides both functional and OOP API for user different preferences. Users can implement differentiable optimization in JAX-like or PyTorch-like style.
+- **Flexible**: TorchOpt provides both functional and objective-oriented API for user different preferences. Users can implement differentiable optimization in JAX-like or PyTorch-like style.
 - **Efficient**: TorchOpt provides (1) CPU/GPU acceleration differentiable optimizer (2) RPC-based distributed training framework (3) Tree Operation parallelism, to largely increase the training efficiency for bi-level optimization problem.
 
 Beyond differentiable optimization, torchopt can also be regarded as a functional optimizer which enables [JAX-like](https://github.com/google/jax) composable functional optimizer for PyTorch. With TorchOpt, one can easily conduct neural network optimization in PyTorch with functional style optimizer, similar to  [Optax](https://github.com/deepmind/optax) in JAX.
@@ -121,7 +121,9 @@ Meta-Learning has gained enormous attention in both Supervised Learning and Rein
 
 
 ### Explicit Gradient
+The idea of explicit gradient is to treat the gradient step as a differentiable function and try to backpropagate through the unrolled optimization path. This differentiation mode is suitable for algorithms when the inner-level optimization solution is obtained by a few gradient steps, such as [MAML](https://arxiv.org/abs/1703.03400), [MGRL](https://arxiv.org/abs/1805.09801). TorchOpt offers both functional and object-oriented API for EG to fit different user applications. 
 #### Functional API
+The functional API is to conduct optimization in a functional programming style. Note that we pass the argument `inplace=False` to the functions to make the optimization differentiable. Refer to the notebook [Functional Optimizer](tutorials/1_Functional_Optimizer.ipynb) for more guidances.
 ```python
 # Functional API
 optimizer = torchopt.adam()
@@ -141,8 +143,9 @@ for iter in range(iter_times):
 loss = outer_loss(fmodel, params, meta_params)
 meta_grads = torch.autograd.grad(loss, meta_params)
 ```
-functional optimizer which enables [JAX-like](https://github.com/google/jax) composable functional optimizer for PyTorch. With TorchOpt, one can easily conduct neural network optimization in PyTorch with functional style optimizer, similar to  [Optax](https://github.com/deepmind/optax) in JAX.
-### OOP API
+
+#### OOP API
+TorchOpt also provides OOP API compatible with PyTorch programming style. Refer to the notebook [Meta Optimizer](tutorials/3_Meta_Optimizer.ipynb), [Stop Gradient](tutorials/4_Stop_Gradient.ipynb) for more guidances.
 ```python
 # OOP API
 # Define meta and inner parameters
@@ -156,15 +159,12 @@ for iter in range(iter_times):
     loss = inner_loss(model, meta_params)  
     optimizer.step(loss)
     
-loss = outer_loss(model, meta_p)
+loss = outer_loss(model, meta_params)
 loss.backward()
 ```
-- We design a base class `torchopt.MetaOptimizer` for managing network updates in Meta-Learning. The constructor of `MetaOptimizer` takes as input the network rather than network parameters. `MetaOptimizer` exposed interface `step(loss)` takes as input the loss for step the network parameter. Refer to the tutorial notebook [Meta Optimizer](tutorials/3_Meta_Optimizer.ipynb) for more details.
-- We offer `torchopt.chain` which can apply a list of chainable update transformations. Combined with `MetaOptimizer`, it can help you conduct gradient transformation such as gradient clip before the Meta optimizer steps. Refer to the tutorial notebook [Meta Optimizer](tutorials/3_Meta_Optimizer.ipynb) for more details.
-- We observe that different Meta-Learning algorithms vary in inner-loop parameter recovery. TorchOpt provides basic functions for users to extract or recover network parameters and optimizer states anytime anywhere they want.
-- Some algorithms such as MGRL ([arXiv:1805.09801](https://arxiv.org/abs/1805.09801)) initialize the inner-loop parameters inherited from previous inner-loop process when conducting a new bi-level process. TorchOpt also provides a finer function `stop_gradient` for manipulating the gradient graph, which is helpful for this kind of algorithms. Refer to the notebook [Stop Gradient](tutorials/4_Stop_Gradient.ipynb) for more details.
 
 ### Implicit Gradient
+By treating the solution $\theta^{\star}$ as an implicit function of $\phi$, the idea of IG is to directly get analytical best-response derivatives $\partial \theta^{\star}(\phi)/ \partial \phi$ by [implicit function theorem](https://en.wikipedia.org/wiki/Implicit_function_theorem). This is suitable for algorithms when the inner-level optimal solution is achieved $\frac{\partial F(\theta, \phi)}{\partial \theta} |_{\theta^{\star}} = 0$ or reaches some stationary conditions $F(\theta^{\star}, \phi)=0$, such as [iMAML](https://arxiv.org/abs/1909.04630), [DEQ](https://arxiv.org/abs/1909.01377). TorchOpt offers functional/OOP API for supporting both [conjugate gradient-based](https://arxiv.org/abs/1909.04630) and [Neumann series](https://arxiv.org/abs/1911.02590) based IG method. Refer to the example [IMAML](https://github.com/waterhorse1/torchopt/tree/readme/examples/iMAML) and the notebook [Implicit Gradient](tutorials/5_Implicit_Differentiation.ipynb) for more guidances.
 #### Functional API
 ```python
 # Functional API for implicit gradient
@@ -187,7 +187,9 @@ meta_grads = torch.autograd.grad(loss, meta_params)
 #### OOP API
 
 ### Zero-order gradient
-When the inner-loop process is non-differentiable or one wants to eliminate the heavy computation burdens in the previous two modes (brought by Hessian), one can choose ZD. ZD typically gets gradients based on zero-order estimation, such as finite-difference, or [Evolutionary Strategy](https://arxiv.org/abs/1703.03864)}. [ESMAML](https://openreview.net/pdf?id=S1exA2NtDB), and [NAC](https://arxiv.org/abs/2106.02745), successfully solve the bi-level optimization problem based on ES. Instead of optimizing the objective $F$, ES optimize a smoothed objective. \texttt{TorchOpt} provides functional and OOP API for the ES method.
+$\nabla_\theta \tilde{f}_\sigma(\theta)=\frac{1}{\sigma}\mathbb{E}_{\mathbf{g}}$
+
+When the inner-loop process is non-differentiable or one wants to eliminate the heavy computation burdens in the previous two modes (brought by Hessian), one can choose ZD. ZD typically gets gradients based on zero-order estimation, such as finite-difference, or [Evolutionary Strategy](https://arxiv.org/abs/1703.03864)}. Instead of optimizing the objective $F$, ES optimize a smoothed objective. The gradient of such smoothed function is  TorchOpt provides functional and OOP API for the ES method. Refer to the notebook [Implicit Gradient](tutorials/6_zero_order.ipynb) for more guidances.
 #### Functional API
 ```python
 # Functional API
@@ -200,7 +202,7 @@ def forward(meta_params, data):
 --------------------------------------------------------------------------------
 ## High-Performance and Distributed Training
 ### CPU/GPU accelerated differentiable optimizer
-We take the optimizer as a whole instead of separating it into several basic operators (e.g., *sqrt* and *div*}). Therefore, by manually writing the forward and backward functions, we can perform the symbolic reduction. In addition, we can store some intermediate data that can be reused during the back-propagation. We write the accelerated functions in C++ OpenMP and CUDA, bind them by `pybind11` to allow they can be called by Python, and then we define the forward and backward behavior using `torch.autograd.Function`. User can use by simply setting the `use_accelerated_op` flag as `True`.
+We take the optimizer as a whole instead of separating it into several basic operators (e.g., *sqrt* and *div*}). Therefore, by manually writing the forward and backward functions, we can perform the symbolic reduction. In addition, we can store some intermediate data that can be reused during the back-propagation. We write the accelerated functions in C++ OpenMP and CUDA, bind them by `pybind11` to allow they can be called by Python, and then we define the forward and backward behavior using `torch.autograd.Function`. User can use by simply setting the `use_accelerated_op` flag as `True`. Refer to the correpsonding sections in [Functional Optimizer](tutorials/1_Functional_Optimizer.ipynb) and [Meta Optimizer](tutorials/3_Meta_Optimizer.ipynb)
 
 ```python
 optimizer = torchopt.MetaAdam(net, lr, use_accelerated_op=True)
@@ -216,7 +218,7 @@ We implement the *PyTree* to enable fast nested structure flatten using C++. The
 
 ## Visualization
 
-Complex gradient flow in meta-learning brings in a great challenge for managing the gradient flow and verifying the correctness of it. TorchOpt provides a visualization tool that draw variable (e.g. network parameters or meta parameters) names on the gradient graph for better analyzing. The visualization tool is modified from [`torchviz`](https://github.com/szagoruyko/pytorchviz). We provide an example using the [visualization code](examples/visualize.py). Also refer to the notebook [Visualization](tutorials/2_Visualization.ipynb) for more details.
+Complex gradient flow in meta-learning brings in a great challenge for managing the gradient flow and verifying the correctness of it. TorchOpt provides a visualization tool that draw variable (e.g. network parameters or meta parameters) names on the gradient graph for better analyzing. The visualization tool is modified from [`torchviz`](https://github.com/szagoruyko/pytorchviz). Refer to the example [visualization code](examples/visualize.py) and the notebook [Visualization](tutorials/2_Visualization.ipynb) for more details.
 
 The figure below show the visualization result. Compared with [`torchviz`](https://github.com/szagoruyko/pytorchviz), TorchOpt fuses the operations within the `Adam` together (orange) to reduce the complexity and provide simpler visualization.
 
