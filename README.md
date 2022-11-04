@@ -36,7 +36,6 @@ The README is organized as follows:
 - [Visualization](#visualization)
 - [Examples](#examples)
 - [Installation](#installation)
-- [Future Plan](#future-plan)
 - [Changelog](#changelog)
 - [The Team](#the-team)
 - [Citing TorchOpt](#citing-torchopt)
@@ -117,7 +116,7 @@ On top of the same optimization function as `torch.optim`, an important benefit 
 Meta-Learning has gained enormous attention in both Supervised Learning and Reinforcement Learning. Meta-Learning algorithms often contain a bi-level optimization process with *inner loop* updating the network parameters and *outer loop* updating meta parameters. The figure below illustrates the basic formulation for meta-optimization in Meta-Learning. The main feature is that the gradients of *outer loss* will back-propagate through all `inner.step` operations.
 
 <div align="center">
-  <img src="https://github.com/metaopt/torchopt/raw/HEAD/image/TorchOpt.png" width="85%" />
+  <img src="image/diffmode.png" width="90%" />
 </div>
 
 
@@ -188,6 +187,7 @@ meta_grads = torch.autograd.grad(loss, meta_params)
 #### OOP API
 
 ### Zero-order gradient
+When the inner-loop process is non-differentiable or one wants to eliminate the heavy computation burdens in the previous two modes (brought by Hessian), one can choose ZD. ZD typically gets gradients based on zero-order estimation, such as finite-difference, or [Evolutionary Strategy](https://arxiv.org/abs/1703.03864)}. [ESMAML](https://openreview.net/pdf?id=S1exA2NtDB), and [NAC](https://arxiv.org/abs/2106.02745), successfully solve the bi-level optimization problem based on ES. Instead of optimizing the objective $F$, ES optimize a smoothed objective. \texttt{TorchOpt} provides functional and OOP API for the ES method.
 #### Functional API
 ```python
 # Functional API
