@@ -19,16 +19,19 @@
 - **Flexible**: TorchOpt provides both functional and OOP API for user different preferences. Users can implement differentiable optimization in JAX-like or PyTorch-like style.
 - **Efficient**: TorchOpt provides (1) CPU/GPU acceleration differentiable optimizer (2) RPC-based distributed training framework (3) Tree Operation parallelism, to largely increase the training efficiency for bi-level optimization problem.
 
-In addition, torchopt can be served as
+Beyond differentiable optimization, torchopt can also be purely regarded as a functional optimizer which enables [JAX-like](https://github.com/google/jax) composable functional optimizer for PyTorch. With TorchOpt, one can easily conduct neural network optimization in PyTorch with functional style optimizer, similar to  [Optax](https://github.com/deepmind/optax) in JAX.
 
 --------------------------------------------------------------------------------
 
 The README is organized as follows:
-
+- [TorchOpt as Functional Optimizer](#torchopt-as-functional-optimizer)
+  - [Optax-Like API](#optax-like-api)
+  - [PyTorch-Like API](#pytorch-like-api)
+  - [Differentiable](#differentiable)
 - [TorchOpt for Differentiable topimization](#torchopt-for-differentiable-optimization)
   - [Explicit Gradient](#explicit-gradient)
-  - [Implicit Gradient](#meta-learning-api)
-  - [Zero-order Gradient](#meta-learning-api)
+  - [Implicit Gradient](#implicit-gradient)
+  - [Zero-order Gradient](#zero-order-gradient)
 - [High-Performance and Distributed Training](#high-performance)
 - [Visualization](#visualization)
 - [Examples](#examples)
@@ -198,8 +201,8 @@ def forward(meta_params, data):
     return output
 ```
 --------------------------------------------------------------------------------
-## High-Performance
-
+## High-Performance and Distributed Training
+### CPU/GPU accelerated differentiable optimizer
 One can think of the scale procedures on gradients of optimizer algorithms as a combination of several operations. For example, the implementation of the Adam algorithm often includes addition, multiplication, power and square operations, one can fuse these operations into several compound functions. The operator fusion could greatly simplify the computation graph and reduce the GPU function launching stall. In addition, one can also implement the optimizer backward function and manually reuse some intermediate tensors to improve the backward performance. Users can pass argument `use_accelerated_op=True` to `adam`, `Adam` and `MetaAdam` to enable the fused accelerated operator. The arguments are the same between the two kinds of implementations.
 
 Here we evaluate the performance using the MAML-Omniglot code with the inner-loop Adam optimizer on GPU. We comparable the run time of the overall algorithm and the meta-optimization (outer-loop optimization) under different network architecture/inner-step numbers. We choose [`higher`](https://github.com/facebookresearch/higher) as our baseline. The figure below illustrate that our accelerated Adam can achieve at least $1/3$ efficiency improvement over the baseline.
@@ -208,6 +211,10 @@ Here we evaluate the performance using the MAML-Omniglot code with the inner-loo
   <img src="https://github.com/metaopt/torchopt/raw/HEAD/image/time.png" width="80%" />
 </div>
 
+### Distributed Training
+### OpTree
+
+[`OpTree`]([https://github.com/facebookresearch/higher](https://github.com/metaopt/optree))
 Notably, the operator fusion not only increases performance but also help simplify the computation graph, which will be discussed in the next section.
 
 --------------------------------------------------------------------------------
