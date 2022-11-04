@@ -13,24 +13,20 @@
 [![GitHub Repo Stars](https://img.shields.io/github/stars/metaopt/torchopt?color=brightgreen&logo=github)](https://github.com/metaopt/torchopt/stargazers)
 [![License](https://img.shields.io/github/license/metaopt/torchopt?label=license)](#license)
 
-**TorchOpt** is an efficient library for differentiable optimization built upon [PyTorch](https://pytorch.org). TorchOpt has the following three characteristics:
+**TorchOpt** is an efficient library for differentiable optimization built upon [PyTorch](https://pytorch.org). TorchOpt is:
 
-- **Comprehensive**: TorchOpt provides three differentiation mode
-- **Flexible**:TorchOpt provides both functional and OOP API for users different preferences.
-- **Efficient**:TorchOpt 
+- **Comprehensive**: TorchOpt provides three differentiation mode - explicit differentiation, implicit differentiation and zero-order differentiation for handling different differenable optimization situations.
+- **Flexible**: TorchOpt provides both functional and OOP API for user different preferences. Users can implement differentiable optimization in JAX-like or PyTorch-like style.
+- **Efficient**: TorchOpt provides (1) CPU/GPU acceleration differentiable optimizer (2) RPC-based distributed training framework (3) Tree Operation parallelism, to largely increase the training efficiency for bi-level optimization problem.
 
-  - **comprehensive**, flexible (Functional and OOP API) and efficient (High performance and distributed training) differentiable optimizer for bi-level optimization research.
+In addition, torchopt can be served as
 
 --------------------------------------------------------------------------------
 
 The README is organized as follows:
 
-- [TorchOpt as Functional Optimizer](#torchopt-as-functional-optimizer)
-  - [Optax-Like API](#optax-like-api)
-  - [PyTorch-Like API](#pytorch-like-api)
-  - [Differentiable](#differentiable)
 - [TorchOpt for Differentiable topimization](#torchopt-for-differentiable-optimization)
-  - [Explicit Gradient](#meta-learning-api)
+  - [Explicit Gradient](#explicit-gradient)
   - [Implicit Gradient](#meta-learning-api)
   - [Zero-order Gradient](#meta-learning-api)
 - [High-Performance and Distributed Training](#high-performance)
@@ -43,7 +39,6 @@ The README is organized as follows:
 - [Citing TorchOpt](#citing-torchopt)
 
 --------------------------------------------------------------------------------
-
 ## TorchOpt as Functional Optimizer
 
 The design of TorchOpt follows the philosophy of functional programming. Aligned with [`functorch`](https://github.com/pytorch/functorch), users can conduct functional style programing with models, optimizers and training in PyTorch. We use the Adam optimizer as an example in the following illustration. You can also check out the tutorial notebook [Functional Optimizer](tutorials/1_Functional_Optimizer.ipynb) for more details.
@@ -53,13 +48,6 @@ The design of TorchOpt follows the philosophy of functional programming. Aligned
 For those users who prefer fully functional programing, we offer Optax-Like API by passing gradients and optimizers states to the optimizer function. We design base class `torchopt.Optimizer` that has the same interface as `torch.optim.Optimizer`. Here is an example coupled with `functorch`:
 
 ```python
-import functorch
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from torch.utils.data import DataLoader
-
-import torchopt
 
 class Net(nn.Module): ...
 
@@ -117,14 +105,7 @@ optimizer.step()                  # step updates
 
 ### Differentiable
 
-On top of the same optimization function as `torch.optim`, an important benefit of functional optimizer is that one can implement differentiable optimization easily. This is particularly helpful when the algorithm requires to differentiate through optimization update (such as meta learning practices). We take as the inputs the gradients and optimizer states, use non-in-place operators to compute and output the updates. The processes can be automatically implemented, with the only need from users being to pass the argument `inplace=False` to the functions:
-
-```python
-# Get updates
-updates, opt_state = optimizer.update(grad, opt_state, inplace=False)
-# Update network parameters
-params = torchopt.apply_updates(params, updates, inplace=False)
-```
+On top of the same optimization function as `torch.optim`, an important benefit of functional optimizer is that one can implement differentiable optimization easily. This is particularly helpful when the algorithm requires to differentiate through optimization update (such as meta learning practices). We take as the inputs the gradients and optimizer states, use non-in-place operators to compute and output the updates. The processes can be automatically implemented, with the only need from users being to pass the argument `inplace=False` to the functions. You canCheck [Explicit Gradient](#explicit-gradient) functional API for example.
 
 --------------------------------------------------------------------------------
 
@@ -142,72 +123,81 @@ In contrast to them, TorchOpt realizes differentiable optimizer with functional 
 
 ### Explicit Gradient
 #### Functional API
+```python
+# Functional API
+optimizer = torchopt.adam()
+# Define meta and inner parameters
+meta_params = ...
+fmodel, params = make_functional(model)
+# Initial state
+state = optimizer.init(params)
+
+for iter in range(iter_times):
+    loss = inner_loss(fmodel, params, meta_params)                
+    grads = torch.autograd.grad(loss, params)
+    # Apply non-inplace parameter update
+    updates, state = optimizer.update(grads, state, inplace=False)
+    params = torchopt.apply_updates(params, updates)   
+    
+loss = outer_loss(fmodel, params, meta_p)
+meta_grads = torch.autograd.grad(loss, meta_params)
+```
 functional optimizer which enables [JAX-like](https://github.com/google/jax) composable functional optimizer for PyTorch. With TorchOpt, one can easily conduct neural network optimization in PyTorch with functional style optimizer, similar to  [Optax](https://github.com/deepmind/optax) in JAX.
 ### OOP API
+```python
+# OOP API
+# Define meta and inner parameters
+meta_params = ...
+model = ...
+# Define differentiable optimizer
+optimizer = torchopt.MetaAdam(model.parameters())
+
+for iter in range(iter_times):
+    # perform inner update
+    loss = inner_loss(model, meta_params)  
+    optimizer.step(loss)
+    
+loss = outer_loss(model, meta_p)
+loss.backward()
+```
 - We design a base class `torchopt.MetaOptimizer` for managing network updates in Meta-Learning. The constructor of `MetaOptimizer` takes as input the network rather than network parameters. `MetaOptimizer` exposed interface `step(loss)` takes as input the loss for step the network parameter. Refer to the tutorial notebook [Meta Optimizer](tutorials/3_Meta_Optimizer.ipynb) for more details.
 - We offer `torchopt.chain` which can apply a list of chainable update transformations. Combined with `MetaOptimizer`, it can help you conduct gradient transformation such as gradient clip before the Meta optimizer steps. Refer to the tutorial notebook [Meta Optimizer](tutorials/3_Meta_Optimizer.ipynb) for more details.
 - We observe that different Meta-Learning algorithms vary in inner-loop parameter recovery. TorchOpt provides basic functions for users to extract or recover network parameters and optimizer states anytime anywhere they want.
 - Some algorithms such as MGRL ([arXiv:1805.09801](https://arxiv.org/abs/1805.09801)) initialize the inner-loop parameters inherited from previous inner-loop process when conducting a new bi-level process. TorchOpt also provides a finer function `stop_gradient` for manipulating the gradient graph, which is helpful for this kind of algorithms. Refer to the notebook [Stop Gradient](tutorials/4_Stop_Gradient.ipynb) for more details.
 
-We give an example of MAML ([arXiv:1703.03400](https://arxiv.org/abs/1703.03400)) with inner-loop Adam optimizer to illustrate TorchOpt APIs:
-
-```python
-net = Net()  # init
-
-# The constructor `MetaOptimizer` takes as input the network
-inner_optim = torchopt.MetaAdam(net)
-outer_optim = torchopt.Adam(net.parameters())
-
-for train_iter in range(train_iters):
-    outer_loss = 0
-    for task in range(num_tasks):
-        loader = Loader(num_tasks)
-
-        # Store states at the initial points
-        net_state = torchopt.extract_state_dict(net)  # extract state
-        optim_state = torchopt.extract_state_dict(inner_optim)
-        for inner_iter in range(inner_iters):
-            # Compute inner loss and perform inner update
-            xs, ys = next(loader)
-            pred = net(xs)
-            inner_loss = F.cross_entropy(pred, ys)
-            inner_optim.step(inner_loss)
-
-        # Compute outer loss and back-propagate
-        xs, ys = next(loader)
-        pred = net(xs)
-        outer_loss = outer_loss + F.cross_entropy(pred, ys)
-
-        # Recover network and optimizer states at the initial point for the next task
-        torchopt.recover_state_dict(inner_optim, optim_state)
-        torchopt.recover_state_dict(net, net_state)
-
-    outer_loss = outer_loss / num_tasks  # task average
-    outer_optim.zero_grad()
-    outer_loss.backward()
-    outer_optim.step()
-
-    # Stop gradient if necessary
-    torchopt.stop_gradient(net)
-    torchopt.stop_gradient(inner_optim)
-```
 ### Implicit Gradient
+#### Functional API
+```python
+# Functional API for implicit gradient
+def stationary(params, meta_params, data):
+    # stationary condition construction
+    return stationary condition
+
+@torchopt.implicit.custom_root(stationary)
+def solve(params, meta_params, data):
+    # forward optimization process
+    return output
+    
+# Define params, meta params and get data
+params, meta_prams, data = ..., ..., ...
+optimal_params = solve(params, meta_params, data)
+loss = outer_loss(optimal_params)
+
+meta_grads = torch.autograd.grad(loss, meta_params)
+```
+#### OOP API
 
 ### Zero-order gradient
+#### Functional API
+```python
+# Functional API
+# Specify method and parameter of ES
+@torchopt.zero_order.es_grad(method, params)
+def forward(meta_params, data):
+    # forward process
+    return output
+```
 --------------------------------------------------------------------------------
-
-## Examples
-
-In [`examples`](examples), we offer several examples of functional optimizer and 5 light-weight meta-learning examples with TorchOpt. The meta-learning examples covers 2 Supervised Learning and 3 Reinforcement Learning algorithms.
-
-- [Model Agnostic Meta Learning (MAML) - Supervised Learning](https://arxiv.org/abs/1703.03400) (ICML 2017)
-- [Learning to Reweight Examples for Robust Deep Learning](https://arxiv.org/abs/1803.09050) (ICML 2018)
-- [Model Agnostic Meta Learning (MAML) - Reinforcement Learning](https://arxiv.org/abs/1703.03400) (ICML 2017)
-- [Meta Gradient Reinforcement Learning (MGRL)](https://arxiv.org/abs/1805.09801) (NeurIPS 2018)
-- [Learning through opponent learning process (LOLA)](https://arxiv.org/abs/1709.04326) (AAMAS 2018)
-
---------------------------------------------------------------------------------
-
 ## High-Performance
 
 One can think of the scale procedures on gradients of optimizer algorithms as a combination of several operations. For example, the implementation of the Adam algorithm often includes addition, multiplication, power and square operations, one can fuse these operations into several compound functions. The operator fusion could greatly simplify the computation graph and reduce the GPU function launching stall. In addition, one can also implement the optimizer backward function and manually reuse some intermediate tensors to improve the backward performance. Users can pass argument `use_accelerated_op=True` to `adam`, `Adam` and `MetaAdam` to enable the fused accelerated operator. The arguments are the same between the two kinds of implementations.
@@ -233,6 +223,18 @@ The figure below show the visualization result. Compared with [`torchviz`](https
 </div>
 
 --------------------------------------------------------------------------------
+## Examples
+
+In [`examples`](examples), we offer several examples of functional optimizer and 5 light-weight meta-learning examples with TorchOpt. The meta-learning examples covers 2 Supervised Learning and 3 Reinforcement Learning algorithms.
+
+- [Model Agnostic Meta Learning (MAML) - Supervised Learning](https://arxiv.org/abs/1703.03400) (ICML 2017)
+- [Learning to Reweight Examples for Robust Deep Learning](https://arxiv.org/abs/1803.09050) (ICML 2018)
+- [Model Agnostic Meta Learning (MAML) - Reinforcement Learning](https://arxiv.org/abs/1703.03400) (ICML 2017)
+- [Meta Gradient Reinforcement Learning (MGRL)](https://arxiv.org/abs/1805.09801) (NeurIPS 2018)
+- [Learning through opponent learning process (LOLA)](https://arxiv.org/abs/1709.04326) (AAMAS 2018)
+
+--------------------------------------------------------------------------------
+
 
 ## Installation
 
