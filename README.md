@@ -118,7 +118,7 @@ Meta-Learning has gained enormous attention in both Supervised Learning and Rein
 <div align="center">
   <img src="image/diffmode.png" width="90%" />
 </div>
-
+As shown above, the scheme contains an outer level that has parameters $\phi$ that can be learned end-to-end through the inner level parameters solution $\theta^{\star}(\phi)$ by using the best-response derivatives $\partial \theta^{\star}(\phi)/ \partial \phi$. \texttt{TorchOpt} supports three differentiation modes. It can be seen that the key component of this algorithm is to calculate the best-response (BR) Jacobian. From the BR-based perspective, existing gradient methods can be categorized into three groups: explicit gradient over unrolled optimization, implicit differentiation, and zero-order gradient differentiation.
 
 ### Explicit Gradient
 The idea of explicit gradient is to treat the gradient step as a differentiable function and try to backpropagate through the unrolled optimization path. This differentiation mode is suitable for algorithms when the inner-level optimization solution is obtained by a few gradient steps, such as [MAML](https://arxiv.org/abs/1703.03400), [MGRL](https://arxiv.org/abs/1805.09801). TorchOpt offers both functional and object-oriented API for EG to fit different user applications. 
