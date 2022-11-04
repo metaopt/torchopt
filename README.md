@@ -227,13 +227,16 @@ The figure below show the visualization result. Compared with [`torchviz`](https
 --------------------------------------------------------------------------------
 ## Examples
 
-In [`examples`](examples), we offer several examples of functional optimizer and 5 light-weight meta-learning examples with TorchOpt. The meta-learning examples covers 2 Supervised Learning and 3 Reinforcement Learning algorithms.
+In [`examples`](examples), we offer several examples of functional optimizer and light-weight meta-learning examples with TorchOpt.
 
 - [Model Agnostic Meta Learning (MAML) - Supervised Learning](https://arxiv.org/abs/1703.03400) (ICML 2017)
 - [Learning to Reweight Examples for Robust Deep Learning](https://arxiv.org/abs/1803.09050) (ICML 2018)
 - [Model Agnostic Meta Learning (MAML) - Reinforcement Learning](https://arxiv.org/abs/1703.03400) (ICML 2017)
 - [Meta Gradient Reinforcement Learning (MGRL)](https://arxiv.org/abs/1805.09801) (NeurIPS 2018)
 - [Learning through opponent learning process (LOLA)](https://arxiv.org/abs/1709.04326) (AAMAS 2018)
+- [Meta-Learning with Implicit Gradients](https://arxiv.org/abs/1909.04630) (NeurIPS 2019)
+
+Also check [`examples`](examples) for more distributed/visuaization/functorch-compatible examples.
 
 --------------------------------------------------------------------------------
 
