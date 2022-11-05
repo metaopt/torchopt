@@ -188,7 +188,7 @@ meta_grads = torch.autograd.grad(loss, meta_params)
 #### OOP API
 
 ### Zero-order gradient
-When the inner-loop process is non-differentiable or one wants to eliminate the heavy computation burdens in the previous two modes (brought by Hessian), one can choose Zero-order gradient (ZD). ZD typically gets gradients based on zero-order estimation, such as finite-difference, or [Evolutionary Strategy](https://arxiv.org/abs/1703.03864)}. Instead of optimizing the objective $F$, ES optimize a smoothed objective defined as. The gradient of such smoothed function is $\nabla_\theta \tilde{f}_\sigma(\theta)=\frac{1}{\sigma}$. TorchOpt provides functional and OOP API for the ES method. Refer to the notebook [Implicit Gradient](tutorials/6_zero_order.ipynb) for more guidances.
+When the inner-loop process is non-differentiable or one wants to eliminate the heavy computation burdens in the previous two modes (brought by Hessian), one can choose Zero-order gradient (ZD). ZD typically gets gradients based on zero-order estimation, such as finite-difference, or [Evolutionary Strategy](https://arxiv.org/abs/1703.03864)}. Instead of optimizing the objective $F$, ES optimize a smoothed objective defined as. The gradient of such smoothed function is $\nabla_\theta \tilde{f}_\sigma(\theta)=\frac{1}{\sigma} \mathbb{E}_{\mathbf{g} \sim \mathcal{N}(0, \mathbf{I}_d)}[f(\theta+\sigma \mathbf{g}) \mathbf{g}]$. TorchOpt provides functional and OOP API for the ES method. Refer to the notebook [Implicit Gradient](tutorials/6_zero_order.ipynb) for more guidances.
 #### Functional API
 ```python
 # Functional API
