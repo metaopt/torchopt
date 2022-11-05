@@ -146,7 +146,7 @@ meta_grads = torch.autograd.grad(loss, meta_params)
 ```
 
 #### OOP API
-TorchOpt also provides OOP API compatible with PyTorch programming style. Refer to the notebook [Meta Optimizer](tutorials/3_Meta_Optimizer.ipynb), [Stop Gradient](tutorials/4_Stop_Gradient.ipynb) for more guidances.
+TorchOpt also provides OOP API compatible with PyTorch programming style. Refer to the example and the notebook [Meta Optimizer](tutorials/3_Meta_Optimizer.ipynb), [Stop Gradient](tutorials/4_Stop_Gradient.ipynb) for more guidances.
 ```python
 # OOP API
 # Define meta and inner parameters
@@ -188,7 +188,7 @@ meta_grads = torch.autograd.grad(loss, meta_params)
 #### OOP API
 
 ### Zero-order gradient
-When the inner-loop process is non-differentiable or one wants to eliminate the heavy computation burdens in the previous two modes (brought by Hessian), one can choose ZD. ZD typically gets gradients based on zero-order estimation, such as finite-difference, or [Evolutionary Strategy](https://arxiv.org/abs/1703.03864)}.  Instead of optimizing the objective $F$, ES optimize a smoothed objective defined as $\tilde{f}_\sigma(\theta)=\mathbb{E}_{\mathbf{g} \sim \mathcal{N}\left(0, \mathbb{I}_d\right)}[f(\theta+\sigma \mathbf{g})]$. The gradient of such smoothed function is $\nabla_\theta \tilde{f}_\sigma(\theta)=\frac{1}{\sigma} \mathbb{E}_{\mathbf{g} \sim \mathcal{N}\left(0, \mathbf{I}_d\right)}[f(\theta+\sigma \mathbf{g}) \mathbf{g}]$. TorchOpt provides functional and OOP API for the ES method. Refer to the notebook [Implicit Gradient](tutorials/6_zero_order.ipynb) for more guidances.
+When the inner-loop process is non-differentiable or one wants to eliminate the heavy computation burdens in the previous two modes (brought by Hessian), one can choose ZD. ZD typically gets gradients based on zero-order estimation, such as finite-difference, or [Evolutionary Strategy](https://arxiv.org/abs/1703.03864)}.  Instead of optimizing the objective $F$, ES optimize a smoothed objective defined as $\tilde{f}_\sigma(\theta)=\mathbb{E}_{\mathbf{g} \sim \mathcal{N}(0, \mathbb{I}_d)}$. The gradient of such smoothed function is $\nabla_\theta \tilde{f}_\sigma(\theta)=\frac{1}{\sigma} \mathbb{E}_{\mathbf{g} \sim \mathcal{N}\left(0, \mathbf{I}_d\right)}[f(\theta+\sigma \mathbf{g}) \mathbf{g}]$. TorchOpt provides functional and OOP API for the ES method. Refer to the notebook [Implicit Gradient](tutorials/6_zero_order.ipynb) for more guidances.
 #### Functional API
 ```python
 # Functional API
