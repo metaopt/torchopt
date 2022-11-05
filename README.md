@@ -167,15 +167,18 @@ loss.backward()
 ### Implicit Gradient
 By treating the solution $\theta^{\star}$ as an implicit function of $\phi$, the idea of IG is to directly get analytical best-response derivatives $\partial \theta^{\star}(\phi)/ \partial \phi$ by [implicit function theorem](https://en.wikipedia.org/wiki/Implicit_function_theorem). This is suitable for algorithms when the inner-level optimal solution is achieved $\frac{\partial F(\theta, \phi)}{\partial \theta} |_{\theta^{\star}} = 0$ or reaches some stationary conditions $F(\theta^{\star}, \phi)=0$, such as [iMAML](https://arxiv.org/abs/1909.04630), [DEQ](https://arxiv.org/abs/1909.01377). TorchOpt offers functional/OOP API for supporting both [conjugate gradient-based](https://arxiv.org/abs/1909.04630) and [Neumann series](https://arxiv.org/abs/1911.02590) based IG method. Refer to the example [IMAML](https://github.com/waterhorse1/torchopt/tree/readme/examples/iMAML) and the notebook [Implicit Gradient](tutorials/5_Implicit_Differentiation.ipynb) for more guidances.
 #### Functional API
+For implicit gradient, users need to define the stationary condition and TorchOpt provides the decorator to warp the solve function for enabling implicit gradient computation.
 ```python
 # Functional API for implicit gradient
 def stationary(params, meta_params, data):
     # stationary condition construction
     return stationary condition
 
-@torchopt.implicit.custom_root(stationary)
+# Decorator for warpping the function
+# and specify the linear solver (conjugate gradient or neumann series)
+@torchopt.implicit.custom_root(stationary, linear_solver)
 def solve(params, meta_params, data):
-    # forward optimization process
+    # forward optimization process for params
     return output
     
 # Define params, meta params and get data
@@ -186,6 +189,40 @@ loss = outer_loss(optimal_params)
 meta_grads = torch.autograd.grad(loss, meta_params)
 ```
 #### OOP API
+Torchopt also offer an OOP API, users need to inherit from the class ImplicitMetaGradientModule to construct the inner-loop network. Users need to define the stationary condition/objective function and the inner-loop solve function to enable implicit gradient computation.
+```python
+# Inherited from the class ImplicitMetaGradientModule
+# and specify the linear solver (conjugate gradient or neumann series)
+class InnerNet(ImplicitMetaGradientModule, linear_solver):
+    def __init__(self):
+        ...
+    def forward(self):
+        # forward process
+        ...
+    def optimality(self):
+        # stationary condition construction for calculateing implicit gradient
+        # If this method is not implemented, it will be
+        # automatically derived from the gradient of the `objective` function.
+        ...
+    def objective(self):
+        # define the inner-loop optimization objective
+        ...
+    def solve(self, data):
+        # conduct the inner-loop optimization
+        ...
+
+# get meta_params and data
+meta_params, data = ..., ...
+inner_net = InnerNet()
+
+# solve for inner-loop process
+# related with the meta parameters
+optimal_inner_net = inner_net.solve(meta_params, data)
+
+# get outer loss and solve for meta gradient
+loss = outer_loss(optimal_inner_net)
+meta_grad = torch.autograd.grad(loss, meta_params)
+```
 
 ### Zero-order gradient
 When the inner-loop process is non-differentiable or one wants to eliminate the heavy computation burdens in the previous two modes (brought by Hessian), one can choose Zero-order gradient (ZD). ZD typically gets gradients based on zero-order estimation, such as finite-difference, or [Evolutionary Strategy](https://arxiv.org/abs/1703.03864)}. Instead of optimizing the objective $F$, ES optimize a smoothed objective. TorchOpt provides functional and OOP API for the ES method. Refer to the notebook [Implicit Gradient](tutorials/6_zero_order.ipynb) for more guidances.
