@@ -24,16 +24,19 @@ import torch
 import torch.distributed.rpc as rpc
 from optree import *  # pylint: disable=wildcard-import,unused-wildcard-import
 
-from torchopt.typing import Future, PyTree, RRef, T, TensorTree
+from torchopt.typing import Future, RRef, T, TensorTree
 
 
 __all__ = [
     *optree.__all__,
     'tree_flatten_as_tuple',
+    'tree_pos',
+    'tree_neg',
     'tree_add',
     'tree_sub',
     'tree_mul',
-    'tree_div',
+    'tree_matmul',
+    'tree_truediv',
     'tree_vdot_real',
     'tree_wait',
 ]
@@ -70,20 +73,44 @@ def acc_mul(*args: T) -> T:
     return functools.reduce(operator.mul, args)
 
 
-tree_add = functools.partial(tree_map, acc_add)
-tree_add.__doc__ = 'Tree addition over leaves.'
-# tree_add.__annotations__['return'] = 'TensorTree'
+def acc_matmul(*args: T) -> T:
+    """Accumulate matrix multiplication."""
+    return functools.reduce(operator.matmul, args)
 
-tree_sub = functools.partial(tree_map, operator.sub)
-tree_sub.__doc__ = 'Tree subtraction over leaves.'
-# tree_sub.__annotations__['return'] = 'TensorTree'
 
-tree_mul = functools.partial(tree_map, acc_mul)
-tree_mul.__doc__ = 'Tree multiplication over leaves.'
-# tree_mul.__annotations__['return'] = 'TensorTree'
+def tree_pos(tree: PyTree[T]) -> PyTree[T]:
+    """Applies `operator.pos` over leaves."""
+    return tree_map(operator.pos, tree)
 
-tree_div = functools.partial(tree_map, operator.truediv)
-tree_div.__doc__ = 'Tree division over leaves.'
+
+def tree_neg(tree: PyTree[T]) -> PyTree[T]:
+    """Applies `operator.neg` over leaves."""
+    return tree_map(operator.neg, tree)
+
+
+def tree_add(*trees: PyTree[T]) -> PyTree[T]:
+    """Tree addition over leaves."""
+    return tree_map(acc_add, *trees)
+
+
+def tree_sub(minuend_tree: PyTree[T], subtrahend_tree: PyTree[T]) -> PyTree[T]:
+    """Tree subtraction over leaves."""
+    return tree_map(operator.sub, minuend_tree, subtrahend_tree)
+
+
+def tree_mul(*trees: PyTree[T]) -> PyTree[T]:
+    """Tree multiplication over leaves."""
+    return tree_map(acc_mul, *trees)
+
+
+def tree_matmul(*trees: PyTree[T]) -> PyTree[T]:
+    """Tree matrix multiplication over leaves."""
+    return tree_map(acc_matmul, *trees)
+
+
+def tree_truediv(dividend_tree: PyTree[T], divisor_tree: PyTree[T]) -> PyTree[T]:
+    """Tree division over leaves."""
+    return tree_map(operator.truediv, dividend_tree, divisor_tree)
 
 
 def _vdot_real_kernel(x: torch.Tensor, y: torch.Tensor) -> float:
@@ -136,17 +163,12 @@ if rpc.is_available():
 
 
 del (
-    functools,
-    operator,
     Callable,
     List,
     Optional,
     Tuple,
     optree,
     rpc,
-    PyTree,
     T,
     RRef,
-    acc_add,
-    acc_mul,
 )

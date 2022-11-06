@@ -62,7 +62,7 @@ def ns(
     inv_A_hat_b = b
     for _ in range(maxiter):
         if alpha is not None:
-            b = pytree.tree_sub(b, pytree.tree_mul(alpha, A(b)))
+            b = pytree.tree_map(lambda lhs, rhs: lhs - alpha * rhs, b, A(b))
         else:
             b = pytree.tree_sub(b, A(b))
         inv_A_hat_b = pytree.tree_sub(inv_A_hat_b, b)
@@ -71,7 +71,6 @@ def ns(
 
 def ns_inv(
     A: TensorTree,
-    n: int,
     maxiter: Optional[int] = None,
     *,
     alpha: Optional[float] = None,
@@ -83,8 +82,6 @@ def ns_inv(
             2D array or function that calculates the linear map (matrix-vector product) ``Ax`` when
             called like ``A(x)``. ``A`` must represent a hermitian, positive definite matrix, and
             must return array(s) with the same structure and shape as its argument.
-        n: (integer)
-            Number of rows (and columns) in n x n output.
         maxiter: (integer, optional)
             Maximum number of iterations. Iteration will stop after maxiter steps even if the
             specified tolerance has not been achieved.
@@ -98,12 +95,18 @@ def ns_inv(
         size = sum(cat_shapes(A))
         maxiter = 10 * size
 
-    I = torch.eye(n)
-    inv_A_hat = pytree.tree_map(torch.zeros_like, A)
+    A_flat, treespec = pytree.tree_flatten(A)
+
+    I_flat = [torch.eye(*a.size(), out=torch.empty_like(a)) for a in A_flat]
+    inv_A_hat_flat = [torch.zeros_like(a) for a in A_flat]
     if alpha is not None:
         for rank in range(maxiter):
-            inv_A_hat += torch.linalg.matrix_power(I - pytree.tree_mul(alpha, A), rank)
+            power = [torch.linalg.matrix_power(i - alpha * a, rank) for i, a in zip(I_flat, A_flat)]
+            inv_A_hat_flat = [inv_a + p for inv_a, p in zip(inv_A_hat_flat, power)]
     else:
         for rank in range(maxiter):
-            inv_A_hat += torch.linalg.matrix_power(I - A, rank)
+            power = [torch.linalg.matrix_power(i - a, rank) for i, a in zip(I_flat, A_flat)]
+            inv_A_hat_flat = [inv_a + p for inv_a, p in zip(inv_A_hat_flat, power)]
+
+    inv_A_hat = pytree.tree_unflatten(treespec, inv_A_hat_flat)
     return inv_A_hat
