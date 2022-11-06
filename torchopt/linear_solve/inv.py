@@ -34,7 +34,7 @@
 # pylint: disable=invalid-name
 
 import functools
-from typing import Callable, Optional
+from typing import Callable, Optional, Tuple
 
 import functorch
 import torch
@@ -49,9 +49,13 @@ from torchopt.typing import TensorTree
 __all__ = ['solve_inv']
 
 
-def materialize_array(matvec, shape, dtype=None):
+def materialize_array(
+    matvec: Callable[[TensorTree], TensorTree],
+    shape: Tuple[int, ...],
+    dtype: Optional[torch.dtype] = None,
+) -> TensorTree:
     """Materializes the matrix ``A`` used in ``matvec(x) = A x``."""
-    x = torch.zeros(shape, dtype)
+    x = torch.zeros(shape, dtype=dtype)
     return functorch.jacfwd(matvec)(x)
 
 
