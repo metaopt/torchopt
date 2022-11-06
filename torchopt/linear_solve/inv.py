@@ -40,9 +40,9 @@ import functorch
 import torch
 
 from torchopt import linalg
+from torchopt import pytree
 from torchopt.linalg.utils import cat_shapes
 from torchopt.linear_solve.utils import make_ridge_matvec
-from torchopt.pytree import tree_vdot_real
 from torchopt.typing import TensorTree
 
 
@@ -78,17 +78,21 @@ def _solve_inv(
     Returns:
         The solution with the same shape as ``b``.
     """
+    dtype = None
+    leaves = pytree.tree_leaves(b)
+    if len(leaves) > 0:
+        dtype = leaves[0].dtype
     if ridge is not None:
         matvec = make_ridge_matvec(matvec, ridge=ridge)
 
     if len(cat_shapes(b)) == 0:  # pylint: disable=no-else-return
-        return b / materialize_array(matvec, cat_shapes(b))
+        return b / materialize_array(matvec, cat_shapes(b), dtype=dtype)
     if len(cat_shapes(b)) == 1:
         if ns:
-            A = materialize_array(matvec, cat_shapes(b))
-            return torch.Tensor(tree_vdot_real(linalg.ns(A, **kwargs), b))
-        A = materialize_array(matvec, cat_shapes(b))
-        return torch.Tensor(tree_vdot_real(torch.linalg.inv(A), b))
+            A = materialize_array(matvec, cat_shapes(b), dtype=dtype)
+            return pytree.tree_mul(linalg.ns(A, b, **kwargs), b)
+        A = materialize_array(matvec, cat_shapes(b), dtype=dtype)
+        return pytree.tree_mul(torch.linalg.inv(A), b)
     raise NotImplementedError
 
 
