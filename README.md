@@ -113,7 +113,7 @@ On top of the same optimization function as `torch.optim`, an important benefit 
 
 ## TorchOpt for Differentiable Optimization
 
-We design a bilevel-optimization updating scheme, which can be easily extended to realize various differentiable optimization processes. 
+We design a bilevel-optimization updating scheme, which can be easily extended to realize various differentiable optimization processes.
 
 <div align="center">
   <img src="image/diffmode.png" width="90%" />
@@ -122,7 +122,7 @@ We design a bilevel-optimization updating scheme, which can be easily extended t
 As shown above, the scheme contains an outer level that has parameters $\phi$ that can be learned end-to-end through the inner level parameters solution $\theta^{\star}(\phi)$ by using the best-response derivatives $\partial \theta^{\star}(\phi)/ \partial \phi$. TorchOpt supports three differentiation modes. It can be seen that the key component of this algorithm is to calculate the best-response (BR) Jacobian. From the BR-based perspective, existing gradient methods can be categorized into three groups: explicit gradient over unrolled optimization, implicit differentiation, and zero-order gradient differentiation.
 
 ### Explicit Gradient
-The idea of explicit gradient is to treat the gradient step as a differentiable function and try to backpropagate through the unrolled optimization path. This differentiation mode is suitable for algorithms when the inner-level optimization solution is obtained by a few gradient steps, such as [MAML](https://arxiv.org/abs/1703.03400), [MGRL](https://arxiv.org/abs/1805.09801). TorchOpt offers both functional and object-oriented API for EG to fit different user applications. 
+The idea of explicit gradient is to treat the gradient step as a differentiable function and try to backpropagate through the unrolled optimization path. This differentiation mode is suitable for algorithms when the inner-level optimization solution is obtained by a few gradient steps, such as [MAML](https://arxiv.org/abs/1703.03400), [MGRL](https://arxiv.org/abs/1805.09801). TorchOpt offers both functional and object-oriented API for EG to fit different user applications.
 #### Functional API
 The functional API is to conduct optimization in a functional programming style. Note that we pass the argument `inplace=False` to the functions to make the optimization differentiable. Refer to the notebook [Functional Optimizer](tutorials/1_Functional_Optimizer.ipynb) for more guidances.
 ```python
@@ -135,12 +135,12 @@ fmodel, params = make_functional(model)
 state = optimizer.init(params)
 
 for iter in range(iter_times):
-    loss = inner_loss(fmodel, params, meta_params)                
+    loss = inner_loss(fmodel, params, meta_params)
     grads = torch.autograd.grad(loss, params)
     # Apply non-inplace parameter update
     updates, state = optimizer.update(grads, state, inplace=False)
-    params = torchopt.apply_updates(params, updates)   
-    
+    params = torchopt.apply_updates(params, updates)
+
 loss = outer_loss(fmodel, params, meta_params)
 meta_grads = torch.autograd.grad(loss, meta_params)
 ```
@@ -157,9 +157,9 @@ optimizer = torchopt.MetaAdam(model.parameters())
 
 for iter in range(iter_times):
     # perform inner update
-    loss = inner_loss(model, meta_params)  
+    loss = inner_loss(model, meta_params)
     optimizer.step(loss)
-    
+
 loss = outer_loss(model, meta_params)
 loss.backward()
 ```
@@ -176,11 +176,11 @@ def stationary(params, meta_params, data):
 
 # Decorator for warpping the function
 # and specify the linear solver (conjugate gradient or neumann series)
-@torchopt.implicit.custom_root(stationary, linear_solver)
+@torchopt.diff.implicit.custom_root(stationary, linear_solver)
 def solve(params, meta_params, data):
     # forward optimization process for params
     return output
-    
+
 # Define params, meta params and get data
 params, meta_prams, data = ..., ..., ...
 optimal_params = solve(params, meta_params, data)
@@ -229,8 +229,8 @@ When the inner-loop process is non-differentiable or one wants to eliminate the 
 #### Functional API
 ```python
 # Functional API
-# Specify method and parameter of ES
-@torchopt.zero_order.es_grad(method, params)
+# Specify method and hyper-parameter of ES
+@torchopt.diff.zero_order(method, params)
 def forward(meta_params, data):
     # forward process
     return output
