@@ -332,7 +332,7 @@ See [CHANGELOG.md](CHANGELOG.md).
 
 ## The Team
 
-TorchOpt is a work by Jie Ren, Xidong Feng(https://github.com/waterhorse1), [Bo Liu](https://github.com/Benjamin-eecs), [Xuehai Pan](https://github.com/XuehaiPan), [Luo Mai](https://luomai.github.io/) and [Yaodong Yang](https://www.yangyaodong.com/).
+TorchOpt is a work by Jie Ren, [Xidong Feng](https://github.com/waterhorse1), [Bo Liu](https://github.com/Benjamin-eecs), [Xuehai Pan](https://github.com/XuehaiPan), [Luo Mai](https://luomai.github.io/) and [Yaodong Yang](https://www.yangyaodong.com/).
 
 ## Citing TorchOpt
 
