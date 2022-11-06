@@ -225,7 +225,7 @@ meta_grad = torch.autograd.grad(loss, meta_params)
 ```
 
 ### Zero-order gradient
-When the inner-loop process is non-differentiable or one wants to eliminate the heavy computation burdens in the previous two modes (brought by Hessian), one can choose Zero-order gradient (ZD). ZD typically gets gradients based on zero-order estimation, such as finite-difference, or [Evolutionary Strategy](https://arxiv.org/abs/1703.03864)}. Instead of optimizing the objective $F$, ES optimize a smoothed objective. TorchOpt provides functional and OOP API for the ES method. Refer to the notebook [Implicit Gradient](tutorials/6_zero_order.ipynb) for more guidances.
+When the inner-loop process is non-differentiable or one wants to eliminate the heavy computation burdens in the previous two modes (brought by Hessian), one can choose Zero-order gradient (ZD). ZD typically gets gradients based on zero-order estimation, such as finite-difference, or [Evolutionary Strategy](https://arxiv.org/abs/1703.03864). Instead of optimizing the objective $F$, ES optimize a smoothed objective. TorchOpt provides functional and OOP API for the ES method. Refer to the notebook [Zero-order gradient](tutorials/6_zero_order.ipynb) for more guidances.
 #### Functional API
 ```python
 # Functional API
