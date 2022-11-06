@@ -164,7 +164,7 @@ def loss_for_task(net, n_inner_iter, x_spt, y_spt, x_qry, y_qry):
     # These will be used to update the model's meta-parameters.
     qry_logits = fnet(new_params, buffers, x_qry)
     qry_loss = F.cross_entropy(qry_logits, y_qry)
-    qry_acc = (qry_logits.argmax(dim=1) == y_qry).mean()
+    qry_acc = (qry_logits.argmax(dim=1) == y_qry).float().mean()
 
     return qry_loss, qry_acc
 
