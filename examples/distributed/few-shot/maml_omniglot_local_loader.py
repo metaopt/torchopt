@@ -237,7 +237,7 @@ def inner_loop(net_rref, n_inner_iter, task_id, task_num, mode):
 
     qry_logits = net(x_qry)
     qry_loss = F.cross_entropy(qry_logits, y_qry).cpu()
-    qry_acc = (qry_logits.argmax(dim=1) == y_qry).mean().cpu().item()
+    qry_acc = (qry_logits.argmax(dim=1) == y_qry).float().mean().item()
 
     return qry_loss, qry_acc
 
