@@ -18,7 +18,6 @@
 
 from typing import Callable, Optional, Union
 
-import functorch
 import torch
 
 from torchopt import pytree

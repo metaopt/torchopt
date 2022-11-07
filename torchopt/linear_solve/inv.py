@@ -34,7 +34,7 @@
 # pylint: disable=invalid-name
 
 import functools
-from typing import Callable, Optional, Tuple
+from typing import Callable, Optional
 
 import torch
 
