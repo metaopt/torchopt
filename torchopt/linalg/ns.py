@@ -16,7 +16,7 @@
 
 # pylint: disable=invalid-name
 
-from typing import Callable, Optional, Union
+from typing import Optional
 
 import torch
 
@@ -29,7 +29,7 @@ __all__ = ['ns', 'ns_inv']
 
 
 def ns(
-    A: Union[torch.Tensor, Callable[[TensorTree], TensorTree]],
+    A: TensorTree,
     b: TensorTree,
     maxiter: Optional[int] = None,
     *,
@@ -62,12 +62,9 @@ def ns(
     inv_A_hat_b = b
     for _ in range(maxiter):
         if alpha is not None:
-            A_b = pytree.tree_matmul(A, b)
-            b = pytree.tree_map(lambda lhs, rhs: lhs - alpha * rhs, b, A_b)
+            b = pytree.tree_map(lambda lhs, rhs: lhs - alpha * rhs, b, pytree.tree_matmul(A, b))
         else:
-            A_b = pytree.tree_matmul(A, b)
-            b = pytree.tree_sub(b, A_b)
-            print(b)
+            b = pytree.tree_sub(b, pytree.tree_matmul(A, b))
         inv_A_hat_b = pytree.tree_add(inv_A_hat_b, b)
     return inv_A_hat_b
 

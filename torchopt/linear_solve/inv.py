@@ -91,7 +91,7 @@ def _solve_inv(
             A = materialize_array(matvec, cat_shapes(b), dtype=dtype)
             return linalg.ns(A, b, **kwargs)
         A = materialize_array(matvec, cat_shapes(b), dtype=dtype)
-        return pytree.tree_matmul(torch.linalg.inv(A), b)
+        return pytree.tree_matmul(torch.linalg.inv(A), b)  # type: ignore
     raise NotImplementedError
 
 
