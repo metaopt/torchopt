@@ -36,7 +36,6 @@
 import functools
 from typing import Callable, Optional, Tuple
 
-import functorch
 import torch
 
 from torchopt import linalg, pytree
