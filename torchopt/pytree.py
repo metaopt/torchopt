@@ -172,13 +172,4 @@ if rpc.is_available():
     __all__.extend(['tree_as_rref', 'tree_to_here'])
 
 
-del (
-    Callable,
-    List,
-    Optional,
-    Tuple,
-    optree,
-    rpc,
-    T,
-    RRef,
-)
+del Callable, List, Optional, Tuple, optree, rpc, T, RRef
