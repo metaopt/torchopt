@@ -40,7 +40,7 @@ import torch
 
 from torchopt import linalg, pytree
 from torchopt.linalg.utils import cat_shapes
-from torchopt.linear_solve.utils import make_ridge_matvec, materialize_array
+from torchopt.linear_solve.utils import make_ridge_matvec, materialize_matvec
 from torchopt.typing import TensorTree
 
 
@@ -78,12 +78,12 @@ def _solve_inv(
 
     shapes = cat_shapes(b)
     if len(shapes) == 0:
-        return b / materialize_array(matvec, shapes, dtype=dtype)
+        return b / materialize_matvec(matvec, shapes, dtype=dtype)
     if len(shapes) == 1:
         if ns:
             return linalg.ns(matvec, b, **kwargs)
-        A = materialize_array(matvec, shapes, dtype=dtype)
-        return pytree.tree_matmul(torch.linalg.inv(A), b)  # type: ignore[return-value]
+        A = materialize_matvec(matvec, shapes, dtype=dtype)
+        return pytree.tree_map(lambda A, b: torch.linalg.inv(A) @ b, A, b)  # type: ignore[return-value]
     raise NotImplementedError
 
 

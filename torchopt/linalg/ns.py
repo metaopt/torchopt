@@ -22,7 +22,7 @@ import torch
 
 from torchopt import pytree
 from torchopt.linalg.utils import cat_shapes, normalize_matvec
-from torchopt.linear_solve.utils import materialize_array
+from torchopt.linear_solve.utils import materialize_matvec
 from torchopt.typing import TensorTree
 
 
@@ -56,20 +56,34 @@ def ns(
     Returns:
         The Neumann Series (NS) matrix inversion approximation.
     """
-    A = normalize_matvec(A)
-    A = materialize_array(A, cat_shapes(b), dtype=dtype)
-    if maxiter is None:
-        size = sum(cat_shapes(b))
-        maxiter = int(1 * size / size)
+    shapes = cat_shapes(b)
+    if len(shapes) >= 2:
+        raise NotImplementedError
 
-    inv_A_hat_b = b
+    matvec = normalize_matvec(A)
+    A = materialize_matvec(matvec, shapes, dtype=dtype)
+    if maxiter is None:
+        size = sum(shapes)
+        maxiter = 10 * size
+
+    A_flat, treespec = pytree.tree_flatten(A)
+    b_flat = pytree.tree_leaves(b)
+
+    if alpha is not None:
+
+        def f(A, b):
+            return b - alpha * (A @ b)
+
+    else:
+
+        def f(A, b):
+            return b - A @ b
+
+    inv_A_hat_b_flat = list(b_flat)
     for _ in range(maxiter):
-        if alpha is not None:
-            b = pytree.tree_map(lambda lhs, rhs: lhs - alpha * rhs, b, pytree.tree_matmul(A, b))
-        else:
-            b = pytree.tree_sub(b, pytree.tree_matmul(A, b))
-        inv_A_hat_b = pytree.tree_add(inv_A_hat_b, b)
-    return inv_A_hat_b
+        b_flat = list(map(f, A_flat, b_flat))
+        inv_A_hat_b_flat = list(map(torch.add, inv_A_hat_b_flat, b_flat))
+    return pytree.tree_unflatten(treespec, inv_A_hat_b_flat)
 
 
 def ns_inv(

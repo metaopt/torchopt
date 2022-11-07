@@ -76,7 +76,7 @@ def make_ridge_matvec(
     return ridge_matvec
 
 
-def materialize_array(
+def materialize_matvec(
     matvec: Callable[[TensorTree], TensorTree],
     shape: Tuple[int, ...],
     dtype: Optional[torch.dtype] = None,
