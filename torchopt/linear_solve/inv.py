@@ -41,21 +41,11 @@ import torch
 
 from torchopt import linalg, pytree
 from torchopt.linalg.utils import cat_shapes
-from torchopt.linear_solve.utils import make_ridge_matvec
+from torchopt.linear_solve.utils import make_ridge_matvec, materialize_array
 from torchopt.typing import TensorTree
 
 
 __all__ = ['solve_inv']
-
-
-def materialize_array(
-    matvec: Callable[[TensorTree], TensorTree],
-    shape: Tuple[int, ...],
-    dtype: Optional[torch.dtype] = None,
-) -> TensorTree:
-    """Materializes the matrix ``A`` used in ``matvec(x) = A x``."""
-    x = torch.zeros(shape, dtype=dtype)
-    return functorch.jacfwd(matvec)(x)
 
 
 def _solve_inv(
@@ -88,8 +78,8 @@ def _solve_inv(
         return b / materialize_array(matvec, cat_shapes(b), dtype=dtype)
     if len(cat_shapes(b)) == 1:
         if ns:
-            A = materialize_array(matvec, cat_shapes(b), dtype=dtype)
-            return linalg.ns(A, b, **kwargs)
+            # A = materialize_array(matvec, cat_shapes(b), dtype=dtype)
+            return linalg.ns(matvec, b, **kwargs)
         A = materialize_array(matvec, cat_shapes(b), dtype=dtype)
         return pytree.tree_matmul(torch.linalg.inv(A), b)  # type: ignore
     raise NotImplementedError

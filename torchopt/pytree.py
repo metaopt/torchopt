@@ -33,6 +33,7 @@ __all__ = [
     'tree_pos',
     'tree_neg',
     'tree_add',
+    'tree_add_scalar_mul',
     'tree_sub',
     'tree_mul',
     'tree_matmul',
@@ -76,6 +77,11 @@ def acc_mul(*args: T) -> T:
 def acc_matmul(*args: T) -> T:
     """Accumulate matrix multiplication."""
     return functools.reduce(operator.matmul, args)
+
+
+def tree_add_scalar_mul(tree_x: TensorTree, tree_y: TensorTree, alpha: float = 1.0) -> TensorTree:
+    """Computes tree_x + alpha * tree_y."""
+    return tree_map(lambda x, y: x.add(y, alpha=alpha), tree_x, tree_y)
 
 
 def tree_pos(tree: PyTree[T]) -> PyTree[T]:

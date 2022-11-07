@@ -33,17 +33,13 @@
 
 # pylint: disable=invalid-name
 
-from typing import Callable
+from typing import Callable, Optional, Tuple
 
 import functorch
+import torch
 
 from torchopt import pytree
 from torchopt.typing import TensorTree
-
-
-def tree_add(tree_x: TensorTree, tree_y: TensorTree, alpha: float = 1.0) -> TensorTree:
-    """Computes tree_x + alpha * tree_y."""
-    return pytree.tree_map(lambda x, y: x.add(y, alpha=alpha), tree_x, tree_y)
 
 
 def make_rmatvec(
@@ -75,6 +71,16 @@ def make_ridge_matvec(
 
     def ridge_matvec(y: TensorTree) -> TensorTree:
         """Computes ``A.T @ A @ v + ridge * v`` from ``matvec(x) = A @ x``."""
-        return tree_add(matvec(y), y, alpha=ridge)
+        return pytree.tree_add_scalar_mul(matvec(y), y, alpha=ridge)
 
     return ridge_matvec
+
+
+def materialize_array(
+    matvec: Callable[[TensorTree], TensorTree],
+    shape: Tuple[int, ...],
+    dtype: Optional[torch.dtype] = None,
+) -> TensorTree:
+    """Materializes the matrix ``A`` used in ``matvec(x) = A x``."""
+    x = torch.zeros(shape, dtype=dtype)
+    return functorch.jacfwd(matvec)(x)

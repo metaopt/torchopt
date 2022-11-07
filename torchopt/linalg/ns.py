@@ -16,12 +16,14 @@
 
 # pylint: disable=invalid-name
 
-from typing import Optional
+from typing import Callable, Optional, Union
 
+import functorch
 import torch
 
 from torchopt import pytree
-from torchopt.linalg.utils import cat_shapes
+from torchopt.linalg.utils import cat_shapes, normalize_matvec
+from torchopt.linear_solve.utils import materialize_array
 from torchopt.typing import TensorTree
 
 
@@ -29,11 +31,12 @@ __all__ = ['ns', 'ns_inv']
 
 
 def ns(
-    A: TensorTree,
+    A: Union[Callable[[TensorTree], TensorTree], torch.Tensor],
     b: TensorTree,
     maxiter: Optional[int] = None,
     *,
     alpha: Optional[float] = None,
+    dtype: Optional[torch.dtype] = None,
 ) -> TensorTree:
     """Use Neumann Series Matrix Inversion Approximation to solve ``Ax = b``.
 
@@ -54,7 +57,8 @@ def ns(
     Returns:
         The Neumann Series (NS) matrix inversion approximation.
     """
-    # A = normalize_matvec(A)
+    A = normalize_matvec(A)
+    A = materialize_array(A, cat_shapes(b), dtype=dtype)
     if maxiter is None:
         size = sum(cat_shapes(b))
         maxiter = int(1 * size / size)
