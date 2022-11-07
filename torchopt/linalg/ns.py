@@ -63,8 +63,8 @@ def ns(
     matvec = normalize_matvec(A)
     A = materialize_matvec(matvec, shapes, dtype=dtype)
     if maxiter is None:
-        size = sum(shapes)
-        maxiter = 10 * size
+        # size = sum(shapes)
+        maxiter = 1
 
     A_flat, treespec = pytree.tree_flatten(A)
     b_flat = pytree.tree_leaves(b)
