@@ -18,11 +18,10 @@
 
 from typing import Callable, Optional, Union
 
-import functorch
 import torch
 
 from torchopt import pytree
-from torchopt.linalg.utils import cat_shapes, normalize_matvec
+from torchopt.linalg.utils import cat_shapes
 from torchopt.typing import TensorTree
 
 
@@ -55,19 +54,21 @@ def ns(
     Returns:
         The Neumann Series (NS) matrix inversion approximation.
     """
-    A = normalize_matvec(A)
-    A = functorch.jacfwd(A)
+    # A = normalize_matvec(A)
     if maxiter is None:
         size = sum(cat_shapes(b))
-        maxiter = 10 * size
+        maxiter = int(1 * size / size)
 
     inv_A_hat_b = b
     for _ in range(maxiter):
         if alpha is not None:
-            b = pytree.tree_map(lambda lhs, rhs: lhs - alpha * rhs, b, A(b))
+            A_b = pytree.tree_matmul(A, b)
+            b = pytree.tree_map(lambda lhs, rhs: lhs - alpha * rhs, b, A_b)
         else:
-            b = pytree.tree_sub(b, A(b))
-        inv_A_hat_b = pytree.tree_sub(inv_A_hat_b, b)
+            A_b = pytree.tree_matmul(A, b)
+            b = pytree.tree_sub(b, A_b)
+            print(b)
+        inv_A_hat_b = pytree.tree_add(inv_A_hat_b, b)
     return inv_A_hat_b
 
 

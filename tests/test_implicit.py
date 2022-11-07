@@ -24,6 +24,7 @@ import jax.numpy as jnp
 import jaxopt
 import numpy as np
 import optax
+import pytest
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -442,11 +443,18 @@ def test_rr_solve_cg(
 @helpers.parametrize(
     dtype=[torch.float64, torch.float32],
     lr=[1e-3, 1e-4],
+    ns_flag=[True, False],
 )
 def test_rr_solve_inv(
     dtype: torch.dtype,
     lr: float,
+    ns_flag: bool,
 ) -> None:
+    if dtype == torch.float64:
+        if ns_flag == True:
+            pytest.skip('Neumann Series test skips torch.float64.')
+        # from jax.config import config
+        # config.update("jax_enable_x64", True)
     helpers.seed_everything(42)
     np_dtype = helpers.dtype_torch2numpy(dtype)
     input_size = 10
@@ -484,7 +492,7 @@ def test_rr_solve_inv(
             matvec=matvec,
             b=X_tr.T @ y_tr,
             ridge=len(y_tr) * l2reg.item(),
-            ns=False,
+            ns=ns_flag,
         )
 
         return solve(matvec=matvec, b=X_tr.T @ y_tr)
