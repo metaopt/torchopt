@@ -101,7 +101,7 @@ addlicense-install: go-install
 
 pytest: pytest-install
 	cd tests && \
-	$(PYTHON) -m pytest -k test_rr_solve_inv --verbose --color=yes --durations=0 \
+	$(PYTHON) -m pytest --verbose --color=yes --durations=0 \
 		--cov="$(PROJECT_NAME)" --cov-report=xml --cov-report=term-missing \
 		.
 
