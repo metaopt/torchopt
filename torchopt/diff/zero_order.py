@@ -48,6 +48,7 @@ def _zero_order_naive(
     fn: Callable[..., torch.Tensor],
     distribution: Samplable,
     argnums: Tuple[int, ...],
+    num_samples: int,
     sigma: Numeric,
 ) -> Callable[..., torch.Tensor]:
     def apply(*args: Any) -> torch.Tensor:
@@ -106,23 +107,30 @@ def _zero_order_naive(
                 def add_perturbation(tensor, noise):
                     return tensor.add(noise, alpha=sigma)
 
-                noise = [distribution.sample(sample_shape=p.shape) for p in flat_diff_params]
-                flat_noisy_params = [
-                    add_perturbation(t, n) for t, n in zip(flat_diff_params, noise)
-                ]
-                noisy_params: List[Any] = pytree.tree_unflatten(  # type: ignore[assignment]
-                    diff_params_treespec, flat_noisy_params
-                )
-
-                for argnum, noisy_param in zip(argnums, noisy_params):
-                    args[argnum] = noisy_param
-
-                loss = fn(*args)
-                weighted_grad = grad_outputs[0].mul(loss).mul_(1 / sigma)
-
                 out_grads = [None for _ in range(ctx.len_args)]
                 for i in range(len(flat_diff_params)):
-                    out_grads[i] = weighted_grad * noise[i]
+                    out_grads[i] = 0.0
+
+                for _ in range(num_samples):
+                    noise = [distribution.sample(sample_shape=p.shape) for p in flat_diff_params]
+                    flat_noisy_params = [
+                        add_perturbation(t, n) for t, n in zip(flat_diff_params, noise)
+                    ]
+                    noisy_params: List[Any] = pytree.tree_unflatten(  # type: ignore[assignment]
+                        diff_params_treespec, flat_noisy_params
+                    )
+
+                    for argnum, noisy_param in zip(argnums, noisy_params):
+                        args[argnum] = noisy_param
+
+                    loss = fn(*args)
+                    weighted_grad = grad_outputs[0].mul(loss).mul_(1 / sigma)
+
+                    for i in range(len(flat_diff_params)):
+                        out_grads[i] += weighted_grad * noise[i]
+
+                for i in range(len(flat_diff_params)):
+                    out_grads[i] /= num_samples
                 return tuple(out_grads)
 
         return ZeroOrder.apply(*flat_diff_params, (args,))
@@ -134,6 +142,7 @@ def _zero_order_forward(
     fn: Callable[..., torch.Tensor],
     distribution: Samplable,
     argnums: Tuple[int, ...],
+    num_samples: int,
     sigma: Numeric,
 ) -> Callable[..., torch.Tensor]:
     def apply(*args: Any) -> torch.Tensor:
@@ -196,24 +205,31 @@ def _zero_order_forward(
                 def add_perturbation(tensor, noise):
                     return tensor.add(noise, alpha=sigma)
 
-                noise = [distribution.sample(sample_shape=p.shape) for p in flat_diff_params]
-                flat_noisy_params = [
-                    add_perturbation(t, n) for t, n in zip(flat_diff_params, noise)
-                ]
-                noisy_params: List[Any] = pytree.tree_unflatten(  # type: ignore[assignment]
-                    diff_params_treespec, flat_noisy_params
-                )
-
-                for argnum, noisy_param in zip(argnums, noisy_params):
-                    args[argnum] = noisy_param
-
-                noisy_loss = fn(*args)
-                loss = noisy_loss - loss
-                weighted_grad = grad_outputs[0].mul(loss).mul_(1 / sigma)
-
                 out_grads = [None for _ in range(ctx.len_args)]
                 for i in range(len(flat_diff_params)):
-                    out_grads[i] = weighted_grad * noise[i]
+                    out_grads[i] = 0.0
+
+                for _ in range(num_samples):
+                    noise = [distribution.sample(sample_shape=p.shape) for p in flat_diff_params]
+                    flat_noisy_params = [
+                        add_perturbation(t, n) for t, n in zip(flat_diff_params, noise)
+                    ]
+                    noisy_params: List[Any] = pytree.tree_unflatten(  # type: ignore[assignment]
+                        diff_params_treespec, flat_noisy_params
+                    )
+
+                    for argnum, noisy_param in zip(argnums, noisy_params):
+                        args[argnum] = noisy_param
+
+                    noisy_loss = fn(*args)
+                    loss = noisy_loss - loss
+                    weighted_grad = grad_outputs[0].mul(loss).mul_(1 / sigma)
+
+                    for i in range(len(flat_diff_params)):
+                        out_grads[i] += weighted_grad * noise[i]
+
+                for i in range(len(flat_diff_params)):
+                    out_grads[i] /= num_samples
                 return tuple(out_grads)
 
         return ZeroOrder.apply(*flat_diff_params, (args,))
@@ -225,6 +241,7 @@ def _zero_order_antithetic(
     fn: Callable[..., torch.Tensor],
     distribution: Samplable,
     argnums: Tuple[int, ...],
+    num_samples: int,
     sigma: Numeric,
 ) -> Callable[..., torch.Tensor]:
     def apply(*args: Any) -> torch.Tensor:
@@ -280,9 +297,11 @@ def _zero_order_antithetic(
 
                 args: List[Any] = pytree.tree_unflatten(ctx.args_treespec, flat_args)  # type: ignore[assignment]
 
-                noise = [distribution.sample(sample_shape=p.shape) for p in flat_diff_params]
+                out_grads = [None for _ in range(ctx.len_args)]
+                for i in range(len(flat_diff_params)):
+                    out_grads[i] = 0.0
 
-                def get_loss(add_perturbation_fn) -> torch.Tensor:
+                def get_loss(add_perturbation_fn, noise) -> torch.Tensor:
                     flat_noisy_params = [
                         add_perturbation_fn(t, n, alpha=sigma)
                         for t, n in zip(flat_diff_params, noise)
@@ -296,12 +315,16 @@ def _zero_order_antithetic(
 
                     return fn(*args)
 
-                loss = get_loss(torch.add) - get_loss(torch.sub)
-                weighted_grad = grad_outputs[0].mul(loss).mul_(0.5 / sigma)
+                for _ in range(num_samples):
+                    noise = [distribution.sample(sample_shape=p.shape) for p in flat_diff_params]
+                    loss = get_loss(torch.add, noise) - get_loss(torch.sub, noise)
+                    weighted_grad = grad_outputs[0].mul(loss).mul_(0.5 / sigma)
+                    for i in range(len(flat_diff_params)):
+                        out_grads[i] = weighted_grad * noise[i]
 
-                out_grads = [None for _ in range(ctx.len_args)]
                 for i in range(len(flat_diff_params)):
-                    out_grads[i] = weighted_grad * noise[i]
+                    out_grads[i] /= num_samples
+
                 return tuple(out_grads)
 
         return ZeroOrder.apply(*flat_diff_params, (args,))
@@ -316,6 +339,7 @@ def zero_order(
     distribution: Samplable,
     algo: Algorithm = 'naive',
     argnums: Union[int, Tuple[int, ...]] = (0,),
+    num_samples: int = 1,
     sigma: Numeric = 1.0,
 ) -> Callable[[Callable[..., torch.Tensor]], Callable[..., torch.Tensor]]:
     """Decorator for applying zero order differentiation.
@@ -329,6 +353,7 @@ def zero_order(
             :const:`'forward'`, and :const:`'antithetic'`. Defaults to :const:`'naive'`.
         argnums: (int or tuple of int, default: :const:`0`)
             Specifies arguments to compute gradients with respect to.
+        num_samples: (int, default :const:`1`) The number of sample to get the averaged estimated gradient.
         sigma: (Numeric)
             The standard deviation of the perturbation. Defaults to :const:`1.0`.
 
@@ -346,7 +371,13 @@ def zero_order(
     if isinstance(argnums, int):
         argnums = (argnums,)
 
-    return functools.partial(algo_fn, distribution=distribution, argnums=argnums, sigma=sigma)
+    return functools.partial(
+        algo_fn,
+        distribution=distribution,
+        argnums=argnums,
+        num_samples=num_samples,
+        sigma=sigma,
+    )
 
 
 class _CallableModule(_ModuleType):  # pylint: disable=too-few-public-methods
