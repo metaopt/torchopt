@@ -73,7 +73,7 @@ def _solve_inv(
     if ridge is not None:
         matvec = make_ridge_matvec(matvec, ridge=ridge)
 
-    if len(cat_shapes(b)) == 0:  # pylint: disable=no-else-return
+    if len(cat_shapes(b)) == 0:
         return b / materialize_array(matvec, cat_shapes(b), dtype=dtype)
     if len(cat_shapes(b)) == 1:
         if ns:
