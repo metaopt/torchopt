@@ -62,25 +62,28 @@ def _solve_inv(
         matvec: A function that returns the product between ``A`` and a vector.
         b: A tensor for the right hand side of the equation.
         ridge: Optional ridge regularization.
-        ns: Whether to use Neumann Series Approximation
+        ns: Whether to use Neumann Series approximation. If :data:`False`, use
+            :func`torch.linalg.inv` instead.
 
     Returns:
         The solution with the same shape as ``b``.
     """
-    dtype = None
+    if ridge is not None:
+        matvec = make_ridge_matvec(matvec, ridge=ridge)
     leaves = pytree.tree_leaves(b)
     if len(leaves) > 0:
         dtype = leaves[0].dtype
-    if ridge is not None:
-        matvec = make_ridge_matvec(matvec, ridge=ridge)
+    else:
+        dtype = None
 
-    if len(cat_shapes(b)) == 0:
-        return b / materialize_array(matvec, cat_shapes(b), dtype=dtype)
-    if len(cat_shapes(b)) == 1:
+    shapes = cat_shapes(b)
+    if len(shapes) == 0:
+        return b / materialize_array(matvec, shapes, dtype=dtype)
+    if len(shapes) == 1:
         if ns:
             return linalg.ns(matvec, b, **kwargs)
-        A = materialize_array(matvec, cat_shapes(b), dtype=dtype)
-        return pytree.tree_matmul(torch.linalg.inv(A), b)  # type: ignore
+        A = materialize_array(matvec, shapes, dtype=dtype)
+        return pytree.tree_matmul(torch.linalg.inv(A), b)  # type: ignore[return-value]
     raise NotImplementedError
 
 

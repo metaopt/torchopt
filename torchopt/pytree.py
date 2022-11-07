@@ -79,15 +79,6 @@ def acc_matmul(*args: T) -> T:
     return functools.reduce(operator.matmul, args)
 
 
-def tree_add_scalar_mul(
-    tree_x: TensorTree, tree_y: TensorTree, alpha: Optional[float] = None
-) -> TensorTree:
-    """Computes tree_x + alpha * tree_y."""
-    if alpha is None:
-        return tree_map(lambda x, y: x.add(y), tree_x, tree_y)
-    return tree_map(lambda x, y: x.add(y, alpha=alpha), tree_x, tree_y)
-
-
 def tree_pos(tree: PyTree[T]) -> PyTree[T]:
     """Applies `operator.pos` over leaves."""
     return tree_map(operator.pos, tree)
@@ -101,6 +92,15 @@ def tree_neg(tree: PyTree[T]) -> PyTree[T]:
 def tree_add(*trees: PyTree[T]) -> PyTree[T]:
     """Tree addition over leaves."""
     return tree_map(acc_add, *trees)
+
+
+def tree_add_scalar_mul(
+    tree_x: TensorTree, tree_y: TensorTree, alpha: Optional[float] = None
+) -> TensorTree:
+    """Computes tree_x + alpha * tree_y."""
+    if alpha is None:
+        return tree_map(lambda x, y: x.add(y), tree_x, tree_y)
+    return tree_map(lambda x, y: x.add(y, alpha=alpha), tree_x, tree_y)
 
 
 def tree_sub(minuend_tree: PyTree[T], subtrahend_tree: PyTree[T]) -> PyTree[T]:
