@@ -39,8 +39,7 @@ from typing import Callable, Optional, Tuple
 import functorch
 import torch
 
-from torchopt import linalg
-from torchopt import pytree
+from torchopt import linalg, pytree
 from torchopt.linalg.utils import cat_shapes
 from torchopt.linear_solve.utils import make_ridge_matvec
 from torchopt.typing import TensorTree

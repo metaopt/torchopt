@@ -18,8 +18,8 @@
 
 from typing import Callable, Optional, Union
 
-import torch
 import functorch
+import torch
 
 from torchopt import pytree
 from torchopt.linalg.utils import cat_shapes, normalize_matvec
