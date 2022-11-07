@@ -62,6 +62,7 @@ def _solve_inv(
         matvec: A function that returns the product between ``A`` and a vector.
         b: A tensor for the right hand side of the equation.
         ridge: Optional ridge regularization.
+        ns: Whether to use Neumann Series Approximation
 
     Returns:
         The solution with the same shape as ``b``.
