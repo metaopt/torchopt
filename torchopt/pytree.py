@@ -79,8 +79,12 @@ def acc_matmul(*args: T) -> T:
     return functools.reduce(operator.matmul, args)
 
 
-def tree_add_scalar_mul(tree_x: TensorTree, tree_y: TensorTree, alpha: float = 1.0) -> TensorTree:
+def tree_add_scalar_mul(
+    tree_x: TensorTree, tree_y: TensorTree, alpha: Optional[float] = None
+) -> TensorTree:
     """Computes tree_x + alpha * tree_y."""
+    if alpha is None:
+        return tree_map(lambda x, y: x.add(y), tree_x, tree_y)
     return tree_map(lambda x, y: x.add(y, alpha=alpha), tree_x, tree_y)
 
 

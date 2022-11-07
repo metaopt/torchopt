@@ -504,18 +504,16 @@ def test_rr_solve_inv(
         return 0.5 * jnp.mean(jnp.square(residuals)) + regularization_loss
 
     @jaxopt.implicit_diff.custom_root(jax.grad(ridge_objective_jax, argnums=0))
-    def ridge_solver_jax_cg(params, l2reg, X_tr, y_tr):
+    def ridge_solver_jax_inv(params, l2reg, X_tr, y_tr):
         """Solve ridge regression by conjugate gradient."""
 
         def matvec(u):
             return X_tr.T @ ((X_tr @ u))
 
-        return jaxopt.linear_solve.solve_cg(
+        return jaxopt.linear_solve.solve_inv(
             matvec=matvec,
             b=X_tr.T @ y_tr,
             ridge=len(y_tr) * l2reg.item(),
-            init=params,
-            maxiter=20,
         )
 
     for xs, ys, xq, yq in loader:
@@ -537,7 +535,7 @@ def test_rr_solve_inv(
         yq = jnp.array(yq.numpy(), dtype=np_dtype)
 
         def outer_level(params_jax, l2reg_jax, xs, ys, xq, yq):
-            w_fit = ridge_solver_jax_cg(params_jax, l2reg_jax, xs, ys)
+            w_fit = ridge_solver_jax_inv(params_jax, l2reg_jax, xs, ys)
             y_pred = xq @ w_fit
             loss_value = jnp.mean(jnp.square(y_pred - yq))
             return loss_value
