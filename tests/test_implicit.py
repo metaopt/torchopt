@@ -484,7 +484,7 @@ def test_rr_solve_inv(
             matvec=matvec,
             b=X_tr.T @ y_tr,
             ridge=len(y_tr) * l2reg.item(),
-            ns=True,
+            ns=False,
         )
 
         return solve(matvec=matvec, b=X_tr.T @ y_tr)

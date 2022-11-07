@@ -19,6 +19,7 @@
 from typing import Callable, Optional, Union
 
 import torch
+import functorch
 
 from torchopt import pytree
 from torchopt.linalg.utils import cat_shapes, normalize_matvec
@@ -55,6 +56,7 @@ def ns(
         The Neumann Series (NS) matrix inversion approximation.
     """
     A = normalize_matvec(A)
+    A = functorch.jacfwd(A)
     if maxiter is None:
         size = sum(cat_shapes(b))
         maxiter = 10 * size
