@@ -25,7 +25,7 @@ from torchopt.typing import TensorTree
 
 
 def cat_shapes(tree: TensorTree) -> Tuple[int, ...]:
-    """Concatenate the shapes of the leaves of a tree of tensors."""
+    """Concatenates the shapes of the leaves of a tree of tensors."""
     leaves = pytree.tree_leaves(tree)
     return tuple(itertools.chain.from_iterable(tuple(leaf.shape) for leaf in leaves))
 
@@ -33,11 +33,11 @@ def cat_shapes(tree: TensorTree) -> Tuple[int, ...]:
 def normalize_matvec(
     matvec: Union[Callable[[TensorTree], TensorTree], torch.Tensor]
 ) -> Callable[[TensorTree], TensorTree]:
-    """Normalize an argument for computing matrix-vector products."""
+    """Normalizes an argument for computing matrix-vector product."""
     if callable(matvec):
         return matvec
 
     assert isinstance(matvec, torch.Tensor)
     if matvec.ndim != 2 or matvec.shape[0] != matvec.shape[1]:
-        raise ValueError(f'linear operator must be a square matrix, but has shape: {matvec.shape}')
+        raise ValueError(f'Linear operator must be a square matrix, but has shape: {matvec.shape}')
     return partial(torch.matmul, matvec)

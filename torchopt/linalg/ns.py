@@ -37,8 +37,8 @@ def _ns_solve(
     alpha: Optional[float] = None,
 ) -> torch.Tensor:
     """Uses Neumann Series Matrix Inversion Approximation to solve ``Ax = b``."""
-    if A.ndim != 2:
-        raise ValueError(f'`A` must be a 2D tensor, but has shape: {A.shape}')
+    if A.ndim != 2 or A.shape[0] != A.shape[1]:
+        raise ValueError(f'`A` must be a square matrix, but has shape: {A.shape}')
     ndim = b.ndim
     if ndim == 0:
         raise ValueError(f'`b` must be a vector, but has shape: {b.shape}')
@@ -107,8 +107,8 @@ def ns(
 
 def _ns_inv(A: torch.Tensor, maxiter: int, alpha: Optional[float] = None):
     """Uses Neumann Series iteration to solve ``A^{-1}``."""
-    if A.ndim != 2:
-        raise ValueError(f'`A` must be a 2D tensor, but has shape: {A.shape}')
+    if A.ndim != 2 or A.shape[0] != A.shape[1]:
+        raise ValueError(f'`A` must be a square matrix, but has shape: {A.shape}')
 
     I = torch.eye(*A.shape, out=torch.empty_like(A))
     inv_A_hat = torch.zeros_like(A)
@@ -146,16 +146,5 @@ def ns_inv(
     if maxiter is None:
         size = sum(cat_shapes(A))
         maxiter = 10 * size
-
-    if isinstance(A, torch.Tensor):
-        I = torch.eye(*A.shape, out=torch.empty_like(A))
-        inv_A_hat = torch.zeros_like(A)
-        if alpha is not None:
-            for rank in range(maxiter):
-                inv_A_hat = inv_A_hat + torch.linalg.matrix_power(I - alpha * A, rank)
-        else:
-            for rank in range(maxiter):
-                inv_A_hat = inv_A_hat + torch.linalg.matrix_power(I - A, rank)
-        return inv_A_hat
 
     return pytree.tree_map(functools.partial(_ns_inv, maxiter=maxiter, alpha=alpha), A)
