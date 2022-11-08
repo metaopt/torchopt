@@ -23,7 +23,6 @@ import torch
 
 from torchopt import pytree
 from torchopt.linalg.utils import cat_shapes, normalize_matvec
-from torchopt.linear_solve.utils import materialize_matvec
 from torchopt.typing import TensorTree
 
 
@@ -39,32 +38,26 @@ def _ns_solve(
     """Uses Neumann Series Matrix Inversion Approximation to solve ``Ax = b``."""
     if A.ndim != 2 or A.shape[0] != A.shape[1]:
         raise ValueError(f'`A` must be a square matrix, but has shape: {A.shape}')
-    ndim = b.ndim
-    if ndim == 0:
-        raise ValueError(f'`b` must be a vector, but has shape: {b.shape}')
-    if ndim >= 2:
-        if any(size != 1 for size in b.shape[1:]):
-            raise ValueError(f'`b` must be a vector, but has shape: {b.shape}')
-        b = b[(...,) + (0,) * (ndim - 1)]  # squeeze trailing dimensions
 
     inv_A_hat_b = b
-    term = b
+    v = b
     if alpha is not None:
+        # A^{-1} = a [I - (I - a A)]^{-1} = a [I + (I - a A) + (I - a A)^2 + (I - a A)^3 + ...]
         for _ in range(maxiter):
-            term = term - alpha * (A @ term)
-            inv_A_hat_b = inv_A_hat_b + term
+            v = v - alpha * (A @ v)
+            inv_A_hat_b = inv_A_hat_b + v
+        inv_A_hat_b = alpha * inv_A_hat_b
     else:
+        # A^{-1} = [I - (I - A)]^{-1} = I + (I - A) + (I - A)^2 + (I - A)^3 + ...
         for _ in range(maxiter):
-            term = term - A @ term
-            inv_A_hat_b = inv_A_hat_b + term
+            v = v - A @ v
+            inv_A_hat_b = inv_A_hat_b + v
 
-    if ndim >= 2:
-        inv_A_hat_b = inv_A_hat_b[(...,) + (None,) * (ndim - 1)]  # unqueeze trailing dimensions
     return inv_A_hat_b
 
 
 def ns(
-    A: Union[Callable[[TensorTree], TensorTree], torch.Tensor],
+    A: Union[TensorTree, Callable[[TensorTree], TensorTree]],
     b: TensorTree,
     maxiter: Optional[int] = None,
     *,
@@ -91,18 +84,31 @@ def ns(
     """
     if maxiter is None:
         maxiter = 10
-    b_flat = pytree.tree_leaves(b)
-    if len(b_flat) == 0:
-        raise ValueError('`b` must be a non-empty pytree.')
-    if len(b_flat) >= 2:
-        raise ValueError('`b` must be a pytree with a single leaf.')
-    b_leaf = b_flat[0]
-    if b_leaf.ndim >= 2 and any(size != 1 for size in b.shape[1:]):
-        raise ValueError(f'`b` must be a vector or a scalar, but has shape: {b_leaf.shape}')
+
+    if not callable(A):
+        return pytree.tree_map(functools.partial(_ns_solve, maxiter=maxiter, alpha=alpha), A, b)
 
     matvec = normalize_matvec(A)
-    A: TensorTree = materialize_matvec(matvec, b)
-    return pytree.tree_map(functools.partial(_ns_solve, maxiter=maxiter, alpha=alpha), A, b)
+    inv_A_hat_b = b
+    v = b
+    if alpha is not None:
+        # A^{-1} = a [I - (I - a A)]^{-1} = a [I + (I - a A) + (I - a A)^2 + (I - a A)^3 + ...]
+        for _ in range(maxiter):
+            # v = v - alpha * (A @ v)
+            v = pytree.tree_sub_scalar_mul(v, matvec(v), alpha=alpha)
+            # inv_A_hat_b = inv_A_hat_b + v
+            inv_A_hat_b = pytree.tree_add(inv_A_hat_b, v)
+        # inv_A_hat_b = alpha * inv_A_hat_b
+        inv_A_hat_b = pytree.tree_scalar_mul(alpha, inv_A_hat_b)
+    else:
+        # A^{-1} = [I - (I - A)]^{-1} = I + (I - A) + (I - A)^2 + (I - A)^3 + ...
+        for _ in range(maxiter):
+            # v = v - A @ v
+            v = pytree.tree_sub(v, matvec(v))
+            # inv_A_hat_b = inv_A_hat_b + v
+            inv_A_hat_b = pytree.tree_add(inv_A_hat_b, v)
+
+    return inv_A_hat_b
 
 
 def _ns_inv(A: torch.Tensor, maxiter: int, alpha: Optional[float] = None):
@@ -145,6 +151,6 @@ def ns_inv(
     """
     if maxiter is None:
         size = sum(cat_shapes(A))
-        maxiter = 10 * size
+        maxiter = 10 * size  # copied from SciPy
 
     return pytree.tree_map(functools.partial(_ns_inv, maxiter=maxiter, alpha=alpha), A)

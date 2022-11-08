@@ -24,7 +24,7 @@ import torch
 import torch.distributed.rpc as rpc
 from optree import *  # pylint: disable=wildcard-import,unused-wildcard-import
 
-from torchopt.typing import Future, RRef, T, TensorTree
+from torchopt.typing import Future, RRef, Scalar, T, TensorTree
 
 
 __all__ = [
@@ -35,8 +35,10 @@ __all__ = [
     'tree_add',
     'tree_add_scalar_mul',
     'tree_sub',
+    'tree_sub_scalar_mul',
     'tree_mul',
     'tree_matmul',
+    'tree_scalar_mul',
     'tree_truediv',
     'tree_vdot_real',
     'tree_wait',
@@ -95,7 +97,7 @@ def tree_add(*trees: PyTree[T]) -> PyTree[T]:
 
 
 def tree_add_scalar_mul(
-    tree_x: TensorTree, tree_y: TensorTree, alpha: Optional[float] = None
+    tree_x: TensorTree, tree_y: TensorTree, alpha: Optional[Scalar] = None
 ) -> TensorTree:
     """Computes tree_x + alpha * tree_y."""
     if alpha is None:
@@ -108,6 +110,15 @@ def tree_sub(minuend_tree: PyTree[T], subtrahend_tree: PyTree[T]) -> PyTree[T]:
     return tree_map(operator.sub, minuend_tree, subtrahend_tree)
 
 
+def tree_sub_scalar_mul(
+    tree_x: TensorTree, tree_y: TensorTree, alpha: Optional[Scalar] = None
+) -> TensorTree:
+    """Computes tree_x - alpha * tree_y."""
+    if alpha is None:
+        return tree_map(lambda x, y: x.sub(y), tree_x, tree_y)
+    return tree_map(lambda x, y: x.sub(y, alpha=alpha), tree_x, tree_y)
+
+
 def tree_mul(*trees: PyTree[T]) -> PyTree[T]:
     """Tree multiplication over leaves."""
     return tree_map(acc_mul, *trees)
@@ -116,6 +127,11 @@ def tree_mul(*trees: PyTree[T]) -> PyTree[T]:
 def tree_matmul(*trees: PyTree[T]) -> PyTree[T]:
     """Tree matrix multiplication over leaves."""
     return tree_map(acc_matmul, *trees)
+
+
+def tree_scalar_mul(scalar: Scalar, multiplicand_tree: PyTree[T]) -> PyTree[T]:
+    """Tree scalar multiplication over leaves."""
+    return tree_map(lambda x: scalar * x, multiplicand_tree)
 
 
 def tree_truediv(dividend_tree: PyTree[T], divisor_tree: PyTree[T]) -> PyTree[T]:
@@ -172,4 +188,4 @@ if rpc.is_available():
     __all__.extend(['tree_as_rref', 'tree_to_here'])
 
 
-del Callable, List, Optional, Tuple, optree, rpc, T, RRef
+del Callable, List, Optional, Tuple, optree, rpc, Scalar, T, RRef
