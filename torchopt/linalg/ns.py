@@ -16,6 +16,7 @@
 
 # pylint: disable=invalid-name
 
+import functools
 from typing import Callable, Optional, Union
 
 import torch
@@ -29,15 +30,47 @@ from torchopt.typing import TensorTree
 __all__ = ['ns', 'ns_inv']
 
 
+def _ns_solve(
+    A: torch.Tensor,
+    b: torch.Tensor,
+    maxiter: int,
+    alpha: Optional[float] = None,
+) -> torch.Tensor:
+    """Uses Neumann Series Matrix Inversion Approximation to solve ``Ax = b``."""
+    if A.ndim != 2:
+        raise ValueError(f'`A` must be a 2D tensor, but has shape: {A.shape}')
+    ndim = b.ndim
+    if ndim == 0:
+        raise ValueError(f'`b` must be a vector, but has shape: {b.shape}')
+    if ndim >= 2:
+        if any(size != 1 for size in b.shape[1:]):
+            raise ValueError(f'`b` must be a vector, but has shape: {b.shape}')
+        b = b[(...,) + (0,) * (ndim - 1)]  # squeeze trailing dimensions
+
+    inv_A_hat_b = b
+    term = b
+    if alpha is not None:
+        for _ in range(maxiter):
+            term = term - alpha * (A @ term)
+            inv_A_hat_b = inv_A_hat_b + term
+    else:
+        for _ in range(maxiter):
+            term = term - A @ term
+            inv_A_hat_b = inv_A_hat_b + term
+
+    if ndim >= 2:
+        inv_A_hat_b = inv_A_hat_b[(...,) + (None,) * (ndim - 1)]  # unqueeze trailing dimensions
+    return inv_A_hat_b
+
+
 def ns(
     A: Union[Callable[[TensorTree], TensorTree], torch.Tensor],
     b: TensorTree,
     maxiter: Optional[int] = None,
     *,
     alpha: Optional[float] = None,
-    dtype: Optional[torch.dtype] = None,
 ) -> TensorTree:
-    """Use Neumann Series Matrix Inversion Approximation to solve ``Ax = b``.
+    """Uses Neumann Series Matrix Inversion Approximation to solve ``Ax = b``.
 
     Args:
         A: (tensor or tree of tensors or function)
@@ -56,34 +89,36 @@ def ns(
     Returns:
         The Neumann Series (NS) matrix inversion approximation.
     """
-    shapes = cat_shapes(b)
-    if len(shapes) >= 2:
-        raise NotImplementedError
+    if maxiter is None:
+        maxiter = 10
+    b_flat = pytree.tree_leaves(b)
+    if len(b_flat) == 0:
+        raise ValueError('`b` must be a non-empty pytree.')
+    if len(b_flat) >= 2:
+        raise ValueError('`b` must be a pytree with a single leaf.')
+    b_leaf = b_flat[0]
+    if b_leaf.ndim >= 2 and any(size != 1 for size in b.shape[1:]):
+        raise ValueError(f'`b` must be a vector or a scalar, but has shape: {b_leaf.shape}')
 
     matvec = normalize_matvec(A)
-    A = materialize_matvec(matvec, shapes, dtype=dtype)
-    if maxiter is None:
-        # size = sum(shapes)
-        maxiter = 1
+    A: TensorTree = materialize_matvec(matvec, b)
+    return pytree.tree_map(functools.partial(_ns_solve, maxiter=maxiter, alpha=alpha), A, b)
 
-    A_flat, treespec = pytree.tree_flatten(A)
-    b_flat = pytree.tree_leaves(b)
 
+def _ns_inv(A: torch.Tensor, maxiter: int, alpha: Optional[float] = None):
+    """Uses Neumann Series iteration to solve ``A^{-1}``."""
+    if A.ndim != 2:
+        raise ValueError(f'`A` must be a 2D tensor, but has shape: {A.shape}')
+
+    I = torch.eye(*A.shape, out=torch.empty_like(A))
+    inv_A_hat = torch.zeros_like(A)
     if alpha is not None:
-
-        def f(A, b):
-            return b - alpha * (A @ b)
-
+        for rank in range(maxiter):
+            inv_A_hat = inv_A_hat + torch.linalg.matrix_power(I - alpha * A, rank)
     else:
-
-        def f(A, b):
-            return b - A @ b
-
-    inv_A_hat_b_flat = list(b_flat)
-    for _ in range(maxiter):
-        b_flat = list(map(f, A_flat, b_flat))
-        inv_A_hat_b_flat = list(map(torch.add, inv_A_hat_b_flat, b_flat))
-    return pytree.tree_unflatten(treespec, inv_A_hat_b_flat)
+        for rank in range(maxiter):
+            inv_A_hat = inv_A_hat + torch.linalg.matrix_power(I - A, rank)
+    return inv_A_hat
 
 
 def ns_inv(
@@ -92,7 +127,7 @@ def ns_inv(
     *,
     alpha: Optional[float] = None,
 ) -> TensorTree:
-    """Use Neumann Series iteration to solve ``A^{-1}``.
+    """Uses Neumann Series iteration to solve ``A^{-1}``.
 
     Args:
         A: (tensor or tree of tensors or function)
@@ -112,18 +147,15 @@ def ns_inv(
         size = sum(cat_shapes(A))
         maxiter = 10 * size
 
-    A_flat, treespec = pytree.tree_flatten(A)
+    if isinstance(A, torch.Tensor):
+        I = torch.eye(*A.shape, out=torch.empty_like(A))
+        inv_A_hat = torch.zeros_like(A)
+        if alpha is not None:
+            for rank in range(maxiter):
+                inv_A_hat = inv_A_hat + torch.linalg.matrix_power(I - alpha * A, rank)
+        else:
+            for rank in range(maxiter):
+                inv_A_hat = inv_A_hat + torch.linalg.matrix_power(I - A, rank)
+        return inv_A_hat
 
-    I_flat = [torch.eye(*a.size(), out=torch.empty_like(a)) for a in A_flat]
-    inv_A_hat_flat = [torch.zeros_like(a) for a in A_flat]
-    if alpha is not None:
-        for rank in range(maxiter):
-            power = [torch.linalg.matrix_power(i - alpha * a, rank) for i, a in zip(I_flat, A_flat)]
-            inv_A_hat_flat = [inv_a + p for inv_a, p in zip(inv_A_hat_flat, power)]
-    else:
-        for rank in range(maxiter):
-            power = [torch.linalg.matrix_power(i - a, rank) for i, a in zip(I_flat, A_flat)]
-            inv_A_hat_flat = [inv_a + p for inv_a, p in zip(inv_A_hat_flat, power)]
-
-    inv_A_hat = pytree.tree_unflatten(treespec, inv_A_hat_flat)
-    return inv_A_hat
+    return pytree.tree_map(functools.partial(_ns_inv, maxiter=maxiter, alpha=alpha), A)

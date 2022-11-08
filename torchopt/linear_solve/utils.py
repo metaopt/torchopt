@@ -31,12 +31,9 @@
 # ==============================================================================
 """Utilities for linear algebra solvers."""
 
-# pylint: disable=invalid-name
-
-from typing import Callable, Optional, Tuple
+from typing import Callable
 
 import functorch
-import torch
 
 from torchopt import pytree
 from torchopt.typing import TensorTree
@@ -76,11 +73,6 @@ def make_ridge_matvec(
     return ridge_matvec
 
 
-def materialize_matvec(
-    matvec: Callable[[TensorTree], TensorTree],
-    shape: Tuple[int, ...],
-    dtype: Optional[torch.dtype] = None,
-) -> TensorTree:
-    """Materializes the matrix ``A`` used in ``matvec(x) = A x``."""
-    x = torch.zeros(shape, dtype=dtype)
+def materialize_matvec(matvec: Callable[[TensorTree], TensorTree], x: TensorTree) -> TensorTree:
+    """Materializes the matrix ``A`` used in ``matvec(x) = A @ x``."""
     return functorch.jacfwd(matvec)(x)

@@ -31,13 +31,13 @@ def cat_shapes(tree: TensorTree) -> Tuple[int, ...]:
 
 
 def normalize_matvec(
-    f: Union[Callable[[TensorTree], TensorTree], torch.Tensor]
+    matvec: Union[Callable[[TensorTree], TensorTree], torch.Tensor]
 ) -> Callable[[TensorTree], TensorTree]:
     """Normalize an argument for computing matrix-vector products."""
-    if callable(f):
-        return f
+    if callable(matvec):
+        return matvec
 
-    assert isinstance(f, torch.Tensor)
-    if f.ndim != 2 or f.shape[0] != f.shape[1]:
-        raise ValueError(f'linear operator must be a square matrix, but has shape: {f.shape}')
-    return partial(torch.matmul, f)
+    assert isinstance(matvec, torch.Tensor)
+    if matvec.ndim != 2 or matvec.shape[0] != matvec.shape[1]:
+        raise ValueError(f'linear operator must be a square matrix, but has shape: {matvec.shape}')
+    return partial(torch.matmul, matvec)

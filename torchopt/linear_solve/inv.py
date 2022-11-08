@@ -55,7 +55,8 @@ def _solve_inv(
 ) -> TensorTree:
     """Solves ``A x = b`` using matrix inversion.
 
-    It will materialize the matrix ``A`` in memory.
+    It assumes the matrix ``A`` is a constant matrix and will materialize the
+    matrix ``A`` in memory.
 
     Args:
         matvec: A function that returns the product between ``A`` and a vector.
@@ -75,17 +76,15 @@ def _solve_inv(
     if len(b_flat) >= 2:
         raise ValueError('`b` must be a pytree with a single leaf.')
 
-    b_leaf: torch.Tensor = b_flat[0]
-    dtype = b_leaf.dtype
-    shape = b_leaf.shape
-    if len(shape) == 0:
-        return pytree.tree_truediv(b, materialize_matvec(matvec, shape=shape, dtype=dtype))
-    if len(shape) == 1:
+    b_leaf = b_flat[0]
+    if b_leaf.ndim == 0:
+        return pytree.tree_truediv(b, materialize_matvec(matvec, b))
+    if b_leaf.ndim == 1 or all(size == 1 for size in b_leaf.shape[1:]):
         if ns:
             return linalg.ns(matvec, b, **kwargs)
-        A = materialize_matvec(matvec, shape=shape, dtype=dtype)
+        A = materialize_matvec(matvec, b)
         return pytree.tree_map(lambda A, b: torch.linalg.inv(A) @ b, A, b)
-    raise NotImplementedError
+    raise ValueError(f'`b` must be a vector or a scalar, but has shape: {b_leaf.shape}')
 
 
 def solve_inv(**kwargs):
