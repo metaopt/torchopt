@@ -450,9 +450,8 @@ def test_rr_solve_inv(
     lr: float,
     ns: bool,
 ) -> None:
-    if dtype == torch.float64:
-        if ns:
-            pytest.skip('Neumann Series test skips torch.float64.')
+    if dtype == torch.float64 and ns:
+        pytest.skip('Neumann Series test skips torch.float64 due to numerical stability.')
     helpers.seed_everything(42)
     np_dtype = helpers.dtype_torch2numpy(dtype)
     input_size = 10
