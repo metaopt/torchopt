@@ -70,22 +70,16 @@ def _solve_inv(
     """
     if ridge is not None:
         matvec = make_ridge_matvec(matvec, ridge=ridge)
-    b_flat = pytree.tree_leaves(b)
-    if len(b_flat) == 0:
-        raise ValueError('`b` must be a non-empty pytree.')
-    if len(b_flat) >= 2:
-        raise ValueError('`b` must be a pytree with a single leaf.')
 
-    b_leaf = b_flat[0]
-    if b_leaf.ndim == 0:
+    b_flat = pytree.tree_leaves(b)
+    if len(b_flat) == 1 and b_flat[0].ndim == 0:
         A = materialize_matvec(matvec, b)
         return pytree.tree_truediv(b, A)
-    if b_leaf.ndim == 1 or all(size == 1 for size in b_leaf.shape[1:]):
-        if ns:
-            return linalg.ns(matvec, b, **kwargs)
-        A = materialize_matvec(matvec, b)
-        return pytree.tree_map(lambda A, b: torch.linalg.inv(A) @ b, A, b)
-    raise ValueError(f'`b` must be a vector or a scalar, but has shape: {b_leaf.shape}')
+
+    if ns:
+        return linalg.ns(matvec, b, **kwargs)
+    A = materialize_matvec(matvec, b)
+    return pytree.tree_map(lambda A, b: torch.linalg.inv(A) @ b, A, b)
 
 
 def solve_inv(**kwargs):
