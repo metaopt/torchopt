@@ -39,7 +39,6 @@ from typing import Callable, Optional
 import torch
 
 from torchopt import linalg, pytree
-from torchopt.linalg.utils import cat_shapes
 from torchopt.linear_solve.utils import make_ridge_matvec, materialize_matvec
 from torchopt.typing import TensorTree
 
@@ -53,7 +52,7 @@ def _solve_inv(
     ridge: Optional[float] = None,
     ns: bool = False,
     **kwargs,
-) -> torch.Tensor:
+) -> TensorTree:
     """Solves ``A x = b`` using matrix inversion.
 
     It will materialize the matrix ``A`` in memory.
@@ -70,20 +69,22 @@ def _solve_inv(
     """
     if ridge is not None:
         matvec = make_ridge_matvec(matvec, ridge=ridge)
-    leaves = pytree.tree_leaves(b)
-    if len(leaves) > 0:
-        dtype = leaves[0].dtype
-    else:
-        dtype = None
+    b_flat = pytree.tree_leaves(b)
+    if len(b_flat) == 0:
+        raise ValueError('`b` must be a non-empty pytree.')
+    if len(b_flat) >= 2:
+        raise ValueError('`b` must be a pytree with a single leaf.')
 
-    shapes = cat_shapes(b)
-    if len(shapes) == 0:
-        return b / materialize_matvec(matvec, shapes, dtype=dtype)
-    if len(shapes) == 1:
+    b_leaf: torch.Tensor = b_flat[0]
+    dtype = b_leaf.dtype
+    shape = b_leaf.shape
+    if len(shape) == 0:
+        return pytree.tree_truediv(b, materialize_matvec(matvec, shape=shape, dtype=dtype))
+    if len(shape) == 1:
         if ns:
             return linalg.ns(matvec, b, **kwargs)
-        A = materialize_matvec(matvec, shapes, dtype=dtype)
-        return pytree.tree_map(lambda A, b: torch.linalg.inv(A) @ b, A, b)  # type: ignore[return-value]
+        A = materialize_matvec(matvec, shape=shape, dtype=dtype)
+        return pytree.tree_map(lambda A, b: torch.linalg.inv(A) @ b, A, b)
     raise NotImplementedError
 
 
