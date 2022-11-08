@@ -39,7 +39,7 @@ from typing import Callable, Optional, Union
 import torch
 
 from torchopt import pytree
-from torchopt.linalg.utils import cat_shapes
+from torchopt.linalg.utils import cat_shapes, normalize_matvec
 from torchopt.pytree import tree_vdot_real
 from torchopt.typing import TensorTree
 
@@ -49,19 +49,6 @@ __all__ = ['cg']
 
 def _identity(x: TensorTree) -> TensorTree:
     return x
-
-
-def _normalize_matvec(
-    f: Union[Callable[[TensorTree], TensorTree], torch.Tensor]
-) -> Callable[[TensorTree], TensorTree]:
-    """Normalize an argument for computing matrix-vector products."""
-    if callable(f):
-        return f
-
-    assert isinstance(f, torch.Tensor)
-    if f.ndim != 2 or f.shape[0] != f.shape[1]:
-        raise ValueError(f'linear operator must be a square matrix, but has shape: {f.shape}')
-    return partial(torch.matmul, f)
 
 
 # pylint: disable-next=too-many-locals
@@ -113,14 +100,14 @@ def _cg_solve(
 
 def _isolve(
     _isolve_solve: Callable,
-    A: Union[torch.Tensor, Callable[[TensorTree], TensorTree]],
+    A: Union[TensorTree, Callable[[TensorTree], TensorTree]],
     b: TensorTree,
     x0: Optional[TensorTree] = None,
     *,
     rtol: float = 1e-5,
     atol: float = 0.0,
     maxiter: Optional[int] = None,
-    M: Optional[Union[torch.Tensor, Callable[[TensorTree], TensorTree]]] = None,
+    M: Optional[Union[TensorTree, Callable[[TensorTree], TensorTree]]] = None,
 ) -> TensorTree:
     if x0 is None:
         x0 = pytree.tree_map(torch.zeros_like, b)
@@ -131,8 +118,8 @@ def _isolve(
 
     if M is None:
         M = _identity
-    A = _normalize_matvec(A)
-    M = _normalize_matvec(M)
+    A = normalize_matvec(A)
+    M = normalize_matvec(M)
 
     if cat_shapes(x0) != cat_shapes(b):
         raise ValueError(
@@ -146,14 +133,14 @@ def _isolve(
 
 
 def cg(
-    A: Union[torch.Tensor, Callable[[TensorTree], TensorTree]],
+    A: Union[TensorTree, Callable[[TensorTree], TensorTree]],
     b: TensorTree,
     x0: Optional[TensorTree] = None,
     *,
     rtol: float = 1e-5,
     atol: float = 0.0,
     maxiter: Optional[int] = None,
-    M: Optional[Union[torch.Tensor, Callable[[TensorTree], TensorTree]]] = None,
+    M: Optional[Union[TensorTree, Callable[[TensorTree], TensorTree]]] = None,
 ) -> TensorTree:
     """Use Conjugate Gradient iteration to solve ``Ax = b``.
 

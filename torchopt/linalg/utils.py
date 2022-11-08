@@ -15,7 +15,6 @@
 """Utilities for linear algebra."""
 
 import itertools
-from functools import partial
 from typing import Callable, Tuple, Union
 
 import torch
@@ -31,13 +30,26 @@ def cat_shapes(tree: TensorTree) -> Tuple[int, ...]:
 
 
 def normalize_matvec(
-    matvec: Union[Callable[[TensorTree], TensorTree], torch.Tensor]
+    matvec: Union[TensorTree, Callable[[TensorTree], TensorTree]]
 ) -> Callable[[TensorTree], TensorTree]:
     """Normalizes an argument for computing matrix-vector product."""
     if callable(matvec):
         return matvec
 
-    assert isinstance(matvec, torch.Tensor)
-    if matvec.ndim != 2 or matvec.shape[0] != matvec.shape[1]:
-        raise ValueError(f'Linear operator must be a square matrix, but has shape: {matvec.shape}')
-    return partial(torch.matmul, matvec)
+    mat_flat, treespec = pytree.tree_flatten(matvec)
+    for mat in mat_flat:
+        if not isinstance(mat, torch.Tensor) or mat.ndim != 2 or mat.shape[0] != mat.shape[1]:
+            raise TypeError(f'Linear operator must be a square matrix, but has shape: {mat.shape}')
+
+    def _matvec(x: TensorTree) -> TensorTree:
+        x_flat = pytree.tree_leaves(x)
+        if len(x_flat) != len(mat_flat):
+            raise ValueError(
+                f'`x` must have the same number of leaves as `matvec`, '
+                f'but has {len(x_flat)} leaves and `matvec` has {len(mat_flat)} leaves'
+            )
+
+        y_flat = map(torch.matmul, mat_flat, x_flat)
+        return pytree.tree_unflatten(treespec, y_flat)
+
+    return _matvec

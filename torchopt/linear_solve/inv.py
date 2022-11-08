@@ -55,15 +55,15 @@ def _solve_inv(
 ) -> TensorTree:
     """Solves ``A x = b`` using matrix inversion.
 
-    It assumes the matrix ``A`` is a constant matrix and will materialize the
-    matrix ``A`` in memory.
+    If ``ns = False``, this assumes the matrix ``A`` is a constant matrix and will materialize it
+    in memory.
 
     Args:
         matvec: A function that returns the product between ``A`` and a vector.
         b: A tensor for the right hand side of the equation.
         ridge: Optional ridge regularization.
-        ns: Whether to use Neumann Series approximation. If :data:`False`, use
-            :func`torch.linalg.inv` instead.
+        ns: Whether to use Neumann Series approximation. If :data:`False`, materialize the matrix
+            ``A`` in memory and use :func`torch.linalg.inv` instead.
 
     Returns:
         The solution with the same shape as ``b``.
@@ -78,7 +78,8 @@ def _solve_inv(
 
     b_leaf = b_flat[0]
     if b_leaf.ndim == 0:
-        return pytree.tree_truediv(b, materialize_matvec(matvec, b))
+        A = materialize_matvec(matvec, b)
+        return pytree.tree_truediv(b, A)
     if b_leaf.ndim == 1 or all(size == 1 for size in b_leaf.shape[1:]):
         if ns:
             return linalg.ns(matvec, b, **kwargs)
