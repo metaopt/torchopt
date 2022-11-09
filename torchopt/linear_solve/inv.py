@@ -63,7 +63,7 @@ def _solve_inv(
         b: A tensor for the right hand side of the equation.
         ridge: Optional ridge regularization.
         ns: Whether to use Neumann Series approximation. If :data:`False`, materialize the matrix
-            ``A`` in memory and use :func`torch.linalg.inv` instead.
+            ``A`` in memory and use :func`torch.linalg.solve` instead.
 
     Returns:
         The solution with the same shape as ``b``.
@@ -78,8 +78,9 @@ def _solve_inv(
 
     if ns:
         return linalg.ns(matvec, b, **kwargs)
+
     A = materialize_matvec(matvec, b)
-    return pytree.tree_map(lambda A, b: torch.linalg.inv(A) @ b, A, b)
+    return pytree.tree_map(torch.linalg.solve, A, b)
 
 
 def solve_inv(**kwargs):

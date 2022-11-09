@@ -75,4 +75,10 @@ def make_ridge_matvec(
 
 def materialize_matvec(matvec: Callable[[TensorTree], TensorTree], x: TensorTree) -> TensorTree:
     """Materializes the matrix ``A`` used in ``matvec(x) = A @ x``."""
-    return functorch.jacfwd(matvec)(x)
+    x_flat, treespec = pytree.tree_flatten(x)
+    if len(x_flat) != 1:
+        raise ValueError('`x` must be a pytree with a single leaf.')
+
+    jacobian = functorch.jacfwd(matvec)(x)
+    jacobian_flat, _ = pytree.tree_flatten(jacobian)
+    return pytree.tree_unflatten(treespec, jacobian_flat)

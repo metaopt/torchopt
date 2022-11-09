@@ -113,7 +113,9 @@ def get_rr_dataset_torch() -> data.DataLoader:
     inner_lr=[2e-2, 2e-3],
     inner_update=[20, 50, 100],
 )
-def test_imaml(dtype: torch.dtype, lr: float, inner_lr: float, inner_update: int) -> None:
+def test_imaml_solve_normal_cg(
+    dtype: torch.dtype, lr: float, inner_lr: float, inner_update: int
+) -> None:
     np_dtype = helpers.dtype_torch2numpy(dtype)
 
     jax_model, jax_params = get_model_jax(dtype=np_dtype)
@@ -136,7 +138,10 @@ def test_imaml(dtype: torch.dtype, lr: float, inner_lr: float, inner_update: int
         return loss
 
     @torchopt.diff.implicit.custom_root(
-        functorch.grad(imaml_objective_torchopt, argnums=0), argnums=1, has_aux=True
+        functorch.grad(imaml_objective_torchopt, argnums=0),
+        argnums=1,
+        has_aux=True,
+        solve=torchopt.linear_solve.solve_normal_cg(),
     )
     def inner_solver_torchopt(params, meta_params, data):
         # Initial functional optimizer based on TorchOpt
@@ -167,7 +172,11 @@ def test_imaml(dtype: torch.dtype, lr: float, inner_lr: float, inner_update: int
         loss = loss + regularization_loss
         return loss
 
-    @jaxopt.implicit_diff.custom_root(jax.grad(imaml_objective_jax, argnums=0), has_aux=True)
+    @jaxopt.implicit_diff.custom_root(
+        jax.grad(imaml_objective_jax, argnums=0),
+        has_aux=True,
+        solve=jaxopt.linear_solve.solve_normal_cg,
+    )
     def inner_solver_jax(params, meta_params, x, y):
         """Solve ridge regression by conjugate gradient."""
         # Initial functional optimizer based on torchopt
@@ -210,6 +219,137 @@ def test_imaml(dtype: torch.dtype, lr: float, inner_lr: float, inner_update: int
         def outer_level(p, xs, ys):
             optimal_params, aux = inner_solver_jax(copy.deepcopy(p), p, xs, ys)
             assert aux == (0, {'a': 1, 'b': 2})
+            outer_loss = jax_model(optimal_params, xs).mean()
+            return outer_loss
+
+        grads_jax = jax.grad(outer_level, argnums=0)(jax_params, xs, ys)
+        updates_jax, optim_state_jax = optim_jax.update(grads_jax, optim_state_jax)  # get updates
+        jax_params = optax.apply_updates(jax_params, updates_jax)
+
+    jax_params_as_tensor = tuple(
+        nn.Parameter(torch.tensor(np.asarray(jax_params[j]), dtype=dtype)) for j in jax_params
+    )
+
+    for p, p_ref in zip(params, jax_params_as_tensor):
+        helpers.assert_all_close(p, p_ref)
+
+
+@helpers.parametrize(
+    dtype=[torch.float64, torch.float32],
+    lr=[1e-3, 1e-4],
+    inner_lr=[2e-2, 2e-3],
+    inner_update=[20, 50, 100],
+    ns=[False, True],
+)
+def test_imaml_solve_inv(
+    dtype: torch.dtype,
+    lr: float,
+    inner_lr: float,
+    inner_update: int,
+    ns: bool,
+) -> None:
+    if not ns:
+        pytest.skip('Cannot materialize the linear operator into a single matrix.')
+
+    np_dtype = helpers.dtype_torch2numpy(dtype)
+
+    jax_model, jax_params = get_model_jax(dtype=np_dtype)
+    model, loader = get_model_torch(device='cpu', dtype=dtype)
+
+    fmodel, params = functorch.make_functional(model)
+    optim = torchopt.sgd(lr)
+    optim_state = optim.init(params)
+
+    optim_jax = optax.sgd(lr)
+    optim_state_jax = optim_jax.init(jax_params)
+
+    def imaml_objective_torchopt(params, meta_params, data):
+        x, y, f = data
+        y_pred = f(params, x)
+        regularization_loss = 0
+        for p1, p2 in zip(params, meta_params):
+            regularization_loss += 0.5 * torch.sum(torch.square(p1 - p2))
+        loss = F.cross_entropy(y_pred, y) + regularization_loss
+        return loss
+
+    @torchopt.diff.implicit.custom_root(
+        functorch.grad(imaml_objective_torchopt, argnums=0),
+        argnums=1,
+        solve=torchopt.linear_solve.solve_inv(ns=ns),
+    )
+    def inner_solver_torchopt(params, meta_params, data):
+        # Initial functional optimizer based on TorchOpt
+        x, y, f = data
+        optimizer = torchopt.sgd(lr=inner_lr)
+        opt_state = optimizer.init(params)
+        with torch.enable_grad():
+            # Temporarily enable gradient computation for conducting the optimization
+            for _ in range(inner_update):
+                pred = f(params, x)
+                loss = F.cross_entropy(pred, y)  # compute loss
+                # Compute regularization loss
+                regularization_loss = 0
+                for p1, p2 in zip(params, meta_params):
+                    regularization_loss += 0.5 * torch.sum(torch.square(p1 - p2))
+                final_loss = loss + regularization_loss
+                grads = torch.autograd.grad(final_loss, params)  # compute gradients
+                updates, opt_state = optimizer.update(grads, opt_state, inplace=True)  # get updates
+                params = torchopt.apply_updates(params, updates, inplace=True)
+        return params
+
+    def imaml_objective_jax(params, meta_params, x, y):
+        y_pred = jax_model(params, x)
+        loss = jnp.mean(optax.softmax_cross_entropy_with_integer_labels(y_pred, y))
+        regularization_loss = 0
+        for p1, p2 in zip(params.values(), meta_params.values()):
+            regularization_loss += 0.5 * jnp.sum(jnp.square((p1 - p2)))
+        loss = loss + regularization_loss
+        return loss
+
+    @jaxopt.implicit_diff.custom_root(
+        jax.grad(imaml_objective_jax, argnums=0),
+        solve=jaxopt.linear_solve.solve_normal_cg,
+    )
+    def inner_solver_jax(params, meta_params, x, y):
+        """Solve ridge regression by conjugate gradient."""
+        # Initial functional optimizer based on torchopt
+        optimizer = optax.sgd(inner_lr)
+        opt_state = optimizer.init(params)
+
+        def compute_loss(params, meta_params, x, y):
+            pred = jax_model(params, x)
+            loss = jnp.mean(optax.softmax_cross_entropy_with_integer_labels(pred, y))
+            # Compute regularization loss
+            regularization_loss = 0
+            for p1, p2 in zip(params.values(), meta_params.values()):
+                regularization_loss += 0.5 * jnp.sum(jnp.square((p1 - p2)))
+            final_loss = loss + regularization_loss
+            return final_loss
+
+        for i in range(inner_update):
+            grads = jax.grad(compute_loss)(params, meta_params, x, y)  # compute gradients
+            updates, opt_state = optimizer.update(grads, opt_state)  # get updates
+            params = optax.apply_updates(params, updates)
+        return params
+
+    for xs, ys in loader:
+        xs = xs.to(dtype=dtype)
+        data = (xs, ys, fmodel)
+        meta_params_copy = pytree.tree_map(
+            lambda t: t.clone().detach_().requires_grad_(requires_grad=t.requires_grad), params
+        )
+        optimal_params = inner_solver_torchopt(meta_params_copy, params, data)
+        outer_loss = fmodel(optimal_params, xs).mean()
+
+        grads = torch.autograd.grad(outer_loss, params)
+        updates, optim_state = optim.update(grads, optim_state)
+        params = torchopt.apply_updates(params, updates)
+
+        xs = xs.numpy()
+        ys = ys.numpy()
+
+        def outer_level(p, xs, ys):
+            optimal_params = inner_solver_jax(copy.deepcopy(p), p, xs, ys)
             outer_loss = jax_model(optimal_params, xs).mean()
             return outer_loss
 
