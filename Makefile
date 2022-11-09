@@ -51,6 +51,7 @@ py-format-install:
 
 mypy-install:
 	$(call check_pip_install,mypy)
+	$(call check_pip_install,types-setuptools)
 
 pre-commit-install:
 	$(call check_pip_install,pre-commit)

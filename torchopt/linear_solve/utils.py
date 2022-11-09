@@ -31,19 +31,12 @@
 # ==============================================================================
 """Utilities for linear algebra solvers."""
 
-# pylint: disable=invalid-name
-
-from typing import Callable
+from typing import Callable, Tuple
 
 import functorch
 
 from torchopt import pytree
 from torchopt.typing import TensorTree
-
-
-def tree_add(tree_x: TensorTree, tree_y: TensorTree, alpha: float = 1.0) -> TensorTree:
-    """Computes tree_x + alpha * tree_y."""
-    return pytree.tree_map(lambda x, y: x.add(y, alpha=alpha), tree_x, tree_y)
 
 
 def make_rmatvec(
@@ -75,6 +68,47 @@ def make_ridge_matvec(
 
     def ridge_matvec(y: TensorTree) -> TensorTree:
         """Computes ``A.T @ A @ v + ridge * v`` from ``matvec(x) = A @ x``."""
-        return tree_add(matvec(y), y, alpha=ridge)
+        return pytree.tree_add_scalar_mul(matvec(y), y, alpha=ridge)
 
     return ridge_matvec
+
+
+def materialize_matvec(
+    matvec: Callable[[TensorTree], TensorTree], x: TensorTree
+) -> Tuple[
+    TensorTree,
+    Callable[[TensorTree], TensorTree],
+    Callable[[TensorTree], TensorTree],
+    Callable[[TensorTree], TensorTree],
+]:
+    """Materializes the matrix ``A`` used in ``matvec(x) = A @ x``."""
+    x_flat, treespec = pytree.tree_flatten(x)
+    shapes = tuple(t.shape for t in x_flat)
+
+    if all(t.ndim == 1 for t in x_flat):
+
+        def tree_ravel(x: TensorTree) -> TensorTree:
+            return x
+
+        def tree_unravel(y: TensorTree) -> TensorTree:
+            return y
+
+        matvec_ravel = matvec
+
+    else:
+
+        def tree_ravel(x: TensorTree) -> TensorTree:
+            return pytree.tree_map(lambda t: t.contiguous().view(-1), x)
+
+        def tree_unravel(y: TensorTree) -> TensorTree:
+            shapes_iter = iter(shapes)
+            return pytree.tree_map(lambda t: t.contiguous().view(next(shapes_iter)), y)
+
+        def matvec_ravel(y: TensorTree) -> TensorTree:
+            return tree_ravel(matvec(tree_unravel(y)))
+
+    nargs = len(x_flat)
+    jacobian_tree = functorch.jacfwd(matvec_ravel)(tree_ravel(x))
+    jacobian_flat = pytree.tree_leaves(jacobian_tree)
+    jacobian_diag = [jacobian_flat[i + i * nargs] for i in range(nargs)]
+    return pytree.tree_unflatten(treespec, jacobian_diag), matvec_ravel, tree_ravel, tree_unravel
