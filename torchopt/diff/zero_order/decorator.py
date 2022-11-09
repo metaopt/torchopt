@@ -82,7 +82,7 @@ def _zero_order_naive(  # pylint: disable=too-many-statements
                 objective = fn(*origin_args)
                 if not isinstance(objective, torch.Tensor):
                     raise RuntimeError('Objective must be a tensor.')
-                if not objective.ndim != 0:
+                if objective.ndim != 0:
                     raise RuntimeError('Objective must be a scalar tensor.')
                 ctx.save_for_backward(*flat_diff_params, *tensors)
                 ctx.len_args = len(args)
@@ -114,9 +114,12 @@ def _zero_order_naive(  # pylint: disable=too-many-statements
                 def add_perturbation(tensor, noises):
                     return tensor.add(noises, alpha=sigma)
 
-                out_grads: ListOfTensors = [0.0 for _ in range(len(flat_diff_params))]  # type: ignore[misc]
+                out_grads: ListOfTensors = [None for _ in range(len(flat_diff_params))]  # type: ignore[misc]
 
-                for _ in range(num_samples):
+                for i in range(len(flat_diff_params)):
+                    out_grads[i] = 0.0
+
+                for _ in range(sample_num):
                     noises = [distribution.sample(sample_shape=p.shape) for p in flat_diff_params]
                     flat_noisy_params = [
                         add_perturbation(t, n) for t, n in zip(flat_diff_params, noises)
@@ -135,7 +138,7 @@ def _zero_order_naive(  # pylint: disable=too-many-statements
                         out_grads[i] += weighted_grad * noise
 
                 for i in range(len(flat_diff_params)):
-                    out_grads[i] /= num_samples
+                    out_grads[i] /= sample_num
 
                 return tuple(out_grads + [None] * (ctx.len_args - len(flat_diff_params)))
 
@@ -148,7 +151,7 @@ def _zero_order_forward(  # pylint: disable=too-many-statements
     fn: Callable[..., torch.Tensor],
     distribution: Samplable,
     argnums: Tuple[int, ...],
-    num_samples: int,
+    sample_num: int,
     sigma: Numeric,
 ) -> Callable[..., torch.Tensor]:
     def apply(*args: Any) -> torch.Tensor:  # pylint: disable=too-many-statements
@@ -215,9 +218,12 @@ def _zero_order_forward(  # pylint: disable=too-many-statements
                 def add_perturbation(tensor, noises):
                     return tensor.add(noises, alpha=sigma)
 
-                out_grads: ListOfTensors = [0.0 for _ in range(len(flat_diff_params))]  # type: ignore[misc]
+                out_grads: ListOfTensors = [None for _ in range(len(flat_diff_params))]  # type: ignore[misc]
 
-                for _ in range(num_samples):
+                for i in range(len(flat_diff_params)):
+                    out_grads[i] = 0.0
+
+                for _ in range(sample_num):
                     noises = [distribution.sample(sample_shape=p.shape) for p in flat_diff_params]
                     flat_noisy_params = [
                         add_perturbation(t, n) for t, n in zip(flat_diff_params, noises)
@@ -237,7 +243,7 @@ def _zero_order_forward(  # pylint: disable=too-many-statements
                         out_grads[i] += weighted_grad * noise
 
                 for i in range(len(flat_diff_params)):
-                    out_grads[i] /= num_samples
+                    out_grads[i] /= sample_num
 
                 return tuple(out_grads + [None] * (ctx.len_args - len(flat_diff_params)))
 
@@ -250,7 +256,7 @@ def _zero_order_antithetic(  # pylint: disable=too-many-statements
     fn: Callable[..., torch.Tensor],
     distribution: Samplable,
     argnums: Tuple[int, ...],
-    num_samples: int,
+    sample_num: int,
     sigma: Numeric,
 ) -> Callable[..., torch.Tensor]:
     def apply(*args: Any) -> torch.Tensor:  # pylint: disable=too-many-statements
@@ -311,7 +317,10 @@ def _zero_order_antithetic(  # pylint: disable=too-many-statements
 
                 args: List[Any] = pytree.tree_unflatten(ctx.args_treespec, flat_args)  # type: ignore[assignment]
 
-                out_grads: ListOfTensors = [0.0 for _ in range(len(flat_diff_params))]  # type: ignore[misc]
+                out_grads: ListOfTensors = [None for _ in range(len(flat_diff_params))]  # type: ignore[misc]
+
+                for i in range(len(flat_diff_params)):
+                    out_grads[i] = 0.0
 
                 def get_objective(add_perturbation_fn, noises) -> torch.Tensor:
                     flat_noisy_params = [
@@ -327,7 +336,7 @@ def _zero_order_antithetic(  # pylint: disable=too-many-statements
 
                     return fn(*args)
 
-                for _ in range(num_samples):
+                for _ in range(sample_num):
                     noises = [distribution.sample(sample_shape=p.shape) for p in flat_diff_params]
                     objective = get_objective(torch.add, noises) - get_objective(torch.sub, noises)
                     weighted_grad = grad_outputs[0].mul(objective).mul_(0.5 / sigma)
@@ -336,7 +345,7 @@ def _zero_order_antithetic(  # pylint: disable=too-many-statements
                         out_grads[i] += weighted_grad * noise
 
                 for i in range(len(flat_diff_params)):
-                    out_grads[i] /= num_samples
+                    out_grads[i] /= sample_num
 
                 return tuple(out_grads + [None] * (ctx.len_args - len(flat_diff_params)))
 
@@ -352,7 +361,7 @@ def zero_order(
     distribution: Samplable,
     algo: Algorithm = 'naive',
     argnums: Union[int, Tuple[int, ...]] = (0,),
-    num_samples: int = 1,
+    sample_num: int = 1,
     sigma: Numeric = 1.0,
 ) -> Callable[[Callable[..., torch.Tensor]], Callable[..., torch.Tensor]]:
     """Decorator for applying zero order differentiation.
@@ -366,7 +375,7 @@ def zero_order(
             :const:`'forward'`, and :const:`'antithetic'`. Defaults to :const:`'naive'`.
         argnums: (int or tuple of int, default: :const:`0`)
             Specifies arguments to compute gradients with respect to.
-        num_samples: (int, default :const:`1`) The number of sample to get the averaged estimated gradient.
+        sample_num: (int, default :const:`1`) The number of sample to get the averaged estimated gradient.
         sigma: (Numeric)
             The standard deviation of the perturbation. Defaults to :const:`1.0`.
 
@@ -388,7 +397,7 @@ def zero_order(
         algo_fn,
         distribution=distribution,
         argnums=argnums,
-        num_samples=num_samples,
+        sample_num=sample_num,
         sigma=sigma,
     )
 
