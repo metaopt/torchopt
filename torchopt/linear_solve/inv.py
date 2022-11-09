@@ -73,14 +73,14 @@ def _solve_inv(
 
     b_flat = pytree.tree_leaves(b)
     if len(b_flat) == 1 and b_flat[0].ndim == 0:
-        A = materialize_matvec(matvec, b)
+        A, *_ = materialize_matvec(matvec, b)
         return pytree.tree_truediv(b, A)
 
     if ns:
         return linalg.ns(matvec, b, **kwargs)
 
-    A = materialize_matvec(matvec, b)
-    return pytree.tree_map(torch.linalg.solve, A, b)
+    A, _, tree_ravel, tree_unravel = materialize_matvec(matvec, b)
+    return tree_unravel(pytree.tree_map(torch.linalg.solve, A, tree_ravel(b)))
 
 
 def solve_inv(**kwargs):

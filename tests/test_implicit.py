@@ -248,9 +248,6 @@ def test_imaml_solve_inv(
     inner_update: int,
     ns: bool,
 ) -> None:
-    if not ns:
-        pytest.skip('Cannot materialize the linear operator into a single matrix.')
-
     np_dtype = helpers.dtype_torch2numpy(dtype)
 
     jax_model, jax_params = get_model_jax(dtype=np_dtype)

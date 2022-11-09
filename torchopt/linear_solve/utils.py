@@ -31,7 +31,7 @@
 # ==============================================================================
 """Utilities for linear algebra solvers."""
 
-from typing import Callable
+from typing import Callable, Tuple
 
 import functorch
 
@@ -73,12 +73,30 @@ def make_ridge_matvec(
     return ridge_matvec
 
 
-def materialize_matvec(matvec: Callable[[TensorTree], TensorTree], x: TensorTree) -> TensorTree:
+def materialize_matvec(
+    matvec: Callable[[TensorTree], TensorTree], x: TensorTree
+) -> Tuple[
+    TensorTree,
+    Callable[[TensorTree], TensorTree],
+    Callable[[TensorTree], TensorTree],
+    Callable[[TensorTree], TensorTree],
+]:
     """Materializes the matrix ``A`` used in ``matvec(x) = A @ x``."""
     x_flat, treespec = pytree.tree_flatten(x)
-    if len(x_flat) != 1:
-        raise ValueError('`x` must be a pytree with a single leaf.')
+    shapes = tuple(x.shape for x in x_flat)
 
-    jacobian = functorch.jacfwd(matvec)(x)
-    jacobian_flat, _ = pytree.tree_flatten(jacobian)
-    return pytree.tree_unflatten(treespec, jacobian_flat)
+    def tree_ravel(x: TensorTree) -> TensorTree:
+        return pytree.tree_map(lambda t: t.contiguous().view(-1), x)
+
+    def tree_unravel(y: TensorTree) -> TensorTree:
+        shapes_iter = iter(shapes)
+        return pytree.tree_map(lambda t: t.contiguous().view(next(shapes_iter)), y)
+
+    def matvec_ravel(y: TensorTree) -> TensorTree:
+        return tree_ravel(matvec(tree_unravel(y)))
+
+    nargs = len(x_flat)
+    jacobian_tree = functorch.jacfwd(matvec_ravel)(tree_ravel(x))
+    jacobian_flat = pytree.tree_leaves(jacobian_tree)
+    jacobian_diag = [jacobian_flat[i + i * nargs] for i in range(nargs)]
+    return pytree.tree_unflatten(treespec, jacobian_diag), matvec_ravel, tree_ravel, tree_unravel
