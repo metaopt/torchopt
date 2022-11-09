@@ -27,7 +27,7 @@ from torch.autograd import Function
 from torch.distributions import Distribution
 
 from torchopt import pytree
-from torchopt.typing import Numeric
+from torchopt.typing import ListOfTensors, Numeric, TupleOfOptionalTensors
 
 
 class Samplable(Protocol):  # pylint: disable=too-few-public-methods
@@ -44,21 +44,21 @@ class Samplable(Protocol):  # pylint: disable=too-few-public-methods
 Samplable.register(Distribution)
 
 
-def _zero_order_naive(
+def _zero_order_naive(  # pylint: disable=too-many-statements
     fn: Callable[..., torch.Tensor],
     distribution: Samplable,
     argnums: Tuple[int, ...],
     num_samples: int,
     sigma: Numeric,
 ) -> Callable[..., torch.Tensor]:
-    def apply(*args: Any) -> torch.Tensor:
+    def apply(*args: Any) -> torch.Tensor:  # pylint: disable=too-many-statements
         diff_params = [args[argnum] for argnum in argnums]
         flat_diff_params: List[Any]
         flat_diff_params, diff_params_treespec = pytree.tree_flatten(diff_params)  # type: ignore[arg-type]
 
         class ZeroOrder(Function):  # pylint: disable=missing-class-docstring,abstract-method
             @staticmethod
-            def forward(ctx, *args, **kwargs):
+            def forward(ctx: Any, *args: Any, **kwargs: Any) -> torch.Tensor:
                 flat_diff_params = args[:-1]
                 origin_args = list(args[-1][0])
                 flat_args: List[Any]
@@ -79,13 +79,20 @@ def _zero_order_naive(
                 ctx.non_tensors = non_tensors
                 ctx.is_tensor_mask = is_tensor_mask
 
+                objective = fn(*origin_args)
+                if not isinstance(objective, torch.Tensor):
+                    raise RuntimeError('Objective must be a tensor.')
+                if not objective.ndim != 0:
+                    raise RuntimeError('Objective must be a scalar tensor.')
                 ctx.save_for_backward(*flat_diff_params, *tensors)
                 ctx.len_args = len(args)
                 ctx.len_params = len(flat_diff_params)
-                return fn(*origin_args)
+                return objective
 
             @staticmethod
-            def backward(ctx, *grad_outputs):  # pylint: disable=too-many-locals
+            def backward(  # pylint: disable=too-many-locals
+                ctx: Any, *grad_outputs: Any
+            ) -> TupleOfOptionalTensors:
                 saved_tensors = ctx.saved_tensors
                 flat_diff_params = saved_tensors[: ctx.len_params]
                 tensors = saved_tensors[ctx.len_params :]
@@ -104,17 +111,15 @@ def _zero_order_naive(
 
                 args: List[Any] = pytree.tree_unflatten(ctx.args_treespec, flat_args)  # type: ignore[assignment]
 
-                def add_perturbation(tensor, noise):
-                    return tensor.add(noise, alpha=sigma)
+                def add_perturbation(tensor, noises):
+                    return tensor.add(noises, alpha=sigma)
 
-                out_grads = [None for _ in range(ctx.len_args)]
-                for i in range(len(flat_diff_params)):
-                    out_grads[i] = 0.0
+                out_grads: ListOfTensors = [0.0 for _ in range(len(flat_diff_params))]  # type: ignore[misc]
 
                 for _ in range(num_samples):
-                    noise = [distribution.sample(sample_shape=p.shape) for p in flat_diff_params]
+                    noises = [distribution.sample(sample_shape=p.shape) for p in flat_diff_params]
                     flat_noisy_params = [
-                        add_perturbation(t, n) for t, n in zip(flat_diff_params, noise)
+                        add_perturbation(t, n) for t, n in zip(flat_diff_params, noises)
                     ]
                     noisy_params: List[Any] = pytree.tree_unflatten(  # type: ignore[assignment]
                         diff_params_treespec, flat_noisy_params
@@ -123,38 +128,37 @@ def _zero_order_naive(
                     for argnum, noisy_param in zip(argnums, noisy_params):
                         args[argnum] = noisy_param
 
-                    loss = fn(*args)
-                    weighted_grad = grad_outputs[0].mul(loss).mul_(1 / sigma)
+                    objective = fn(*args)
+                    weighted_grad = grad_outputs[0].mul(objective).mul_(1 / sigma)
 
-                    for i in range(len(flat_diff_params)):
-                        out_grads[i] += weighted_grad * noise[i]
+                    for i, noise in enumerate(noises):
+                        out_grads[i] += weighted_grad * noise
 
                 for i in range(len(flat_diff_params)):
                     out_grads[i] /= num_samples
-                return tuple(out_grads)
+
+                return tuple(out_grads + [None] * (ctx.len_args - len(flat_diff_params)))
 
         return ZeroOrder.apply(*flat_diff_params, (args,))
 
     return apply
 
 
-def _zero_order_forward(
+def _zero_order_forward(  # pylint: disable=too-many-statements
     fn: Callable[..., torch.Tensor],
     distribution: Samplable,
     argnums: Tuple[int, ...],
     num_samples: int,
     sigma: Numeric,
 ) -> Callable[..., torch.Tensor]:
-    def apply(*args: Any) -> torch.Tensor:
+    def apply(*args: Any) -> torch.Tensor:  # pylint: disable=too-many-statements
         diff_params = [args[argnum] for argnum in argnums]
         flat_diff_params: List[Any]
         flat_diff_params, diff_params_treespec = pytree.tree_flatten(diff_params)  # type: ignore[arg-type]
 
         class ZeroOrder(Function):  # pylint: disable=missing-class-docstring,abstract-method
             @staticmethod
-            def forward(
-                ctx: Any, *args: Any, **kwargs: Any
-            ) -> Any:  # pylint: disable=arguments-differ
+            def forward(ctx: Any, *args: Any, **kwargs: Any) -> torch.Tensor:
                 flat_diff_params = args[:-1]
                 origin_args = list(args[-1][0])
                 flat_args: List[Any]
@@ -175,18 +179,24 @@ def _zero_order_forward(
                 ctx.non_tensors = non_tensors
                 ctx.is_tensor_mask = is_tensor_mask
 
-                loss = fn(*origin_args)
-                ctx.save_for_backward(*flat_diff_params, *tensors, loss)
+                objective = fn(*origin_args)
+                if not isinstance(objective, torch.Tensor):
+                    raise RuntimeError('Objective must be a tensor.')
+                if not objective.ndim != 0:
+                    raise RuntimeError('Objective must be a scalar tensor.')
+                ctx.save_for_backward(*flat_diff_params, *tensors, objective)
                 ctx.len_args = len(args)
                 ctx.len_params = len(flat_diff_params)
-                return loss
+                return objective
 
             @staticmethod
-            def backward(ctx: Any, *grad_outputs: Any) -> Any:  # pylint: disable=too-many-locals
+            def backward(  # pylint: disable=too-many-locals
+                ctx: Any, *grad_outputs: Any
+            ) -> TupleOfOptionalTensors:
                 saved_tensors = ctx.saved_tensors
                 flat_diff_params = saved_tensors[: ctx.len_params]
                 tensors = saved_tensors[ctx.len_params : -1]
-                loss = saved_tensors[-1]
+                objective = saved_tensors[-1]
                 non_tensors = ctx.non_tensors
 
                 flat_args = []
@@ -202,17 +212,15 @@ def _zero_order_forward(
 
                 args: List[Any] = pytree.tree_unflatten(ctx.args_treespec, flat_args)  # type: ignore[assignment]
 
-                def add_perturbation(tensor, noise):
-                    return tensor.add(noise, alpha=sigma)
+                def add_perturbation(tensor, noises):
+                    return tensor.add(noises, alpha=sigma)
 
-                out_grads = [None for _ in range(ctx.len_args)]
-                for i in range(len(flat_diff_params)):
-                    out_grads[i] = 0.0
+                out_grads: ListOfTensors = [0.0 for _ in range(len(flat_diff_params))]  # type: ignore[misc]
 
                 for _ in range(num_samples):
-                    noise = [distribution.sample(sample_shape=p.shape) for p in flat_diff_params]
+                    noises = [distribution.sample(sample_shape=p.shape) for p in flat_diff_params]
                     flat_noisy_params = [
-                        add_perturbation(t, n) for t, n in zip(flat_diff_params, noise)
+                        add_perturbation(t, n) for t, n in zip(flat_diff_params, noises)
                     ]
                     noisy_params: List[Any] = pytree.tree_unflatten(  # type: ignore[assignment]
                         diff_params_treespec, flat_noisy_params
@@ -221,37 +229,38 @@ def _zero_order_forward(
                     for argnum, noisy_param in zip(argnums, noisy_params):
                         args[argnum] = noisy_param
 
-                    noisy_loss = fn(*args)
-                    loss = noisy_loss - loss
-                    weighted_grad = grad_outputs[0].mul(loss).mul_(1 / sigma)
+                    noisy_objective = fn(*args)
+                    objective = noisy_objective - objective
+                    weighted_grad = grad_outputs[0].mul(objective).div_(1.0 / sigma)
 
-                    for i in range(len(flat_diff_params)):
-                        out_grads[i] += weighted_grad * noise[i]
+                    for i, noise in enumerate(noises):
+                        out_grads[i] += weighted_grad * noise
 
                 for i in range(len(flat_diff_params)):
                     out_grads[i] /= num_samples
-                return tuple(out_grads)
+
+                return tuple(out_grads + [None] * (ctx.len_args - len(flat_diff_params)))
 
         return ZeroOrder.apply(*flat_diff_params, (args,))
 
     return apply
 
 
-def _zero_order_antithetic(
+def _zero_order_antithetic(  # pylint: disable=too-many-statements
     fn: Callable[..., torch.Tensor],
     distribution: Samplable,
     argnums: Tuple[int, ...],
     num_samples: int,
     sigma: Numeric,
 ) -> Callable[..., torch.Tensor]:
-    def apply(*args: Any) -> torch.Tensor:
+    def apply(*args: Any) -> torch.Tensor:  # pylint: disable=too-many-statements
         diff_params = [args[argnum] for argnum in argnums]
         flat_diff_params: List[Any]
         flat_diff_params, diff_params_treespec = pytree.tree_flatten(diff_params)  # type: ignore[arg-type]
 
         class ZeroOrder(Function):  # pylint: disable=missing-class-docstring,abstract-method
             @staticmethod
-            def forward(ctx, *args, **kwargs):
+            def forward(ctx: Any, *args: Any, **kwargs: Any) -> torch.Tensor:
                 flat_diff_params = args[:-1]
                 origin_args = list(args[-1][0])
                 flat_args: List[Any]
@@ -272,13 +281,18 @@ def _zero_order_antithetic(
                 ctx.non_tensors = non_tensors
                 ctx.is_tensor_mask = is_tensor_mask
 
+                objective = fn(*origin_args)
+                if not isinstance(objective, torch.Tensor):
+                    raise RuntimeError('Objective must be a tensor.')
+                if not objective.ndim != 0:
+                    raise RuntimeError('Objective must be a scalar tensor.')
                 ctx.save_for_backward(*flat_diff_params, *tensors)
                 ctx.len_args = len(args)
                 ctx.len_params = len(flat_diff_params)
-                return fn(*origin_args)
+                return objective
 
             @staticmethod
-            def backward(ctx, *grad_outputs):  # pylint: disable=too-many-locals
+            def backward(ctx: Any, *grad_outputs: Any):  # pylint: disable=too-many-locals
                 saved_tensors = ctx.saved_tensors
                 flat_diff_params = saved_tensors[: ctx.len_params]
                 tensors = saved_tensors[ctx.len_params :]
@@ -297,14 +311,12 @@ def _zero_order_antithetic(
 
                 args: List[Any] = pytree.tree_unflatten(ctx.args_treespec, flat_args)  # type: ignore[assignment]
 
-                out_grads = [None for _ in range(ctx.len_args)]
-                for i in range(len(flat_diff_params)):
-                    out_grads[i] = 0.0
+                out_grads: ListOfTensors = [0.0 for _ in range(len(flat_diff_params))]  # type: ignore[misc]
 
-                def get_loss(add_perturbation_fn, noise) -> torch.Tensor:
+                def get_objective(add_perturbation_fn, noises) -> torch.Tensor:
                     flat_noisy_params = [
                         add_perturbation_fn(t, n, alpha=sigma)
-                        for t, n in zip(flat_diff_params, noise)
+                        for t, n in zip(flat_diff_params, noises)
                     ]
                     noisy_params: List[Any] = pytree.tree_unflatten(  # type: ignore[assignment]
                         diff_params_treespec, flat_noisy_params
@@ -316,16 +328,17 @@ def _zero_order_antithetic(
                     return fn(*args)
 
                 for _ in range(num_samples):
-                    noise = [distribution.sample(sample_shape=p.shape) for p in flat_diff_params]
-                    loss = get_loss(torch.add, noise) - get_loss(torch.sub, noise)
-                    weighted_grad = grad_outputs[0].mul(loss).mul_(0.5 / sigma)
-                    for i in range(len(flat_diff_params)):
-                        out_grads[i] = weighted_grad * noise[i]
+                    noises = [distribution.sample(sample_shape=p.shape) for p in flat_diff_params]
+                    objective = get_objective(torch.add, noises) - get_objective(torch.sub, noises)
+                    weighted_grad = grad_outputs[0].mul(objective).mul_(0.5 / sigma)
+
+                    for i, noise in enumerate(noises):
+                        out_grads[i] += weighted_grad * noise
 
                 for i in range(len(flat_diff_params)):
                     out_grads[i] /= num_samples
 
-                return tuple(out_grads)
+                return tuple(out_grads + [None] * (ctx.len_args - len(flat_diff_params)))
 
         return ZeroOrder.apply(*flat_diff_params, (args,))
 
