@@ -53,7 +53,7 @@ def _solve_cg(
 ) -> TensorTree:
     """Solves ``A x = b`` using conjugate gradient.
 
-    It assumes that ``A`` is a hermitian, positive definite matrix.
+    This assumes that ``A`` is a hermitian, positive definite matrix.
 
     Args:
         matvec: A function that returns the product between ``A`` and a vector.
@@ -75,5 +75,33 @@ def _solve_cg(
 
 
 def solve_cg(**kwargs):
-    """Wrapper for :func:`solve_cg`."""
+    """A wrapper that returns a solver function to solve ``A x = b`` using conjugate gradient.
+
+    This assumes that ``A`` is a hermitian, positive definite matrix.
+
+    Args:
+        ridge: Optional ridge regularization. Solves the equation for ``(A + ridge * I) @ x = b``.
+        init: Optional initialization to be used by conjugate gradient.
+        **kwargs: Additional keyword arguments for the conjugate gradient solver
+            :func:`torchopt.linalg.cg`.
+
+    Returns:
+        A solver function with signature ``(matvec, b) -> x`` that solves ``A x = b`` using
+        conjugate gradient where ``matvec(v) = A v``.
+
+    See Also:
+        Conjugate gradient iteration :func:`torchopt.linalg.cg`.
+
+    Example::
+
+        >>> A = {'a': torch.eye(5, 5), 'b': torch.eye(3, 3)}
+        >>> x = {'a': torch.randn(5), 'b': torch.randn(3)}
+        >>> def matvec(x: TensorTree) -> TensorTree:
+        ...     return {'a': A['a'] @ x['a'], 'b': A['b'] @ x['b']}
+        >>> b = matvec(x)
+        >>> solver = solve_cg(init={'a': torch.zeros(5), 'b': torch.zeros(3)})
+        >>> x_hat = solver(matvec, b)
+        >>> assert torch.allclose(x_hat['a'], x['a']) and torch.allclose(x_hat['b'], x['b'])
+
+    """
     return functools.partial(_solve_cg, **kwargs)

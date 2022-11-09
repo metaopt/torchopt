@@ -61,14 +61,18 @@ def _solve_inv(
     Args:
         matvec: A function that returns the product between ``A`` and a vector.
         b: A tensor for the right hand side of the equation.
-        ridge: Optional ridge regularization.
-        ns: Whether to use Neumann Series approximation. If :data:`False`, materialize the matrix
-            ``A`` in memory and use :func`torch.linalg.solve` instead.
+        ridge: Optional ridge regularization. Solves the equation for ``(A + ridge * I) @ x = b``.
+        ns: Whether to use Neumann Series matrix inversion approximation. If :data:`False`,
+            materialize the matrix ``A`` in memory and use :func:`torch.linalg.solve` instead.
+        **kwargs: Additional keyword arguments for the Neumann Series matrix inversion approximation
+            solver :func:`torchopt.linalg.ns`.
 
     Returns:
         The solution with the same shape as ``b``.
     """
     if ridge is not None:
+        #      (x) -> A @ x + ridge * x
+        # i.e. (x) -> (A + ridge * I) @ x
         matvec = make_ridge_matvec(matvec, ridge=ridge)
 
     b_flat = pytree.tree_leaves(b)
@@ -84,5 +88,35 @@ def _solve_inv(
 
 
 def solve_inv(**kwargs):
-    """Wrapper for :func:`solve_inv`."""
+    """A wrapper that returns a solver function to solve ``A x = b`` using matrix inversion.
+
+    If ``ns = False``, this assumes the matrix ``A`` is a constant matrix and will materialize it
+    in memory.
+
+    Args:
+        ridge: Optional ridge regularization. Solves the equation for ``(A + ridge * I) @ x = b``.
+        ns: Whether to use Neumann Series matrix inversion approximation. If :data:`False`,
+            materialize the matrix ``A`` in memory and use :func:`torch.linalg.solve` instead.
+        **kwargs: Additional keyword arguments for the Neumann Series matrix inversion approximation
+            solver :func:`torchopt.linalg.ns`.
+
+    Returns:
+        A solver function with signature ``(matvec, b) -> x`` that solves ``A x = b`` using matrix
+        inversion where ``matvec(v) = A v``.
+
+    See Also:
+        Neumann Series matrix inversion approximation :func:`torchopt.linalg.ns`.
+
+    Example::
+
+        >>> A = {'a': torch.eye(5, 5), 'b': torch.eye(3, 3)}
+        >>> x = {'a': torch.randn(5), 'b': torch.randn(3)}
+        >>> def matvec(x: TensorTree) -> TensorTree:
+        ...     return {'a': A['a'] @ x['a'], 'b': A['b'] @ x['b']}
+        >>> b = matvec(x)
+        >>> solver = solve_inv(ns=True, maxiter=10)
+        >>> x_hat = solver(matvec, b)
+        >>> assert torch.allclose(x_hat['a'], x['a']) and torch.allclose(x_hat['b'], x['b'])
+
+    """
     return functools.partial(_solve_inv, **kwargs)
