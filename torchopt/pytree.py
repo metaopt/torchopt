@@ -14,17 +14,35 @@
 # ==============================================================================
 """The PyTree utilities."""
 
+import functools
+import operator
 from typing import Callable, List, Optional, Tuple
 
 import optree
 import optree.typing as typing  # pylint: disable=unused-import
+import torch
 import torch.distributed.rpc as rpc
 from optree import *  # pylint: disable=wildcard-import,unused-wildcard-import
 
-from torchopt.typing import Future, PyTree, RRef, T
+from torchopt.typing import Future, RRef, Scalar, T, TensorTree
 
 
-__all__ = [*optree.__all__, 'tree_flatten_as_tuple', 'tree_wait']
+__all__ = [
+    *optree.__all__,
+    'tree_flatten_as_tuple',
+    'tree_pos',
+    'tree_neg',
+    'tree_add',
+    'tree_add_scalar_mul',
+    'tree_sub',
+    'tree_sub_scalar_mul',
+    'tree_mul',
+    'tree_matmul',
+    'tree_scalar_mul',
+    'tree_truediv',
+    'tree_vdot_real',
+    'tree_wait',
+]
 
 
 def tree_flatten_as_tuple(
@@ -48,10 +66,98 @@ def tree_flatten_as_tuple(
     return tuple(leaves), treespec
 
 
+def acc_add(*args: T) -> T:
+    """Accumulate addition."""
+    return functools.reduce(operator.add, args)
+
+
+def acc_mul(*args: T) -> T:
+    """Accumulate multiplication."""
+    return functools.reduce(operator.mul, args)
+
+
+def acc_matmul(*args: T) -> T:
+    """Accumulate matrix multiplication."""
+    return functools.reduce(operator.matmul, args)
+
+
+def tree_pos(tree: PyTree[T]) -> PyTree[T]:
+    """Applies `operator.pos` over leaves."""
+    return tree_map(operator.pos, tree)
+
+
+def tree_neg(tree: PyTree[T]) -> PyTree[T]:
+    """Applies `operator.neg` over leaves."""
+    return tree_map(operator.neg, tree)
+
+
+def tree_add(*trees: PyTree[T]) -> PyTree[T]:
+    """Tree addition over leaves."""
+    return tree_map(acc_add, *trees)
+
+
+def tree_add_scalar_mul(
+    tree_x: TensorTree, tree_y: TensorTree, alpha: Optional[Scalar] = None
+) -> TensorTree:
+    """Computes tree_x + alpha * tree_y."""
+    if alpha is None:
+        return tree_map(lambda x, y: x.add(y), tree_x, tree_y)
+    return tree_map(lambda x, y: x.add(y, alpha=alpha), tree_x, tree_y)
+
+
+def tree_sub(minuend_tree: PyTree[T], subtrahend_tree: PyTree[T]) -> PyTree[T]:
+    """Tree subtraction over leaves."""
+    return tree_map(operator.sub, minuend_tree, subtrahend_tree)
+
+
+def tree_sub_scalar_mul(
+    tree_x: TensorTree, tree_y: TensorTree, alpha: Optional[Scalar] = None
+) -> TensorTree:
+    """Computes tree_x - alpha * tree_y."""
+    if alpha is None:
+        return tree_map(lambda x, y: x.sub(y), tree_x, tree_y)
+    return tree_map(lambda x, y: x.sub(y, alpha=alpha), tree_x, tree_y)
+
+
+def tree_mul(*trees: PyTree[T]) -> PyTree[T]:
+    """Tree multiplication over leaves."""
+    return tree_map(acc_mul, *trees)
+
+
+def tree_matmul(*trees: PyTree[T]) -> PyTree[T]:
+    """Tree matrix multiplication over leaves."""
+    return tree_map(acc_matmul, *trees)
+
+
+def tree_scalar_mul(scalar: Scalar, multiplicand_tree: PyTree[T]) -> PyTree[T]:
+    """Tree scalar multiplication over leaves."""
+    return tree_map(lambda x: scalar * x, multiplicand_tree)
+
+
+def tree_truediv(dividend_tree: PyTree[T], divisor_tree: PyTree[T]) -> PyTree[T]:
+    """Tree division over leaves."""
+    return tree_map(operator.truediv, dividend_tree, divisor_tree)
+
+
+def _vdot_real_kernel(x: torch.Tensor, y: torch.Tensor) -> float:
+    """Computes dot(x.conj(), y).real."""
+    x = x.contiguous().view(-1)
+    y = y.contiguous().view(-1)
+    vdot = torch.dot(x.real, y.real).item()
+    if x.is_complex() and y.is_complex():
+        vdot += torch.dot(x.imag, y.imag).item()
+    return vdot
+
+
+def tree_vdot_real(tree_x: TensorTree, tree_y: TensorTree) -> float:
+    """Computes dot(tree_x.conj(), tree_y).real.sum()."""
+    leaves_x, treespec = tree_flatten(tree_x)
+    leaves_y = treespec.flatten_up_to(tree_y)
+    return sum(map(_vdot_real_kernel, leaves_x, leaves_y))  # type: ignore[arg-type]
+
+
 def tree_wait(future_tree: PyTree[Future[T]]) -> PyTree[T]:
     r"""Convert a tree of :class:`Future`\s to a tree of results."""
-    import torch  # pylint: disable=import-outside-toplevel
-
     futures, treespec = tree_flatten(future_tree)
 
     results = torch.futures.wait_all(futures)
@@ -61,7 +167,7 @@ def tree_wait(future_tree: PyTree[Future[T]]) -> PyTree[T]:
 
 if rpc.is_available():
 
-    def tree_as_rref(tree: PyTree[T]) -> 'PyTree[RRef[T]]':
+    def tree_as_rref(tree: PyTree[T]) -> PyTree[RRef[T]]:
         r"""Convert a tree of local objects to a tree of :class:`RRef`\s."""
         # pylint: disable-next=import-outside-toplevel,redefined-outer-name,reimported
         from torch.distributed.rpc import RRef
@@ -69,17 +175,17 @@ if rpc.is_available():
         return tree_map(RRef, tree)
 
     def tree_to_here(
-        rref_tree: 'PyTree[RRef[T]]',
+        rref_tree: PyTree[RRef[T]],
         timeout: float = rpc.api.UNSET_RPC_TIMEOUT,
     ) -> PyTree[T]:
         r"""Convert a tree of :class:`RRef`\s to a tree of local objects."""
         return tree_map(lambda x: x.to_here(timeout=timeout), rref_tree)
 
-    def tree_local_value(rref_tree: 'PyTree[RRef[T]]'):
+    def tree_local_value(rref_tree: PyTree[RRef[T]]) -> PyTree[T]:
         r"""Return the local value of a tree of :class:`RRef`\s."""
         return tree_map(lambda x: x.local_value(), rref_tree)
 
     __all__.extend(['tree_as_rref', 'tree_to_here'])
 
 
-del Callable, List, Optional, Tuple, optree, rpc, PyTree, T, RRef
+del Callable, List, Optional, Tuple, optree, rpc, Scalar, T, RRef

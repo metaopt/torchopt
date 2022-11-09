@@ -34,49 +34,21 @@
 # pylint: disable=invalid-name
 
 from functools import partial
-from typing import Callable, List, Optional, Union
+from typing import Callable, Optional, Union
 
 import torch
 
 from torchopt import pytree
+from torchopt.linalg.utils import cat_shapes, normalize_matvec
+from torchopt.pytree import tree_vdot_real
 from torchopt.typing import TensorTree
 
 
 __all__ = ['cg']
 
 
-def _vdot_real_kernel(x: torch.Tensor, y: torch.Tensor) -> float:
-    """Computes dot(x.conj(), y).real."""
-    x = x.contiguous().view(-1)
-    y = y.contiguous().view(-1)
-    prod = torch.dot(x.real, y.real).item()
-    if x.is_complex() and y.is_complex():
-        prod += torch.dot(x.imag, y.imag).item()
-    return prod
-
-
-def tree_vdot_real(tree_x: TensorTree, tree_y: TensorTree) -> float:
-    """Computes dot(tree_x.conj(), tree_y).real.sum()."""
-    leaves_x, treespec = pytree.tree_flatten(tree_x)
-    leaves_y = treespec.flatten_up_to(tree_y)
-    return sum(map(_vdot_real_kernel, leaves_x, leaves_y))  # type: ignore[arg-type]
-
-
 def _identity(x: TensorTree) -> TensorTree:
     return x
-
-
-def _normalize_matvec(
-    f: Union[Callable[[TensorTree], TensorTree], torch.Tensor]
-) -> Callable[[TensorTree], TensorTree]:
-    """Normalize an argument for computing matrix-vector products."""
-    if callable(f):
-        return f
-
-    assert isinstance(f, torch.Tensor)
-    if f.ndim != 2 or f.shape[0] != f.shape[1]:
-        raise ValueError(f'linear operator must be a square matrix, but has shape: {f.shape}')
-    return partial(torch.matmul, f)
 
 
 # pylint: disable-next=too-many-locals
@@ -126,37 +98,32 @@ def _cg_solve(
     return x_final
 
 
-def _shapes(tree: TensorTree) -> List[int]:
-    flattened = pytree.tree_leaves(tree)
-    return pytree.tree_leaves([tuple(term.shape) for term in flattened])  # type: ignore[arg-type]
-
-
 def _isolve(
     _isolve_solve: Callable,
-    A: Union[torch.Tensor, Callable[[TensorTree], TensorTree]],
+    A: Union[TensorTree, Callable[[TensorTree], TensorTree]],
     b: TensorTree,
     x0: Optional[TensorTree] = None,
     *,
     rtol: float = 1e-5,
     atol: float = 0.0,
     maxiter: Optional[int] = None,
-    M: Optional[Union[torch.Tensor, Callable[[TensorTree], TensorTree]]] = None,
+    M: Optional[Union[TensorTree, Callable[[TensorTree], TensorTree]]] = None,
 ) -> TensorTree:
     if x0 is None:
         x0 = pytree.tree_map(torch.zeros_like, b)
 
     if maxiter is None:
-        size = sum(_shapes(b))
+        size = sum(cat_shapes(b))
         maxiter = 10 * size  # copied from SciPy
 
     if M is None:
         M = _identity
-    A = _normalize_matvec(A)
-    M = _normalize_matvec(M)
+    A = normalize_matvec(A)
+    M = normalize_matvec(M)
 
-    if _shapes(x0) != _shapes(b):
+    if cat_shapes(x0) != cat_shapes(b):
         raise ValueError(
-            'arrays in x0 and b must have matching shapes: ' f'{_shapes(x0)} vs {_shapes(b)}'
+            f'Tensors in x0 and b must have matching shapes: {cat_shapes(x0)} vs. {cat_shapes(b)}.'
         )
 
     isolve_solve = partial(_isolve_solve, x0=x0, rtol=rtol, atol=atol, maxiter=maxiter, M=M)
@@ -166,14 +133,14 @@ def _isolve(
 
 
 def cg(
-    A: Union[torch.Tensor, Callable[[TensorTree], TensorTree]],
+    A: Union[TensorTree, Callable[[TensorTree], TensorTree]],
     b: TensorTree,
     x0: Optional[TensorTree] = None,
     *,
     rtol: float = 1e-5,
     atol: float = 0.0,
     maxiter: Optional[int] = None,
-    M: Optional[Union[torch.Tensor, Callable[[TensorTree], TensorTree]]] = None,
+    M: Optional[Union[TensorTree, Callable[[TensorTree], TensorTree]]] = None,
 ) -> TensorTree:
     """Use Conjugate Gradient iteration to solve ``Ax = b``.
 

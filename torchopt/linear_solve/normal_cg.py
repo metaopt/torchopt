@@ -61,7 +61,8 @@ def _solve_normal_cg(
         b: A tree of tensors for the right hand side of the equation.
         ridge: Optional ridge regularization. Solves the equation for ``(A.T @ A + ridge * I) @ x = A.T @ b``.
         init: Optional initialization to be used by normal conjugate gradient.
-        **kwargs: Additional keyword arguments for the conjugate gradient solver.
+        **kwargs: Additional keyword arguments for the conjugate gradient solver
+            :func:`torchopt.linalg.cg`.
 
     Returns:
         The solution with the same structure as ``b``.
@@ -86,5 +87,34 @@ def _solve_normal_cg(
 
 
 def solve_normal_cg(**kwargs):
-    """Wrapper for :func:`solve_normal_cg`."""
+    """A wrapper that returns a solver function to solve ``A^T A x = A^T b`` using conjugate gradient.
+
+    This can be used to solve ``A x = b`` using conjugate gradient when ``A`` is not hermitian,
+    positive definite.
+
+    Args:
+        ridge: Optional ridge regularization. Solves the equation for ``(A.T @ A + ridge * I) @ x = A.T @ b``.
+        init: Optional initialization to be used by normal conjugate gradient.
+        **kwargs: Additional keyword arguments for the conjugate gradient solver
+            :func:`torchopt.linalg.cg`.
+
+    Returns:
+        A solver function with signature ``(matvec, b) -> x`` that solves ``A^T A x = A^T b`` using
+        conjugate gradient where ``matvec(v) = A v``.
+
+    See Also:
+        Conjugate gradient iteration :func:`torchopt.linalg.cg`.
+
+    Example::
+
+        >>> A = {'a': torch.randn(5, 5), 'b': torch.randn(3, 3)}
+        >>> x = {'a': torch.randn(5), 'b': torch.randn(3)}
+        >>> def matvec(x: TensorTree) -> TensorTree:
+        ...     return {'a': A['a'] @ x['a'], 'b': A['b'] @ x['b']}
+        >>> b = matvec(x)
+        >>> solver = solve_normal_cg(init={'a': torch.zeros(5), 'b': torch.zeros(3)})
+        >>> x_hat = solver(matvec, b)
+        >>> assert torch.allclose(x_hat['a'], x['a']) and torch.allclose(x_hat['b'], x['b'])
+
+    """
     return functools.partial(_solve_normal_cg, **kwargs)
