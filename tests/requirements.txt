@@ -13,7 +13,8 @@ pytest-xdist
 isort
 black[jupyter] >= 22.6.0
 pylint
-mypy
+mypy >= 0.990
+types-setuptools
 flake8
 flake8-bugbear
 # https://github.com/PyCQA/doc8/issues/112

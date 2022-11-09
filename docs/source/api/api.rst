@@ -157,7 +157,7 @@ Implicit Meta-Gradient Module
 
 ------
 
-Linear system solving
+Linear system solvers
 =====================
 
 .. currentmodule:: torchopt.linear_solve
@@ -166,12 +166,14 @@ Linear system solving
 
     solve_cg
     solve_normal_cg
+    solve_inv
 
 Indirect solvers
 ~~~~~~~~~~~~~~~~
 
 .. autofunction:: solve_cg
 .. autofunction:: solve_normal_cg
+.. autofunction:: solve_inv
 
 ------
 
