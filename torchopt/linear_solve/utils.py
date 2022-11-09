@@ -83,17 +83,29 @@ def materialize_matvec(
 ]:
     """Materializes the matrix ``A`` used in ``matvec(x) = A @ x``."""
     x_flat, treespec = pytree.tree_flatten(x)
-    shapes = tuple(x.shape for x in x_flat)
+    shapes = tuple(t.shape for t in x_flat)
 
-    def tree_ravel(x: TensorTree) -> TensorTree:
-        return pytree.tree_map(lambda t: t.contiguous().view(-1), x)
+    if all(t.ndim == 1 for t in x_flat):
 
-    def tree_unravel(y: TensorTree) -> TensorTree:
-        shapes_iter = iter(shapes)
-        return pytree.tree_map(lambda t: t.contiguous().view(next(shapes_iter)), y)
+        def tree_ravel(x: TensorTree) -> TensorTree:
+            return x
 
-    def matvec_ravel(y: TensorTree) -> TensorTree:
-        return tree_ravel(matvec(tree_unravel(y)))
+        def tree_unravel(y: TensorTree) -> TensorTree:
+            return y
+
+        matvec_ravel = matvec
+
+    else:
+
+        def tree_ravel(x: TensorTree) -> TensorTree:
+            return pytree.tree_map(lambda t: t.contiguous().view(-1), x)
+
+        def tree_unravel(y: TensorTree) -> TensorTree:
+            shapes_iter = iter(shapes)
+            return pytree.tree_map(lambda t: t.contiguous().view(next(shapes_iter)), y)
+
+        def matvec_ravel(y: TensorTree) -> TensorTree:
+            return tree_ravel(matvec(tree_unravel(y)))
 
     nargs = len(x_flat)
     jacobian_tree = functorch.jacfwd(matvec_ravel)(tree_ravel(x))
