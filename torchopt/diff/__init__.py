@@ -15,3 +15,4 @@
 """Differentiable Gradient Estimation."""
 
 from torchopt.diff import implicit, zero_order
+from torchopt.diff.implicit import ImplicitMetaGradientModule
