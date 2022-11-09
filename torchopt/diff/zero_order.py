@@ -48,7 +48,7 @@ def _zero_order_naive(  # pylint: disable=too-many-statements
     fn: Callable[..., torch.Tensor],
     distribution: Samplable,
     argnums: Tuple[int, ...],
-    num_samples: int,
+    sample_num: int,
     sigma: Numeric,
 ) -> Callable[..., torch.Tensor]:
     def apply(*args: Any) -> torch.Tensor:  # pylint: disable=too-many-statements
