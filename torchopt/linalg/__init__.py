@@ -32,6 +32,7 @@
 """Linear algebra functions."""
 
 from torchopt.linalg.cg import cg
+from torchopt.linalg.ns import ns, ns_inv
 
 
-__all__ = ['cg']
+__all__ = ['cg', 'ns', 'ns_inv']
