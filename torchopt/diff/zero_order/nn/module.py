@@ -26,7 +26,8 @@ __all__ = ['ZeroOrderGradientModule']
 def enable_zero_order_gradients(
     cls: Type['ZeroOrderGradientModule'], *args, **kwargs
 ) -> Type['ZeroOrderGradientModule']:
-    cls.solve = zero_order(cls, *args, **kwargs)(cls.solve)
+    cls.solve = zero_order(cls.sample, *args, **kwargs)(cls.solve)
+    return cls
 
 
 class ZeroOrderGradientModule:

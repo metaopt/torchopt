@@ -52,7 +52,7 @@ def _zero_order_naive(  # pylint: disable=too-many-statements
     sigma: Numeric,
 ) -> Callable[..., torch.Tensor]:
     def apply(*args: Any) -> torch.Tensor:  # pylint: disable=too-many-statements
-        diff_params = [args[argnum] for argnum in argnums]
+        diff_params = [args[argnum + 1] for argnum in argnums]
         flat_diff_params: List[Any]
         flat_diff_params, diff_params_treespec = pytree.tree_flatten(diff_params)  # type: ignore[arg-type]
 
@@ -80,6 +80,7 @@ def _zero_order_naive(  # pylint: disable=too-many-statements
                 ctx.is_tensor_mask = is_tensor_mask
 
                 objective = fn(*origin_args)
+                ctx.distribution = distribution(*origin_args)
                 if not isinstance(objective, torch.Tensor):
                     raise RuntimeError('Objective must be a tensor.')
                 if objective.ndim != 0:
@@ -120,7 +121,7 @@ def _zero_order_naive(  # pylint: disable=too-many-statements
                     out_grads[i] = 0.0
 
                 for _ in range(sample_num):
-                    noises = [distribution.sample(sample_shape=p.shape) for p in flat_diff_params]
+                    noises = [ctx.distribution(sample_shape=p.shape) for p in flat_diff_params]
                     flat_noisy_params = [
                         add_perturbation(t, n) for t, n in zip(flat_diff_params, noises)
                     ]
@@ -155,7 +156,7 @@ def _zero_order_forward(  # pylint: disable=too-many-statements
     sigma: Numeric,
 ) -> Callable[..., torch.Tensor]:
     def apply(*args: Any) -> torch.Tensor:  # pylint: disable=too-many-statements
-        diff_params = [args[argnum] for argnum in argnums]
+        diff_params = [args[argnum + 1] for argnum in argnums]
         flat_diff_params: List[Any]
         flat_diff_params, diff_params_treespec = pytree.tree_flatten(diff_params)  # type: ignore[arg-type]
 
@@ -183,6 +184,7 @@ def _zero_order_forward(  # pylint: disable=too-many-statements
                 ctx.is_tensor_mask = is_tensor_mask
 
                 objective = fn(*origin_args)
+                ctx.distribution = distribution(*origin_args)
                 if not isinstance(objective, torch.Tensor):
                     raise RuntimeError('Objective must be a tensor.')
                 if not objective.ndim != 0:
@@ -224,7 +226,7 @@ def _zero_order_forward(  # pylint: disable=too-many-statements
                     out_grads[i] = 0.0
 
                 for _ in range(sample_num):
-                    noises = [distribution.sample(sample_shape=p.shape) for p in flat_diff_params]
+                    noises = [ctx.distribution(sample_shape=p.shape) for p in flat_diff_params]
                     flat_noisy_params = [
                         add_perturbation(t, n) for t, n in zip(flat_diff_params, noises)
                     ]
@@ -260,7 +262,7 @@ def _zero_order_antithetic(  # pylint: disable=too-many-statements
     sigma: Numeric,
 ) -> Callable[..., torch.Tensor]:
     def apply(*args: Any) -> torch.Tensor:  # pylint: disable=too-many-statements
-        diff_params = [args[argnum] for argnum in argnums]
+        diff_params = [args[argnum + 1] for argnum in argnums]
         flat_diff_params: List[Any]
         flat_diff_params, diff_params_treespec = pytree.tree_flatten(diff_params)  # type: ignore[arg-type]
 
@@ -288,6 +290,7 @@ def _zero_order_antithetic(  # pylint: disable=too-many-statements
                 ctx.is_tensor_mask = is_tensor_mask
 
                 objective = fn(*origin_args)
+                ctx.distribution = distribution(*origin_args)
                 if not isinstance(objective, torch.Tensor):
                     raise RuntimeError('Objective must be a tensor.')
                 if not objective.ndim != 0:
@@ -337,7 +340,7 @@ def _zero_order_antithetic(  # pylint: disable=too-many-statements
                     return fn(*args)
 
                 for _ in range(sample_num):
-                    noises = [distribution.sample(sample_shape=p.shape) for p in flat_diff_params]
+                    noises = [ctx.distribution(sample_shape=p.shape) for p in flat_diff_params]
                     objective = get_objective(torch.add, noises) - get_objective(torch.sub, noises)
                     weighted_grad = grad_outputs[0].mul(objective).mul_(0.5 / sigma)
 
