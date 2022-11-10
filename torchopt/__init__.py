@@ -31,8 +31,6 @@ from torchopt.accelerated_op import is_available as accelerated_op_available
 from torchopt.alias import adam, adamw, rmsprop, sgd
 from torchopt.clip import clip_grad_norm
 from torchopt.combine import chain
-from torchopt.diff import ImplicitMetaGradientModule
-from torchopt.nn import MetaGradientModule
 from torchopt.optim import SGD, Adam, AdamW, Optimizer, RMSProp, RMSprop, meta
 from torchopt.optim.func import FuncOptimizer
 from torchopt.optim.meta import (
@@ -82,6 +80,4 @@ __all__ = [
     'stop_gradient',
     'module_clone',
     'module_detach_',
-    'MetaGradientModule',
-    'ImplicitMetaGradientModule',
 ]

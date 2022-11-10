@@ -252,20 +252,20 @@ def _custom_root(
     def make_custom_vjp_solver_fn(
         solver_fn: Callable[..., Union[TensorOrTensors, Tuple[TensorOrTensors, Any]]],
         kwarg_keys: Sequence[str],
-        args_signs: Tuple[Tuple[int, Optional[Union[Type[tuple], Type[list]]]], ...],
+        args_signs: Tuple[Tuple[int, int, Optional[Union[Type[tuple], Type[list]]]], ...],
     ) -> Type[Function]:
         # pylint: disable-next=missing-class-docstring,abstract-method
         class ImplicitMetaGradient(Function):
             @staticmethod
             def forward(  # type: ignore[override] # pylint: disable=arguments-differ
-                ctx, *flat_args: Any
+                ctx: Any, *flat_args: Any
             ) -> Tuple[Any, ...]:
                 output, aux, output_is_tensor = None, None, False
 
                 args = []
-                for idx, (offset, arg_seq_type) in enumerate(args_signs):
+                for offset, nargs, arg_seq_type in args_signs:
                     if arg_seq_type is not None:
-                        args.append(arg_seq_type(flat_args[offset : args_signs[idx + 1][0]]))
+                        args.append(arg_seq_type(flat_args[offset : offset + nargs]))
                     else:
                         args.append(flat_args[offset])
                 args = tuple(args)
@@ -307,7 +307,7 @@ def _custom_root(
 
             @staticmethod
             def backward(  # pylint: disable=too-many-locals
-                ctx, *grad_outputs: Any
+                ctx: Any, *grad_outputs: Any
             ) -> TupleOfTensors:
                 grad_outputs: TupleOfTensors = grad_outputs[:-3]
 
@@ -349,7 +349,7 @@ def _custom_root(
                 args_vjps, kwargs_vjps = map_args_back(vjps)
                 ordered_vjps = tuple(args_vjps) + tuple(kwargs_vjps[k] for k in kwargs.keys())
                 true_vjps = []
-                for (_, arg_seq_type), vjp in zip(args_signs, ordered_vjps):
+                for (_, _, arg_seq_type), vjp in zip(args_signs, ordered_vjps):
                     if arg_seq_type is not None:
                         true_vjps.extend(vjp)
                     else:
@@ -358,25 +358,29 @@ def _custom_root(
 
         return ImplicitMetaGradient
 
+    @functools.wraps(solver_fn)
     def wrapped_solver_fn(
         *args: Any, **kwargs: Any
     ) -> Union[TensorOrTensors, Tuple[TensorOrTensors, Any]]:
         args, kwargs = _signature_bind(solver_fn_signature, *args, **kwargs)
         keys, vals = list(kwargs.keys()), list(kwargs.values())
 
-        args_signs: List[Tuple[int, Optional[Union[Type[tuple], Type[list]]]]] = []
+        args_signs: List[Tuple[int, int, Optional[Union[Type[tuple], Type[list]]]]] = []
         flat_args: List[Any] = []
-        args_counter = 0
+        args_offset = 0
         for idx, arg in enumerate(args):
             if idx in argnums:
                 if isinstance(arg, torch.Tensor):
-                    args_signs.append((args_counter, None))  # start position, None
+                    args_signs.append((args_offset, 1, None))  # start position, None
                     flat_args.append(arg)
-                    args_counter += 1
+                    args_offset += 1
                 elif isinstance(arg, (tuple, list)) and all(map(torch.is_tensor, arg)):
-                    args_signs.append((args_counter, type(arg)))  # start position, sequence type
+                    nargs = len(arg)
+                    args_signs.append(
+                        (args_offset, nargs, type(arg))  # start position, sequence type
+                    )
                     flat_args.extend(arg)
-                    args_counter += len(arg)
+                    args_offset += nargs
                 else:
                     raise RuntimeError(
                         'custom_root(optimality_fn)(solver_fn)(*args): argument of function '
@@ -384,9 +388,9 @@ def _custom_root(
                         'torch.Tensor'
                     )
             else:
-                args_signs.append((args_counter, None))  # start position, None
+                args_signs.append((args_offset, 1, None))  # start position, None
                 flat_args.append(arg)
-                args_counter += 1
+                args_offset += 1
 
         args_signs = tuple(args_signs)
         flat_args = tuple(flat_args)

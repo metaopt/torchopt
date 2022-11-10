@@ -24,9 +24,9 @@ from typing import Any, Callable, Dict, Generator, Iterable, Optional, Tuple, Ty
 import functorch
 import torch
 
-import torchopt.nn
 from torchopt import pytree
 from torchopt.diff.implicit.decorator import custom_root
+from torchopt.nn.module import MetaGradientModule
 from torchopt.typing import LinearSolver, TensorTree, TupleOfTensors
 from torchopt.utils import extract_module_containers
 
@@ -92,10 +92,10 @@ def make_optimality_from_objective(
 def enable_implicit_gradients(
     cls: Type['ImplicitMetaGradientModule'],
 ) -> Type['ImplicitMetaGradientModule']:
-    """Enable implicit gradients for the :func:`solve` function."""
+    """Enables implicit gradients for the :func:`solve` method."""
     cls_solve = cls.solve
     if getattr(cls_solve, '__implicit_gradients_enabled__', False):
-        raise ValueError('Implicit gradients are already enabled for the solve function.')
+        raise TypeError('Implicit gradients are already enabled for the `solve` method.')
 
     cls_has_aux = cls.has_aux
     custom_root_kwargs = dict(has_aux=cls_has_aux, solve=cls.linear_solve)
@@ -192,7 +192,7 @@ def enable_implicit_gradients(
     return cls
 
 
-class ImplicitMetaGradientModule(torchopt.nn.MetaGradientModule):
+class ImplicitMetaGradientModule(MetaGradientModule):
     """The base class for differentiable implicit meta-gradient models."""
 
     _custom_optimality: bool
@@ -203,7 +203,7 @@ class ImplicitMetaGradientModule(torchopt.nn.MetaGradientModule):
     def __init_subclass__(
         cls, has_aux: bool = False, linear_solve: Optional[LinearSolver] = None
     ) -> None:
-        """Initialize the subclass."""
+        """Validates and initializes the subclass."""
         super().__init_subclass__()
         cls.has_aux = has_aux
         cls.linear_solve = linear_solve
@@ -215,22 +215,22 @@ class ImplicitMetaGradientModule(torchopt.nn.MetaGradientModule):
 
         if cls._custom_optimality:
             if isinstance(optimality, staticmethod):
-                raise TypeError('optimality() must not be a staticmethod.')
+                raise TypeError('method optimality() must not be a staticmethod.')
             if isinstance(optimality, classmethod):
-                raise TypeError('optimality() must not be a classmethod.')
+                raise TypeError('method optimality() must not be a classmethod.')
             if not callable(optimality):
-                raise TypeError('optimality() must be callable.')
+                raise TypeError('method optimality() must be callable.')
         elif not cls._custom_objective:
             raise TypeError(
-                'ImplicitMetaGradientModule requires either an optimality() or an objective() function'
+                'ImplicitMetaGradientModule requires either an optimality() method or an objective() method'
             )
         else:
             if isinstance(objective, staticmethod):
-                raise TypeError('objective() must not be a staticmethod.')
+                raise TypeError('method objective() must not be a staticmethod.')
             if isinstance(objective, classmethod):
-                raise TypeError('objective() must not be a classmethod.')
+                raise TypeError('method objective() must not be a classmethod.')
             if not callable(objective):
-                raise TypeError('objective() must be callable.')
+                raise TypeError('method objective() must be callable.')
 
             cls.optimality = make_optimality_from_objective(objective)  # type: ignore[assignment]
 
