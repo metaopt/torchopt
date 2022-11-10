@@ -358,7 +358,7 @@ def zero_order(
     num_samples: int = 1,
     sigma: Numeric = 1.0,
 ) -> Callable[[Callable[..., torch.Tensor]], Callable[..., torch.Tensor]]:
-    """Decorator for applying zero order differentiation.
+    """Decorator for applying zero-order differentiation.
 
     Args:
         distribution: (object)
@@ -375,7 +375,7 @@ def zero_order(
             The standard deviation of the perturbation. Defaults to :const:`1.0`.
 
     Returns:
-        A zero order function decorator.
+        A function decorator that enables zero-order gradient estimation.
     """
     assert algo in ('naive', 'forward', 'antithetic')
     if algo == 'naive':

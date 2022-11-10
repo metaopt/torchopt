@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""Zero Order Gradient."""
+"""Zero-Order Gradient."""
 
 from torchopt.diff.zero_order import nn
 from torchopt.diff.zero_order.decorator import zero_order
