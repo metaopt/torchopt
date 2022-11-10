@@ -49,6 +49,7 @@ class ZeroOrderGradientModule(nn.Module, Samplable):
     """The base class for zero-order gradient models."""
 
     def __init_subclass__(cls, *args, **kwargs) -> None:
+        """Validates and initializes the subclass."""
         super().__init_subclass__()
         enable_zero_order_gradients(cls, *args, **kwargs)
 
