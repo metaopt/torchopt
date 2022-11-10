@@ -21,6 +21,7 @@ from torchopt import (
     distributed,
     hook,
     linear_solve,
+    nn,
     pytree,
     schedule,
     typing,
