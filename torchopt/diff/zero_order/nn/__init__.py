@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""The base class for differentiable implicit meta-gradient models."""
+"""The base class for zero-order gradient models."""
 
 # Preload to resolve circular references
 import torchopt.nn.module  # pylint: disable=unused-import
