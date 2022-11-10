@@ -355,12 +355,12 @@ def _zero_order_antithetic(  # pylint: disable=too-many-statements
     return apply
 
 
-Algorithm: TypeAlias = Literal['naive', 'forward', 'antithetic']
+Method: TypeAlias = Literal['naive', 'forward', 'antithetic']
 
 
 def zero_order(
     distribution_fn: Callable[..., Samplable],
-    algo: Algorithm = 'naive',
+    method: Method = 'naive',
     argnums: Union[int, Tuple[int, ...]] = (0,),
     num_samples: int = 1,
     sigma: Numeric = 1.0,
@@ -371,7 +371,7 @@ def zero_order(
         distribution: (function)
             A function that returns a sampler object. The returned sampler object should have method
             ``sampler.sample(sample_shape)`` to sample perturbations from the given distribution.
-        algo: (str)
+        method: (str)
             The algorithm to use. The currently supported algorithms are :const:`'naive'`,
             :const:`'forward'`, and :const:`'antithetic'`. Defaults to :const:`'naive'`.
         argnums: (int or tuple of int, default: :const:`0`)
@@ -384,19 +384,19 @@ def zero_order(
     Returns:
         A function decorator that enables zero-order gradient estimation.
     """
-    assert algo in ('naive', 'forward', 'antithetic')
-    if algo == 'naive':
-        algo_fn = _zero_order_naive
-    elif algo == 'forward':
-        algo_fn = _zero_order_forward
+    assert method in ('naive', 'forward', 'antithetic')
+    if method == 'naive':
+        method_fn = _zero_order_naive
+    elif method == 'forward':
+        method_fn = _zero_order_forward
     else:
-        algo_fn = _zero_order_antithetic
+        method_fn = _zero_order_antithetic
 
     if isinstance(argnums, int):
         argnums = (argnums,)
 
     return functools.partial(
-        algo_fn,
+        method_fn,
         distribution_fn=distribution_fn,
         argnums=argnums,
         num_samples=num_samples,
