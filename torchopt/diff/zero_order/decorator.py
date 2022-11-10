@@ -15,8 +15,6 @@
 """Zero-Order Gradient Estimation."""
 
 import functools
-import sys as _sys
-from types import ModuleType as _ModuleType
 from typing import Any, Callable, List, Sequence, Tuple, Union
 from typing_extensions import Literal  # Python 3.8+
 from typing_extensions import Protocol  # Python 3.8+
@@ -404,14 +402,3 @@ def zero_order(
         num_samples=num_samples,
         sigma=sigma,
     )
-
-
-class _CallableModule(_ModuleType):  # pylint: disable=too-few-public-methods
-    def __call__(self, *args, **kwargs):
-        return self.zero_order(*args, **kwargs)
-
-
-# Replace entry in sys.modules for this module with an instance of _CallableModule
-_modself = _sys.modules[__name__]
-_modself.__class__ = _CallableModule
-del _sys, _ModuleType, _modself, _CallableModule
