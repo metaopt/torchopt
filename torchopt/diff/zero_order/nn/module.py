@@ -36,7 +36,10 @@ def enable_zero_order_gradients(
             'Zero-order gradient estimation is already enabled for the `forward` method.'
         )
 
-    cls.forward = zero_order(cls.sample, *args, **kwargs)(cls.forward)
+    def distribution_fn(*args, **kwargs):  # pylint: disable=unused-argument
+        return cls.sample  # FIX: signature
+
+    cls.forward = zero_order(distribution_fn, *args, **kwargs)(cls.forward)
     cls.forward.__zero_order_gradients_enabled__ = True
     return cls
 

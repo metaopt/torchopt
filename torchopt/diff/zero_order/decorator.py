@@ -46,7 +46,7 @@ Samplable.register(Distribution)
 
 def _zero_order_naive(  # pylint: disable=too-many-statements
     fn: Callable[..., torch.Tensor],
-    distribution: Samplable,
+    distribution_fn: Callable[..., Samplable],
     argnums: Tuple[int, ...],
     num_samples: int,
     sigma: Numeric,
@@ -81,7 +81,7 @@ def _zero_order_naive(  # pylint: disable=too-many-statements
                 ctx.is_tensor_mask = is_tensor_mask
 
                 output = fn(*origin_args)
-                ctx.distribution = distribution(*origin_args)
+                ctx.distribution = distribution_fn(*origin_args)
                 if not isinstance(output, torch.Tensor):
                     raise RuntimeError('`output` must be a tensor.')
                 if output.ndim != 0:
@@ -119,7 +119,9 @@ def _zero_order_naive(  # pylint: disable=too-many-statements
                 param_grads: ListOfTensors = [0.0 for _ in range(len(flat_diff_params))]  # type: ignore[misc]
 
                 for _ in range(num_samples):
-                    noises = [ctx.distribution(sample_shape=p.shape) for p in flat_diff_params]
+                    noises = [
+                        ctx.distribution.sample(sample_shape=p.shape) for p in flat_diff_params
+                    ]
                     flat_noisy_params = [
                         add_perturbation(t, n) for t, n in zip(flat_diff_params, noises)
                     ]
@@ -148,7 +150,7 @@ def _zero_order_naive(  # pylint: disable=too-many-statements
 
 def _zero_order_forward(  # pylint: disable=too-many-statements
     fn: Callable[..., torch.Tensor],
-    distribution: Samplable,
+    distribution_fn: Callable[..., Samplable],
     argnums: Tuple[int, ...],
     num_samples: int,
     sigma: Numeric,
@@ -183,7 +185,7 @@ def _zero_order_forward(  # pylint: disable=too-many-statements
                 ctx.is_tensor_mask = is_tensor_mask
 
                 output = fn(*origin_args)
-                ctx.distribution = distribution(*origin_args)
+                ctx.distribution = distribution_fn(*origin_args)
                 if not isinstance(output, torch.Tensor):
                     raise RuntimeError('`output` must be a tensor.')
                 if output.ndim != 0:
@@ -222,7 +224,9 @@ def _zero_order_forward(  # pylint: disable=too-many-statements
                 param_grads: ListOfTensors = [0.0 for _ in range(len(flat_diff_params))]  # type: ignore[misc]
 
                 for _ in range(num_samples):
-                    noises = [ctx.distribution(sample_shape=p.shape) for p in flat_diff_params]
+                    noises = [
+                        ctx.distribution.sample(sample_shape=p.shape) for p in flat_diff_params
+                    ]
                     flat_noisy_params = [
                         add_perturbation(t, n) for t, n in zip(flat_diff_params, noises)
                     ]
@@ -252,7 +256,7 @@ def _zero_order_forward(  # pylint: disable=too-many-statements
 
 def _zero_order_antithetic(  # pylint: disable=too-many-statements
     fn: Callable[..., torch.Tensor],
-    distribution: Samplable,
+    distribution_fn: Callable[..., Samplable],
     argnums: Tuple[int, ...],
     num_samples: int,
     sigma: Numeric,
@@ -287,7 +291,7 @@ def _zero_order_antithetic(  # pylint: disable=too-many-statements
                 ctx.is_tensor_mask = is_tensor_mask
 
                 output = fn(*origin_args)
-                ctx.distribution = distribution(*origin_args)
+                ctx.distribution = distribution_fn(*origin_args)
                 if not isinstance(output, torch.Tensor):
                     raise RuntimeError('`output` must be a tensor.')
                 if output.ndim != 0:
@@ -334,7 +338,9 @@ def _zero_order_antithetic(  # pylint: disable=too-many-statements
                     return fn(*args)
 
                 for _ in range(num_samples):
-                    noises = [ctx.distribution(sample_shape=p.shape) for p in flat_diff_params]
+                    noises = [
+                        ctx.distribution.sample(sample_shape=p.shape) for p in flat_diff_params
+                    ]
                     output = get_output(torch.add, noises) - get_output(torch.sub, noises)
                     weighted_grad = grad_outputs[0].mul(output).mul_(0.5 / sigma)
 
@@ -355,7 +361,7 @@ Algorithm: TypeAlias = Literal['naive', 'forward', 'antithetic']
 
 
 def zero_order(
-    distribution: Samplable,
+    distribution_fn: Callable[..., Samplable],
     algo: Algorithm = 'naive',
     argnums: Union[int, Tuple[int, ...]] = (0,),
     num_samples: int = 1,
@@ -364,9 +370,9 @@ def zero_order(
     """Decorator for applying zero-order differentiation.
 
     Args:
-        distribution: (object)
-            A sampler object, it should have method ``sample(sample_shape)`` to sample perturbations
-            from the given distribution.
+        distribution: (function)
+            A function that returns a sampler object. The returned sampler object should have method
+            ``sampler.sample(sample_shape)`` to sample perturbations from the given distribution.
         algo: (str)
             The algorithm to use. The currently supported algorithms are :const:`'naive'`,
             :const:`'forward'`, and :const:`'antithetic'`. Defaults to :const:`'naive'`.
@@ -393,7 +399,7 @@ def zero_order(
 
     return functools.partial(
         algo_fn,
-        distribution=distribution,
+        distribution_fn=distribution_fn,
         argnums=argnums,
         num_samples=num_samples,
         sigma=sigma,
