@@ -39,8 +39,9 @@ def enable_zero_order_gradients(
     def distribution_fn(*args, **kwargs):  # pylint: disable=unused-argument
         return cls.sample  # FIX: signature
 
-    cls.forward = zero_order(distribution_fn, *args, **kwargs)(cls.forward)
-    cls.forward.__zero_order_gradients_enabled__ = True
+    wrapped = zero_order(distribution_fn, *args, **kwargs)(cls.forward)
+    wrapped.__zero_order_gradients_enabled__ = True  # type: ignore[attr-defined]
+    cls.forward = wrapped  # type: ignore[assignment]
     return cls
 
 
