@@ -51,6 +51,7 @@ def _zero_order_naive(  # pylint: disable=too-many-statements
     num_samples: int,
     sigma: Numeric,
 ) -> Callable[..., torch.Tensor]:
+    @functools.wraps(fn)
     def apply(*args: Any) -> torch.Tensor:  # pylint: disable=too-many-statements
         diff_params = [args[argnum + 1] for argnum in argnums]
         flat_diff_params: List[Any]
@@ -152,6 +153,7 @@ def _zero_order_forward(  # pylint: disable=too-many-statements
     num_samples: int,
     sigma: Numeric,
 ) -> Callable[..., torch.Tensor]:
+    @functools.wraps(fn)
     def apply(*args: Any) -> torch.Tensor:  # pylint: disable=too-many-statements
         diff_params = [args[argnum + 1] for argnum in argnums]
         flat_diff_params: List[Any]
@@ -255,6 +257,7 @@ def _zero_order_antithetic(  # pylint: disable=too-many-statements
     num_samples: int,
     sigma: Numeric,
 ) -> Callable[..., torch.Tensor]:
+    @functools.wraps(fn)
     def apply(*args: Any) -> torch.Tensor:  # pylint: disable=too-many-statements
         diff_params = [args[argnum + 1] for argnum in argnums]
         flat_diff_params: List[Any]
