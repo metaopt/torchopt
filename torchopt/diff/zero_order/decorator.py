@@ -48,7 +48,7 @@ def _zero_order_naive(  # pylint: disable=too-many-statements
     fn: Callable[..., torch.Tensor],
     distribution: Samplable,
     argnums: Tuple[int, ...],
-    sample_num: int,
+    num_samples: int,
     sigma: Numeric,
 ) -> Callable[..., torch.Tensor]:
     def apply(*args: Any) -> torch.Tensor:  # pylint: disable=too-many-statements
@@ -79,16 +79,16 @@ def _zero_order_naive(  # pylint: disable=too-many-statements
                 ctx.non_tensors = non_tensors
                 ctx.is_tensor_mask = is_tensor_mask
 
-                objective = fn(*origin_args)
+                output = fn(*origin_args)
                 ctx.distribution = distribution(*origin_args)
-                if not isinstance(objective, torch.Tensor):
-                    raise RuntimeError('Objective must be a tensor.')
-                if objective.ndim != 0:
-                    raise RuntimeError('Objective must be a scalar tensor.')
+                if not isinstance(output, torch.Tensor):
+                    raise RuntimeError('`output` must be a tensor.')
+                if output.ndim != 0:
+                    raise RuntimeError('`output` must be a scalar tensor.')
                 ctx.save_for_backward(*flat_diff_params, *tensors)
                 ctx.len_args = len(args)
                 ctx.len_params = len(flat_diff_params)
-                return objective
+                return output
 
             @staticmethod
             def backward(  # pylint: disable=too-many-locals
@@ -115,12 +115,9 @@ def _zero_order_naive(  # pylint: disable=too-many-statements
                 def add_perturbation(tensor, noises):
                     return tensor.add(noises, alpha=sigma)
 
-                out_grads: ListOfTensors = [None for _ in range(len(flat_diff_params))]  # type: ignore[misc]
+                param_grads: ListOfTensors = [0.0 for _ in range(len(flat_diff_params))]  # type: ignore[misc]
 
-                for i in range(len(flat_diff_params)):
-                    out_grads[i] = 0.0
-
-                for _ in range(sample_num):
+                for _ in range(num_samples):
                     noises = [ctx.distribution(sample_shape=p.shape) for p in flat_diff_params]
                     flat_noisy_params = [
                         add_perturbation(t, n) for t, n in zip(flat_diff_params, noises)
@@ -132,16 +129,16 @@ def _zero_order_naive(  # pylint: disable=too-many-statements
                     for argnum, noisy_param in zip(argnums, noisy_params):
                         args[argnum] = noisy_param
 
-                    objective = fn(*args)
-                    weighted_grad = grad_outputs[0].mul(objective).mul_(1 / sigma)
+                    output = fn(*args)
+                    weighted_grad = grad_outputs[0].mul(output).mul_(1 / sigma)
 
                     for i, noise in enumerate(noises):
-                        out_grads[i] += weighted_grad * noise
+                        param_grads[i] += weighted_grad * noise
 
                 for i in range(len(flat_diff_params)):
-                    out_grads[i] /= sample_num
+                    param_grads[i] /= num_samples
 
-                return tuple(out_grads + [None] * (ctx.len_args - len(flat_diff_params)))
+                return tuple(param_grads + [None] * (ctx.len_args - len(flat_diff_params)))
 
         return ZeroOrder.apply(*flat_diff_params, (args,))
 
@@ -152,7 +149,7 @@ def _zero_order_forward(  # pylint: disable=too-many-statements
     fn: Callable[..., torch.Tensor],
     distribution: Samplable,
     argnums: Tuple[int, ...],
-    sample_num: int,
+    num_samples: int,
     sigma: Numeric,
 ) -> Callable[..., torch.Tensor]:
     def apply(*args: Any) -> torch.Tensor:  # pylint: disable=too-many-statements
@@ -183,16 +180,16 @@ def _zero_order_forward(  # pylint: disable=too-many-statements
                 ctx.non_tensors = non_tensors
                 ctx.is_tensor_mask = is_tensor_mask
 
-                objective = fn(*origin_args)
+                output = fn(*origin_args)
                 ctx.distribution = distribution(*origin_args)
-                if not isinstance(objective, torch.Tensor):
-                    raise RuntimeError('Objective must be a tensor.')
-                if not objective.ndim != 0:
-                    raise RuntimeError('Objective must be a scalar tensor.')
-                ctx.save_for_backward(*flat_diff_params, *tensors, objective)
+                if not isinstance(output, torch.Tensor):
+                    raise RuntimeError('`output` must be a tensor.')
+                if output.ndim != 0:
+                    raise RuntimeError('`output` must be a scalar tensor.')
+                ctx.save_for_backward(*flat_diff_params, *tensors, output)
                 ctx.len_args = len(args)
                 ctx.len_params = len(flat_diff_params)
-                return objective
+                return output
 
             @staticmethod
             def backward(  # pylint: disable=too-many-locals
@@ -201,7 +198,7 @@ def _zero_order_forward(  # pylint: disable=too-many-statements
                 saved_tensors = ctx.saved_tensors
                 flat_diff_params = saved_tensors[: ctx.len_params]
                 tensors = saved_tensors[ctx.len_params : -1]
-                objective = saved_tensors[-1]
+                output = saved_tensors[-1]
                 non_tensors = ctx.non_tensors
 
                 flat_args = []
@@ -220,12 +217,9 @@ def _zero_order_forward(  # pylint: disable=too-many-statements
                 def add_perturbation(tensor, noises):
                     return tensor.add(noises, alpha=sigma)
 
-                out_grads: ListOfTensors = [None for _ in range(len(flat_diff_params))]  # type: ignore[misc]
+                param_grads: ListOfTensors = [0.0 for _ in range(len(flat_diff_params))]  # type: ignore[misc]
 
-                for i in range(len(flat_diff_params)):
-                    out_grads[i] = 0.0
-
-                for _ in range(sample_num):
+                for _ in range(num_samples):
                     noises = [ctx.distribution(sample_shape=p.shape) for p in flat_diff_params]
                     flat_noisy_params = [
                         add_perturbation(t, n) for t, n in zip(flat_diff_params, noises)
@@ -237,17 +231,17 @@ def _zero_order_forward(  # pylint: disable=too-many-statements
                     for argnum, noisy_param in zip(argnums, noisy_params):
                         args[argnum] = noisy_param
 
-                    noisy_objective = fn(*args)
-                    objective = noisy_objective - objective
-                    weighted_grad = grad_outputs[0].mul(objective).div_(1.0 / sigma)
+                    noisy_output = fn(*args)
+                    output = noisy_output - output
+                    weighted_grad = grad_outputs[0].mul(output).div_(1.0 / sigma)
 
                     for i, noise in enumerate(noises):
-                        out_grads[i] += weighted_grad * noise
+                        param_grads[i] += weighted_grad * noise
 
                 for i in range(len(flat_diff_params)):
-                    out_grads[i] /= sample_num
+                    param_grads[i] /= num_samples
 
-                return tuple(out_grads + [None] * (ctx.len_args - len(flat_diff_params)))
+                return tuple(param_grads + [None] * (ctx.len_args - len(flat_diff_params)))
 
         return ZeroOrder.apply(*flat_diff_params, (args,))
 
@@ -258,7 +252,7 @@ def _zero_order_antithetic(  # pylint: disable=too-many-statements
     fn: Callable[..., torch.Tensor],
     distribution: Samplable,
     argnums: Tuple[int, ...],
-    sample_num: int,
+    num_samples: int,
     sigma: Numeric,
 ) -> Callable[..., torch.Tensor]:
     def apply(*args: Any) -> torch.Tensor:  # pylint: disable=too-many-statements
@@ -289,16 +283,16 @@ def _zero_order_antithetic(  # pylint: disable=too-many-statements
                 ctx.non_tensors = non_tensors
                 ctx.is_tensor_mask = is_tensor_mask
 
-                objective = fn(*origin_args)
+                output = fn(*origin_args)
                 ctx.distribution = distribution(*origin_args)
-                if not isinstance(objective, torch.Tensor):
-                    raise RuntimeError('Objective must be a tensor.')
-                if not objective.ndim != 0:
-                    raise RuntimeError('Objective must be a scalar tensor.')
+                if not isinstance(output, torch.Tensor):
+                    raise RuntimeError('`output` must be a tensor.')
+                if output.ndim != 0:
+                    raise RuntimeError('`output` must be a scalar tensor.')
                 ctx.save_for_backward(*flat_diff_params, *tensors)
                 ctx.len_args = len(args)
                 ctx.len_params = len(flat_diff_params)
-                return objective
+                return output
 
             @staticmethod
             def backward(ctx: Any, *grad_outputs: Any):  # pylint: disable=too-many-locals
@@ -320,12 +314,9 @@ def _zero_order_antithetic(  # pylint: disable=too-many-statements
 
                 args: List[Any] = pytree.tree_unflatten(ctx.args_treespec, flat_args)  # type: ignore[assignment]
 
-                out_grads: ListOfTensors = [None for _ in range(len(flat_diff_params))]  # type: ignore[misc]
+                param_grads: ListOfTensors = [0.0 for _ in range(len(flat_diff_params))]  # type: ignore[misc]
 
-                for i in range(len(flat_diff_params)):
-                    out_grads[i] = 0.0
-
-                def get_objective(add_perturbation_fn, noises) -> torch.Tensor:
+                def get_output(add_perturbation_fn, noises) -> torch.Tensor:
                     flat_noisy_params = [
                         add_perturbation_fn(t, n, alpha=sigma)
                         for t, n in zip(flat_diff_params, noises)
@@ -339,18 +330,18 @@ def _zero_order_antithetic(  # pylint: disable=too-many-statements
 
                     return fn(*args)
 
-                for _ in range(sample_num):
+                for _ in range(num_samples):
                     noises = [ctx.distribution(sample_shape=p.shape) for p in flat_diff_params]
-                    objective = get_objective(torch.add, noises) - get_objective(torch.sub, noises)
-                    weighted_grad = grad_outputs[0].mul(objective).mul_(0.5 / sigma)
+                    output = get_output(torch.add, noises) - get_output(torch.sub, noises)
+                    weighted_grad = grad_outputs[0].mul(output).mul_(0.5 / sigma)
 
                     for i, noise in enumerate(noises):
-                        out_grads[i] += weighted_grad * noise
+                        param_grads[i] += weighted_grad * noise
 
                 for i in range(len(flat_diff_params)):
-                    out_grads[i] /= sample_num
+                    param_grads[i] /= num_samples
 
-                return tuple(out_grads + [None] * (ctx.len_args - len(flat_diff_params)))
+                return tuple(param_grads + [None] * (ctx.len_args - len(flat_diff_params)))
 
         return ZeroOrder.apply(*flat_diff_params, (args,))
 
@@ -364,7 +355,7 @@ def zero_order(
     distribution: Samplable,
     algo: Algorithm = 'naive',
     argnums: Union[int, Tuple[int, ...]] = (0,),
-    sample_num: int = 1,
+    num_samples: int = 1,
     sigma: Numeric = 1.0,
 ) -> Callable[[Callable[..., torch.Tensor]], Callable[..., torch.Tensor]]:
     """Decorator for applying zero order differentiation.
@@ -378,7 +369,8 @@ def zero_order(
             :const:`'forward'`, and :const:`'antithetic'`. Defaults to :const:`'naive'`.
         argnums: (int or tuple of int, default: :const:`0`)
             Specifies arguments to compute gradients with respect to.
-        sample_num: (int, default :const:`1`) The number of sample to get the averaged estimated gradient.
+        num_samples: (int, default :const:`1`)
+            The number of sample to get the averaged estimated gradient.
         sigma: (Numeric)
             The standard deviation of the perturbation. Defaults to :const:`1.0`.
 
@@ -400,7 +392,7 @@ def zero_order(
         algo_fn,
         distribution=distribution,
         argnums=argnums,
-        sample_num=sample_num,
+        num_samples=num_samples,
         sigma=sigma,
     )
 
