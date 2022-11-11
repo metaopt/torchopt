@@ -38,9 +38,10 @@ __global__ void adamForwardInplaceCUDAKernel(const other_t b1,
                                              scalar_t *__restrict__ updates_ptr,
                                              scalar_t *__restrict__ mu_ptr,
                                              scalar_t *__restrict__ nu_ptr) {
+  const size_t toffset = (threadIdx.x + blockIdx.x * blockDim.x) * unroll_size;
 #pragma unroll
   for (int i = 0; i < unroll_size; ++i) {
-    unsigned tid = threadIdx.x + blockIdx.x * blockDim.x * i;
+    size_t tid = toffset + i;
     if (tid >= n) {
       return;
     }
@@ -114,9 +115,10 @@ __global__ void adamForwardMuCUDAKernel(const scalar_t *__restrict__ updates_ptr
                                         const other_t b1,
                                         const size_t n,
                                         scalar_t *__restrict__ mu_out_ptr) {
+  const size_t toffset = (threadIdx.x + blockIdx.x * blockDim.x) * unroll_size;
 #pragma unroll
   for (int i = 0; i < unroll_size; ++i) {
-    size_t tid = threadIdx.x + blockIdx.x * blockDim.x * i;
+    size_t tid = toffset + i;
     if (tid >= n) {
       return;
     }
@@ -166,9 +168,10 @@ __global__ void adamForwardNuCUDAKernel(const scalar_t *__restrict__ updates_ptr
                                         const other_t b2,
                                         const size_t n,
                                         scalar_t *__restrict__ nu_out_ptr) {
+  const size_t toffset = (threadIdx.x + blockIdx.x * blockDim.x) * unroll_size;
 #pragma unroll
   for (int i = 0; i < unroll_size; ++i) {
-    size_t tid = threadIdx.x + blockIdx.x * blockDim.x * i;
+    size_t tid = toffset + i;
     if (tid >= n) {
       return;
     }
@@ -222,9 +225,10 @@ __global__ void adamForwardUpdatesCUDAKernel(const scalar_t *__restrict__ new_mu
                                              const other_t eps_root,
                                              const size_t n,
                                              scalar_t *__restrict__ updates_out_ptr) {
+  const size_t toffset = (threadIdx.x + blockIdx.x * blockDim.x) * unroll_size;
 #pragma unroll
   for (int i = 0; i < unroll_size; ++i) {
-    size_t tid = threadIdx.x + blockIdx.x * blockDim.x * i;
+    size_t tid = toffset + i;
     if (tid >= n) {
       return;
     }
@@ -290,9 +294,10 @@ __global__ void adamBackwardMuCUDAKernel(const scalar_t *__restrict__ dmu_ptr,
                                          const size_t n,
                                          scalar_t *__restrict__ dupdates_out_ptr,
                                          scalar_t *__restrict__ dmu_out_ptr) {
+  const size_t toffset = (threadIdx.x + blockIdx.x * blockDim.x) * unroll_size;
 #pragma unroll
   for (int i = 0; i < unroll_size; ++i) {
-    size_t tid = threadIdx.x + blockIdx.x * blockDim.x * i;
+    size_t tid = toffset + i;
     if (tid >= n) {
       return;
     }
@@ -345,9 +350,10 @@ __global__ void adamBackwardNuCUDAKernel(const scalar_t *__restrict__ dnu_ptr,
                                          const size_t n,
                                          scalar_t *__restrict__ dupdates_out_ptr,
                                          scalar_t *__restrict__ dnu_out_ptr) {
+  const size_t toffset = (threadIdx.x + blockIdx.x * blockDim.x) * unroll_size;
 #pragma unroll
   for (int i = 0; i < unroll_size; ++i) {
-    size_t tid = threadIdx.x + blockIdx.x * blockDim.x * i;
+    size_t tid = toffset + i;
     if (tid >= n) {
       return;
     }
@@ -405,9 +411,10 @@ __global__ void adamBackwardUpdatesCUDAKernel(const scalar_t *__restrict__ dupda
                                               const size_t n,
                                               scalar_t *__restrict__ dnew_mu_out_ptr,
                                               scalar_t *__restrict__ dnew_nu_out_ptr) {
+  const size_t toffset = (threadIdx.x + blockIdx.x * blockDim.x) * unroll_size;
 #pragma unroll
   for (int i = 0; i < unroll_size; ++i) {
-    size_t tid = threadIdx.x + blockIdx.x * blockDim.x * i;
+    size_t tid = toffset + i;
     if (tid >= n) {
       return;
     }
