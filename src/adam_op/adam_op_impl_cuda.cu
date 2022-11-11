@@ -24,9 +24,8 @@ namespace torchopt {
 
 namespace adam_op {
 
-constexpr int unroll_size = 4;
-
-constexpr int block_size = 256;
+constexpr int UNROLL_SIZE = 4;
+constexpr int BLOCK_SIZE = 256;
 
 template <typename scalar_t, typename other_t, int unroll_size>
 __global__ void adamForwardInplaceCUDAKernel(const other_t b1,
@@ -73,8 +72,8 @@ TensorArray<3> adamForwardInplaceCUDA(const torch::Tensor &updates,
   const other_t inv_one_minus_pow_b2 = 1 / (1 - std::pow(b2, count));
 
   const size_t n = getTensorPlainSize(updates);
-  if (n < block_size * unroll_size) {
-    const dim3 block(std::min(n, size_t(block_size)));
+  if (n < BLOCK_SIZE * UNROLL_SIZE) {
+    const dim3 block(std::min(n, size_t(BLOCK_SIZE)));
     const dim3 grid((n - 1) / block.x + 1);
     AT_DISPATCH_SCALAR_TYPES_CUDA(updates.scalar_type(), "adamForwardInplaceCUDA", ([&] {
                                     adamForwardInplaceCUDAKernel<scalar_t, scalar_t, 1>
@@ -90,10 +89,10 @@ TensorArray<3> adamForwardInplaceCUDA(const torch::Tensor &updates,
                                                           nu.data_ptr<scalar_t>());
                                   }));
   } else {
-    const dim3 block(std::min(n / unroll_size, size_t(block_size)));
-    const dim3 grid((n / unroll_size - 1) / block.x + 1);
+    const dim3 block(std::min(n / UNROLL_SIZE, size_t(BLOCK_SIZE)));
+    const dim3 grid((n / UNROLL_SIZE - 1) / block.x + 1);
     AT_DISPATCH_SCALAR_TYPES_CUDA(updates.scalar_type(), "adamForwardInplaceCUDA", ([&] {
-                                    adamForwardInplaceCUDAKernel<scalar_t, scalar_t, unroll_size>
+                                    adamForwardInplaceCUDAKernel<scalar_t, scalar_t, UNROLL_SIZE>
                                         <<<grid, block>>>(scalar_t(b1),
                                                           scalar_t(inv_one_minus_pow_b1),
                                                           scalar_t(b2),
@@ -135,8 +134,8 @@ torch::Tensor adamForwardMuCUDA(const torch::Tensor &updates,
   auto mu_out = torch::empty_like(mu);
 
   const size_t n = getTensorPlainSize(updates);
-  if (n < block_size * unroll_size) {
-    const dim3 block(std::min(n, size_t(block_size)));
+  if (n < BLOCK_SIZE * UNROLL_SIZE) {
+    const dim3 block(std::min(n, size_t(BLOCK_SIZE)));
     const dim3 grid((n - 1) / block.x + 1);
     AT_DISPATCH_SCALAR_TYPES_CUDA(updates.scalar_type(), "adamForwardMuCUDA", ([&] {
                                     adamForwardMuCUDAKernel<scalar_t, scalar_t, 1>
@@ -147,10 +146,10 @@ torch::Tensor adamForwardMuCUDA(const torch::Tensor &updates,
                                                           mu_out.data_ptr<scalar_t>());
                                   }));
   } else {
-    const dim3 block(std::min(n / unroll_size, size_t(block_size)));
-    const dim3 grid((n / unroll_size - 1) / block.x + 1);
+    const dim3 block(std::min(n / UNROLL_SIZE, size_t(BLOCK_SIZE)));
+    const dim3 grid((n / UNROLL_SIZE - 1) / block.x + 1);
     AT_DISPATCH_SCALAR_TYPES_CUDA(updates.scalar_type(), "adamForwardMuCUDA", ([&] {
-                                    adamForwardMuCUDAKernel<scalar_t, scalar_t, unroll_size>
+                                    adamForwardMuCUDAKernel<scalar_t, scalar_t, UNROLL_SIZE>
                                         <<<grid, block>>>(updates.data_ptr<scalar_t>(),
                                                           mu.data_ptr<scalar_t>(),
                                                           scalar_t(b1),
@@ -188,9 +187,8 @@ torch::Tensor adamForwardNuCUDA(const torch::Tensor &updates,
   auto nu_out = torch::empty_like(nu);
 
   const size_t n = getTensorPlainSize(updates);
-
-  if (n < block_size * unroll_size) {
-    const dim3 block(std::min(n, size_t(block_size)));
+  if (n < BLOCK_SIZE * UNROLL_SIZE) {
+    const dim3 block(std::min(n, size_t(BLOCK_SIZE)));
     const dim3 grid((n - 1) / block.x + 1);
     AT_DISPATCH_SCALAR_TYPES_CUDA(updates.scalar_type(), "adamForwardNuCUDA", ([&] {
                                     adamForwardNuCUDAKernel<scalar_t, scalar_t, 1>
@@ -201,10 +199,10 @@ torch::Tensor adamForwardNuCUDA(const torch::Tensor &updates,
                                                           nu_out.data_ptr<scalar_t>());
                                   }));
   } else {
-    const dim3 block(std::min(n / unroll_size, size_t(block_size)));
-    const dim3 grid((n / unroll_size - 1) / block.x + 1);
+    const dim3 block(std::min(n / UNROLL_SIZE, size_t(BLOCK_SIZE)));
+    const dim3 grid((n / UNROLL_SIZE - 1) / block.x + 1);
     AT_DISPATCH_SCALAR_TYPES_CUDA(updates.scalar_type(), "adamForwardNuCUDA", ([&] {
-                                    adamForwardNuCUDAKernel<scalar_t, scalar_t, unroll_size>
+                                    adamForwardNuCUDAKernel<scalar_t, scalar_t, UNROLL_SIZE>
                                         <<<grid, block>>>(updates.data_ptr<scalar_t>(),
                                                           nu.data_ptr<scalar_t>(),
                                                           scalar_t(b2),
@@ -253,9 +251,8 @@ torch::Tensor adamForwardUpdatesCUDA(const torch::Tensor &new_mu,
   auto updates_out = torch::empty_like(new_mu);
 
   const size_t n = getTensorPlainSize(new_mu);
-
-  if (n < block_size * unroll_size) {
-    const dim3 block(std::min(n, size_t(block_size)));
+  if (n < BLOCK_SIZE * UNROLL_SIZE) {
+    const dim3 block(std::min(n, size_t(BLOCK_SIZE)));
     const dim3 grid((n - 1) / block.x + 1);
     AT_DISPATCH_SCALAR_TYPES_CUDA(new_mu.scalar_type(), "adamForwardUpdatesCUDA", ([&] {
                                     adamForwardUpdatesCUDAKernel<scalar_t, scalar_t, 1>
@@ -269,10 +266,10 @@ torch::Tensor adamForwardUpdatesCUDA(const torch::Tensor &new_mu,
                                                           updates_out.data_ptr<scalar_t>());
                                   }));
   } else {
-    const dim3 block(std::min(n / unroll_size, size_t(block_size)));
-    const dim3 grid((n / unroll_size - 1) / block.x + 1);
+    const dim3 block(std::min(n / UNROLL_SIZE, size_t(BLOCK_SIZE)));
+    const dim3 grid((n / UNROLL_SIZE - 1) / block.x + 1);
     AT_DISPATCH_SCALAR_TYPES_CUDA(new_mu.scalar_type(), "adamForwardUpdatesCUDA", ([&] {
-                                    adamForwardUpdatesCUDAKernel<scalar_t, scalar_t, unroll_size>
+                                    adamForwardUpdatesCUDAKernel<scalar_t, scalar_t, UNROLL_SIZE>
                                         <<<grid, block>>>(new_mu.data_ptr<scalar_t>(),
                                                           new_nu.data_ptr<scalar_t>(),
                                                           scalar_t(inv_one_minus_pow_b1),
@@ -315,8 +312,8 @@ TensorArray<2> adamBackwardMuCUDA(const torch::Tensor &dmu,
   auto dmu_out = torch::empty_like(mu);
 
   const size_t n = getTensorPlainSize(dmu);
-  if (n < block_size * unroll_size) {
-    const dim3 block(std::min(n, size_t(block_size)));
+  if (n < BLOCK_SIZE * UNROLL_SIZE) {
+    const dim3 block(std::min(n, size_t(BLOCK_SIZE)));
     const dim3 grid((n - 1) / block.x + 1);
     AT_DISPATCH_SCALAR_TYPES_CUDA(dmu.scalar_type(), "adamBackwardMuCUDA", ([&] {
                                     adamBackwardMuCUDAKernel<scalar_t, scalar_t, 1>
@@ -327,10 +324,10 @@ TensorArray<2> adamBackwardMuCUDA(const torch::Tensor &dmu,
                                                           dmu_out.data_ptr<scalar_t>());
                                   }));
   } else {
-    const dim3 block(std::min(n / unroll_size, size_t(block_size)));
-    const dim3 grid((n / unroll_size - 1) / block.x + 1);
+    const dim3 block(std::min(n / UNROLL_SIZE, size_t(BLOCK_SIZE)));
+    const dim3 grid((n / UNROLL_SIZE - 1) / block.x + 1);
     AT_DISPATCH_SCALAR_TYPES_CUDA(dmu.scalar_type(), "adamBackwardMuCUDA", ([&] {
-                                    adamBackwardMuCUDAKernel<scalar_t, scalar_t, unroll_size>
+                                    adamBackwardMuCUDAKernel<scalar_t, scalar_t, UNROLL_SIZE>
                                         <<<grid, block>>>(dmu.data_ptr<scalar_t>(),
                                                           scalar_t(b1),
                                                           n,
@@ -371,8 +368,8 @@ TensorArray<2> adamBackwardNuCUDA(const torch::Tensor &dnu,
   auto dnu_out = torch::empty_like(nu);
 
   const size_t n = getTensorPlainSize(dnu);
-  if (n < block_size * unroll_size) {
-    const dim3 block(std::min(n, size_t(block_size)));
+  if (n < BLOCK_SIZE * UNROLL_SIZE) {
+    const dim3 block(std::min(n, size_t(BLOCK_SIZE)));
     const dim3 grid((n - 1) / block.x + 1);
     AT_DISPATCH_SCALAR_TYPES_CUDA(dnu.scalar_type(), "adamForwardNuCUDA", ([&] {
                                     adamBackwardNuCUDAKernel<scalar_t, scalar_t, 1>
@@ -384,10 +381,10 @@ TensorArray<2> adamBackwardNuCUDA(const torch::Tensor &dnu,
                                                           dnu_out.data_ptr<scalar_t>());
                                   }));
   } else {
-    const dim3 block(std::min(n / unroll_size, size_t(block_size)));
-    const dim3 grid((n / unroll_size - 1) / block.x + 1);
+    const dim3 block(std::min(n / UNROLL_SIZE, size_t(BLOCK_SIZE)));
+    const dim3 grid((n / UNROLL_SIZE - 1) / block.x + 1);
     AT_DISPATCH_SCALAR_TYPES_CUDA(dnu.scalar_type(), "adamForwardNuCUDA", ([&] {
-                                    adamBackwardNuCUDAKernel<scalar_t, scalar_t, unroll_size>
+                                    adamBackwardNuCUDAKernel<scalar_t, scalar_t, UNROLL_SIZE>
                                         <<<grid, block>>>(dnu.data_ptr<scalar_t>(),
                                                           updates.data_ptr<scalar_t>(),
                                                           scalar_t(b2),
@@ -450,8 +447,8 @@ TensorArray<2> adamBackwardUpdatesCUDA(const torch::Tensor &dupdates,
   auto dnu_out = torch::empty_like(new_nu);
 
   const size_t n = getTensorPlainSize(dupdates);
-  if (n < block_size * unroll_size) {
-    const dim3 block(std::min(n, size_t(block_size)));
+  if (n < BLOCK_SIZE * UNROLL_SIZE) {
+    const dim3 block(std::min(n, size_t(BLOCK_SIZE)));
     const dim3 grid((n - 1) / block.x + 1);
     AT_DISPATCH_SCALAR_TYPES_CUDA(dupdates.scalar_type(), "adamBackwardUpdatesCUDA", ([&] {
                                     adamBackwardUpdatesCUDAKernel<scalar_t, scalar_t, 1>
@@ -465,10 +462,10 @@ TensorArray<2> adamBackwardUpdatesCUDA(const torch::Tensor &dupdates,
                                                           dnu_out.data_ptr<scalar_t>());
                                   }));
   } else {
-    const dim3 block(std::min(n / unroll_size, size_t(block_size)));
-    const dim3 grid((n / unroll_size - 1) / block.x + 1);
+    const dim3 block(std::min(n / UNROLL_SIZE, size_t(BLOCK_SIZE)));
+    const dim3 grid((n / UNROLL_SIZE - 1) / block.x + 1);
     AT_DISPATCH_SCALAR_TYPES_CUDA(dupdates.scalar_type(), "adamBackwardUpdatesCUDA", ([&] {
-                                    adamBackwardUpdatesCUDAKernel<scalar_t, scalar_t, unroll_size>
+                                    adamBackwardUpdatesCUDAKernel<scalar_t, scalar_t, UNROLL_SIZE>
                                         <<<grid, block>>>(dupdates.data_ptr<scalar_t>(),
                                                           updates.data_ptr<scalar_t>(),
                                                           new_mu.data_ptr<scalar_t>(),
