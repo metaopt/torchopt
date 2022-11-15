@@ -38,7 +38,7 @@ We provide a `conda <https://github.com/conda/conda>`_ environment recipe to ins
     cd torchopt
 
     # You may need `CONDA_OVERRIDE_CUDA` if conda fails to detect the NVIDIA driver (e.g. in docker or WSL2)
-    CONDA_OVERRIDE_CUDA=11.7 conda env create --file conda-recipe.yaml
+    CONDA_OVERRIDE_CUDA=11.7 conda env create --file conda-recipe-minimal.yaml
 
     conda activate torchopt
 
