@@ -189,6 +189,10 @@ def extract_state_dict(
             return t.clone().to(device=target_device)
 
         def clone_detach_(t: torch.Tensor) -> torch.Tensor:
+            if isinstance(t, nn.Parameter):
+                return nn.Parameter(t.clone().detach_(), requires_grad=t.requires_grad).to(
+                    device=target_device
+                )
             return t.clone().detach_().to(device=target_device).requires_grad_(t.requires_grad)
 
     else:
@@ -200,6 +204,8 @@ def extract_state_dict(
             return t.clone()
 
         def clone_detach_(t: torch.Tensor) -> torch.Tensor:
+            if isinstance(t, nn.Parameter):
+                return nn.Parameter(t.clone().detach_(), requires_grad=t.requires_grad)
             return t.clone().detach_().requires_grad_(t.requires_grad)
 
     if by == 'reference':
@@ -336,6 +342,8 @@ def recover_state_dict(
         if state.detach_buffers:
 
             def clone_detach_(t: torch.Tensor) -> torch.Tensor:
+                if isinstance(t, nn.Parameter):
+                    return nn.Parameter(t.clone().detach_(), requires_grad=t.requires_grad)
                 return t.clone().detach_().requires_grad_(t.requires_grad)
 
             buffers = cast(
@@ -455,6 +463,10 @@ def module_clone(
             return t.clone().to(device=target_device)
 
         def clone_detach_(t: torch.Tensor) -> torch.Tensor:
+            if isinstance(t, nn.Parameter):
+                return nn.Parameter(t.clone().detach_(), requires_grad=t.requires_grad).to(
+                    device=target_device
+                )
             return t.clone().detach_().to(device=target_device).requires_grad_(t.requires_grad)
 
     else:
@@ -466,6 +478,8 @@ def module_clone(
             return t.clone()
 
         def clone_detach_(t: torch.Tensor) -> torch.Tensor:
+            if isinstance(t, nn.Parameter):
+                return nn.Parameter(t.clone().detach_(), requires_grad=t.requires_grad)
             return t.clone().detach_().requires_grad_(t.requires_grad)
 
     if by == 'reference':

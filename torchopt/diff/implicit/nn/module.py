@@ -19,7 +19,7 @@
 import contextlib
 import functools
 import itertools
-from typing import Any, Callable, Dict, Generator, Iterable, Optional, Tuple, Type, Union
+from typing import Any, Callable, Dict, Generator, Iterable, Optional, Tuple, Type
 
 import functorch
 import torch
@@ -71,8 +71,8 @@ def make_optimality_from_objective(
         # pylint: disable-next=line-too-long
         flat_params, params_containers_treespec = pytree.tree_flatten_as_tuple(params_containers)  # type: ignore[arg-type]
 
-        def objective_fn(flat_params: TupleOfTensors, *input, **kwargs) -> torch.Tensor:
-            flat_grad_tracking_params = flat_params
+        def objective_fn(__flat_params: TupleOfTensors, *input, **kwargs) -> torch.Tensor:
+            flat_grad_tracking_params = __flat_params
             grad_tracking_params_containers: Tuple[
                 Dict[str, Optional[torch.Tensor]], ...
             ] = pytree.tree_unflatten(  # type: ignore[assignment]
@@ -97,15 +97,15 @@ def enable_implicit_gradients(
     if getattr(cls_solve, '__implicit_gradients_enabled__', False):
         raise TypeError('Implicit gradients are already enabled for the `solve` method.')
 
-    cls_has_aux = cls.has_aux
-    custom_root_kwargs = dict(has_aux=cls_has_aux, solve=cls.linear_solve)
-    if cls.linear_solve is None:
-        custom_root_kwargs.pop('solve')
+    if cls.linear_solve is not None:
+        solve_kwargs = dict(solve=cls.linear_solve)
+    else:
+        solve_kwargs = {}
 
     @functools.wraps(cls_solve)
     def wrapped(  # pylint: disable=too-many-locals
         self: 'ImplicitMetaGradientModule', *input, **kwargs
-    ) -> Union['ImplicitMetaGradientModule', Tuple['ImplicitMetaGradientModule', Any]]:
+    ) -> Any:
         """Solve the optimization problem."""
         params_containers = extract_module_containers(self, with_buffers=False)[0]
         meta_params_containers = [self._meta_parameters]  # pylint: disable=protected-access
@@ -125,18 +125,18 @@ def enable_implicit_gradients(
         )
 
         def optimality_fn(
-            flat_params: TupleOfTensors,
-            flat_meta_params: TupleOfTensors,
+            __flat_params: TupleOfTensors,
+            __flat_meta_params: TupleOfTensors,
             *input,
             **kwargs,
         ) -> TupleOfTensors:
-            flat_grad_tracking_params = flat_params
+            flat_grad_tracking_params = __flat_params
             grad_tracking_params_containers: Tuple[
                 Dict[str, Optional[torch.Tensor]], ...
             ] = pytree.tree_unflatten(  # type: ignore[assignment]
                 params_containers_treespec, flat_grad_tracking_params
             )
-            flat_grad_tracking_meta_params = flat_meta_params
+            flat_grad_tracking_meta_params = __flat_meta_params
             grad_tracking_meta_params_containers: Tuple[
                 Dict[str, Optional[torch.Tensor]], ...
             ] = pytree.tree_unflatten(  # type: ignore[assignment]
@@ -155,37 +155,20 @@ def enable_implicit_gradients(
             ):
                 return self.optimality(*input, **kwargs)
 
-        @custom_root(optimality_fn, argnums=1, **custom_root_kwargs)  # type: ignore[arg-type]
+        @custom_root(optimality_fn, argnums=1, has_aux=True, **solve_kwargs)
         def solver_fn(
-            flat_params: TupleOfTensors,  # pylint: disable=unused-argument
-            flat_meta_params: TupleOfTensors,  # pylint: disable=unused-argument
+            __flat_params: TupleOfTensors,  # pylint: disable=unused-argument
+            __flat_meta_params: TupleOfTensors,  # pylint: disable=unused-argument
             *input,
             **kwargs,
-        ) -> Union[TupleOfTensors, Tuple[TupleOfTensors, Any]]:
+        ) -> Tuple[TupleOfTensors, Any]:
             output = cls_solve(self, *input, **kwargs)
-            if cls_has_aux:
-                if not (isinstance(output, tuple) and len(output) == 2):
-                    raise RuntimeError(
-                        f'Output of method ImplicitMetaGradientModule.solve should be a '
-                        f'tuple: (self, aux) if has_aux is True. Got {output}'
-                    )
-                output, aux = output
-            if not isinstance(output, ImplicitMetaGradientModule):
-                raise RuntimeError(
-                    f'Output of method ImplicitMetaGradientModule.solve should be a '
-                    f'instance of class ImplicitMetaGradientModule. Got {output}'
-                )
-
             flat_optimal_params: TupleOfTensors = tuple(pytree.tree_leaves(params_containers))  # type: ignore[arg-type]
-            if cls_has_aux:
-                return flat_optimal_params, aux
-            return flat_optimal_params
+            return flat_optimal_params, output
 
-        output = solver_fn(flat_params, flat_meta_params, *input, **kwargs)
-        if cls_has_aux:
-            _, aux = output
-            return self, aux
-        return self
+        # pylint: disable-next=unused-variable
+        flat_optimal_params, output = solver_fn(flat_params, flat_meta_params, *input, **kwargs)
+        return output
 
     wrapped.__implicit_gradients_enabled__ = True  # type: ignore[attr-defined]
     cls.solve = wrapped  # type: ignore[assignment]
@@ -197,15 +180,11 @@ class ImplicitMetaGradientModule(MetaGradientModule):
 
     _custom_optimality: bool
     _custom_objective: bool
-    has_aux: bool
     linear_solve: Optional[LinearSolver]
 
-    def __init_subclass__(
-        cls, has_aux: bool = False, linear_solve: Optional[LinearSolver] = None
-    ) -> None:
+    def __init_subclass__(cls, linear_solve: Optional[LinearSolver] = None) -> None:
         """Validates and initializes the subclass."""
         super().__init_subclass__()
-        cls.has_aux = has_aux
         cls.linear_solve = linear_solve
 
         optimality = getattr(cls, 'optimality', ImplicitMetaGradientModule.optimality)
@@ -236,9 +215,7 @@ class ImplicitMetaGradientModule(MetaGradientModule):
 
         enable_implicit_gradients(cls)
 
-    def solve(
-        self, *input, **kwargs
-    ) -> Union['ImplicitMetaGradientModule', Tuple['ImplicitMetaGradientModule', Any]]:
+    def solve(self, *input, **kwargs) -> Any:
         """Solves the inner optimization problem.
 
         .. warning::
@@ -263,9 +240,6 @@ class ImplicitMetaGradientModule(MetaGradientModule):
                         loss.backward(inputs=parameters)
                         optimizer.step()
                 return self
-
-        Returns:
-            The module itself after solving the inner optimization problem.
         """
         raise NotImplementedError  # update parameters
 

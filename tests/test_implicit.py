@@ -202,12 +202,12 @@ def test_imaml_solve_normal_cg(
     for xs, ys in loader:
         xs = xs.to(dtype=dtype)
         data = (xs, ys, fmodel)
-        meta_params_copy = pytree.tree_map(
+        inner_params = pytree.tree_map(
             lambda t: t.clone().detach_().requires_grad_(requires_grad=t.requires_grad), params
         )
-        optimal_params, aux = inner_solver_torchopt(meta_params_copy, params, data)
+        optimal_inner_params, aux = inner_solver_torchopt(inner_params, params, data)
         assert aux == (0, {'a': 1, 'b': 2})
-        outer_loss = fmodel(optimal_params, xs).mean()
+        outer_loss = fmodel(optimal_inner_params, xs).mean()
 
         grads = torch.autograd.grad(outer_loss, params)
         updates, optim_state = optim.update(grads, optim_state)
@@ -332,11 +332,11 @@ def test_imaml_solve_inv(
     for xs, ys in loader:
         xs = xs.to(dtype=dtype)
         data = (xs, ys, fmodel)
-        meta_params_copy = pytree.tree_map(
+        inner_params = pytree.tree_map(
             lambda t: t.clone().detach_().requires_grad_(requires_grad=t.requires_grad), params
         )
-        optimal_params = inner_solver_torchopt(meta_params_copy, params, data)
-        outer_loss = fmodel(optimal_params, xs).mean()
+        optimal_inner_params = inner_solver_torchopt(inner_params, params, data)
+        outer_loss = fmodel(optimal_inner_params, xs).mean()
 
         grads = torch.autograd.grad(outer_loss, params)
         updates, optim_state = optim.update(grads, optim_state)
@@ -374,7 +374,7 @@ def test_imaml_module(dtype: torch.dtype, lr: float, inner_lr: float, inner_upda
     jax_model, jax_params = get_model_jax(dtype=np_dtype)
     model, loader = get_model_torch(device='cpu', dtype=dtype)
 
-    class InnerNet(ImplicitMetaGradientModule, has_aux=True):
+    class InnerNet(ImplicitMetaGradientModule):
         def __init__(self, meta_model):
             super().__init__()
             self.meta_model = meta_model
