@@ -19,7 +19,7 @@
 import contextlib
 import functools
 import itertools
-from typing import Any, Callable, Dict, Generator, Iterable, Optional, Tuple, Type
+from typing import Any, Dict, Generator, Iterable, Optional, Tuple, Type
 
 import functorch
 import torch
@@ -61,9 +61,14 @@ def container_context(
 
 
 def make_optimality_from_objective(
-    objective: Callable[..., torch.Tensor]
-) -> Callable[..., TupleOfTensors]:
-    """Make a function that computes the optimality function of the objective function."""
+    cls: Type['ImplicitMetaGradientModule'],
+) -> Type['ImplicitMetaGradientModule']:
+    """Derives the optimality function of the objective function."""
+    if (
+        getattr(cls, 'objective', ImplicitMetaGradientModule.objective)
+        is ImplicitMetaGradientModule.objective
+    ):
+        raise TypeError('The objective function is not defined.')
 
     def optimality(self: 'ImplicitMetaGradientModule', *input, **kwargs) -> TupleOfTensors:
         params_containers = extract_module_containers(self, with_buffers=False)[0]
@@ -80,13 +85,14 @@ def make_optimality_from_objective(
             )
 
             with container_context(params_containers, grad_tracking_params_containers):
-                return objective(self, *input, **kwargs)
+                return self.objective(*input, **kwargs)
 
         objective_grad_fn = functorch.grad(objective_fn, argnums=0)
         flat_grads = objective_grad_fn(flat_params, *input, **kwargs)
         return flat_grads
 
-    return optimality
+    cls.optimality = optimality  # type: ignore[assignment]
+    return cls
 
 
 def enable_implicit_gradients(
@@ -211,7 +217,7 @@ class ImplicitMetaGradientModule(MetaGradientModule):
             if not callable(objective):
                 raise TypeError('method objective() must be callable.')
 
-            cls.optimality = make_optimality_from_objective(objective)  # type: ignore[assignment]
+            make_optimality_from_objective(cls)
 
         enable_implicit_gradients(cls)
 
