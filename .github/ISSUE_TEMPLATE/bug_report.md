@@ -45,8 +45,9 @@ Describe the characteristic of your environment:
 - Versions of any other relevant libraries
 
 ```python
-import torchopt, numpy, sys
-print(torchopt.__version__, numpy.__version__, sys.version, sys.platform)
+import sys, torch, functorch, torchopt
+print(sys.version, sys.platform)
+print(torchopt.__version__, torch.__version__, functorch.__version__)
 ```
 
 ## Additional context
