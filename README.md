@@ -337,7 +337,7 @@ The figure below show the visualization result.
 Compared with [`torchviz`](https://github.com/szagoruyko/pytorchviz), TorchOpt fuses the operations within the `Adam` together (orange) to reduce the complexity and provide simpler visualization.
 
 <div align="center">
-  <img src="https://github.com/metaopt/torchopt/raw/HEAD/image/torchviz_torchopt.jpg" width="80%" />
+  <img src="https://github.com/metaopt/torchopt/raw/HEAD/image/torchviz-vs-torchopt.jpg" width="80%" />
 </div>
 
 --------------------------------------------------------------------------------
