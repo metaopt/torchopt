@@ -65,7 +65,7 @@ class MetaOptimizer:
                 The loss that is used to compute the gradients to the network parameters.
         """
         # Step parameter only
-        for i, (param_container, new_state) in enumerate(
+        for i, (param_container, state) in enumerate(
             zip(self.param_containers_groups, self.state_groups)
         ):
             flat_params: TupleOfTensors
@@ -78,7 +78,7 @@ class MetaOptimizer:
             )
             updates, new_state = self.impl.update(
                 grads,
-                new_state,
+                state,
                 params=flat_params,
                 inplace=False,
             )

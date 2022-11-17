@@ -14,6 +14,7 @@
 # ==============================================================================
 """Utilities for TorchOpt."""
 
+import copy
 import itertools
 from typing import (
     TYPE_CHECKING,
@@ -429,9 +430,7 @@ def module_clone(
     if device is not None:
         device = torch.device(device)
 
-    # pylint: disable=import-outside-toplevel
-    import copy
-
+    # pylint: disable-next=import-outside-toplevel
     from torchopt.optim.meta.base import MetaOptimizer
 
     if isinstance(target, (nn.Module, MetaOptimizer)):

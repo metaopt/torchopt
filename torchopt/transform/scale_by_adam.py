@@ -38,6 +38,7 @@ from typing import NamedTuple
 import torch
 
 from torchopt import pytree
+from torchopt.accelerated_op import AdamOp
 from torchopt.base import GradientTransformation
 from torchopt.transform.utils import inc_count, tree_map_flat, update_moment
 from torchopt.typing import SequenceOfTensors, Updates
@@ -264,8 +265,6 @@ def _scale_by_accelerated_adam(
     if not 0.0 <= b2 < 1.0:
         raise ValueError(f'Invalid beta parameter at index 1: {b2}')
     # pylint: enable=unneeded-not
-
-    from torchopt.accelerated_op import AdamOp  # pylint: disable=import-outside-toplevel
 
     if already_flattened:
         tree_map = tree_map_flat
