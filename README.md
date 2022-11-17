@@ -197,7 +197,7 @@ loss.backward()
 ### Implicit Gradient (IG)
 
 By treating the solution $\theta^{\star}$ as an implicit function of $\phi$, the idea of IG is to directly get analytical best-response derivatives $\partial \theta^{\star} (\phi) / \partial \phi$ by [implicit function theorem](https://en.wikipedia.org/wiki/Implicit_function_theorem).
-This is suitable for algorithms when the inner-level optimal solution is achieved ${\left. \frac{\partial F (\theta, \phi)}{\partial \theta} \right\rvert}_{\theta^{\star}} = 0$ or reaches some stationary conditions $F (\theta^{\star}, \phi) = 0$, such as [iMAML](https://arxiv.org/abs/1909.04630), [DEQ](https://arxiv.org/abs/1909.01377).
+This is suitable for algorithms when the inner-level optimal solution is achieved ${\left. \frac{\partial F (\theta, \phi)}{\partial \theta} \right\rvert}_{\theta^{\star}} = 0$ or reaches some stationary conditions $F (\theta^{\star}, \phi) = 0$, such as [iMAML](https://arxiv.org/abs/1909.04630) and [DEQ](https://arxiv.org/abs/1909.01377).
 TorchOpt offers both functional and OOP APIs for supporting both [conjugate gradient-based](https://arxiv.org/abs/1909.04630) and [Neumann series](https://arxiv.org/abs/1911.02590) based IG methods.
 Refer to the example [IMAML](https://github.com/waterhorse1/torchopt/tree/readme/examples/iMAML) and the notebook [Implicit Gradient](tutorials/5_Implicit_Differentiation.ipynb) for more guidances.
 
