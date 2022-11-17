@@ -15,40 +15,51 @@
 """Zero-Order Gradient Estimation."""
 
 import functools
-from typing import Any, Callable, List, Sequence, Tuple, Union
+from typing import Any, Callable, List, Tuple, Union
 from typing_extensions import Literal  # Python 3.8+
-from typing_extensions import Protocol  # Python 3.8+
 from typing_extensions import TypeAlias  # Python 3.10+
 
 import torch
 from torch.autograd import Function
-from torch.distributions import Distribution
 
 from torchopt import pytree
-from torchopt.typing import ListOfTensors, Numeric, TupleOfOptionalTensors
+from torchopt.typing import (
+    ListOfTensors,
+    Numeric,
+    Samplable,
+    SampleFunc,
+    Sequence,
+    TupleOfOptionalTensors,
+)
 
 
-class Samplable(Protocol):  # pylint: disable=too-few-public-methods
-    """Abstract protocol class that supports sampling."""
+class WrappedSamplable(Samplable):  # pylint: disable=too-few-public-methods
+    """A wrapper that wraps a sample function to a :class:`Samplable` object."""
+
+    def __init__(self, sample_fn: SampleFunc) -> None:
+        """Wrap a sample function to make it a :class:`Samplable` object."""
+        self.sample_fn = sample_fn
 
     def sample(
-        self, sample_shape: torch.Size = torch.Size()  # pylint: disable=unused-argument
+        self, sample_shape: torch.Size = torch.Size()
     ) -> Union[torch.Tensor, Sequence[Numeric]]:
         # pylint: disable-next=line-too-long
         """Generates a sample_shape shaped sample or sample_shape shaped batch of samples if the distribution parameters are batched."""
-        raise NotImplementedError
-
-
-Samplable.register(Distribution)
+        return self.sample_fn(sample_shape)
 
 
 def _zero_order_naive(  # pylint: disable=too-many-statements
     fn: Callable[..., torch.Tensor],
-    distribution_fn: Callable[..., Samplable],
+    distribution: Union[SampleFunc, Samplable],
     argnums: Tuple[int, ...],
     num_samples: int,
     sigma: Numeric,
 ) -> Callable[..., torch.Tensor]:
+    if not isinstance(distribution, Samplable):
+        if not callable(distribution):
+            raise TypeError('`distribution` must be a callable or an instance of `Samplable`.')
+        distribution = WrappedSamplable(distribution)
+
     @functools.wraps(fn)
     def apply(*args: Any) -> torch.Tensor:  # pylint: disable=too-many-statements
         diff_params = [args[argnum + 1] for argnum in argnums]
@@ -79,7 +90,6 @@ def _zero_order_naive(  # pylint: disable=too-many-statements
                 ctx.is_tensor_mask = is_tensor_mask
 
                 output = fn(*origin_args)
-                ctx.distribution = distribution_fn(*origin_args)
                 if not isinstance(output, torch.Tensor):
                     raise RuntimeError('`output` must be a tensor.')
                 if output.ndim != 0:
@@ -117,9 +127,7 @@ def _zero_order_naive(  # pylint: disable=too-many-statements
                 param_grads: ListOfTensors = [0.0 for _ in range(len(flat_diff_params))]  # type: ignore[misc]
 
                 for _ in range(num_samples):
-                    noises = [
-                        ctx.distribution.sample(sample_shape=p.shape) for p in flat_diff_params
-                    ]
+                    noises = [distribution.sample(sample_shape=p.shape) for p in flat_diff_params]
                     flat_noisy_params = [
                         add_perturbation(t, n) for t, n in zip(flat_diff_params, noises)
                     ]
@@ -148,11 +156,16 @@ def _zero_order_naive(  # pylint: disable=too-many-statements
 
 def _zero_order_forward(  # pylint: disable=too-many-statements
     fn: Callable[..., torch.Tensor],
-    distribution_fn: Callable[..., Samplable],
+    distribution: Union[SampleFunc, Samplable],
     argnums: Tuple[int, ...],
     num_samples: int,
     sigma: Numeric,
 ) -> Callable[..., torch.Tensor]:
+    if not isinstance(distribution, Samplable):
+        if not callable(distribution):
+            raise TypeError('`distribution` must be a callable or an instance of `Samplable`.')
+        distribution = WrappedSamplable(distribution)
+
     @functools.wraps(fn)
     def apply(*args: Any) -> torch.Tensor:  # pylint: disable=too-many-statements
         diff_params = [args[argnum + 1] for argnum in argnums]
@@ -183,7 +196,6 @@ def _zero_order_forward(  # pylint: disable=too-many-statements
                 ctx.is_tensor_mask = is_tensor_mask
 
                 output = fn(*origin_args)
-                ctx.distribution = distribution_fn(*origin_args)
                 if not isinstance(output, torch.Tensor):
                     raise RuntimeError('`output` must be a tensor.')
                 if output.ndim != 0:
@@ -222,9 +234,7 @@ def _zero_order_forward(  # pylint: disable=too-many-statements
                 param_grads: ListOfTensors = [0.0 for _ in range(len(flat_diff_params))]  # type: ignore[misc]
 
                 for _ in range(num_samples):
-                    noises = [
-                        ctx.distribution.sample(sample_shape=p.shape) for p in flat_diff_params
-                    ]
+                    noises = [distribution.sample(sample_shape=p.shape) for p in flat_diff_params]
                     flat_noisy_params = [
                         add_perturbation(t, n) for t, n in zip(flat_diff_params, noises)
                     ]
@@ -254,11 +264,16 @@ def _zero_order_forward(  # pylint: disable=too-many-statements
 
 def _zero_order_antithetic(  # pylint: disable=too-many-statements
     fn: Callable[..., torch.Tensor],
-    distribution_fn: Callable[..., Samplable],
+    distribution: Union[SampleFunc, Samplable],
     argnums: Tuple[int, ...],
     num_samples: int,
     sigma: Numeric,
 ) -> Callable[..., torch.Tensor]:
+    if not isinstance(distribution, Samplable):
+        if not callable(distribution):
+            raise TypeError('`distribution` must be a callable or an instance of `Samplable`.')
+        distribution = WrappedSamplable(distribution)
+
     @functools.wraps(fn)
     def apply(*args: Any) -> torch.Tensor:  # pylint: disable=too-many-statements
         diff_params = [args[argnum + 1] for argnum in argnums]
@@ -289,7 +304,6 @@ def _zero_order_antithetic(  # pylint: disable=too-many-statements
                 ctx.is_tensor_mask = is_tensor_mask
 
                 output = fn(*origin_args)
-                ctx.distribution = distribution_fn(*origin_args)
                 if not isinstance(output, torch.Tensor):
                     raise RuntimeError('`output` must be a tensor.')
                 if output.ndim != 0:
@@ -336,9 +350,7 @@ def _zero_order_antithetic(  # pylint: disable=too-many-statements
                     return fn(*args)
 
                 for _ in range(num_samples):
-                    noises = [
-                        ctx.distribution.sample(sample_shape=p.shape) for p in flat_diff_params
-                    ]
+                    noises = [distribution.sample(sample_shape=p.shape) for p in flat_diff_params]
                     output = get_output(torch.add, noises) - get_output(torch.sub, noises)
                     weighted_grad = grad_outputs[0].mul(output).mul_(0.5 / sigma)
 
@@ -359,7 +371,7 @@ Method: TypeAlias = Literal['naive', 'forward', 'antithetic']
 
 
 def zero_order(
-    distribution_fn: Callable[..., Samplable],
+    distribution: Callable[..., Samplable],
     method: Method = 'naive',
     argnums: Union[int, Tuple[int, ...]] = (0,),
     num_samples: int = 1,
@@ -368,9 +380,10 @@ def zero_order(
     """Decorator for applying zero-order differentiation.
 
     Args:
-        distribution: (function)
-            A function that returns a sampler object. The returned sampler object should have method
-            ``sampler.sample(sample_shape)`` to sample perturbations from the given distribution.
+        distribution: (function or Samplable)
+            A samplable object that has method ``samplable.sample(sample_shape)`` or a function that
+            takes the shape as input and returns a shaped batch of samples. This is used to sample
+            perturbations from the given distribution. The distribution should be sphere symmetric.
         method: (str)
             The algorithm to use. The currently supported algorithms are :const:`'naive'`,
             :const:`'forward'`, and :const:`'antithetic'`. Defaults to :const:`'naive'`.
@@ -397,7 +410,7 @@ def zero_order(
 
     return functools.partial(
         method_fn,
-        distribution_fn=distribution_fn,
+        distribution=distribution,
         argnums=argnums,
         num_samples=num_samples,
         sigma=sigma,
