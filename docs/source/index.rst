@@ -105,13 +105,11 @@ If you find TorchOpt useful, please cite it in your publications.
 
 .. code-block:: bibtex
 
-    @software{TorchOpt,
-      author       = {Jie Ren and Xidong Feng and Bo Liu and Xuehai Pan and Luo Mai and Yaodong Yang},
-      title        = {TorchOpt},
-      year         = {2022},
-      publisher    = {GitHub},
-      journal      = {GitHub repository},
-      howpublished = {\url{https://github.com/metaopt/torchopt}}
+    @article{torchopt,
+      title   = {TorchOpt: An Efficient Library for Differentiable Optimization},
+      author  = {Ren, Jie and Feng, Xidong and Liu, Bo and Pan, Xuehai and Fu, Yao and Mai, Luo and Yang, Yaodong},
+      journal = {arXiv preprint arXiv:2211.06934},
+      year    = {2022}
     }
 
 

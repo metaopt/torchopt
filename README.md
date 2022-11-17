@@ -410,20 +410,18 @@ See [CHANGELOG.md](CHANGELOG.md).
 
 ## The Team
 
-TorchOpt is a work by Jie Ren, [Xidong Feng](https://github.com/waterhorse1), [Bo Liu](https://github.com/Benjamin-eecs), [Xuehai Pan](https://github.com/XuehaiPan), [Luo Mai](https://luomai.github.io) and [Yaodong Yang](https://www.yangyaodong.com).
+TorchOpt is a work by [Jie Ren](https://github.com/JieRen98), [Xidong Feng](https://github.com/waterhorse1), [Bo Liu](https://github.com/Benjamin-eecs), [Xuehai Pan](https://github.com/XuehaiPan), [Luo Mai](https://luomai.github.io) and [Yaodong Yang](https://www.yangyaodong.com).
 
 ## Citing TorchOpt
 
 If you find TorchOpt useful, please cite it in your publications.
 
 ```bibtex
-@software{TorchOpt,
-  author       = {Jie Ren and Xidong Feng and Bo Liu and Xuehai Pan and Luo Mai and Yaodong Yang},
-  title        = {TorchOpt},
-  year         = {2022},
-  publisher    = {GitHub},
-  journal      = {GitHub repository},
-  howpublished = {\url{https://github.com/metaopt/torchopt}}
+@article{torchopt,
+  title   = {TorchOpt: An Efficient Library for Differentiable Optimization},
+  author  = {Ren, Jie and Feng, Xidong and Liu, Bo and Pan, Xuehai and Fu, Yao and Mai, Luo and Yang, Yaodong},
+  journal = {arXiv preprint arXiv:2211.06934},
+  year    = {2022}
 }
 ```
 
