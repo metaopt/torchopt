@@ -169,7 +169,17 @@ def enable_implicit_gradients(
             **kwargs,
         ) -> Tuple[TupleOfTensors, Any]:
             output = cls_solve(self, *input, **kwargs)
-            flat_optimal_params: TupleOfTensors = tuple(pytree.tree_leaves(params_containers))  # type: ignore[arg-type]
+
+            def detach_(t):
+                requires_grad = t.requires_grad
+                return t.detach_().requires_grad_(requires_grad)
+
+            flat_optimal_params: TupleOfTensors = tuple(
+                map(
+                    detach_,
+                    pytree.tree_leaves(params_containers),  # type: ignore[arg-type]
+                )
+            )
             return flat_optimal_params, output
 
         # pylint: disable-next=unused-variable
