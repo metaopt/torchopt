@@ -31,6 +31,7 @@ from torchopt.accelerated_op import is_available as accelerated_op_available
 from torchopt.alias import adam, adamw, rmsprop, sgd
 from torchopt.clip import clip_grad_norm
 from torchopt.combine import chain
+from torchopt.hook import nan_to_num, register_hook
 from torchopt.optim import SGD, Adam, AdamW, Optimizer, RMSProp, RMSprop, meta
 from torchopt.optim.func import FuncOptimizer
 from torchopt.optim.meta import (
@@ -60,6 +61,8 @@ __all__ = [
     'rmsprop',
     'sgd',
     'clip_grad_norm',
+    'nan_to_num',
+    'register_hook',
     'chain',
     'Optimizer',
     'SGD',

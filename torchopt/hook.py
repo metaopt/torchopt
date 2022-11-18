@@ -14,18 +14,61 @@
 # ==============================================================================
 """Hook utilities."""
 
+from typing import Callable, Optional
+
 import torch
 
 from torchopt import pytree
 from torchopt.base import EmptyState, GradientTransformation
 
 
-__all__ = ['zero_nan_hook', 'register_hook']
+__all__ = ['zero_nan_hook', 'nan_to_num_hook', 'nan_to_num', 'register_hook']
 
 
 def zero_nan_hook(g: torch.Tensor) -> torch.Tensor:
-    """Registers a zero nan hook to replace nan with zero."""
-    return torch.where(torch.isnan(g), torch.zeros_like(g), g)
+    """A zero ``nan`` hook to replace ``nan`` with zero."""
+    return g.nan_to_num(nan=0.0)
+
+
+def nan_to_num_hook(
+    nan: float = 0.0, posinf: Optional[float] = None, neginf: Optional[float] = None
+) -> Callable[[torch.Tensor], torch.Tensor]:
+    """Returns a ``nan`` to num hook to replace ``nan`` with given number."""
+
+    def hook(g: torch.Tensor) -> torch.Tensor:
+        """A zero ``nan`` hook to replace ``nan`` with given number."""
+        return g.nan_to_num(nan=nan, posinf=posinf, neginf=neginf)
+
+    return hook
+
+
+def nan_to_num(
+    nan: float = 0.0, posinf: Optional[float] = None, neginf: Optional[float] = None
+) -> GradientTransformation:
+    """A gradient transformation that replaces gradient values of ``nan`` with given number.
+
+    Returns:
+        An ``(init_fn, update_fn)`` tuple.
+    """
+
+    def init_fn(params):  # pylint: disable=unused-argument
+        return EmptyState()
+
+    def update_fn(updates, state, *, params=None, inplace=True):  # pylint: disable=unused-argument
+        if inplace:
+
+            def f(g):
+                return g.nan_to_num_(nan=nan, posinf=posinf, neginf=neginf)
+
+        else:
+
+            def f(g):
+                return g.nan_to_num(nan=nan, posinf=posinf, neginf=neginf)
+
+        new_updates = pytree.tree_map(f, updates)
+        return new_updates, state
+
+    return GradientTransformation(init_fn, update_fn)
 
 
 def register_hook(hook) -> GradientTransformation:

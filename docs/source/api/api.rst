@@ -186,12 +186,16 @@ Optimizer Hooks
 
     register_hook
     zero_nan_hook
+    nan_to_num_hook
+    nan_to_num
 
 Hook
 ~~~~
 
 .. autofunction:: register_hook
 .. autofunction:: zero_nan_hook
+.. autofunction:: nan_to_num_hook
+.. autofunction:: nan_to_num
 
 ------
 
