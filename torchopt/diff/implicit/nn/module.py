@@ -19,15 +19,16 @@
 import contextlib
 import functools
 import itertools
-from typing import Any, Dict, Generator, Iterable, Optional, Tuple, Type
+from typing import Any, Generator, Iterable, Optional, Tuple, Type
 
 import functorch
 import torch
+import torch.nn as nn
 
 from torchopt import pytree
 from torchopt.diff.implicit.decorator import custom_root
 from torchopt.nn.module import MetaGradientModule
-from torchopt.typing import LinearSolver, TupleOfTensors
+from torchopt.typing import LinearSolver, ModuleTensorContainers, TensorContainer, TupleOfTensors
 from torchopt.utils import extract_module_containers
 
 
@@ -35,8 +36,8 @@ __all__ = ['ImplicitMetaGradientModule']
 
 
 def update_containers(
-    dst_containers: Iterable[Dict[str, Optional[torch.Tensor]]],
-    src_containers: Iterable[Dict[str, Optional[torch.Tensor]]],
+    dst_containers: Iterable[TensorContainer],
+    src_containers: Iterable[TensorContainer],
 ) -> None:
     """Update the tensor containers in ``dst_containers`` with the ones in ``src_containers``."""
     for src_container, dst_container in zip(src_containers, dst_containers):
@@ -45,8 +46,8 @@ def update_containers(
 
 @contextlib.contextmanager
 def container_context(
-    orig_containers: Iterable[Dict[str, Optional[torch.Tensor]]],
-    args_containers: Iterable[Dict[str, Optional[torch.Tensor]]],
+    orig_containers: Iterable[TensorContainer],
+    args_containers: Iterable[TensorContainer],
 ) -> Generator[None, None, None]:
     # pylint: disable-next=line-too-long
     """Return a context manager that temporarily updates the containers in ``orig_containers`` with the ones in ``args_containers``."""
@@ -78,9 +79,7 @@ def make_optimality_from_objective(
 
         def objective_fn(__flat_params: TupleOfTensors, *input, **kwargs) -> torch.Tensor:
             flat_grad_tracking_params = __flat_params
-            grad_tracking_params_containers: Tuple[
-                Dict[str, Optional[torch.Tensor]], ...
-            ] = pytree.tree_unflatten(  # type: ignore[assignment]
+            grad_tracking_params_containers: ModuleTensorContainers = pytree.tree_unflatten(  # type: ignore[assignment]
                 params_containers_treespec, flat_grad_tracking_params
             )
 
@@ -130,6 +129,11 @@ def enable_implicit_gradients(
             meta_params_containers  # type: ignore[arg-type]
         )
 
+        def clone_detach_(t: torch.Tensor) -> torch.Tensor:
+            if isinstance(t, nn.Parameter):
+                return nn.Parameter(t.clone().detach_(), requires_grad=t.requires_grad)
+            return t.clone().detach_().requires_grad_(t.requires_grad)
+
         def optimality_fn(
             __flat_params: TupleOfTensors,
             __flat_meta_params: TupleOfTensors,
@@ -137,15 +141,12 @@ def enable_implicit_gradients(
             **kwargs,
         ) -> TupleOfTensors:
             flat_grad_tracking_params = __flat_params
-            grad_tracking_params_containers: Tuple[
-                Dict[str, Optional[torch.Tensor]], ...
-            ] = pytree.tree_unflatten(  # type: ignore[assignment]
+            grad_tracking_params_containers: ModuleTensorContainers = pytree.tree_unflatten(  # type: ignore[assignment]
                 params_containers_treespec, flat_grad_tracking_params
             )
             flat_grad_tracking_meta_params = __flat_meta_params
-            grad_tracking_meta_params_containers: Tuple[
-                Dict[str, Optional[torch.Tensor]], ...
-            ] = pytree.tree_unflatten(  # type: ignore[assignment]
+            # pylint: disable-next=line-too-long
+            grad_tracking_meta_params_containers: ModuleTensorContainers = pytree.tree_unflatten(  # type: ignore[assignment]
                 meta_params_containers_treespec, flat_grad_tracking_meta_params
             )
 
@@ -170,20 +171,19 @@ def enable_implicit_gradients(
         ) -> Tuple[TupleOfTensors, Any]:
             output = cls_solve(self, *input, **kwargs)
 
-            def detach_(t):
-                requires_grad = t.requires_grad
-                return t.detach_().requires_grad_(requires_grad)
-
-            flat_optimal_params: TupleOfTensors = tuple(
-                map(
-                    detach_,
-                    pytree.tree_leaves(params_containers),  # type: ignore[arg-type]
-                )
-            )
+            flat_optimal_params: TupleOfTensors = tuple(pytree.tree_leaves(params_containers))  # type: ignore[arg-type]
             return flat_optimal_params, output
 
-        # pylint: disable-next=unused-variable
-        flat_optimal_params, output = solver_fn(flat_params, flat_meta_params, *input, **kwargs)
+        flat_optimal_params, output = solver_fn(
+            tuple(map(clone_detach_, flat_params)),
+            flat_meta_params,
+            *input,
+            **kwargs,
+        )
+        optimal_params_containers: ModuleTensorContainers = pytree.tree_unflatten(  # type: ignore[assignment]
+            params_containers_treespec, flat_optimal_params
+        )
+        update_containers(params_containers, optimal_params_containers)
         return output
 
     wrapped.__implicit_gradients_enabled__ = True  # type: ignore[attr-defined]

@@ -289,7 +289,7 @@ def _custom_root(
                         f'solver_fn should be a torch.Tensor or a tuple of torch.Tensor. '
                         f'Got {output}'
                     )
-                output_detached = tuple(t.data for t in output)
+                output = tuple(t.data for t in output)
 
                 (
                     args_treespec,
@@ -301,7 +301,7 @@ def _custom_root(
                 ctx.args_is_tensor_mask = args_is_tensor_mask
                 ctx.args_non_tensors = args_non_tensors
 
-                ctx.save_for_backward(*output_detached, *args_tensors)
+                ctx.save_for_backward(*output, *args_tensors)
                 ctx.output_is_tensor = output_is_tensor
 
                 return (*output, aux, output_is_tensor, type(output))

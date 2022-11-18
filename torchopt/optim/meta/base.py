@@ -14,14 +14,14 @@
 # ==============================================================================
 """The base class for differentiable meta-optimizers."""
 
-from typing import Dict, List, Optional, Sequence, Tuple
+from typing import List, Sequence, Tuple
 
 import torch
 import torch.nn as nn
 
 from torchopt import pytree
 from torchopt.base import UninitializedState
-from torchopt.typing import GradientTransformation, OptState, TupleOfTensors
+from torchopt.typing import GradientTransformation, ModuleTensorContainers, OptState, TupleOfTensors
 from torchopt.update import apply_updates
 from torchopt.utils import extract_module_containers
 
@@ -49,7 +49,7 @@ class MetaOptimizer:
             raise TypeError(f'{impl} (type: {type(impl).__name__}) is not a GradientTransformation')
 
         self.impl: GradientTransformation = impl
-        self.param_containers_groups: List[Tuple[Dict[str, Optional[torch.Tensor]], ...]] = []
+        self.param_containers_groups: List[ModuleTensorContainers] = []
         self.state_groups: List[OptState] = []
 
         self.add_param_group(module)
@@ -87,9 +87,7 @@ class MetaOptimizer:
             )
             self.state_groups[i] = new_state
             flat_new_params = apply_updates(flat_params, updates, inplace=False)
-            new_params: Tuple[
-                Dict[str, Optional[torch.Tensor]], ...
-            ] = pytree.tree_unflatten(  # type: ignore[assignment]
+            new_params: ModuleTensorContainers = pytree.tree_unflatten(  # type: ignore[assignment]
                 container_treespec, flat_new_params
             )
             for container, new_param in zip(param_container, new_params):

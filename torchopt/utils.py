@@ -36,7 +36,7 @@ import torch
 import torch.nn as nn
 
 from torchopt import pytree
-from torchopt.typing import Device, OptState, TensorTree
+from torchopt.typing import Device, ModuleTensorContainers, OptState, TensorContainer, TensorTree
 
 
 if TYPE_CHECKING:
@@ -287,14 +287,11 @@ def extract_state_dict(
 
 def extract_module_containers(
     module: nn.Module, with_buffers: bool = True
-) -> Tuple[
-    Tuple[Dict[str, Optional[torch.Tensor]], ...],
-    Tuple[Dict[str, Optional[torch.Tensor]], ...],
-]:
+) -> Tuple[ModuleTensorContainers, ModuleTensorContainers]:
     """Extract the references to the containers of parameters and buffers from a module."""
     if isinstance(module, nn.Module):
-        params: List[Dict[str, Optional[torch.Tensor]]] = []
-        buffers: List[Dict[str, Optional[torch.Tensor]]] = []
+        params: List[TensorContainer] = []
+        buffers: List[TensorContainer] = []
         memo: Set[nn.Module] = set()
 
         def update_container(container, items):

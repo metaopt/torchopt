@@ -21,6 +21,7 @@ import torch
 import torch.nn as nn
 
 from torchopt import pytree
+from torchopt.typing import TensorContainer
 
 
 class MetaInputsContainer(NamedTuple):
@@ -34,7 +35,7 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
     """Base class for neural network modules that hold meta-parameters and meta-modules."""
 
     _meta_inputs: MetaInputsContainer
-    _meta_parameters: Dict[str, Optional[torch.Tensor]]
+    _meta_parameters: TensorContainer
     _meta_modules: Dict[str, Optional[nn.Module]]
 
     def __new__(cls, *args, **kwargs) -> 'MetaGradientModule':
@@ -49,7 +50,7 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
             meta_modules.update(meta_module.modules())
 
         instance._meta_inputs = MetaInputsContainer(meta_parameters, meta_modules)
-        instance._meta_parameters: Dict[str, Optional[torch.Tensor]] = OrderedDict()  # type: ignore[misc]
+        instance._meta_parameters: TensorContainer = OrderedDict()  # type: ignore[misc]
         instance._meta_modules: Dict[str, Optional[nn.Module]] = OrderedDict()  # type: ignore[misc]
         return instance
 
