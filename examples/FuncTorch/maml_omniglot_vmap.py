@@ -196,7 +196,6 @@ def train(db, net, device, meta_opt, epoch, log):
         qry_accs = 100.0 * torch.mean(torch.stack(qry_accs)).item()
         i = epoch + float(batch_idx) / n_train_iter
         iter_time = time.time() - start_time
-        torch.cuda.empty_cache()
 
         if batch_idx % 4 == 0:
             print(
@@ -249,7 +248,6 @@ def test(db, net, device, epoch, log):
 
     qry_losses = torch.mean(torch.stack(qry_losses)).item()
     qry_accs = 100.0 * torch.mean(torch.stack(qry_accs)).item()
-    torch.cuda.empty_cache()
 
     print(f'[Epoch {epoch+1:.2f}] Test Loss: {qry_losses:.2f} | Acc: {qry_accs:.2f}')
     log.append(

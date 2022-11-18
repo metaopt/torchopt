@@ -27,7 +27,7 @@ import torch
 from torchopt import pytree
 from torchopt.diff.implicit.decorator import custom_root
 from torchopt.nn.module import MetaGradientModule
-from torchopt.typing import LinearSolver, TensorTree, TupleOfTensors
+from torchopt.typing import LinearSolver, TupleOfTensors
 from torchopt.utils import extract_module_containers
 
 
@@ -249,7 +249,7 @@ class ImplicitMetaGradientModule(MetaGradientModule):
         """
         raise NotImplementedError  # update parameters
 
-    def optimality(self, *input, **kwargs) -> TensorTree:
+    def optimality(self, *input, **kwargs) -> TupleOfTensors:
         r"""Compute the optimality residual.
 
         This method stands for the optimality residual to the optimal parameters after solving the
@@ -286,7 +286,7 @@ class ImplicitMetaGradientModule(MetaGradientModule):
         :math:`\boldsymbol{\theta}` is the joint vector of the meta-parameters.
 
         Returns:
-            A tree of tensors, the optimality residual to the optimal parameters after solving the
+            A tuple of tensors, the optimality residual to the optimal parameters after solving the
             inner optimization problem.
         """  # pylint: disable=line-too-long
         raise NotImplementedError

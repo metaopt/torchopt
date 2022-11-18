@@ -165,7 +165,6 @@ def train(db, model, meta_opt_and_state, epoch, log, args):
         qry_accs = 100.0 * np.mean(qry_accs)
         i = epoch + float(batch_idx) / n_train_iter
         iter_time = time.time() - start_time
-        torch.cuda.empty_cache()
 
         print(
             f'[Epoch {i:.2f}] Train Loss: {qry_losses:.2f} | Acc: {qry_accs:.2f} | Time: {iter_time:.2f}'
@@ -227,7 +226,6 @@ def test(db, model, epoch, log, args):
 
     qry_losses = np.mean(qry_losses)
     qry_accs = 100.0 * np.mean(qry_accs)
-    torch.cuda.empty_cache()
 
     print(f'[Epoch {epoch+1:.2f}] Test Loss: {qry_losses:.2f} | Acc: {qry_accs:.2f}')
     log.append(
