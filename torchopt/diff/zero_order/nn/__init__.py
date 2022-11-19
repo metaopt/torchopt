@@ -14,9 +14,10 @@
 # ==============================================================================
 """The base class for zero-order gradient models."""
 
-# Preload to resolve circular references
-import torchopt.nn.module  # pylint: disable=unused-import
+import torchopt.nn.module  # preload to resolve circular references
 from torchopt.diff.zero_order.nn.module import ZeroOrderGradientModule
 
 
 __all__ = ['ZeroOrderGradientModule']
+
+del torchopt
