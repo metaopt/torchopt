@@ -62,7 +62,7 @@ def _zero_order_naive(  # pylint: disable=too-many-statements
 
     @functools.wraps(fn)
     def apply(*args: Any) -> torch.Tensor:  # pylint: disable=too-many-statements
-        diff_params = [args[argnum + 1] for argnum in argnums]
+        diff_params = [args[argnum] for argnum in argnums]
         flat_diff_params: List[Any]
         flat_diff_params, diff_params_treespec = pytree.tree_flatten(diff_params)  # type: ignore[arg-type]
 
@@ -168,7 +168,7 @@ def _zero_order_forward(  # pylint: disable=too-many-statements
 
     @functools.wraps(fn)
     def apply(*args: Any) -> torch.Tensor:  # pylint: disable=too-many-statements
-        diff_params = [args[argnum + 1] for argnum in argnums]
+        diff_params = [args[argnum] for argnum in argnums]
         flat_diff_params: List[Any]
         flat_diff_params, diff_params_treespec = pytree.tree_flatten(diff_params)  # type: ignore[arg-type]
 
@@ -276,7 +276,7 @@ def _zero_order_antithetic(  # pylint: disable=too-many-statements
 
     @functools.wraps(fn)
     def apply(*args: Any) -> torch.Tensor:  # pylint: disable=too-many-statements
-        diff_params = [args[argnum + 1] for argnum in argnums]
+        diff_params = [args[argnum] for argnum in argnums]
         flat_diff_params: List[Any]
         flat_diff_params, diff_params_treespec = pytree.tree_flatten(diff_params)  # type: ignore[arg-type]
 
