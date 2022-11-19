@@ -50,16 +50,11 @@ class WrappedSamplable(Samplable):  # pylint: disable=too-few-public-methods
 
 def _zero_order_naive(  # pylint: disable=too-many-statements
     fn: Callable[..., torch.Tensor],
-    distribution: Union[SampleFunc, Samplable],
+    distribution: Samplable,
     argnums: Tuple[int, ...],
     num_samples: int,
     sigma: Numeric,
 ) -> Callable[..., torch.Tensor]:
-    if not isinstance(distribution, Samplable):
-        if not callable(distribution):
-            raise TypeError('`distribution` must be a callable or an instance of `Samplable`.')
-        distribution = WrappedSamplable(distribution)
-
     @functools.wraps(fn)
     def apply(*args: Any) -> torch.Tensor:  # pylint: disable=too-many-statements
         diff_params = [args[argnum] for argnum in argnums]
@@ -156,16 +151,11 @@ def _zero_order_naive(  # pylint: disable=too-many-statements
 
 def _zero_order_forward(  # pylint: disable=too-many-statements
     fn: Callable[..., torch.Tensor],
-    distribution: Union[SampleFunc, Samplable],
+    distribution: Samplable,
     argnums: Tuple[int, ...],
     num_samples: int,
     sigma: Numeric,
 ) -> Callable[..., torch.Tensor]:
-    if not isinstance(distribution, Samplable):
-        if not callable(distribution):
-            raise TypeError('`distribution` must be a callable or an instance of `Samplable`.')
-        distribution = WrappedSamplable(distribution)
-
     @functools.wraps(fn)
     def apply(*args: Any) -> torch.Tensor:  # pylint: disable=too-many-statements
         diff_params = [args[argnum] for argnum in argnums]
@@ -264,16 +254,11 @@ def _zero_order_forward(  # pylint: disable=too-many-statements
 
 def _zero_order_antithetic(  # pylint: disable=too-many-statements
     fn: Callable[..., torch.Tensor],
-    distribution: Union[SampleFunc, Samplable],
+    distribution: Samplable,
     argnums: Tuple[int, ...],
     num_samples: int,
     sigma: Numeric,
 ) -> Callable[..., torch.Tensor]:
-    if not isinstance(distribution, Samplable):
-        if not callable(distribution):
-            raise TypeError('`distribution` must be a callable or an instance of `Samplable`.')
-        distribution = WrappedSamplable(distribution)
-
     @functools.wraps(fn)
     def apply(*args: Any) -> torch.Tensor:  # pylint: disable=too-many-statements
         diff_params = [args[argnum] for argnum in argnums]
@@ -371,7 +356,7 @@ Method: TypeAlias = Literal['naive', 'forward', 'antithetic']
 
 
 def zero_order(
-    distribution: Callable[..., Samplable],
+    distribution: Union[SampleFunc, Samplable],
     method: Method = 'naive',
     argnums: Union[int, Tuple[int, ...]] = (0,),
     num_samples: int = 1,
@@ -407,6 +392,11 @@ def zero_order(
 
     if isinstance(argnums, int):
         argnums = (argnums,)
+
+    if not isinstance(distribution, Samplable):
+        if not callable(distribution):
+            raise TypeError('`distribution` must be a callable or an instance of `Samplable`.')
+        distribution = WrappedSamplable(distribution)
 
     return functools.partial(
         method_fn,
