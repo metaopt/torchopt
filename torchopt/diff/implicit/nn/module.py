@@ -16,6 +16,7 @@
 
 # pylint: disable=redefined-builtin
 
+import abc
 import contextlib
 import functools
 import itertools
@@ -231,6 +232,7 @@ class ImplicitMetaGradientModule(MetaGradientModule):
 
         enable_implicit_gradients(cls)
 
+    @abc.abstractmethod
     def solve(self, *input, **kwargs) -> Any:
         """Solve the inner optimization problem.
 
