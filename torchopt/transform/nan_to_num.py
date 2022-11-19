@@ -12,40 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""Hook utilities."""
+"""Preset transformations that replaces updates with non-finite values to the given numbers."""
 
-from typing import Callable, Optional
-
-import torch
+from typing import Optional
 
 from torchopt import pytree
 from torchopt.base import EmptyState, GradientTransformation
 
 
-__all__ = ['zero_nan_hook', 'nan_to_num_hook', 'register_hook']
-
-
-def zero_nan_hook(g: torch.Tensor) -> torch.Tensor:
-    """A zero ``nan`` hook to replace ``nan`` with zero."""
-    return g.nan_to_num(nan=0.0)
-
-
-def nan_to_num_hook(
+def nan_to_num(
     nan: float = 0.0, posinf: Optional[float] = None, neginf: Optional[float] = None
-) -> Callable[[torch.Tensor], torch.Tensor]:
-    """Returns a ``nan`` to num hook to replace ``nan`` / ``+inf`` / ``-inf`` with the given numbers."""
-
-    def hook(g: torch.Tensor) -> torch.Tensor:
-        """A hook to replace ``nan`` / ``+inf`` / ``-inf`` with the given numbers."""
-        return g.nan_to_num(nan=nan, posinf=posinf, neginf=neginf)
-
-    return hook
-
-
-def register_hook(hook) -> GradientTransformation:
-    """Stateless identity transformation that leaves input gradients untouched.
-
-    This function passes through the *gradient updates* unchanged.
+) -> GradientTransformation:
+    """Replaces updates with values ``nan`` / ``+inf`` / ``-inf`` to the given numbers.
 
     Returns:
         An ``(init_fn, update_fn)`` tuple.
@@ -55,10 +33,17 @@ def register_hook(hook) -> GradientTransformation:
         return EmptyState()
 
     def update_fn(updates, state, *, params=None, inplace=True):  # pylint: disable=unused-argument
-        def f(g):
-            return g.register_hook(hook)
+        if inplace:
 
-        pytree.tree_map(f, updates)
-        return updates, state
+            def f(g):
+                return g.nan_to_num_(nan=nan, posinf=posinf, neginf=neginf)
+
+        else:
+
+            def f(g):
+                return g.nan_to_num(nan=nan, posinf=posinf, neginf=neginf)
+
+        new_updates = pytree.tree_map(f, updates)
+        return new_updates, state
 
     return GradientTransformation(init_fn, update_fn)

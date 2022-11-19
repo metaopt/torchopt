@@ -93,3 +93,6 @@ Karush
 Kuhn
 Tucker
 Neumann
+num
+posinf
+neginf

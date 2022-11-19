@@ -32,6 +32,7 @@
 """Preset transformations."""
 
 from torchopt.transform.add_decayed_weights import add_decayed_weights
+from torchopt.transform.nan_to_num import nan_to_num
 from torchopt.transform.scale import scale
 from torchopt.transform.scale_by_adam import scale_by_accelerated_adam, scale_by_adam
 from torchopt.transform.scale_by_rms import scale_by_rms
@@ -49,4 +50,5 @@ __all__ = [
     'scale_by_accelerated_adam',
     'scale_by_rms',
     'scale_by_stddev',
+    'nan_to_num',
 ]
