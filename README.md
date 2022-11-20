@@ -14,6 +14,13 @@
 [![GitHub Repo Stars](https://img.shields.io/github/stars/metaopt/torchopt?color=brightgreen&logo=github)](https://github.com/metaopt/torchopt/stargazers)
 [![License](https://img.shields.io/github/license/metaopt/torchopt?label=license)](#license)
 
+<p align="center">
+  <a href="https://torchopt.readthedocs.io/en/latest/">Docs</a> |
+  <a href="https://github.com/metaopt/torchopt/tree/main/tutorials">Tutorials</a> |
+  <a href="https://github.com/metaopt/torchopt/tree/main/examples">Examples</a> |
+  <a href="https://arxiv.org/abs/2211.06934">Paper</a>
+</p>
+
 **TorchOpt** is an efficient library for differentiable optimization built upon [PyTorch](https://pytorch.org).
 TorchOpt is:
 
