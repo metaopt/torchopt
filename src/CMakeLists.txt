@@ -23,10 +23,10 @@ endif()
 
 list(APPEND torchopt_csrc "${adam_op_src}")
 
-pybind11_add_module(_C THIN_LTO "${torchopt_csrc}")
+pybind11_add_module(_C MODULE THIN_LTO "${torchopt_csrc}")
 
 target_link_libraries(
     _C PRIVATE
-    ${TORCH_LIBRARIES}
+    "${TORCH_LIBRARIES}"
     OpenMP::OpenMP_CXX
 )

@@ -10,6 +10,7 @@ COMMIT_HASH    = $(shell git log -1 --format=%h)
 PATH           := $(HOME)/go/bin:$(PATH)
 PYTHON         ?= $(shell command -v python3 || command -v python)
 CLANG_FORMAT   ?= $(shell command -v clang-format-14 || command -v clang-format)
+PYTESTOPTS     ?=
 
 .PHONY: default
 default: install
@@ -104,7 +105,7 @@ pytest: pytest-install
 	cd tests && \
 	$(PYTHON) -m pytest --verbose --color=yes --durations=0 \
 		--cov="$(PROJECT_NAME)" --cov-report=xml --cov-report=term-missing \
-		.
+		$(PYTESTOPTS) .
 
 test: pytest
 

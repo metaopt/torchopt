@@ -154,7 +154,7 @@ nb_execution_allow_errors = False
 
 # See: https://sphinxcontrib-katex.readthedocs.io/en/0.4.1/macros.html
 latex_macros = r"""
-    \def \d              #1{\operatorname{#1}}
+    \def \d #1{\operatorname{#1}}
 """
 
 # Translate LaTeX macros to KaTeX and add to options for HTML builder

@@ -144,7 +144,7 @@ From the BR-based perspective, existing gradient methods can be categorized into
 ### Explicit Gradient (EG)
 
 The idea of explicit gradient is to treat the gradient step as a differentiable function and try to backpropagate through the unrolled optimization path.
-This differentiation mode is suitable for algorithms when the inner-level optimization solution is obtained by a few gradient steps, such as [MAML](https://arxiv.org/abs/1703.03400), [MGRL](https://arxiv.org/abs/1805.09801).
+This differentiation mode is suitable for algorithms when the inner-level optimization solution is obtained by a few gradient steps, such as [MAML](https://arxiv.org/abs/1703.03400) and [MGRL](https://arxiv.org/abs/1805.09801).
 TorchOpt offers both functional and object-oriented API for EG to fit different user applications.
 
 #### Functional API  <!-- omit in toc -->
@@ -198,8 +198,8 @@ loss.backward()
 
 By treating the solution $\theta^{\star}$ as an implicit function of $\phi$, the idea of IG is to directly get analytical best-response derivatives $\partial \theta^{\star} (\phi) / \partial \phi$ by [implicit function theorem](https://en.wikipedia.org/wiki/Implicit_function_theorem).
 This is suitable for algorithms when the inner-level optimal solution is achieved ${\left. \frac{\partial F (\theta, \phi)}{\partial \theta} \right\rvert}_{\theta^{\star}} = 0$ or reaches some stationary conditions $F (\theta^{\star}, \phi) = 0$, such as [iMAML](https://arxiv.org/abs/1909.04630) and [DEQ](https://arxiv.org/abs/1909.01377).
-TorchOpt offers both functional and OOP APIs for supporting both [conjugate gradient-based](https://arxiv.org/abs/1909.04630) and [Neumann series](https://arxiv.org/abs/1911.02590) based IG methods.
-Refer to the example [IMAML](https://github.com/waterhorse1/torchopt/tree/readme/examples/iMAML) and the notebook [Implicit Gradient](tutorials/5_Implicit_Differentiation.ipynb) for more guidances.
+TorchOpt offers both functional and OOP APIs for supporting both [conjugate gradient-based](https://arxiv.org/abs/1909.04630) and [Neumann series-based](https://arxiv.org/abs/1911.02590) IG methods.
+Refer to the example [iMAML](https://github.com/waterhorse1/torchopt/tree/readme/examples/iMAML) and the notebook [Implicit Gradient](tutorials/5_Implicit_Differentiation.ipynb) for more guidances.
 
 #### Functional API  <!-- omit in toc -->
 
@@ -212,7 +212,7 @@ def stationary(params, meta_params, data):
     return stationary condition
 
 # Decorator for wrapping the function
-# and specify the linear solver (conjugate gradient or Neumann series)
+# Optionally specify the linear solver (conjugate gradient or Neumann series)
 @torchopt.diff.implicit.custom_root(stationary, solve=linear_solver)
 def solve(params, meta_params, data):
     # Forward optimization process for params
@@ -233,29 +233,29 @@ Users need to define the stationary condition/objective function and the inner-l
 
 ```python
 # Inherited from the class ImplicitMetaGradientModule
-# and specify the linear solver (conjugate gradient or Neumann series)
+# Optionally specify the linear solver (conjugate gradient or Neumann series)
 class InnerNet(ImplicitMetaGradientModule, linear_solver):
     def __init__(self, meta_param):
         super().__init__()
         self.meta_param = meta_param
         ...
 
-    def forward(self, data):
+    def forward(self, batch):
         # Forward process
         ...
 
-    def optimality(self, data):
+    def optimality(self, batch, labels):
         # Stationary condition construction for calculating implicit gradient
         # NOTE: If this method is not implemented, it will be automatically
         # derived from the gradient of the `objective` function.
         ...
 
-    def objective(self, data):
+    def objective(self, batch, labels):
         # Define the inner-loop optimization objective
         ...
 
-    def solve(self, data):
-        # conduct the inner-loop optimization
+    def solve(self, batch, labels):
+        # Conduct the inner-loop optimization
         ...
 
 # Get meta_params and data
@@ -282,12 +282,12 @@ Refer to the tutorial notebook [Zero-order Differentiation](tutorials/6_Zero_Ord
 
 ```python
 # Customize the noise sampling function in ES
-def sample(params, batch, labels, *, sample_shape):
+def sample(sample_shape):
     ...
     return sample_noise
 
 # Specify method and hyper-parameter of ES
-@torchopt.diff.zero_order(method, sample)
+@torchopt.diff.zero_order(sample, method)
 def forward(params, batch, labels):
     # forward process
     return output
