@@ -6,13 +6,17 @@
   <img src="https://github.com/metaopt/torchopt/raw/HEAD/image/logo-large.png" width="75%" />
 </div>
 
-![Python 3.7+](https://img.shields.io/badge/Python-3.7%2B-brightgreen.svg)
-[![PyPI](https://img.shields.io/pypi/v/torchopt?logo=pypi)](https://pypi.org/project/torchopt)
-![GitHub Workflow Status](https://img.shields.io/github/workflow/status/metaopt/torchopt/Tests?label=tests&logo=github)
-[![Documentation Status](https://img.shields.io/readthedocs/torchopt?logo=readthedocs)](https://torchopt.readthedocs.io)
-[![Downloads](https://static.pepy.tech/personalized-badge/torchopt?period=total&left_color=grey&right_color=blue&left_text=downloads)](https://pepy.tech/project/torchopt)
-[![GitHub Repo Stars](https://img.shields.io/github/stars/metaopt/torchopt?color=brightgreen&logo=github)](https://github.com/metaopt/torchopt/stargazers)
-[![License](https://img.shields.io/github/license/metaopt/torchopt?label=license)](#license)
+<div align="center">
+
+  <a>![Python 3.7+](https://img.shields.io/badge/Python-3.7%2B-brightgreen.svg)</a>
+  <a href="https://pypi.org/project/torchopt">![PyPI](https://img.shields.io/pypi/v/torchopt?logo=pypi)</a>
+  <a href="https://github.com/metaopt/torchopt/tree/main/tests">![GitHub Workflow Status](https://img.shields.io/github/workflow/status/metaopt/torchopt/Tests?label=tests&logo=github)</a>
+  <a href="https://torchopt.readthedocs.io">![Documentation Status](https://img.shields.io/readthedocs/torchopt?logo=readthedocs)</a>
+  <a href="https://pepy.tech/project/torchopt">![Downloads](https://static.pepy.tech/personalized-badge/torchopt?period=total&left_color=grey&right_color=blue&left_text=downloads)</a>
+  <a href="https://github.com/metaopt/torchopt/stargazers">![GitHub Repo Stars](https://img.shields.io/github/stars/metaopt/torchopt?color=brightgreen&logo=github)</a>
+  <a href="https://github.com/metaopt/torchopt/blob/main/LICENSE">![License](https://img.shields.io/github/license/metaopt/torchopt?label=license)</a>
+  
+</div>
 
 <p align="center">
   <a href="https://torchopt.readthedocs.io/en/latest/">Docs</a> |
