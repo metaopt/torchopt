@@ -15,7 +15,7 @@
   <a href="https://pepy.tech/project/torchopt">![Downloads](https://static.pepy.tech/personalized-badge/torchopt?period=total&left_color=grey&right_color=blue&left_text=downloads)</a>
   <a href="https://github.com/metaopt/torchopt/stargazers">![GitHub Repo Stars](https://img.shields.io/github/stars/metaopt/torchopt?color=brightgreen&logo=github)</a>
   <a href="https://github.com/metaopt/torchopt/blob/main/LICENSE">![License](https://img.shields.io/github/license/metaopt/torchopt?label=license)</a>
-  
+
 </div>
 
 <p align="center">
