@@ -1,7 +1,7 @@
 Model-Agnostic Meta-Learning
 ============================
 
-Meta reinforcement learning has achieved significant successes in various applications.
+Meta-reinforcement learning has achieved significant successes in various applications.
 **Model-Agnostic Meta-Learning** (MAML) :cite:`MAML` is the pioneer one.
 In this tutorial, we will show how to train MAML on few-shot Omniglot classification with TorchOpt step by step.
 The full script is at :gitcode:`examples/few-shot/maml_omniglot.py`.

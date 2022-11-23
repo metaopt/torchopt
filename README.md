@@ -187,7 +187,7 @@ meta_grads = torch.autograd.grad(loss, meta_params)
 #### OOP API  <!-- omit in toc -->
 
 TorchOpt also provides OOP API compatible with PyTorch programming style.
-Refer to the example and the tutorial notebook [Meta Optimizer](tutorials/3_Meta_Optimizer.ipynb), [Stop Gradient](tutorials/4_Stop_Gradient.ipynb) for more guidances.
+Refer to the example and the tutorial notebook [Meta-Optimizer](tutorials/3_Meta_Optimizer.ipynb), [Stop Gradient](tutorials/4_Stop_Gradient.ipynb) for more guidances.
 
 ```python
 # Define meta and inner parameters
@@ -229,7 +229,7 @@ def solve(params, meta_params, data):
     # Forward optimization process for params
     return output
 
-# Define params, meta params and get data
+# Define params, meta_params and get data
 params, meta_prams, data = ..., ..., ...
 optimal_params = solve(params, meta_params, data)
 loss = outer_loss(optimal_params)
@@ -273,10 +273,10 @@ class InnerNet(ImplicitMetaGradientModule, linear_solver):
 meta_params, data = ..., ...
 inner_net = InnerNet(meta_params)
 
-# Solve for inner-loop process related with the meta parameters
+# Solve for inner-loop process related with the meta-parameters
 optimal_inner_net = inner_net.solve(data)
 
-# Get outer loss and solve for meta gradient
+# Get outer loss and solve for meta-gradient
 loss = outer_loss(optimal_inner_net)
 meta_grads = torch.autograd.grad(loss, meta_params)
 ```
@@ -312,10 +312,10 @@ def forward(params, batch, labels):
 
 We take the optimizer as a whole instead of separating it into several basic operators (e.g., `sqrt` and `div`).
 Therefore, by manually writing the forward and backward functions, we can perform the symbolic reduction.
-In addition, we can store some intermediate data that can be reused during the back-propagation.
+In addition, we can store some intermediate data that can be reused during the backpropagation.
 We write the accelerated functions in C++ OpenMP and CUDA, bind them by [`pybind11`](https://github.com/pybind/pybind11) to allow they can be called by Python, and then we define the forward and backward behavior using `torch.autograd.Function`.
 Users can use by simply setting the `use_accelerated_op` flag as `True`.
-Refer to the corresponding sections in tutorials [Functional Optimizer](tutorials/1_Functional_Optimizer.ipynb) and [Meta Optimizer](tutorials/3_Meta_Optimizer.ipynb)
+Refer to the corresponding sections in tutorials [Functional Optimizer](tutorials/1_Functional_Optimizer.ipynb) and [Meta-Optimizer](tutorials/3_Meta_Optimizer.ipynb)
 
 ```python
 optimizer = torchopt.MetaAdam(model, lr, use_accelerated_op=True)
@@ -340,7 +340,7 @@ For more guidance and comparison results, please refer to our open source projec
 ## Visualization
 
 Complex gradient flow in meta-learning brings in a great challenge for managing the gradient flow and verifying the correctness of it.
-TorchOpt provides a visualization tool that draw variable (e.g., network parameters or meta parameters) names on the gradient graph for better analyzing.
+TorchOpt provides a visualization tool that draw variable (e.g., network parameters or meta-parameters) names on the gradient graph for better analyzing.
 The visualization tool is modified from [`torchviz`](https://github.com/szagoruyko/pytorchviz).
 Refer to the example [visualization code](examples/visualize.py) and the tutorial notebook [Visualization](tutorials/2_Visualization.ipynb) for more details.
 
@@ -357,10 +357,10 @@ Compared with [`torchviz`](https://github.com/szagoruyko/pytorchviz), TorchOpt f
 
 In the [`examples`](examples) directory, we offer several examples of functional optimizer and light-weight meta-learning examples with TorchOpt.
 
-- [Model Agnostic Meta Learning (MAML) - Supervised Learning](https://arxiv.org/abs/1703.03400) (ICML 2017)
+- [Model-Agnostic Meta-Learning (MAML) - Supervised Learning](https://arxiv.org/abs/1703.03400) (ICML 2017)
 - [Learning to Reweight Examples for Robust Deep Learning](https://arxiv.org/abs/1803.09050) (ICML 2018)
-- [Model Agnostic Meta Learning (MAML) - Reinforcement Learning](https://arxiv.org/abs/1703.03400) (ICML 2017)
-- [Meta Gradient Reinforcement Learning (MGRL)](https://arxiv.org/abs/1805.09801) (NeurIPS 2018)
+- [Model-Agnostic Meta-Learning (MAML) - Reinforcement Learning](https://arxiv.org/abs/1703.03400) (ICML 2017)
+- [Meta-Gradient Reinforcement Learning (MGRL)](https://arxiv.org/abs/1805.09801) (NeurIPS 2018)
 - [Learning through opponent learning process (LOLA)](https://arxiv.org/abs/1709.04326) (AAMAS 2018)
 - [Meta-Learning with Implicit Gradients](https://arxiv.org/abs/1909.04630) (NeurIPS 2019)
 

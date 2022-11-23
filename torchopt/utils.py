@@ -69,7 +69,7 @@ def stop_gradient(target: Union[TensorTree, ModuleState, nn.Module, 'MetaOptimiz
     """Stop the gradient for the input object.
 
     Since a tensor use :attr:`grad_fn` to connect itself with the previous computation graph, the
-    back-propagated gradient will flow over the tensor and continue flow to the tensors that is
+    backpropagated gradient will flow over the tensor and continue flow to the tensors that is
     connected by :attr:`grad_fn`. Some algorithms requires manually detaching tensors from the
     computation graph.
 
@@ -81,7 +81,7 @@ def stop_gradient(target: Union[TensorTree, ModuleState, nn.Module, 'MetaOptimiz
             :class:`torchopt.MetaOptimizer`, or just a plain list of tensors.
         inplace: If :data:`True`, the target will be detached in-place. if :data:`Frue`, this
             function will return a detached copy of the target. The in-place operation is fast and
-            memory efficient but may raise back-propagation error.
+            memory efficient but may raise backpropagation error.
     """
     # pylint: disable-next=import-outside-toplevel
     from torchopt.optim.meta.base import MetaOptimizer
@@ -143,7 +143,7 @@ def extract_state_dict(
     """Extract target state.
 
     Since a tensor use :attr:`grad_fn` to connect itself with the previous computation graph, the
-    back-propagated gradient will flow over the tensor and continue flow to the tensors that is
+    backpropagated gradient will flow over the tensor and continue flow to the tensors that is
     connected by :attr:`grad_fn`. Some algorithms requires manually detaching tensors from the
     computation graph.
 

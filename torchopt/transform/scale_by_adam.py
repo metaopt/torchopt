@@ -90,7 +90,7 @@ def scale_by_adam(
             Term added to the denominator to improve numerical stability.
         eps_root: (default: :const:`0.0`)
             Term added to the denominator inside the square-root to improve
-            numerical stability when back-propagating gradients through the rescaling.
+            numerical stability when backpropagating gradients through the rescaling.
         moment_requires_grad: (default: :data:`False`)
             If :data:`True`, states will be created with flag `requires_grad = True`.
 
@@ -214,7 +214,7 @@ def scale_by_accelerated_adam(
             Term added to the denominator to improve numerical stability.
         eps_root: (default: :const:`0.0`)
             Term added to the denominator inside the square-root to improve
-            numerical stability when back-propagating gradients through the rescaling.
+            numerical stability when backpropagating gradients through the rescaling.
         moment_requires_grad: (default: :data:`False`)
             If :data:`True`, states will be created with flag `requires_grad = True`.
 
