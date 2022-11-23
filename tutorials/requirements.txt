@@ -6,6 +6,6 @@ torchvision
 --requirement ../requirements.txt
 
 ipykernel
-    jax[cpu] >= 0.3
-    jaxopt
-    optax
+jax[cpu] >= 0.3
+jaxopt
+optax
