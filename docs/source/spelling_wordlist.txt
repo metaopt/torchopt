@@ -97,6 +97,9 @@ KKT
 num
 posinf
 neginf
+backpropagated
+backpropagation
+backprop
 fmt
 pragma
 broadcasted
