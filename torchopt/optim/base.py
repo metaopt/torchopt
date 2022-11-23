@@ -19,6 +19,7 @@ from typing import Callable, Iterable, List, Optional, Sequence, Tuple
 import torch
 
 from torchopt import pytree
+from torchopt.base import UninitializedState
 from torchopt.typing import GradientTransformation, OptState, Params, TupleOfTensors
 from torchopt.update import apply_updates
 
@@ -109,6 +110,8 @@ class Optimizer:
             return p.grad
 
         for i, (params, state) in enumerate(zip(self.param_groups, self.state_groups)):
+            if isinstance(state, UninitializedState):
+                state = self.impl.init(params)
             grads = pytree.tree_map(f, params)  # type: ignore[arg-type]
             updates, new_state = self.impl.update(grads, state, params=params, inplace=True)
             self.param_groups[i] = apply_updates(params, updates, inplace=True)
@@ -118,8 +121,8 @@ class Optimizer:
 
     def add_param_group(self, params: Params) -> None:
         """Add a param group to the optimizer's :attr:`param_groups`."""
-        flat_params, params_treespec = pytree.tree_flatten(params)
-        flat_params: TupleOfTensors = tuple(flat_params)
+        flat_params: TupleOfTensors
+        flat_params, params_treespec = pytree.tree_flatten_as_tuple(params)
         self.param_groups.append(flat_params)
         self.param_treespecs.append(params_treespec)
-        self.state_groups.append(self.impl.init(flat_params))
+        self.state_groups.append(UninitializedState())

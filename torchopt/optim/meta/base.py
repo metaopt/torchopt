@@ -20,6 +20,7 @@ import torch
 import torch.nn as nn
 
 from torchopt import pytree
+from torchopt.base import UninitializedState
 from torchopt.typing import GradientTransformation, OptState, TupleOfTensors
 from torchopt.update import apply_updates
 from torchopt.utils import extract_module_containers
@@ -65,11 +66,13 @@ class MetaOptimizer:
                 The loss that is used to compute the gradients to the network parameters.
         """
         # Step parameter only
-        for i, (param_container, new_state) in enumerate(
+        for i, (param_container, state) in enumerate(
             zip(self.param_containers_groups, self.state_groups)
         ):
             flat_params: TupleOfTensors
             flat_params, container_treespec = pytree.tree_flatten_as_tuple(param_container)  # type: ignore[arg-type]
+            if isinstance(state, UninitializedState):
+                state = self.impl.init(flat_params)
             grads = torch.autograd.grad(
                 loss,
                 flat_params,
@@ -78,7 +81,7 @@ class MetaOptimizer:
             )
             updates, new_state = self.impl.update(
                 grads,
-                new_state,
+                state,
                 params=flat_params,
                 inplace=False,
             )
@@ -95,10 +98,8 @@ class MetaOptimizer:
     def add_param_group(self, module: nn.Module) -> None:
         """Add a param group to the optimizer's :attr:`state_groups`."""
         params_container = extract_module_containers(module, with_buffers=False)[0]
-        flat_params: TupleOfTensors = tuple(pytree.tree_leaves(params_container))  # type: ignore[arg-type]
-        optimizer_state = self.impl.init(flat_params)
         self.param_containers_groups.append(params_container)
-        self.state_groups.append(optimizer_state)
+        self.state_groups.append(UninitializedState())
 
     def state_dict(self) -> Tuple[OptState, ...]:
         """Extract the references of the optimizer states.

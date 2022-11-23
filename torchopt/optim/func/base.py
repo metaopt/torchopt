@@ -18,7 +18,7 @@ from typing import Optional
 
 import torch
 
-from torchopt.base import GradientTransformation
+from torchopt.base import GradientTransformation, UninitializedState
 from torchopt.typing import OptState, Params
 from torchopt.update import apply_updates
 
@@ -40,8 +40,6 @@ class FuncOptimizer:  # pylint: disable=too-few-public-methods
         - The functional SGD optimizer: :func:`torchopt.sgd`.
     """
 
-    __NOT_INITIALIZED = object()
-
     def __init__(self, impl: GradientTransformation, *, inplace: bool = False) -> None:
         """The :meth:`init` function.
 
@@ -55,7 +53,7 @@ class FuncOptimizer:  # pylint: disable=too-few-public-methods
             raise TypeError(f'{impl} (type: {type(impl).__name__}) is not a GradientTransformation')
 
         self.impl: GradientTransformation = impl
-        self.optim_state: Optional[OptState] = self.__NOT_INITIALIZED
+        self.optim_state: Optional[OptState] = UninitializedState()
         self.inplace: bool = bool(inplace)
 
     def step(
@@ -79,7 +77,7 @@ class FuncOptimizer:  # pylint: disable=too-few-public-methods
                 Whether to update the parameters in-place. If :data:`None`, use the default value
                 specified in the constructor.
         """
-        if self.optim_state is self.__NOT_INITIALIZED:
+        if isinstance(self.optim_state, UninitializedState):
             self.optim_state = self.impl.init(params)
 
         if inplace is None:
@@ -92,3 +90,15 @@ class FuncOptimizer:  # pylint: disable=too-few-public-methods
         )
         new_params = apply_updates(params, updates, inplace=inplace)
         return new_params
+
+    def state_dict(self) -> OptState:
+        """Extract the references of the optimizer states.
+
+        Note that the states are references, so any in-place operations will change the states
+        inside :class:`FuncOptimizer` at the same time.
+        """
+        return self.optim_state
+
+    def load_state_dict(self, state_dict: OptState) -> None:
+        """Load the references of the optimizer states."""
+        self.optim_state = state_dict

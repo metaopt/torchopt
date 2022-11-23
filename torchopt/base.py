@@ -41,11 +41,21 @@ if TYPE_CHECKING:
     from torchopt.typing import OptState, Params, Updates
 
 
-__all__ = ['EmptyState', 'GradientTransformation', 'ChainedGradientTransformation', 'identity']
+__all__ = [
+    'EmptyState',
+    'UninitializedState',
+    'GradientTransformation',
+    'ChainedGradientTransformation',
+    'identity',
+]
 
 
 class EmptyState(NamedTuple):
     """An empty state for the simplest stateless transformations."""
+
+
+class UninitializedState(NamedTuple):
+    """A state that is not initialized yet."""
 
 
 class TransformInitFn(Protocol):  # pylint: disable=too-few-public-methods
