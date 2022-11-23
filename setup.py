@@ -1,5 +1,6 @@
 import os
 import pathlib
+import platform
 import re
 import shutil
 import sys
@@ -34,7 +35,6 @@ class cmake_build_ext(build_ext):
             super().build_extension(ext)
             return
 
-        import pybind11
         from torch.utils import cpp_extension
 
         cmake = shutil.which('cmake')
@@ -57,11 +57,25 @@ class cmake_build_ext(build_ext):
             f'-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{config.upper()}={extdir}',
             f'-DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_{config.upper()}={self.build_temp}',
             f'-DPYTHON_EXECUTABLE={sys.executable}',
-            f'-DPYBIND11_CMAKE_DIR={pybind11.get_cmake_dir()}',
             f'-DPYTHON_INCLUDE_DIR={sysconfig.get_path("platinclude")}',
             f'-DTORCH_INCLUDE_PATH={TORCH_INCLUDE_PATH}',
             f'-DTORCH_LIBRARY_PATH={TORCH_LIBRARY_PATH}',
         ]
+
+        if platform.system() == 'Darwin':
+            # Cross-compile support for macOS - respect ARCHFLAGS if set
+            archs = re.findall(r'-arch (\S+)', os.environ.get('ARCHFLAGS', ''))
+            if archs:
+                cmake_args.append(f'-DCMAKE_OSX_ARCHITECTURES={";".join(archs)}')
+
+        try:
+            import pybind11
+
+            cmake_args.append(
+                f'-DPYBIND11_CMAKE_DIR={pybind11.get_cmake_dir()}',
+            )
+        except ImportError:
+            pass
 
         build_args = ['--config', config]
 

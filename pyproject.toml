@@ -2,7 +2,7 @@
 
 [build-system]
 # Sync with project.dependencies
-requires = ["setuptools", "torch >= 1.13", "numpy", "pybind11"]
+requires = ["setuptools", "torch >= 1.13", "numpy", "pybind11 >= 2.10.1"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -49,8 +49,9 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 dependencies = [
-    "torch >= 1.13",  # see also build-system.requires and project.requires-python
-    "optree >= 0.4.0",
+    # See also build-system.requires and project.requires-python
+    "torch >= 1.13",
+    "optree >= 0.4.1",
     "numpy",
     "graphviz",
     "typing-extensions >= 4.0.0",
@@ -105,7 +106,9 @@ environment.DEFAULT_CUDA_VERSION = "11.7"
 environment.DEFAULT_TEST_TORCH_SPECS = "cpu cu116"
 environment-pass = ["CUDA_VERSION", "TEST_TORCH_SPECS"]
 container-engine = "docker"
+test-extras = ["test"]
 
+[tool.cibuildwheel.linux]
 before-all = """
     CUDA_VERSION="${CUDA_VERSION:-"${DEFAULT_CUDA_VERSION}"}"
     if [[ "${CUDA_VERSION}" == "None" || "${CUDA_VERSION}" == "none" ]]; then
@@ -120,8 +123,19 @@ before-all = """
     fi
     echo "cat torchopt/version.py"; cat torchopt/version.py
     touch .first-python
-    """
-test-extras = ["test"]
+"""
+repair-wheel-command = """
+    python -m pip install -r requirements.txt
+    SITE_PACKAGES="$(python -c 'print(__import__("sysconfig").get_path("purelib"))')"
+    TORCH_LIB_PATH="${SITE_PACKAGES}/torch/lib"
+    (
+        export LD_LIBRARY_PATH="${TORCH_LIB_PATH}:/usr/local/cuda/lib64:/usr/local/cuda/targets/x86_64-linux/lib/stubs${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+        echo "ls ${TORCH_LIB_PATH}"; ls -lh "${TORCH_LIB_PATH}"
+        python -m pip install --force-reinstall git+https://github.com/XuehaiPan/auditwheel.git@torchopt
+        python -m auditwheel lddtree "{wheel}"
+        python -m auditwheel repair --no-copy-site-libs --wheel-dir="{dest_dir}" "{wheel}"
+    )
+"""
 test-command = """
     SITE_PACKAGES="$(python -c 'print(__import__("sysconfig").get_path("purelib"))')"
     TORCH_LIB_PATH="${SITE_PACKAGES}/torch/lib"
@@ -146,21 +160,7 @@ test-command = """
         rm -f .first-python
     fi
     rm -rf ~/.pip/cache ~/.cache/pip
-    """
-
-[tool.cibuildwheel.linux]
-repair-wheel-command = """
-    python -m pip install -r requirements.txt
-    SITE_PACKAGES="$(python -c 'print(__import__("sysconfig").get_path("purelib"))')"
-    TORCH_LIB_PATH="${SITE_PACKAGES}/torch/lib"
-    (
-        export LD_LIBRARY_PATH="${TORCH_LIB_PATH}:/usr/local/cuda/lib64:/usr/local/cuda/targets/x86_64-linux/lib/stubs${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
-        echo "ls ${TORCH_LIB_PATH}"; ls -lh "${TORCH_LIB_PATH}"
-        python -m pip install --force-reinstall git+https://github.com/XuehaiPan/auditwheel.git@torchopt
-        python -m auditwheel lddtree "{wheel}"
-        python -m auditwheel repair --no-copy-site-libs --wheel-dir="{dest_dir}" "{wheel}"
-    )
-    """
+"""
 
 # Linter tools #################################################################
 
