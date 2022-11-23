@@ -26,7 +26,7 @@ Pan
 Yao
 Fu
 Jupyter
-Colaboratory
+Colab
 Omniglot
 differentiable
 Dataset
