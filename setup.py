@@ -97,25 +97,50 @@ class cmake_build_ext(build_ext):
             os.chdir(HERE)
 
 
+CIBUILDWHEEL = os.getenv('CIBUILDWHEEL', '0') == '1'
+LINUX = platform.system() == 'Linux'
+MACOS = platform.system() == 'Darwin'
+WINDOWS = platform.system() == 'Windows'
+ext_kwargs = dict(
+    cmdclass={'build_ext': cmake_build_ext},
+    ext_modules=[
+        CMakeExtension(
+            'torchopt._C',
+            source_dir=HERE,
+            optional=not (LINUX and CIBUILDWHEEL),
+        )
+    ],
+)
+
+TORCHOPT_NO_EXTENSIONS = (
+    bool(os.getenv('TORCHOPT_NO_EXTENSIONS', '')) or WINDOWS or (MACOS and CIBUILDWHEEL)
+)
+if TORCHOPT_NO_EXTENSIONS:
+    ext_kwargs.clear()
+
+
 VERSION_CONTENT = None
-if not version.__release__:
-    VERSION_CONTENT = VERSION_FILE.read_text(encoding='UTF-8')
-    VERSION_FILE.write_text(
-        data=re.sub(
-            r"""__version__\s*=\s*('[^']+'|"[^"]+")""",
-            f"__version__ = '{version.__version__}'",
-            string=VERSION_CONTENT,
-        ),
-        encoding='UTF-8',
-    )
 
 try:
+    if not version.__release__:
+        try:
+            VERSION_CONTENT = VERSION_FILE.read_text(encoding='UTF-8')
+            VERSION_FILE.write_text(
+                data=re.sub(
+                    r"""__version__\s*=\s*('[^']+'|"[^"]+")""",
+                    r"__version__ = '{}'".format(version.__version__),
+                    string=VERSION_CONTENT,
+                ),
+                encoding='UTF-8',
+            )
+        except OSError:
+            VERSION_CONTENT = None
+
     setup(
         version=version.__version__,
         package_data={'sharedlib': ['*.so', '*.pyd']},
         include_package_data=True,
-        cmdclass={'build_ext': cmake_build_ext},
-        ext_modules=[CMakeExtension('torchopt._C', source_dir=HERE)],
+        **ext_kwargs,
     )
 finally:
     if VERSION_CONTENT is not None:

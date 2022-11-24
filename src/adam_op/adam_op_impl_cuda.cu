@@ -186,13 +186,10 @@ torch::Tensor adamForwardUpdatesCUDA(const torch::Tensor &new_mu,
                                      const pyfloat_t eps_root,
                                      const pyuint_t count) {
   using other_t = pyfloat_t;
+  const other_t inv_one_minus_pow_b1 = 1 / (1 - std::pow(b1, count));
+  const other_t inv_one_minus_pow_b2 = 1 / (1 - std::pow(b2, count));
 
   auto updates_out = torch::empty_like(new_mu);
-
-  const other_t one_minus_pow_b1 = 1 - std::pow(b1, count);
-  const other_t inv_one_minus_pow_b1 = 1 / one_minus_pow_b1;
-  const other_t one_minus_pow_b2 = 1 - std::pow(b2, count);
-  const other_t inv_one_minus_pow_b2 = 1 / one_minus_pow_b2;
 
   const size_t n = getTensorPlainSize(new_mu);
   const dim3 block(std::min(n, size_t(256)));
@@ -331,13 +328,11 @@ TensorArray<2> adamBackwardUpdatesCUDA(const torch::Tensor &dupdates,
                                        const pyfloat_t b2,
                                        const pyuint_t count) {
   using other_t = pyfloat_t;
+  const other_t one_minus_pow_b1 = 1 - std::pow(b1, count);
+  const other_t inv_one_minus_pow_b2 = 1 / (1 - std::pow(b2, count));
 
   auto dmu_out = torch::empty_like(new_mu);
   auto dnu_out = torch::empty_like(new_nu);
-
-  const other_t one_minus_pow_b1 = 1 - std::pow(b1, count);
-  const other_t one_minus_pow_b2 = 1 - std::pow(b2, count);
-  const other_t inv_one_minus_pow_b2 = 1 / one_minus_pow_b2;
 
   const size_t n = getTensorPlainSize(dupdates);
   const dim3 block(std::min(n, size_t(256)));

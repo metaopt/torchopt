@@ -20,7 +20,11 @@ from typing import Any, Optional, Tuple
 
 import torch
 
-from torchopt._C import adam_op  # pylint: disable=no-name-in-module
+
+try:
+    from torchopt._C import adam_op  # pylint: disable=no-name-in-module
+except ImportError:
+    from torchopt.accelerated_op._src import adam_op  # type: ignore[no-redef]
 
 
 class AdamOp:  # pylint: disable=too-few-public-methods
@@ -37,7 +41,7 @@ class AdamOp:  # pylint: disable=too-few-public-methods
         def forward(ctx: Any, *args: Any, **kwargs: Any) -> Any:
             """Performs the operation."""
             updates, mu, b1 = args
-            new_mu = adam_op.forwardMu(updates, mu, b1)
+            new_mu = adam_op.forward_mu(updates, mu, b1)
             ctx.save_for_backward(updates, mu)
             ctx.b1 = b1
             return new_mu
@@ -49,7 +53,7 @@ class AdamOp:  # pylint: disable=too-few-public-methods
             dmu = args[0]
             updates, mu = ctx.saved_tensors
             b1 = ctx.b1
-            result = adam_op.backwardMu(dmu, updates, mu, b1)
+            result = adam_op.backward_mu(dmu, updates, mu, b1)
             return result[0], result[1], None
 
     class NuOp(torch.autograd.Function):  # pylint: disable=abstract-method
@@ -63,7 +67,7 @@ class AdamOp:  # pylint: disable=too-few-public-methods
         def forward(ctx: Any, *args: Any, **kwargs: Any) -> Any:
             """Performs the operation."""
             updates, nu, b2 = args
-            new_nu = adam_op.forwardNu(updates, nu, b2)
+            new_nu = adam_op.forward_nu(updates, nu, b2)
             ctx.save_for_backward(updates, nu)
             ctx.b2 = b2
             return new_nu
@@ -75,7 +79,7 @@ class AdamOp:  # pylint: disable=too-few-public-methods
             dnu = args[0]
             updates, nu = ctx.saved_tensors
             b2 = ctx.b2
-            result = adam_op.backwardNu(dnu, updates, nu, b2)
+            result = adam_op.backward_nu(dnu, updates, nu, b2)
             return result[0], result[1], None
 
     class UpdatesOp(torch.autograd.Function):  # pylint: disable=abstract-method
@@ -89,7 +93,7 @@ class AdamOp:  # pylint: disable=too-few-public-methods
         def forward(ctx: Any, *args: Any, **kwargs: Any) -> Any:
             """Performs the operation."""
             new_mu, new_nu, (b1, b2, eps, eps_root, count) = args
-            new_updates = adam_op.forwardUpdates(new_mu, new_nu, b1, b2, eps, eps_root, count)
+            new_updates = adam_op.forward_updates(new_mu, new_nu, b1, b2, eps, eps_root, count)
             ctx.save_for_backward(new_updates, new_mu, new_nu)
             ctx.others = (b1, b2, eps, eps_root, count)
             return new_updates
@@ -101,7 +105,7 @@ class AdamOp:  # pylint: disable=too-few-public-methods
             dupdates = args[0]
             updates, new_mu, new_nu = ctx.saved_tensors
             b1, b2, _, _, count = ctx.others
-            result = adam_op.backwardUpdates(dupdates, updates, new_mu, new_nu, b1, b2, count)
+            result = adam_op.backward_updates(dupdates, updates, new_mu, new_nu, b1, b2, count)
             return result[0], result[1], None
 
     # pylint: disable-next=too-many-arguments
