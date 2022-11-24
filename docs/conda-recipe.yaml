@@ -48,7 +48,7 @@ dependencies:
   - pybind11
 
   # Misc
-  - optree >= 0.3.0
+  - optree >= 0.4.0
   - typing-extensions >= 4.0.0
   - numpy
   - matplotlib-base

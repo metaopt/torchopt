@@ -58,7 +58,7 @@ def register_hook(hook) -> GradientTransformation:
         def f(g):
             return g.register_hook(hook)
 
-        pytree.tree_map(f, updates)
+        pytree.tree_map_(f, updates)
         return updates, state
 
     return GradientTransformation(init_fn, update_fn)

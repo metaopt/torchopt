@@ -100,7 +100,7 @@ def stop_gradient(target: Union[TensorTree, ModuleState, nn.Module, 'MetaOptimiz
     else:
         true_target = cast(TensorTree, target)  # tree of tensors
 
-    pytree.tree_map(fn_, true_target)
+    pytree.tree_map_(fn_, true_target)
 
 
 @overload

@@ -23,13 +23,19 @@ from torch import Tensor
 from torch.futures import Future
 from torch.types import Device
 
-from torchopt.base import ChainedGradientTransformation, EmptyState, GradientTransformation
+from torchopt.base import (
+    ChainedGradientTransformation,
+    EmptyState,
+    GradientTransformation,
+    UninitializedState,
+)
 
 
 __all__ = [
     'GradientTransformation',
     'ChainedGradientTransformation',
     'EmptyState',
+    'UninitializedState',
     'Params',
     'Updates',
     'OptState',
