@@ -78,7 +78,7 @@ class Optimizer:
                     p.grad.requires_grad_(False)
                 p.grad.zero_()
 
-        pytree.tree_map(f, self.param_groups)  # type: ignore[arg-type]
+        pytree.tree_map_(f, self.param_groups)  # type: ignore[arg-type]
 
     def state_dict(self) -> Tuple[OptState, ...]:
         """Returns the state of the optimizer."""

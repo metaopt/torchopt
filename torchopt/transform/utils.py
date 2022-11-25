@@ -31,7 +31,8 @@
 # ==============================================================================
 """Utilities for the preset transformations."""
 
-from typing import Any, Callable, List
+from collections import deque
+from typing import Any, Callable, Iterable, List
 
 import torch
 
@@ -39,7 +40,7 @@ from torchopt import pytree
 from torchopt.typing import TensorTree, Updates
 
 
-__all__ = ['tree_map_flat', 'inc_count', 'update_moment']
+__all__ = ['tree_map_flat', 'tree_map_flat_', 'inc_count', 'update_moment']
 
 
 INT64_MAX = torch.iinfo(torch.int64).max
@@ -55,6 +56,22 @@ def tree_map_flat(func: Callable, *flat_args: Any, none_is_leaf: bool = False) -
             return func(x, *xs) if x is not None else None
 
     return list(map(fn, *flat_args))
+
+
+def tree_map_flat_(
+    func: Callable, flat_arg: Iterable[Any], *flat_args: Any, none_is_leaf: bool = False
+) -> Iterable[Any]:
+    """Apply a function to each element of a flattened list."""
+    if none_is_leaf:
+        fn = func
+    else:
+
+        def fn(x, *xs):
+            return func(x, *xs) if x is not None else None
+
+    flat_results = map(fn, flat_arg, *flat_args)
+    deque(flat_results, maxlen=0)  # consume and exhaust the iterable
+    return flat_arg
 
 
 def inc_count(updates: Updates, count: TensorTree) -> TensorTree:
