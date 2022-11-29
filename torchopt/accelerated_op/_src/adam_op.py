@@ -104,9 +104,11 @@ def backward_updates(
     inv_one_minus_pow_b2 = 1.0 / (1.0 - pow(b2, count))
 
     updates_div_new_mu = updates.div(new_mu)
-    denominator = updates_div_new_mu.mul(one_minus_pow_b1)
+    denominator = updates_div_new_mu.mul_(one_minus_pow_b1)
     dnew_mu_out = dupdates.mul(updates_div_new_mu)
-    dnew_nu_out = dupdates.mul(updates).mul_(denominator.square()).mul_(-0.5 * inv_one_minus_pow_b2)
+    dnew_nu_out = (
+        dupdates.mul(updates).mul_(denominator.square_()).mul_(-0.5 * inv_one_minus_pow_b2)
+    )
 
     mask = new_mu == 0
     dnew_mu_out[mask] = 0
