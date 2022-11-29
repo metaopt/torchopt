@@ -1,5 +1,6 @@
 import os
 import pathlib
+import platform
 import re
 import shutil
 import sys
@@ -23,9 +24,10 @@ import version  # noqa
 
 
 class CMakeExtension(Extension):
-    def __init__(self, name, source_dir='.', **kwargs):
+    def __init__(self, name, source_dir='.', target=None, **kwargs):
         super().__init__(name, sources=[], **kwargs)
         self.source_dir = os.path.abspath(source_dir)
+        self.target = target if target is not None else name.rpartition('.')[-1]
 
 
 class cmake_build_ext(build_ext):
@@ -34,37 +36,42 @@ class cmake_build_ext(build_ext):
             super().build_extension(ext)
             return
 
-        import pybind11
         from torch.utils import cpp_extension
 
         cmake = shutil.which('cmake')
         if cmake is None:
             raise RuntimeError('Cannot find CMake executable.')
 
-        build_temp = pathlib.Path(self.build_temp)
+        ext_path = pathlib.Path(self.get_ext_fullpath(ext.name)).absolute()
+        build_temp = pathlib.Path(self.build_temp).absolute()
         build_temp.mkdir(parents=True, exist_ok=True)
 
         config = 'Debug' if self.debug else 'Release'
 
-        extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
-        print(self.get_ext_fullpath(ext.name))
-
-        TORCH_INCLUDE_PATH = ';'.join(cpp_extension.include_paths())
-        TORCH_LIBRARY_PATH = ';'.join(cpp_extension.library_paths())
-
         cmake_args = [
             f'-DCMAKE_BUILD_TYPE={config}',
-            f'-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{config.upper()}={extdir}',
-            f'-DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_{config.upper()}={self.build_temp}',
+            f'-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{config.upper()}={ext_path.parent}',
+            f'-DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_{config.upper()}={build_temp}',
             f'-DPYTHON_EXECUTABLE={sys.executable}',
-            f'-DPYBIND11_CMAKE_DIR={pybind11.get_cmake_dir()}',
             f'-DPYTHON_INCLUDE_DIR={sysconfig.get_path("platinclude")}',
-            f'-DTORCH_INCLUDE_PATH={TORCH_INCLUDE_PATH}',
-            f'-DTORCH_LIBRARY_PATH={TORCH_LIBRARY_PATH}',
+            f'-DTORCH_INCLUDE_PATH={";".join(cpp_extension.include_paths())}',
+            f'-DTORCH_LIBRARY_PATH={";".join(cpp_extension.library_paths())}',
         ]
 
-        build_args = ['--config', config]
+        if platform.system() == 'Darwin':
+            # Cross-compile support for macOS - respect ARCHFLAGS if set
+            archs = re.findall(r'-arch (\S+)', os.environ.get('ARCHFLAGS', ''))
+            if archs:
+                cmake_args.append(f'-DCMAKE_OSX_ARCHITECTURES={";".join(archs)}')
 
+        try:
+            import pybind11
+
+            cmake_args.append(f'-DPYBIND11_CMAKE_DIR={pybind11.get_cmake_dir()}')
+        except ImportError:
+            pass
+
+        build_args = ['--config', config]
         if (
             'CMAKE_BUILD_PARALLEL_LEVEL' not in os.environ
             and hasattr(self, 'parallel')
@@ -73,6 +80,8 @@ class cmake_build_ext(build_ext):
             build_args.append(f'--parallel={self.parallel}')
         else:
             build_args.append('--parallel')
+
+        build_args.extend([f'--target={ext.target}', '--'])
 
         try:
             os.chdir(build_temp)
@@ -83,25 +92,51 @@ class cmake_build_ext(build_ext):
             os.chdir(HERE)
 
 
+CIBUILDWHEEL = os.getenv('CIBUILDWHEEL', '0') == '1'
+LINUX = platform.system() == 'Linux'
+MACOS = platform.system() == 'Darwin'
+WINDOWS = platform.system() == 'Windows'
+ext_kwargs = dict(
+    cmdclass={'build_ext': cmake_build_ext},
+    ext_modules=[
+        CMakeExtension(
+            'torchopt._C',
+            source_dir=HERE,
+            optional=not (LINUX and CIBUILDWHEEL),
+        )
+    ],
+)
+
+TORCHOPT_NO_EXTENSIONS = (
+    bool(os.getenv('TORCHOPT_NO_EXTENSIONS', '')) or WINDOWS or (MACOS and CIBUILDWHEEL)
+)
+if TORCHOPT_NO_EXTENSIONS:
+    ext_kwargs.clear()
+
+
 VERSION_CONTENT = None
-if not version.__release__:
-    VERSION_CONTENT = VERSION_FILE.read_text(encoding='UTF-8')
-    VERSION_FILE.write_text(
-        data=re.sub(
-            r"""__version__\s*=\s*('[^']+'|"[^"]+")""",
-            f"__version__ = '{version.__version__}'",
-            string=VERSION_CONTENT,
-        ),
-        encoding='UTF-8',
-    )
 
 try:
+    if not version.__release__:
+        try:
+            VERSION_CONTENT = VERSION_FILE.read_text(encoding='UTF-8')
+            VERSION_FILE.write_text(
+                data=re.sub(
+                    r"""__version__\s*=\s*('[^']+'|"[^"]+")""",
+                    r"__version__ = '{}'".format(version.__version__),
+                    string=VERSION_CONTENT,
+                ),
+                encoding='UTF-8',
+            )
+        except OSError:
+            VERSION_CONTENT = None
+
     setup(
+        name='torchopt',
         version=version.__version__,
         package_data={'sharedlib': ['*.so', '*.pyd']},
         include_package_data=True,
-        cmdclass={'build_ext': cmake_build_ext},
-        ext_modules=[CMakeExtension('torchopt._C', source_dir=HERE)],
+        **ext_kwargs,
     )
 finally:
     if VERSION_CONTENT is not None:
