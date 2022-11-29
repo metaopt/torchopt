@@ -28,6 +28,7 @@ concurrency:
 
 jobs:
   test:
+    name: Test with CXX/CUDA extensions on ubuntu-latest
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -90,8 +91,13 @@ jobs:
           fail_ci_if_error: false
 
   test-pure-python:
-    runs-on: ubuntu-latest
+    name: Test for pure-Python on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 60
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest] # jaxlib is not available on Windows
+      fail-fast: false
     steps:
       - name: Checkout
         uses: actions/checkout@v3
