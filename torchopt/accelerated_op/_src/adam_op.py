@@ -37,7 +37,7 @@ def forward_(
 
     mu = mu.mul_(b1).add_(updates, alpha=1.0 - b1)
     nu = nu.mul_(b2).add_(updates.square(), alpha=1.0 - b2)
-    updates.data.copy_(
+    updates.copy_(
         mu.mul(inv_one_minus_pow_b1).div_(
             nu.mul(inv_one_minus_pow_b2).add_(eps_root).sqrt_().add_(eps)
         )
