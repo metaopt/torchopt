@@ -72,20 +72,21 @@ def clip_grad_norm(
                     f'non-finite, so it cannot be clipped. To disable this error and scale the '
                     f'gradients by the non-finite norm anyway, set `error_if_nonfinite=False`'
                 )
-        clip_coef = max_norm / (float(total_norm) + 1e-6)
-        # Note: multiplying by the clamped coef is redundant when the coef is clamped to 1, but
-        # doing so avoids a `if clip_coef < 1:` conditional which can require a CPU <=> device
-        # synchronization when the gradients do not reside in CPU memory.
-        clip_coef_clamped = min(clip_coef, 1.0)
+        clip_coefficient = max_norm / (float(total_norm) + 1e-6)
+        # Note: multiplying by the clamped coefficient is redundant when the coefficient is
+        # clamped to 1, but doing so avoids a `if clip_coefficient < 1:` conditional which
+        # can require a CPU <=> device synchronization when the gradients do not reside in
+        # CPU memory.
+        clip_coefficient_clamped = min(clip_coefficient, 1.0)
         if inplace:
 
             def f(g):
-                return g.mul_(clip_coef_clamped)
+                return g.mul_(clip_coefficient_clamped)
 
         else:
 
             def f(g):
-                return g.mul(clip_coef_clamped)
+                return g.mul(clip_coefficient_clamped)
 
         new_updates = pytree.tree_map(f, updates)
         return new_updates, state

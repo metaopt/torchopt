@@ -299,7 +299,7 @@ def extract_module_containers(
 
         def update_container(container, items):
             if len(items) > 0:
-                container.append(items)  # we need references to original dicts
+                container.append(items)  # we need references to original dictionaries
 
         # pylint: disable=protected-access
         update_container(params, module._parameters)

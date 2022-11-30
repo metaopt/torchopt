@@ -335,8 +335,8 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
         This is typically passed to an optimizer.
 
         Args:
-            recurse (bool): if True, then yields parameters of this module
-                and all submodules. Otherwise, yields only meta-parameters that
+            recurse (bool): if True, then yields parameters of this module and
+                all submodules. Otherwise, yields only meta-parameters that
                 are direct members of this module.
 
         Yields:

@@ -70,7 +70,7 @@ Documentation = "https://torchopt.readthedocs.io"
 lint = [
     "isort",
     "black[jupyter] >= 22.6.0",
-    "pylint",
+    "pylint >= 2.15.0",
     "mypy >= 0.990",
     "types-setuptools",
     "flake8",

@@ -169,7 +169,7 @@ def _signature_bind_and_match(
     #
     # where ref is an index position (int) if the original argument was from *args and a dictionary
     # key if the original argument was from **kwargs. After binding to the inspected signature, we
-    # use the tags to associate the resolved positional arguments back to their arg and kwarg
+    # use the tags to associate the resolved positional arguments back to their args and kwargs
     # source.
 
     args = [(False, i, v) for i, v in enumerate(args)]
