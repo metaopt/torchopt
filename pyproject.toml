@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "torchopt"
-description = "A Jax-style optimizer for PyTorch."
+description = "An efficient library for differentiable optimization for PyTorch."
 readme = "README.md"
 # Change this if wheels for `torch` is available
 # Search "requires-python" and update all corresponding items
