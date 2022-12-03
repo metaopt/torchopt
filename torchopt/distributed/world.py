@@ -151,8 +151,8 @@ def auto_init_rpc(
     worker_init_fn: Optional[Callable[[], None]] = None,
     worker_name_format: Callable[..., str] = default_worker_name_format,
     *,
-    backend: Optional[rpc.BackendType] = None,
-    rpc_backend_options: Optional[rpc.RpcBackendOptions] = None,
+    backend: Optional['rpc.BackendType'] = None,
+    rpc_backend_options: Optional['rpc.RpcBackendOptions'] = None,
 ) -> Callable[[F], F]:
     """Decorator to automatically initialize RPC on the decorated function."""
     global _WORKER_NAME_FORMAT  # pylint: disable=global-statement
