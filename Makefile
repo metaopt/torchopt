@@ -40,7 +40,7 @@ check_pip_install = $(PYTHON) -m pip show $(1) &>/dev/null || (cd && $(PYTHON) -
 check_pip_install_extra = $(PYTHON) -m pip show $(1) &>/dev/null || (cd && $(PYTHON) -m pip install $(2) --upgrade)
 
 pylint-install:
-	$(call check_pip_install,pylint)
+	$(call check_pip_install_extra,pylint,pylint[spelling])
 
 flake8-install:
 	$(call check_pip_install,flake8)
