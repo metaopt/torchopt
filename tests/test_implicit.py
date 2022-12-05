@@ -98,9 +98,9 @@ def get_rr_dataset_torch() -> data.DataLoader:
     NUM_UPDATES = 4
     dataset = data.TensorDataset(
         torch.randn((BATCH_SIZE * NUM_UPDATES, MODEL_NUM_INPUTS)),
-        torch.randn((BATCH_SIZE * NUM_UPDATES)),
+        torch.randn((BATCH_SIZE * NUM_UPDATES,)),
         torch.randn((BATCH_SIZE * NUM_UPDATES, MODEL_NUM_INPUTS)),
-        torch.randn((BATCH_SIZE * NUM_UPDATES)),
+        torch.randn((BATCH_SIZE * NUM_UPDATES,)),
     )
     loader = data.DataLoader(dataset, BATCH_SIZE, shuffle=False)
 
@@ -168,7 +168,7 @@ def test_imaml_solve_normal_cg(
         loss = jnp.mean(optax.softmax_cross_entropy_with_integer_labels(y_pred, y))
         regularization_loss = 0
         for p1, p2 in zip(params.values(), meta_params.values()):
-            regularization_loss += 0.5 * jnp.sum(jnp.square((p1 - p2)))
+            regularization_loss += 0.5 * jnp.sum(jnp.square(p1 - p2))
         loss = loss + regularization_loss
         return loss
 
@@ -189,7 +189,7 @@ def test_imaml_solve_normal_cg(
             # Compute regularization loss
             regularization_loss = 0
             for p1, p2 in zip(params.values(), meta_params.values()):
-                regularization_loss += 0.5 * jnp.sum(jnp.square((p1 - p2)))
+                regularization_loss += 0.5 * jnp.sum(jnp.square(p1 - p2))
             final_loss = loss + regularization_loss
             return final_loss
 
@@ -299,7 +299,7 @@ def test_imaml_solve_inv(
         loss = jnp.mean(optax.softmax_cross_entropy_with_integer_labels(y_pred, y))
         regularization_loss = 0
         for p1, p2 in zip(params.values(), meta_params.values()):
-            regularization_loss += 0.5 * jnp.sum(jnp.square((p1 - p2)))
+            regularization_loss += 0.5 * jnp.sum(jnp.square(p1 - p2))
         loss = loss + regularization_loss
         return loss
 
@@ -319,7 +319,7 @@ def test_imaml_solve_inv(
             # Compute regularization loss
             regularization_loss = 0
             for p1, p2 in zip(params.values(), meta_params.values()):
-                regularization_loss += 0.5 * jnp.sum(jnp.square((p1 - p2)))
+                regularization_loss += 0.5 * jnp.sum(jnp.square(p1 - p2))
             final_loss = loss + regularization_loss
             return final_loss
 
@@ -415,7 +415,7 @@ def test_imaml_module(dtype: torch.dtype, lr: float, inner_lr: float, inner_upda
         loss = jnp.mean(optax.softmax_cross_entropy_with_integer_labels(y_pred, y))
         regularization_loss = 0
         for p1, p2 in zip(params.values(), meta_params.values()):
-            regularization_loss += 0.5 * jnp.sum(jnp.square((p1 - p2)))
+            regularization_loss += 0.5 * jnp.sum(jnp.square(p1 - p2))
         loss = loss + regularization_loss
         return loss
 
@@ -432,7 +432,7 @@ def test_imaml_module(dtype: torch.dtype, lr: float, inner_lr: float, inner_upda
             # Compute regularization loss
             regularization_loss = 0
             for p1, p2 in zip(params.values(), meta_params.values()):
-                regularization_loss += 0.5 * jnp.sum(jnp.square((p1 - p2)))
+                regularization_loss += 0.5 * jnp.sum(jnp.square(p1 - p2))
             final_loss = loss + regularization_loss
             return final_loss
 
@@ -534,7 +534,7 @@ def test_rr_solve_cg(
         """Solve ridge regression by conjugate gradient."""
 
         def matvec(u):
-            return X_tr.T @ ((X_tr @ u))
+            return X_tr.T @ (X_tr @ u)
 
         return jaxopt.linear_solve.solve_cg(
             matvec=matvec,
@@ -641,7 +641,7 @@ def test_rr_solve_inv(
         """Solve ridge regression by conjugate gradient."""
 
         def matvec(u):
-            return X_tr.T @ ((X_tr @ u))
+            return X_tr.T @ (X_tr @ u)
 
         return jaxopt.linear_solve.solve_inv(
             matvec=matvec,

@@ -28,6 +28,16 @@ repos:
     hooks:
       - id: black-jupyter
         stages: [commit, push, manual]
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.3.0
+    hooks:
+      - id: pyupgrade
+        args: [--py37-plus] # sync with requires-python
+        stages: [commit, push, manual]
+        exclude: |
+          (?x)(
+            ^examples/
+          )
   - repo: local
     hooks:
       - id: pylint

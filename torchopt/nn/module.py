@@ -42,10 +42,8 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
         instance = super().__new__(cls)
         flat_args: List[Any]
         flat_args = pytree.tree_leaves((args, kwargs))  # type: ignore[arg-type]
-        meta_parameters = set(
-            x for x in flat_args if isinstance(x, torch.Tensor) and x.requires_grad
-        )
-        meta_modules = set(x for x in flat_args if isinstance(x, nn.Module) and x.training)
+        meta_parameters = {x for x in flat_args if isinstance(x, torch.Tensor) and x.requires_grad}
+        meta_modules = {x for x in flat_args if isinstance(x, nn.Module) and x.training}
         for meta_module in tuple(meta_modules):
             meta_parameters.update(meta_module.parameters())
             meta_modules.update(meta_module.modules())
