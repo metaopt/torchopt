@@ -15,8 +15,7 @@
 """Base class for neural network modules that hold meta-parameters and meta-modules."""
 
 from torchopt.diff.implicit.nn.module import ImplicitMetaGradientModule  # circular reference
-from torchopt.diff.zero_order.nn.module import ZeroOrderGradientModule  # circular reference
 from torchopt.nn.module import MetaGradientModule
 
 
-__all__ = ['MetaGradientModule', 'ImplicitMetaGradientModule', 'ZeroOrderGradientModule']
+__all__ = ['MetaGradientModule', 'ImplicitMetaGradientModule']
