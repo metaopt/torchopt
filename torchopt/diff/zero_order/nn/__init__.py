@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""Base class for neural network modules that hold meta-parameters and meta-modules."""
+"""The base class for zero-order gradient models."""
 
-from torchopt.diff.implicit.nn.module import ImplicitMetaGradientModule  # circular reference
-from torchopt.diff.zero_order.nn.module import ZeroOrderGradientModule  # circular reference
-from torchopt.nn.module import MetaGradientModule
+import torchopt.nn.module  # preload to resolve circular references
+from torchopt.diff.zero_order.nn.module import ZeroOrderGradientModule
 
 
-__all__ = ['MetaGradientModule', 'ImplicitMetaGradientModule', 'ZeroOrderGradientModule']
+__all__ = ['ZeroOrderGradientModule']
+
+del torchopt

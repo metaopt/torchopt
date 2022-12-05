@@ -16,3 +16,4 @@
 
 from torchopt.diff import implicit, zero_order
 from torchopt.diff.implicit import ImplicitMetaGradientModule
+from torchopt.diff.zero_order import ZeroOrderGradientModule

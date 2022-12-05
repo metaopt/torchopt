@@ -14,9 +14,10 @@
 # ==============================================================================
 """The base class for differentiable implicit meta-gradient models."""
 
-# Preload to resolve circular references
-import torchopt.nn.module  # pylint: disable=unused-import
+import torchopt.nn.module  # preload to resolve circular references
 from torchopt.diff.implicit.nn.module import ImplicitMetaGradientModule
 
 
 __all__ = ['ImplicitMetaGradientModule']
+
+del torchopt
