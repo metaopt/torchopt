@@ -16,10 +16,13 @@
 
 from typing import Callable, List, Optional, Sequence, Tuple, TypeVar, Union
 from typing_extensions import TypeAlias  # Python 3.10+
+from typing_extensions import Protocol, runtime_checkable  # Python 3.8+
 
+import torch
 import torch.distributed.rpc as rpc
 from optree.typing import PyTree, PyTreeTypeVar
 from torch import Tensor
+from torch.distributions import Distribution
 from torch.futures import Future
 from torch.types import Device
 
@@ -59,6 +62,10 @@ __all__ = [
     'Future',
     'LinearSolver',
     'Device',
+    'Size',
+    'Distribution',
+    'SampleFunc',
+    'Samplable',
 ]
 
 T = TypeVar('T')
@@ -97,3 +104,24 @@ else:
 
 # solver(matvec, b) -> solution
 LinearSolver: TypeAlias = Callable[[Callable[[TensorTree], TensorTree], TensorTree], TensorTree]
+
+
+Size = torch.Size
+
+# sample(sample_shape) -> Tensor
+SampleFunc: TypeAlias = Callable[[Size], Union[Tensor, Sequence[Numeric]]]
+
+
+@runtime_checkable
+class Samplable(Protocol):  # pylint: disable=too-few-public-methods
+    """Abstract protocol class that supports sampling."""
+
+    def sample(
+        self, sample_shape: Size = Size()  # pylint: disable=unused-argument
+    ) -> Union[Tensor, Sequence[Numeric]]:
+        # pylint: disable-next=line-too-long
+        """Generates a sample_shape shaped sample or sample_shape shaped batch of samples if the distribution parameters are batched."""
+        raise NotImplementedError
+
+
+Samplable.register(Distribution)
