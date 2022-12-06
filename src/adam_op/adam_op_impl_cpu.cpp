@@ -135,7 +135,7 @@ void adamForwardNuCPUKernel(const scalar_t *__restrict__ updates_ptr,
     const scalar_t updates = updates_ptr[tid];
     const scalar_t nu = nu_ptr[tid];
 
-    const scalar_t nu_out = b2 * nu + (1 - b2) * pow(updates, 2);
+    const scalar_t nu_out = b2 * nu + (1 - b2) * updates * updates;
     nu_out_ptr[tid] = nu_out;
   }
 }
