@@ -146,7 +146,7 @@ Check out section [Explicit Gradient (EG)](#explicit-gradient-eg) functional API
 We design a bilevel-optimization updating scheme, which can be easily extended to realize various differentiable optimization processes.
 
 <div align="center">
-  <img src="image/diffmode.png" width="90%" />
+  <img src="https://github.com/metaopt/torchopt/raw/HEAD/image/diffmode.png" width="90%" />
 </div>
 
 As shown above, the scheme contains an outer level that has parameters $\phi$ that can be learned end-to-end through the inner level parameters solution $\theta^{\prime}(\phi)$ by using the best-response derivatives $\partial \theta^{\prime}(\phi) / \partial \phi$.
@@ -436,7 +436,7 @@ If you find TorchOpt useful, please cite it in your publications.
 
 ## The Team
 
-TorchOpt is a work by [Jie Ren](https://github.com/JieRen98), [Xidong Feng](https://github.com/waterhorse1), [Bo Liu](https://github.com/Benjamin-eecs), [Xuehai Pan](https://github.com/XuehaiPan), [Luo Mai](https://luomai.github.io), and [Yaodong Yang](https://www.yangyaodong.com).
+TorchOpt is a work by [Jie Ren](https://github.com/JieRen98), [Xidong Feng](https://github.com/waterhorse1), [Bo Liu](https://benjamin-eecs.github.io/), [Xuehai Pan](https://github.com/XuehaiPan), [Luo Mai](https://luomai.github.io), and [Yaodong Yang](https://www.yangyaodong.com).
 
 ## License
 
