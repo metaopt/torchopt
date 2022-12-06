@@ -19,10 +19,12 @@
 </div>
 
 <p align="center">
-  <a href="https://torchopt.readthedocs.io">Docs</a> |
+  <a href="https://github.com/metaopt/torchopt#installation">Installation</a> |
+  <a href="https://torchopt.readthedocs.io">Documentation</a> |
   <a href="https://github.com/metaopt/torchopt/tree/HEAD/tutorials">Tutorials</a> |
   <a href="https://github.com/metaopt/torchopt/tree/HEAD/examples">Examples</a> |
-  <a href="https://arxiv.org/abs/2211.06934">Paper</a>
+  <a href="https://arxiv.org/abs/2211.06934">Paper</a> |
+  <a href="https://github.com/metaopt/torchopt#citing-torchopt">Citation</a>
 </p>
 
 **TorchOpt** is an efficient library for differentiable optimization built upon [PyTorch](https://pytorch.org).
@@ -55,8 +57,8 @@ The README is organized as follows:
 - [Examples](#examples)
 - [Installation](#installation)
 - [Changelog](#changelog)
-- [The Team](#the-team)
 - [Citing TorchOpt](#citing-torchopt)
+- [The Team](#the-team)
 - [License](#license)
 
 --------------------------------------------------------------------------------
@@ -147,7 +149,7 @@ We design a bilevel-optimization updating scheme, which can be easily extended t
   <img src="image/diffmode.png" width="90%" />
 </div>
 
-As shown above, the scheme contains an outer level that has parameters $\phi$ that can be learned end-to-end through the inner level parameters solution $\theta^{\star}(\phi)$ by using the best-response derivatives $\partial \theta^{\star}(\phi) / \partial \phi$.
+As shown above, the scheme contains an outer level that has parameters $\phi$ that can be learned end-to-end through the inner level parameters solution $\theta^{\prime}(\phi)$ by using the best-response derivatives $\partial \theta^{\prime}(\phi) / \partial \phi$.
 TorchOpt supports three differentiation modes.
 It can be seen that the key component of this algorithm is to calculate the best-response (BR) Jacobian.
 From the BR-based perspective, existing gradient methods can be categorized into three groups: explicit gradient over unrolled optimization, implicit differentiation, and zero-order gradient differentiation.
@@ -207,8 +209,8 @@ loss.backward()
 
 ### Implicit Gradient (IG)
 
-By treating the solution $\theta^{\star}$ as an implicit function of $\phi$, the idea of IG is to directly get analytical best-response derivatives $\partial \theta^{\star} (\phi) / \partial \phi$ by [implicit function theorem](https://en.wikipedia.org/wiki/Implicit_function_theorem).
-This is suitable for algorithms when the inner-level optimal solution is achieved ${\left. \frac{\partial F (\theta, \phi)}{\partial \theta} \right\rvert}_{\theta^{\star}} = 0$ or reaches some stationary conditions $F (\theta^{\star}, \phi) = 0$, such as [iMAML](https://arxiv.org/abs/1909.04630) and [DEQ](https://arxiv.org/abs/1909.01377).
+By treating the solution $\theta^{\prime}$ as an implicit function of $\phi$, the idea of IG is to directly get analytical best-response derivatives $\partial \theta^{\prime} (\phi) / \partial \phi$ by [implicit function theorem](https://en.wikipedia.org/wiki/Implicit_function_theorem).
+This is suitable for algorithms when the inner-level optimal solution is achieved ${\left. \frac{\partial F (\theta, \phi)}{\partial \theta} \right\rvert}_{\theta=\theta^{\prime}} = 0$ or reaches some stationary conditions $F (\theta^{\prime}, \phi) = 0$, such as [iMAML](https://arxiv.org/abs/1909.04630) and [DEQ](https://arxiv.org/abs/1909.01377).
 TorchOpt offers both functional and OOP APIs for supporting both [conjugate gradient-based](https://arxiv.org/abs/1909.04630) and [Neumann series-based](https://arxiv.org/abs/1911.02590) IG methods.
 Refer to the example [iMAML](https://github.com/waterhorse1/torchopt/tree/readme/examples/iMAML) and the notebook [Implicit Gradient](tutorials/5_Implicit_Differentiation.ipynb) for more guidances.
 
@@ -419,10 +421,6 @@ See [CHANGELOG.md](CHANGELOG.md).
 
 --------------------------------------------------------------------------------
 
-## The Team
-
-TorchOpt is a work by [Jie Ren](https://github.com/JieRen98), [Xidong Feng](https://github.com/waterhorse1), [Bo Liu](https://github.com/Benjamin-eecs), [Xuehai Pan](https://github.com/XuehaiPan), [Luo Mai](https://luomai.github.io) and [Yaodong Yang](https://www.yangyaodong.com).
-
 ## Citing TorchOpt
 
 If you find TorchOpt useful, please cite it in your publications.
@@ -435,6 +433,10 @@ If you find TorchOpt useful, please cite it in your publications.
   year    = {2022}
 }
 ```
+
+## The Team
+
+TorchOpt is a work by [Jie Ren](https://github.com/JieRen98), [Xidong Feng](https://github.com/waterhorse1), [Bo Liu](https://github.com/Benjamin-eecs), [Xuehai Pan](https://github.com/XuehaiPan), [Luo Mai](https://luomai.github.io), and [Yaodong Yang](https://www.yangyaodong.com).
 
 ## License
 
