@@ -6,13 +6,26 @@
   <img src="https://github.com/metaopt/torchopt/raw/HEAD/image/logo-large.png" width="75%" />
 </div>
 
-![Python 3.7+](https://img.shields.io/badge/Python-3.7%2B-brightgreen.svg)
-[![PyPI](https://img.shields.io/pypi/v/torchopt?logo=pypi)](https://pypi.org/project/torchopt)
-![GitHub Workflow Status](https://img.shields.io/github/workflow/status/metaopt/torchopt/Tests?label=tests&logo=github)
-[![Documentation Status](https://img.shields.io/readthedocs/torchopt?logo=readthedocs)](https://torchopt.readthedocs.io)
-[![Downloads](https://static.pepy.tech/personalized-badge/torchopt?period=total&left_color=grey&right_color=blue&left_text=downloads)](https://pepy.tech/project/torchopt)
-[![GitHub Repo Stars](https://img.shields.io/github/stars/metaopt/torchopt?color=brightgreen&logo=github)](https://github.com/metaopt/torchopt/stargazers)
-[![License](https://img.shields.io/github/license/metaopt/torchopt?label=license)](#license)
+<div align="center">
+
+  <a>![Python 3.7+](https://img.shields.io/badge/Python-3.7%2B-brightgreen.svg)</a>
+  <a href="https://pypi.org/project/torchopt">![PyPI](https://img.shields.io/pypi/v/torchopt?logo=pypi)</a>
+  <a href="https://github.com/metaopt/torchopt/tree/HEAD/tests">![GitHub Workflow Status](https://img.shields.io/github/workflow/status/metaopt/torchopt/Tests?label=tests&logo=github)</a>
+  <a href="https://torchopt.readthedocs.io">![Documentation Status](https://img.shields.io/readthedocs/torchopt?logo=readthedocs)</a>
+  <a href="https://pepy.tech/project/torchopt">![Downloads](https://static.pepy.tech/personalized-badge/torchopt?period=total&left_color=grey&right_color=blue&left_text=downloads)</a>
+  <a href="https://github.com/metaopt/torchopt/stargazers">![GitHub Repo Stars](https://img.shields.io/github/stars/metaopt/torchopt?color=brightgreen&logo=github)</a>
+  <a href="https://github.com/metaopt/torchopt/blob/HEAD/LICENSE">![License](https://img.shields.io/github/license/metaopt/torchopt?label=license&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjZmZmZmZmIj48cGF0aCBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0xMi43NSAyLjc1YS43NS43NSAwIDAwLTEuNSAwVjQuNUg5LjI3NmExLjc1IDEuNzUgMCAwMC0uOTg1LjMwM0w2LjU5NiA1Ljk1N0EuMjUuMjUgMCAwMTYuNDU1IDZIMi4zNTNhLjc1Ljc1IDAgMTAwIDEuNUgzLjkzTC41NjMgMTUuMThhLjc2Mi43NjIgMCAwMC4yMS44OGMuMDguMDY0LjE2MS4xMjUuMzA5LjIyMS4xODYuMTIxLjQ1Mi4yNzguNzkyLjQzMy42OC4zMTEgMS42NjIuNjIgMi44NzYuNjJhNi45MTkgNi45MTkgMCAwMDIuODc2LS42MmMuMzQtLjE1NS42MDYtLjMxMi43OTItLjQzMy4xNS0uMDk3LjIzLS4xNTguMzEtLjIyM2EuNzUuNzUgMCAwMC4yMDktLjg3OEw1LjU2OSA3LjVoLjg4NmMuMzUxIDAgLjY5NC0uMTA2Ljk4NC0uMzAzbDEuNjk2LTEuMTU0QS4yNS4yNSAwIDAxOS4yNzUgNmgxLjk3NXYxNC41SDYuNzYzYS43NS43NSAwIDAwMCAxLjVoMTAuNDc0YS43NS43NSAwIDAwMC0xLjVIMTIuNzVWNmgxLjk3NGMuMDUgMCAuMS4wMTUuMTQuMDQzbDEuNjk3IDEuMTU0Yy4yOS4xOTcuNjMzLjMwMy45ODQuMzAzaC44ODZsLTMuMzY4IDcuNjhhLjc1Ljc1IDAgMDAuMjMuODk2Yy4wMTIuMDA5IDAgMCAuMDAyIDBhMy4xNTQgMy4xNTQgMCAwMC4zMS4yMDZjLjE4NS4xMTIuNDUuMjU2Ljc5LjRhNy4zNDMgNy4zNDMgMCAwMDIuODU1LjU2OCA3LjM0MyA3LjM0MyAwIDAwMi44NTYtLjU2OWMuMzM4LS4xNDMuNjA0LS4yODcuNzktLjM5OWEzLjUgMy41IDAgMDAuMzEtLjIwNi43NS43NSAwIDAwLjIzLS44OTZMMjAuMDcgNy41aDEuNTc4YS43NS43NSAwIDAwMC0xLjVoLTQuMTAyYS4yNS4yNSAwIDAxLS4xNC0uMDQzbC0xLjY5Ny0xLjE1NGExLjc1IDEuNzUgMCAwMC0uOTg0LS4zMDNIMTIuNzVWMi43NXpNMi4xOTMgMTUuMTk4YTUuNDE4IDUuNDE4IDAgMDAyLjU1Ny42MzUgNS40MTggNS40MTggMCAwMDIuNTU3LS42MzVMNC43NSA5LjM2OGwtMi41NTcgNS44M3ptMTQuNTEtLjAyNGMuMDgyLjA0LjE3NC4wODMuMjc1LjEyNi41My4yMjMgMS4zMDUuNDUgMi4yNzIuNDVhNS44NDYgNS44NDYgMCAwMDIuNTQ3LS41NzZMMTkuMjUgOS4zNjdsLTIuNTQ3IDUuODA3eiI+PC9wYXRoPjwvc3ZnPgo=)</a>
+
+</div>
+
+<p align="center">
+  <a href="https://github.com/metaopt/torchopt#installation">Installation</a> |
+  <a href="https://torchopt.readthedocs.io">Documentation</a> |
+  <a href="https://github.com/metaopt/torchopt/tree/HEAD/tutorials">Tutorials</a> |
+  <a href="https://github.com/metaopt/torchopt/tree/HEAD/examples">Examples</a> |
+  <a href="https://arxiv.org/abs/2211.06934">Paper</a> |
+  <a href="https://github.com/metaopt/torchopt#citing-torchopt">Citation</a>
+</p>
 
 **TorchOpt** is an efficient library for differentiable optimization built upon [PyTorch](https://pytorch.org).
 TorchOpt is:
@@ -44,8 +57,8 @@ The README is organized as follows:
 - [Examples](#examples)
 - [Installation](#installation)
 - [Changelog](#changelog)
-- [The Team](#the-team)
 - [Citing TorchOpt](#citing-torchopt)
+- [The Team](#the-team)
 - [License](#license)
 
 --------------------------------------------------------------------------------
@@ -136,7 +149,7 @@ We design a bilevel-optimization updating scheme, which can be easily extended t
   <img src="image/diffmode.png" width="90%" />
 </div>
 
-As shown above, the scheme contains an outer level that has parameters $\phi$ that can be learned end-to-end through the inner level parameters solution $\theta^{\star}(\phi)$ by using the best-response derivatives $\partial \theta^{\star}(\phi) / \partial \phi$.
+As shown above, the scheme contains an outer level that has parameters $\phi$ that can be learned end-to-end through the inner level parameters solution $\theta^{\prime}(\phi)$ by using the best-response derivatives $\partial \theta^{\prime}(\phi) / \partial \phi$.
 TorchOpt supports three differentiation modes.
 It can be seen that the key component of this algorithm is to calculate the best-response (BR) Jacobian.
 From the BR-based perspective, existing gradient methods can be categorized into three groups: explicit gradient over unrolled optimization, implicit differentiation, and zero-order gradient differentiation.
@@ -176,7 +189,7 @@ meta_grads = torch.autograd.grad(loss, meta_params)
 #### OOP API  <!-- omit in toc -->
 
 TorchOpt also provides OOP API compatible with PyTorch programming style.
-Refer to the example and the tutorial notebook [Meta Optimizer](tutorials/3_Meta_Optimizer.ipynb), [Stop Gradient](tutorials/4_Stop_Gradient.ipynb) for more guidances.
+Refer to the example and the tutorial notebook [Meta-Optimizer](tutorials/3_Meta_Optimizer.ipynb), [Stop Gradient](tutorials/4_Stop_Gradient.ipynb) for more guidances.
 
 ```python
 # Define meta and inner parameters
@@ -196,8 +209,8 @@ loss.backward()
 
 ### Implicit Gradient (IG)
 
-By treating the solution $\theta^{\star}$ as an implicit function of $\phi$, the idea of IG is to directly get analytical best-response derivatives $\partial \theta^{\star} (\phi) / \partial \phi$ by [implicit function theorem](https://en.wikipedia.org/wiki/Implicit_function_theorem).
-This is suitable for algorithms when the inner-level optimal solution is achieved ${\left. \frac{\partial F (\theta, \phi)}{\partial \theta} \right\rvert}_{\theta^{\star}} = 0$ or reaches some stationary conditions $F (\theta^{\star}, \phi) = 0$, such as [iMAML](https://arxiv.org/abs/1909.04630) and [DEQ](https://arxiv.org/abs/1909.01377).
+By treating the solution $\theta^{\prime}$ as an implicit function of $\phi$, the idea of IG is to directly get analytical best-response derivatives $\partial \theta^{\prime} (\phi) / \partial \phi$ by [implicit function theorem](https://en.wikipedia.org/wiki/Implicit_function_theorem).
+This is suitable for algorithms when the inner-level optimal solution is achieved ${\left. \frac{\partial F (\theta, \phi)}{\partial \theta} \right\rvert}_{\theta=\theta^{\prime}} = 0$ or reaches some stationary conditions $F (\theta^{\prime}, \phi) = 0$, such as [iMAML](https://arxiv.org/abs/1909.04630) and [DEQ](https://arxiv.org/abs/1909.01377).
 TorchOpt offers both functional and OOP APIs for supporting both [conjugate gradient-based](https://arxiv.org/abs/1909.04630) and [Neumann series-based](https://arxiv.org/abs/1911.02590) IG methods.
 Refer to the example [iMAML](https://github.com/waterhorse1/torchopt/tree/readme/examples/iMAML) and the notebook [Implicit Gradient](tutorials/5_Implicit_Differentiation.ipynb) for more guidances.
 
@@ -218,7 +231,7 @@ def solve(params, meta_params, data):
     # Forward optimization process for params
     return output
 
-# Define params, meta params and get data
+# Define params, meta_params and get data
 params, meta_prams, data = ..., ..., ...
 optimal_params = solve(params, meta_params, data)
 loss = outer_loss(optimal_params)
@@ -262,10 +275,10 @@ class InnerNet(ImplicitMetaGradientModule, linear_solver):
 meta_params, data = ..., ...
 inner_net = InnerNet(meta_params)
 
-# Solve for inner-loop process related with the meta parameters
+# Solve for inner-loop process related with the meta-parameters
 optimal_inner_net = inner_net.solve(data)
 
-# Get outer loss and solve for meta gradient
+# Get outer loss and solve for meta-gradient
 loss = outer_loss(optimal_inner_net)
 meta_grads = torch.autograd.grad(loss, meta_params)
 ```
@@ -301,10 +314,10 @@ def forward(params, batch, labels):
 
 We take the optimizer as a whole instead of separating it into several basic operators (e.g., `sqrt` and `div`).
 Therefore, by manually writing the forward and backward functions, we can perform the symbolic reduction.
-In addition, we can store some intermediate data that can be reused during the back-propagation.
+In addition, we can store some intermediate data that can be reused during the backpropagation.
 We write the accelerated functions in C++ OpenMP and CUDA, bind them by [`pybind11`](https://github.com/pybind/pybind11) to allow they can be called by Python, and then we define the forward and backward behavior using `torch.autograd.Function`.
 Users can use by simply setting the `use_accelerated_op` flag as `True`.
-Refer to the corresponding sections in tutorials [Functional Optimizer](tutorials/1_Functional_Optimizer.ipynb) and [Meta Optimizer](tutorials/3_Meta_Optimizer.ipynb)
+Refer to the corresponding sections in tutorials [Functional Optimizer](tutorials/1_Functional_Optimizer.ipynb) and [Meta-Optimizer](tutorials/3_Meta_Optimizer.ipynb)
 
 ```python
 optimizer = torchopt.MetaAdam(model, lr, use_accelerated_op=True)
@@ -329,7 +342,7 @@ For more guidance and comparison results, please refer to our open source projec
 ## Visualization
 
 Complex gradient flow in meta-learning brings in a great challenge for managing the gradient flow and verifying the correctness of it.
-TorchOpt provides a visualization tool that draw variable (e.g., network parameters or meta parameters) names on the gradient graph for better analyzing.
+TorchOpt provides a visualization tool that draw variable (e.g., network parameters or meta-parameters) names on the gradient graph for better analyzing.
 The visualization tool is modified from [`torchviz`](https://github.com/szagoruyko/pytorchviz).
 Refer to the example [visualization code](examples/visualize.py) and the tutorial notebook [Visualization](tutorials/2_Visualization.ipynb) for more details.
 
@@ -346,10 +359,10 @@ Compared with [`torchviz`](https://github.com/szagoruyko/pytorchviz), TorchOpt f
 
 In the [`examples`](examples) directory, we offer several examples of functional optimizer and light-weight meta-learning examples with TorchOpt.
 
-- [Model Agnostic Meta Learning (MAML) - Supervised Learning](https://arxiv.org/abs/1703.03400) (ICML 2017)
+- [Model-Agnostic Meta-Learning (MAML) - Supervised Learning](https://arxiv.org/abs/1703.03400) (ICML 2017)
 - [Learning to Reweight Examples for Robust Deep Learning](https://arxiv.org/abs/1803.09050) (ICML 2018)
-- [Model Agnostic Meta Learning (MAML) - Reinforcement Learning](https://arxiv.org/abs/1703.03400) (ICML 2017)
-- [Meta Gradient Reinforcement Learning (MGRL)](https://arxiv.org/abs/1805.09801) (NeurIPS 2018)
+- [Model-Agnostic Meta-Learning (MAML) - Reinforcement Learning](https://arxiv.org/abs/1703.03400) (ICML 2017)
+- [Meta-Gradient Reinforcement Learning (MGRL)](https://arxiv.org/abs/1805.09801) (NeurIPS 2018)
 - [Learning through opponent learning process (LOLA)](https://arxiv.org/abs/1709.04326) (AAMAS 2018)
 - [Meta-Learning with Implicit Gradients](https://arxiv.org/abs/1909.04630) (NeurIPS 2019)
 
@@ -408,10 +421,6 @@ See [CHANGELOG.md](CHANGELOG.md).
 
 --------------------------------------------------------------------------------
 
-## The Team
-
-TorchOpt is a work by [Jie Ren](https://github.com/JieRen98), [Xidong Feng](https://github.com/waterhorse1), [Bo Liu](https://github.com/Benjamin-eecs), [Xuehai Pan](https://github.com/XuehaiPan), [Luo Mai](https://luomai.github.io) and [Yaodong Yang](https://www.yangyaodong.com).
-
 ## Citing TorchOpt
 
 If you find TorchOpt useful, please cite it in your publications.
@@ -424,6 +433,10 @@ If you find TorchOpt useful, please cite it in your publications.
   year    = {2022}
 }
 ```
+
+## The Team
+
+TorchOpt is a work by [Jie Ren](https://github.com/JieRen98), [Xidong Feng](https://github.com/waterhorse1), [Bo Liu](https://github.com/Benjamin-eecs), [Xuehai Pan](https://github.com/XuehaiPan), [Luo Mai](https://luomai.github.io), and [Yaodong Yang](https://www.yangyaodong.com).
 
 ## License
 
