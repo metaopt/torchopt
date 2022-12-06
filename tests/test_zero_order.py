@@ -13,27 +13,13 @@
 # limitations under the License.
 # ==============================================================================
 
-import copy
-from collections import OrderedDict
-from types import FunctionType
-from typing import Tuple
-
 import functorch
-import jax
-import jax.numpy as jnp
-import jaxopt
-import numpy as np
-import optax
-import pytest
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.types
-from torch.utils import data
 
 import helpers
 import torchopt
-from torchopt import pytree
 
 
 BATCH_SIZE = 8
@@ -59,7 +45,6 @@ class FcNet(nn.Module):
 )
 def test_zero_order(dtype: torch.dtype, lr: float, method: str, sigma: float) -> None:
     helpers.seed_everything(42)
-    np_dtype = helpers.dtype_torch2numpy(dtype)
     input_size = 32
     output_size = 1
     batch_size = BATCH_SIZE
