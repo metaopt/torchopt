@@ -68,7 +68,7 @@ dependencies:
 
   # Documentation
   - sphinx >= 5.2.1
-  - sphinx_rtd_theme
+  - sphinx-rtd-theme
   - sphinx-autobuild
   - sphinx-copybutton
   - sphinxcontrib-spelling
