@@ -58,9 +58,7 @@ from setproctitle import getproctitle, setproctitle
 
 import torchopt
 import torchopt.distributed as todist
-
-
-from helpers.omniglot_loaders import OmniglotNShot  # isort: skip
+from helpers.omniglot_loaders import OmniglotNShot
 
 
 mpl.use('Agg')

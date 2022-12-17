@@ -52,9 +52,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 
 import torchopt
-
-
-from helpers.omniglot_loaders import OmniglotNShot  # isort: skip
+from helpers.omniglot_loaders import OmniglotNShot
 
 
 mpl.use('Agg')
