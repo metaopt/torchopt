@@ -14,7 +14,6 @@
 # ==============================================================================
 
 # pylint: disable=all
-# isort: off
 
 from typing import Tuple
 

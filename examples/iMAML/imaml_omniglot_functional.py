@@ -34,10 +34,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 import torchopt
+from helpers.omniglot_loaders import OmniglotNShot
 from torchopt import pytree
-
-
-from helpers.omniglot_loaders import OmniglotNShot  # isort: skip
 
 
 mpl.use('Agg')

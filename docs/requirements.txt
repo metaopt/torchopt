@@ -15,6 +15,6 @@ sphinx-autodoc-typehints >= 1.19.2
 IPython
 ipykernel
 pandoc
-myst_nb
+myst-nb
 docutils
 matplotlib

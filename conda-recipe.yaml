@@ -68,7 +68,7 @@ dependencies:
 
   # Documentation
   - sphinx >= 5.2.1
-  - sphinx_rtd_theme
+  - sphinx-rtd-theme
   - sphinx-autobuild
   - sphinx-copybutton
   - sphinxcontrib-spelling
@@ -85,7 +85,7 @@ dependencies:
   - pytest
   - pytest-cov
   - pytest-xdist
-  - isort
+  - isort >= 5.11.0
   - conda-forge::black-jupyter >= 22.6.0
   - pylint >= 2.15.0
   - mypy >= 0.990

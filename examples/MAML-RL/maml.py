@@ -22,9 +22,7 @@ import torch
 import torch.optim as optim
 
 import torchopt
-
-
-from helpers.policy import CategoricalMLPPolicy  # isort: skip
+from helpers.policy import CategoricalMLPPolicy
 
 
 TASK_NUM = 40
