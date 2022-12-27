@@ -3,10 +3,12 @@
 TorchOpt
 --------
 
-**TorchOpt** is a high-performance optimizer library built upon `PyTorch <https://pytorch.org>`_ for easy implementation of functional optimization and gradient-based meta-learning. It consists of two main features:
+**TorchOpt** is an efficient library for differentiable optimization built upon `PyTorch <https://pytorch.org>`_.
+Torchopt is
 
-* TorchOpt provides functional optimizer which enables `JAX-like <https://github.com/google/jax>`_ composable functional optimizer for PyTorch. With TorchOpt, one can easily conduct neural network optimization in PyTorch with functional style optimizer, similar to `Optax <https://github.com/deepmind/optax>`_ in JAX.
-* With the design of functional programming, TorchOpt provides efficient, flexible, and easy-to-implement differentiable optimizer for gradient-based meta-learning research. It largely reduces the efforts required to implement sophisticated meta-learning algorithms.
+* **Comprehensive**: TorchOpt provides three differentiation mode - explicit differentiation, implicit differentiation and zero-order differentiation for handling different differentiable optimization situations.
+* **Flexible**: TorchOpt provides both functional and objective-oriented API for user different preferences. Users can implement differentiable optimization in JAX-like or PyTorch-like style.
+* **Efficient**: TorchOpt provides (1) CPU/GPU acceleration differentiable optimizer (2) RPC-based distributed training framework (3) Fast Tree Operations, to largely increase the training efficiency for bi-level optimization problem.
 
 Installation
 ------------

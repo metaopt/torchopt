@@ -108,7 +108,7 @@ templates_path = ['_templates']
 #
 # source_suffix = ['.rst', '.md']
 source_suffix = '.rst'
-
+autosummary_generate = True
 # The master toctree document.
 master_doc = 'index'
 

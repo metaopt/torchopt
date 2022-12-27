@@ -23,7 +23,7 @@ Custom solvers
 .. autosummary::
   :toctree: _autosummary
 
-    torchopt.implicit_diff.custom_root
+    torchopt.diff.implicit.custom_root
 
 torchopt provides the ``custom_root`` decorators,
 for easily adding implicit differentiation on top of any existing solver.
