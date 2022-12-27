@@ -40,6 +40,7 @@ check_pip_install = $(PYTHON) -m pip show $(1) &>/dev/null || (cd && $(PYTHON) -
 check_pip_install_extra = $(PYTHON) -m pip show $(1) &>/dev/null || (cd && $(PYTHON) -m pip install $(2) --upgrade)
 
 pylint-install:
+	$(call check_pip_install,pyenchant)
 	$(call check_pip_install_extra,pylint,pylint[spelling])
 
 flake8-install:
@@ -81,6 +82,9 @@ pytest-install:
 	$(call check_pip_install,pytest-cov)
 	$(call check_pip_install,pytest-xdist)
 
+test-install:
+	$(PYTHON) -m pip install --requirement tests/requirements.txt
+
 cpplint-install:
 	$(call check_pip_install,cpplint)
 
@@ -107,7 +111,8 @@ pytest: pytest-install
 		--cov="$(PROJECT_NAME)" --cov-report=xml --cov-report=term-missing \
 		$(PYTESTOPTS) .
 
-test: pytest
+test: test-install
+	make pytest
 
 # Python linters
 
