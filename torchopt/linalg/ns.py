@@ -35,7 +35,7 @@ def _ns_solve(
     maxiter: int,
     alpha: Optional[float] = None,
 ) -> torch.Tensor:
-    """Uses Neumann Series Matrix Inversion Approximation to solve ``Ax = b``."""
+    """Use Neumann Series Matrix Inversion Approximation to solve ``Ax = b``."""
     if A.ndim != 2 or A.shape[0] != A.shape[1]:
         raise ValueError(f'`A` must be a square matrix, but has shape: {A.shape}')
 
@@ -63,7 +63,7 @@ def ns(
     *,
     alpha: Optional[float] = None,
 ) -> TensorTree:
-    """Uses Neumann Series Matrix Inversion Approximation to solve ``Ax = b``.
+    """Use Neumann Series Matrix Inversion Approximation to solve ``Ax = b``.
 
     Args:
         A: (tensor or tree of tensors or function)
@@ -112,7 +112,7 @@ def ns(
 
 
 def _ns_inv(A: torch.Tensor, maxiter: int, alpha: Optional[float] = None):
-    """Uses Neumann Series iteration to solve ``A^{-1}``."""
+    """Use Neumann Series iteration to solve ``A^{-1}``."""
     if A.ndim != 2 or A.shape[0] != A.shape[1]:
         raise ValueError(f'`A` must be a square matrix, but has shape: {A.shape}')
 
@@ -138,7 +138,7 @@ def ns_inv(
     *,
     alpha: Optional[float] = None,
 ) -> TensorTree:
-    """Uses Neumann Series iteration to solve ``A^{-1}``.
+    """Use Neumann Series iteration to solve ``A^{-1}``.
 
     Args:
         A: (tensor or tree of tensors or function)

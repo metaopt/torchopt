@@ -45,7 +45,7 @@ class SGD(Optimizer):
         nesterov: bool = False,
         maximize: bool = False,
     ) -> None:
-        r"""The :meth:`init` function.
+        r"""Initialize the SGD optimizer.
 
         Args:
             params: (iterable of torch.Tensor)

@@ -51,7 +51,7 @@ def _solve_cg(
     init: Optional[TensorTree] = None,
     **kwargs,
 ) -> TensorTree:
-    """Solves ``A x = b`` using conjugate gradient.
+    """Solve ``A x = b`` using conjugate gradient.
 
     This assumes that ``A`` is a hermitian, positive definite matrix.
 
@@ -75,7 +75,7 @@ def _solve_cg(
 
 
 def solve_cg(**kwargs):
-    """A wrapper that returns a solver function to solve ``A x = b`` using conjugate gradient.
+    """Return a solver function to solve ``A x = b`` using conjugate gradient.
 
     This assumes that ``A`` is a hermitian, positive definite matrix.
 

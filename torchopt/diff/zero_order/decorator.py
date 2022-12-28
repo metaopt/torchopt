@@ -44,7 +44,7 @@ class WrappedSamplable(Samplable):  # pylint: disable=too-few-public-methods
         self, sample_shape: torch.Size = torch.Size()
     ) -> Union[torch.Tensor, Sequence[Numeric]]:
         # pylint: disable-next=line-too-long
-        """Generates a sample_shape shaped sample or sample_shape shaped batch of samples if the distribution parameters are batched."""
+        """Generate a sample_shape shaped sample or sample_shape shaped batch of samples if the distribution parameters are batched."""
         return self.sample_fn(sample_shape)
 
 
@@ -362,7 +362,7 @@ def zero_order(
     num_samples: int = 1,
     sigma: Numeric = 1.0,
 ) -> Callable[[Callable[..., torch.Tensor]], Callable[..., torch.Tensor]]:
-    """Decorator for applying zero-order differentiation.
+    """Return a decorator for applying zero-order differentiation.
 
     Args:
         distribution: (function or Samplable)

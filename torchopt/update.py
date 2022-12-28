@@ -39,7 +39,7 @@ __all__ = ['apply_updates']
 
 
 def apply_updates(params: Params, updates: Updates, *, inplace: bool = True) -> Params:
-    """Applies an update to the corresponding parameters.
+    """Apply an update to the corresponding parameters.
 
     This is a utility functions that applies an update to a set of parameters, and then returns the
     updated parameters to the caller. As an example, the update may be a gradient transformed by a

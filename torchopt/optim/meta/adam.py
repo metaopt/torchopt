@@ -48,7 +48,7 @@ class MetaAdam(MetaOptimizer):
         maximize: bool = False,
         use_accelerated_op: bool = False,
     ) -> None:
-        """The :meth:`init` function.
+        """Initialize the meta-Adam optimizer.
 
         Args:
             module: (nn.Module)

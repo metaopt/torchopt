@@ -23,7 +23,7 @@ __all__ = ['flip_sign_and_add_weight_decay', 'scale_by_neg_lr']
 
 
 def flip_sign_and_add_weight_decay(weight_decay: float = 0.0, maximize=False):
-    """Flips the sign of the updates and adds weight decay."""
+    """Flip the sign of the updates and adds weight decay."""
     if not 0.0 <= weight_decay:  # pylint: disable=unneeded-not
         raise ValueError(f'Invalid weight_decay value: {weight_decay}')
 
@@ -103,7 +103,7 @@ def flip_sign_and_add_weight_decay(weight_decay: float = 0.0, maximize=False):
 
 
 def scale_by_neg_lr(lr: ScalarOrSchedule):
-    """Scales the updates by the negative learning rate."""
+    """Scale the updates by the negative learning rate."""
     if not (callable(lr) or 0.0 <= lr):
         raise ValueError(f'Invalid learning rate: {lr}')
 

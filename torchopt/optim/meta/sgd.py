@@ -44,7 +44,7 @@ class MetaSGD(MetaOptimizer):
         moment_requires_grad: bool = True,
         maximize: bool = False,
     ) -> None:
-        """The :meth:`init` function.
+        """Initialize the meta-SGD optimizer.
 
         Args:
             module: (nn.Module)

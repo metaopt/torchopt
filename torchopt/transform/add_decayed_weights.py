@@ -44,7 +44,7 @@ __all__ = ['masked', 'add_decayed_weights']
 
 
 class MaskedState(NamedTuple):
-    """Maintains inner transform state for masked transformations."""
+    """Maintain inner transform state for masked transformations."""
 
     inner_state: Any
 

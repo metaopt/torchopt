@@ -47,7 +47,7 @@ if is_available():
     ) -> None:
         """Perform distributed backward pass for local parameters.
 
-        Computes the sum of gradients of given tensors with respect to graph leaves.
+        Compute the sum of gradients of given tensors with respect to graph leaves.
 
         Args:
             autograd_ctx_id: The autograd context id.
@@ -111,7 +111,7 @@ if is_available():
         retain_graph: bool = False,
         allow_unused: bool = False,
     ) -> TupleOfOptionalTensors:
-        """Computes and returns the sum of gradients of outputs with respect to the inputs.
+        """Compute and return the sum of gradients of outputs with respect to the inputs.
 
         Args:
             autograd_ctx_id: The autograd context id.

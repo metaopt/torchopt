@@ -38,7 +38,7 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
     _meta_modules: Dict[str, Optional[nn.Module]]
 
     def __new__(cls, *args, **kwargs) -> 'MetaGradientModule':
-        """Creates a new module instance."""
+        """Create a new module instance."""
         instance = super().__new__(cls)
         flat_args: List[Any]
         flat_args = pytree.tree_leaves((args, kwargs))  # type: ignore[arg-type]
@@ -54,7 +54,7 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
         return instance
 
     def __getattr__(self, name: str) -> Union[torch.Tensor, nn.Module]:
-        """Gets an attribute of the module."""
+        """Get an attribute of the module."""
         if '_parameters' in self.__dict__:
             _parameters = self.__dict__['_parameters']
             if name in _parameters:
@@ -79,7 +79,7 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
 
     # pylint: disable-next=too-many-branches,too-many-statements
     def __setattr__(self, name: str, value: Union[torch.Tensor, nn.Module]) -> None:
-        """Sets an attribute of the module."""
+        """Set an attribute of the module."""
 
         def remove_from(*dicts_or_sets):
             for dict_or_set in dicts_or_sets:
@@ -166,7 +166,7 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
                     object.__setattr__(self, name, value)
 
     def __delattr__(self, name: str) -> None:
-        """Deletes an attribute of the module."""
+        """Delete an attribute of the module."""
         if name in self._parameters:
             del self._parameters[name]
         elif name in self._buffers:
@@ -182,7 +182,7 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
             object.__delattr__(self, name)
 
     def register_parameter(self, name: str, param: Optional[torch.Tensor]) -> None:
-        r"""Adds a parameter to the module.
+        r"""Add a parameter to the module.
 
         The parameter can be accessed as an attribute using given name.
 
@@ -227,7 +227,7 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
         self._parameters[name] = param  # type: ignore
 
     def register_meta_parameter(self, name: str, param: Optional[torch.Tensor]) -> None:
-        r"""Adds a meta-parameter to the module.
+        r"""Add a meta-parameter to the module.
 
         The meta-parameter can be accessed as an attribute using given name.
 
@@ -269,7 +269,7 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
         self._meta_parameters[name] = param
 
     def add_module(self, name: str, module: Optional[nn.Module]) -> None:
-        r"""Adds a child module to the current module.
+        r"""Add a child module to the current module.
 
         The module can be accessed as an attribute using the given name.
 
@@ -301,7 +301,7 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
         self.add_module(name, module)
 
     def add_meta_module(self, name: str, meta_module: Optional[nn.Module]) -> None:
-        r"""Adds a child meta-module to the current module.
+        r"""Add a child meta-module to the current module.
 
         The meta-module can be accessed as an attribute using the given name.
 
@@ -328,7 +328,7 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
         self.add_meta_module(name, meta_module)
 
     def meta_parameters(self, recurse: bool = True) -> Iterator[torch.Tensor]:
-        r"""Returns an iterator over module meta-parameters.
+        r"""Return an iterator over module meta-parameters.
 
         This is typically passed to an optimizer.
 
@@ -354,7 +354,7 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
     def named_meta_parameters(
         self, prefix: str = '', recurse: bool = True
     ) -> Iterator[Tuple[str, torch.Tensor]]:
-        r"""Returns an iterator over module meta-parameters, yielding both the name of the meta-parameter as well as the meta-parameter itself.
+        r"""Return an iterator over module meta-parameters, yielding both the name of the meta-parameter as well as the meta-parameter itself.
 
         Args:
             prefix (str): prefix to prepend to all meta-parameter names.
@@ -385,7 +385,7 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
             yield from meta_module.named_parameters(submodule_prefix, recurse)
 
     def meta_children(self) -> Iterator[nn.Module]:
-        r"""Returns an iterator over immediate children meta-modules.
+        r"""Return an iterator over immediate children meta-modules.
 
         Yields:
             Module: a child meta-module
@@ -394,7 +394,7 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
             yield module
 
     def named_meta_children(self) -> Iterator[Tuple[str, nn.Module]]:
-        r"""Returns an iterator over immediate children meta-modules, yielding both the name of the meta-module as well as the meta-module itself.
+        r"""Return an iterator over immediate children meta-modules, yielding both the name of the meta-module as well as the meta-module itself.
 
         Yields:
             (string, Module): Tuple containing a name and child meta-module
@@ -413,7 +413,7 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
                 yield name, meta_module
 
     def meta_modules(self) -> Iterator[nn.Module]:
-        r"""Returns an iterator over all meta-modules in the network.
+        r"""Return an iterator over all meta-modules in the network.
 
         Yields:
             Module: a meta-module in the network
@@ -427,7 +427,7 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
     def named_meta_modules(
         self, memo: Optional[Set[nn.Module]] = None, prefix: str = '', remove_duplicate: bool = True
     ) -> Iterator[Tuple[str, nn.Module]]:
-        r"""Returns an iterator over all meta-modules in the network, yielding both the name of the meta-module as well as the meta-module itself.
+        r"""Return an iterator over all meta-modules in the network, yielding both the name of the meta-module as well as the meta-module itself.
 
         Args:
             memo: a memo to store the set of meta-modules already added to the result

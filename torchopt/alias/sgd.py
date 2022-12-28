@@ -50,7 +50,7 @@ def sgd(
     moment_requires_grad: bool = False,
     maximize: bool = False,
 ) -> GradientTransformation:
-    """The functional version of the canonical Stochastic Gradient Descent optimizer.
+    """Create a functional version of the canonical Stochastic Gradient Descent optimizer.
 
     This implements stochastic gradient descent. It also includes support for momentum, and nesterov
     acceleration, as these are standard practice when using stochastic gradient descent to train
