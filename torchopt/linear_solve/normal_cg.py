@@ -51,7 +51,7 @@ def _solve_normal_cg(
     init: Optional[TensorTree] = None,
     **kwargs,
 ) -> TensorTree:
-    """Solves the normal equation ``A^T A x = A^T b`` using conjugate gradient.
+    """Solve the normal equation ``A^T A x = A^T b`` using conjugate gradient.
 
     This can be used to solve ``A x = b`` using conjugate gradient when ``A`` is not hermitian,
     positive definite.
@@ -87,7 +87,7 @@ def _solve_normal_cg(
 
 
 def solve_normal_cg(**kwargs):
-    """A wrapper that returns a solver function to solve ``A^T A x = A^T b`` using conjugate gradient.
+    """Return a solver function to solve ``A^T A x = A^T b`` using conjugate gradient.
 
     This can be used to solve ``A x = b`` using conjugate gradient when ``A`` is not hermitian,
     positive definite.

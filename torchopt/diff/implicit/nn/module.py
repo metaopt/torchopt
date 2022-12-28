@@ -49,7 +49,7 @@ def container_context(
     args_containers: Iterable[Dict[str, Optional[torch.Tensor]]],
 ) -> Generator[None, None, None]:
     # pylint: disable-next=line-too-long
-    """A context manager that temporarily updates the containers in ``orig_containers`` with the ones in ``args_containers``."""
+    """Return a context manager that temporarily updates the containers in ``orig_containers`` with the ones in ``args_containers``."""
     if not isinstance(orig_containers, (list, tuple)):
         orig_containers = list(orig_containers)
     orig_containers_backups = [container.copy() for container in orig_containers]
@@ -92,7 +92,7 @@ def make_optimality_from_objective(
 def enable_implicit_gradients(
     cls: Type['ImplicitMetaGradientModule'],
 ) -> Type['ImplicitMetaGradientModule']:
-    """Enables implicit gradients for the :func:`solve` method."""
+    """Enable implicit gradients for the :func:`solve` method."""
     cls_solve = cls.solve
     if getattr(cls_solve, '__implicit_gradients_enabled__', False):
         raise TypeError('Implicit gradients are already enabled for the `solve` method.')
@@ -183,7 +183,7 @@ class ImplicitMetaGradientModule(MetaGradientModule):
     linear_solve: Optional[LinearSolver]
 
     def __init_subclass__(cls, linear_solve: Optional[LinearSolver] = None) -> None:
-        """Validates and initializes the subclass."""
+        """Validate and initialize the subclass."""
         super().__init_subclass__()
         cls.linear_solve = linear_solve
 
@@ -216,7 +216,7 @@ class ImplicitMetaGradientModule(MetaGradientModule):
         enable_implicit_gradients(cls)
 
     def solve(self, *input, **kwargs) -> Any:
-        """Solves the inner optimization problem.
+        """Solve the inner optimization problem.
 
         .. warning::
 
@@ -244,7 +244,7 @@ class ImplicitMetaGradientModule(MetaGradientModule):
         raise NotImplementedError  # update parameters
 
     def optimality(self, *input, **kwargs) -> TensorTree:
-        r"""Computes the optimality residual.
+        r"""Compute the optimality residual.
 
         This method stands for the optimality residual to the optimal parameters after solving the
         inner optimization problem (:meth:`solve`), i.e.:
@@ -286,7 +286,7 @@ class ImplicitMetaGradientModule(MetaGradientModule):
         raise NotImplementedError
 
     def objective(self, *input, **kwargs) -> torch.Tensor:
-        """Computes the objective function value.
+        """Compute the objective function value.
 
         This method is used to calculate the :meth:`optimality` if it is not implemented.
         Otherwise, this method is optional.

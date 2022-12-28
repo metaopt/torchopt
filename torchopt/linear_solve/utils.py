@@ -42,7 +42,7 @@ from torchopt.typing import TensorTree
 def make_rmatvec(
     matvec: Callable[[TensorTree], TensorTree], example_x: TensorTree
 ) -> Callable[[TensorTree], TensorTree]:
-    """Returns a function that computes ``rmatvec(y) = A.T @ y`` from ``matvec(x) = A @ x``."""
+    """Return a function that computes ``rmatvec(y) = A.T @ y`` from ``matvec(x) = A @ x``."""
     _, vjp, *_ = functorch.vjp(matvec, example_x)
 
     return lambda y: vjp(y)[0]
@@ -51,10 +51,10 @@ def make_rmatvec(
 def make_normal_matvec(
     matvec: Callable[[TensorTree], TensorTree]
 ) -> Callable[[TensorTree], TensorTree]:
-    """Returns a function that computes ``normal_matvec(y) = A.T @ A @ y`` from ``matvec(x) = A @ x``."""
+    """Return a function that computes ``normal_matvec(y) = A.T @ A @ y`` from ``matvec(x) = A @ x``."""
 
     def normal_matvec(y: TensorTree) -> TensorTree:
-        """Computes ``A.T @ A @ y`` from ``matvec(x) = A @ x``."""
+        """Compute ``A.T @ A @ y`` from ``matvec(x) = A @ x``."""
         matvec_y, vjp, *_ = functorch.vjp(matvec, y)
         return vjp(matvec_y)[0]
 
@@ -64,10 +64,10 @@ def make_normal_matvec(
 def make_ridge_matvec(
     matvec: Callable[[TensorTree], TensorTree], ridge: float = 0.0
 ) -> Callable[[TensorTree], TensorTree]:
-    """Returns a function that computes ``ridge_matvec(y) = A.T @ A @ y + ridge * y`` from ``matvec(x) = A @ x``."""
+    """Return a function that computes ``ridge_matvec(y) = A.T @ A @ y + ridge * y`` from ``matvec(x) = A @ x``."""
 
     def ridge_matvec(y: TensorTree) -> TensorTree:
-        """Computes ``A.T @ A @ v + ridge * v`` from ``matvec(x) = A @ x``."""
+        """Compute ``A.T @ A @ v + ridge * v`` from ``matvec(x) = A @ x``."""
         return pytree.tree_add_scalar_mul(matvec(y), y, alpha=ridge)
 
     return ridge_matvec
@@ -81,7 +81,7 @@ def materialize_matvec(
     Callable[[TensorTree], TensorTree],
     Callable[[TensorTree], TensorTree],
 ]:
-    """Materializes the matrix ``A`` used in ``matvec(x) = A @ x``."""
+    """Materialize the matrix ``A`` used in ``matvec(x) = A @ x``."""
     x_flat, treespec = pytree.tree_flatten(x)
     shapes = tuple(t.shape for t in x_flat)
 

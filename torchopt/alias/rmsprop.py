@@ -53,7 +53,7 @@ def rmsprop(
     nesterov: bool = False,
     maximize: bool = False,
 ) -> GradientTransformation:
-    """The functional version of the RMSProp optimizer.
+    """Create a functional version of the RMSProp optimizer.
 
     RMSProp is an SGD variant with learning rate adaptation. The *learning rate* used for each
     weight is scaled by a suitable estimate of the magnitude of the gradients on previous steps.

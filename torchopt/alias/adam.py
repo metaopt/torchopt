@@ -54,7 +54,7 @@ def adam(
     maximize: bool = False,
     use_accelerated_op: bool = False,
 ) -> GradientTransformation:
-    """The functional Adam optimizer.
+    """Create a functional version of the Adam optimizer.
 
     Adam is an SGD variant with learning rate adaptation. The *learning rate* used for each weight
     is computed from estimates of first- and second-order moments of the gradients (using suitable

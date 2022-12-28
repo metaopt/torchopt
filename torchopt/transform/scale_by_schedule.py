@@ -45,7 +45,7 @@ __all__ = ['scale_by_schedule']
 
 
 class ScaleByScheduleState(NamedTuple):
-    """Maintains count for scale scheduling."""
+    """Maintain count for scale scheduling."""
 
     count: SequenceOfTensors  # type: ignore
 

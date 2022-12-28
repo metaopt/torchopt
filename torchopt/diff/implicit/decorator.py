@@ -417,7 +417,7 @@ def custom_root(
     [Callable[..., Union[TensorOrTensors, Tuple[TensorOrTensors, Any]]]],
     Callable[..., Union[TensorOrTensors, Tuple[TensorOrTensors, Any]]],
 ]:
-    """Decorator for adding implicit differentiation to a root solver.
+    """Return a decorator for adding implicit differentiation to a root solver.
 
     This wrapper should be used as a decorator:
 

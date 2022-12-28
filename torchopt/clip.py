@@ -36,7 +36,7 @@ def clip_grad_norm(
     norm_type: Union[float, int] = 2.0,
     error_if_nonfinite: bool = False,
 ) -> GradientTransformation:
-    """Clips gradient norm of an iterable of parameters.
+    """Clip gradient norm of an iterable of parameters.
 
     Args:
         max_norm (float or int): The maximum absolute value for each element in the update.

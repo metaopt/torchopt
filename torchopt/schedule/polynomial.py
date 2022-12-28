@@ -49,7 +49,7 @@ def polynomial_schedule(
     transition_steps: int,
     transition_begin: int = 0,
 ) -> Schedule:
-    """Constructs a schedule with polynomial transition from init to end value.
+    """Construct a schedule with polynomial transition from init to end value.
 
     Args:
         init_value: Initial value for the scalar to be annealed.

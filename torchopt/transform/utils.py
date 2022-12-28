@@ -75,7 +75,7 @@ def tree_map_flat_(
 
 
 def inc_count(updates: Updates, count: TensorTree) -> TensorTree:
-    """Increments int counter by one.
+    """Increment int counter by one.
 
     Returns:
         A counter incremented by one, or :data:`INT64_MAX` if the maximum precision is reached.

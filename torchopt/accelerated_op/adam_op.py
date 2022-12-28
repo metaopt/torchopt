@@ -35,11 +35,11 @@ class AdamOp:  # pylint: disable=too-few-public-methods
 
         @staticmethod
         def jvp(ctx: Any, *grad_inputs: Any) -> Any:
-            """Defines a formula for differentiating the operation with forward mode automatic differentiation."""
+            """Define a formula for differentiating the operation with forward mode automatic differentiation."""
 
         @staticmethod
         def forward(ctx: Any, *args: Any, **kwargs: Any) -> Any:
-            """Performs the operation."""
+            """Perform the operation."""
             updates, mu, b1 = args
             new_mu = adam_op.forward_mu(updates, mu, b1)
             ctx.save_for_backward(updates, mu)
@@ -49,7 +49,7 @@ class AdamOp:  # pylint: disable=too-few-public-methods
         @staticmethod
         def backward(ctx: Any, *args: Any) -> Any:
             # pylint: disable-next=line-too-long
-            """Defines a formula for differentiating the operation with backward mode automatic differentiation (alias to the :meth:`vjp` method)."""
+            """Define a formula for differentiating the operation with backward mode automatic differentiation (alias to the :meth:`vjp` method)."""
             dmu = args[0]
             updates, mu = ctx.saved_tensors
             b1 = ctx.b1
@@ -61,11 +61,11 @@ class AdamOp:  # pylint: disable=too-few-public-methods
 
         @staticmethod
         def jvp(ctx: Any, *grad_inputs: Any) -> Any:
-            """Defines a formula for differentiating the operation with forward mode automatic differentiation."""
+            """Define a formula for differentiating the operation with forward mode automatic differentiation."""
 
         @staticmethod
         def forward(ctx: Any, *args: Any, **kwargs: Any) -> Any:
-            """Performs the operation."""
+            """Perform the operation."""
             updates, nu, b2 = args
             new_nu = adam_op.forward_nu(updates, nu, b2)
             ctx.save_for_backward(updates, nu)
@@ -75,7 +75,7 @@ class AdamOp:  # pylint: disable=too-few-public-methods
         @staticmethod
         def backward(ctx: Any, *args: Any) -> Any:
             # pylint: disable-next=line-too-long
-            """Defines a formula for differentiating the operation with backward mode automatic differentiation (alias to the :meth:`vjp` function)."""
+            """Define a formula for differentiating the operation with backward mode automatic differentiation (alias to the :meth:`vjp` function)."""
             dnu = args[0]
             updates, nu = ctx.saved_tensors
             b2 = ctx.b2
@@ -87,11 +87,11 @@ class AdamOp:  # pylint: disable=too-few-public-methods
 
         @staticmethod
         def jvp(ctx: Any, *grad_inputs: Any) -> Any:
-            """Defines a formula for differentiating the operation with forward mode automatic differentiation."""
+            """Define a formula for differentiating the operation with forward mode automatic differentiation."""
 
         @staticmethod
         def forward(ctx: Any, *args: Any, **kwargs: Any) -> Any:
-            """Performs the operation."""
+            """Perform the operation."""
             new_mu, new_nu, (b1, b2, eps, eps_root, count) = args
             new_updates = adam_op.forward_updates(new_mu, new_nu, b1, b2, eps, eps_root, count)
             ctx.save_for_backward(new_updates, new_mu, new_nu)
@@ -101,7 +101,7 @@ class AdamOp:  # pylint: disable=too-few-public-methods
         @staticmethod
         def backward(ctx: Any, *args: Any) -> Any:
             # pylint: disable-next=line-too-long
-            """Defines a formula for differentiating the operation with backward mode automatic differentiation (alias to the :meth:`vjp` function)."""
+            """Define a formula for differentiating the operation with backward mode automatic differentiation (alias to the :meth:`vjp` function)."""
             dupdates = args[0]
             updates, new_mu, new_nu = ctx.saved_tensors
             b1, b2, _, _, count = ctx.others
@@ -118,7 +118,7 @@ class AdamOp:  # pylint: disable=too-few-public-methods
         eps_root: float = 0.0,
         inplace: bool = True,
     ) -> None:
-        """The :meth:`__init__` function."""
+        """Initialize the Adam operator."""
         self.b1 = b1
         self.b2 = b2
         self.eps = eps
@@ -128,7 +128,7 @@ class AdamOp:  # pylint: disable=too-few-public-methods
     def __call__(
         self, mu: torch.Tensor, nu: torch.Tensor, updates: Optional[torch.Tensor], count: int
     ) -> Tuple[torch.Tensor, torch.Tensor, Optional[torch.Tensor]]:
-        """The :meth:`__call__` function."""
+        """Apply the Adam operator."""
         if updates is None:
             return mu, nu, None
         if updates.is_cuda:

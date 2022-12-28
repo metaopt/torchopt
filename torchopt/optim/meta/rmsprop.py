@@ -47,7 +47,7 @@ class MetaRMSProp(MetaOptimizer):
         nesterov: bool = False,
         maximize: bool = False,
     ) -> None:
-        """The :meth:`init` function.
+        """Initialize the meta-RMSProp optimizer.
 
         Args:
             module: (nn.Module)
