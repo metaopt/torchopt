@@ -44,6 +44,16 @@ We provide a `conda <https://github.com/conda/conda>`_ environment recipe to ins
 
     conda activate torchopt
 
+.. toctree::
+    :maxdepth: 1
+    :caption: Documentation
+
+    basics/basics.rst
+    optimizer/optim.rst
+    explicit_diff/explicit_diff.rst
+    implicit_diff/implicit_diff.rst
+    zero_order_diff/zero_order_diff.rst
+    distributed/distributed.rst
 
 .. toctree::
     :caption: Getting Started
