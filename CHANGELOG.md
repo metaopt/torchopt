@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-
+- Add object-oriented modules support for zero-order differentiation by [@XuehaiPan](https://github.com/XuehaiPan) in [#125](https://github.com/metaopt/torchopt/pull/125).
 
 ### Changed
 
