@@ -31,7 +31,7 @@ class Optimizer:
     """A base class for classic optimizers that similar to :class:`torch.optim.Optimizer`."""
 
     def __init__(self, params: Iterable[torch.Tensor], impl: GradientTransformation) -> None:
-        r"""The :meth:`init` function.
+        r"""Initialize the optimizer.
 
         Args:
             params (iterable of torch.Tensor): An iterable of :class:`torch.Tensor`\s. Specifies
@@ -55,7 +55,7 @@ class Optimizer:
         self.add_param_group(params)
 
     def zero_grad(self, set_to_none: bool = False) -> None:
-        r"""Sets the gradients of all optimized :class:`torch.Tensor`\s to zero.
+        r"""Set the gradients of all optimized :class:`torch.Tensor`\s to zero.
 
         The behavior is similar to :meth:`torch.optim.Optimizer.zero_grad`.
 
@@ -81,11 +81,11 @@ class Optimizer:
         pytree.tree_map_(f, self.param_groups)  # type: ignore[arg-type]
 
     def state_dict(self) -> Tuple[OptState, ...]:
-        """Returns the state of the optimizer."""
+        """Return the state of the optimizer."""
         return tuple(self.state_groups)
 
     def load_state_dict(self, state_dict: Sequence[OptState]) -> None:
-        """Loads the optimizer state.
+        """Load the optimizer state.
 
         Args:
             state_dict: Optimizer state. Should be an object returned from a call to
@@ -94,7 +94,7 @@ class Optimizer:
         self.state_groups[:] = list(state_dict)
 
     def step(self, closure: Optional[Callable[[], torch.Tensor]] = None) -> Optional[torch.Tensor]:
-        """Performs a single optimization step.
+        """Perform a single optimization step.
 
         The behavior is similar to :meth:`torch.optim.Optimizer.step`.
 

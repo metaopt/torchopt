@@ -23,7 +23,7 @@ from torchopt.base import EmptyState, GradientTransformation
 def nan_to_num(
     nan: float = 0.0, posinf: Optional[float] = None, neginf: Optional[float] = None
 ) -> GradientTransformation:
-    """Replaces updates with values ``nan`` / ``+inf`` / ``-inf`` to the given numbers.
+    """Replace updates with values ``nan`` / ``+inf`` / ``-inf`` to the given numbers.
 
     Returns:
         An ``(init_fn, update_fn)`` tuple.

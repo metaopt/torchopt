@@ -47,7 +47,7 @@ class Adam(Optimizer):
         maximize: bool = False,
         use_accelerated_op: bool = False,
     ) -> None:
-        r"""The :meth:`init` function.
+        r"""Initialize the Adam optimizer.
 
         Args:
             params: (iterable of torch.Tensor)

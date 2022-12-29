@@ -40,7 +40,7 @@ __all__ = ['chain', 'chain_flat']
 
 
 def chain(*transformations: GradientTransformation) -> GradientTransformation:
-    """Applies a list of chainable update transformations.
+    """Apply a list of chainable update transformations.
 
     Given a sequence of chainable transforms, :func:`chain` returns an :func:`init_fn` that
     constructs a ``state`` by concatenating the states of the individual transforms, and returns an
@@ -61,7 +61,7 @@ def chain(*transformations: GradientTransformation) -> GradientTransformation:
 
 
 def chain_flat(*transformations: GradientTransformation) -> GradientTransformation:
-    """Wraps around the inner transformations that manipulates the flattened tree structure (:class:``list``).
+    """Wrap around the inner transformations that manipulate the flattened tree structure (:class:``list``).
 
     Args:
         *transformations:

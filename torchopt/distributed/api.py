@@ -336,7 +336,7 @@ def remote_sync_call(
     reducer: Optional[Callable[[Iterable[T]], U]] = None,
     timeout: Optional[float] = UNSET_RPC_TIMEOUT,
 ) -> Union[List[T], U]:
-    """Synchronously do an RPC on remote workers and return the result to the current worker.
+    """Do an RPC synchronously on remote workers and return the result to the current worker.
 
     Args:
         func (Callable[..., T]): The function to call.
@@ -369,7 +369,7 @@ def parallelize_async(
     reducer: Optional[Callable[[Iterable[T]], U]] = None,
     timeout: Optional[float] = UNSET_RPC_TIMEOUT,
 ) -> Callable[[Callable[..., T]], Callable[..., Union[Future[List[T]], Future[U]]]]:
-    """Decorator for parallelizing a function.
+    """Return a decorator for parallelizing a function.
 
     This decorator can be used to parallelize a function call across multiple workers. The
     function will be called asynchronously on remote workers. The decorated function will
@@ -427,7 +427,7 @@ def parallelize(
     reducer: Optional[Callable[[Iterable[T]], U]] = None,
     timeout: Optional[float] = UNSET_RPC_TIMEOUT,
 ) -> Callable[[Callable[..., T]], Callable[..., Union[List[T], U]]]:
-    """Decorator for parallelizing a function.
+    """Return a decorator for parallelizing a function.
 
     This decorator can be used to parallelize a function call across multiple workers.
 

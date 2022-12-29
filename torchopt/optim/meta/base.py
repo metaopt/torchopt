@@ -33,7 +33,7 @@ class MetaOptimizer:
     """The base class for high-level differentiable optimizers."""
 
     def __init__(self, module: nn.Module, impl: GradientTransformation) -> None:
-        """The :meth:`init` function.
+        """Initialize the meta-optimizer.
 
         Args:
             module: (nn.Module)

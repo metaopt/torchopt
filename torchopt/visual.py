@@ -39,7 +39,7 @@ SAVED_PREFIX = '_saved_'
 
 
 def get_fn_name(fn, show_attrs, max_attr_chars):
-    """Returns function name."""
+    """Return function name."""
     name = str(type(fn).__name__)
     if not show_attrs:
         return name
@@ -85,7 +85,7 @@ def make_dot(
     show_saved: bool = False,
     max_attr_chars: int = 50,
 ) -> Digraph:
-    """Produces Graphviz representation of PyTorch autograd graph.
+    """Produce Graphviz representation of PyTorch autograd graph.
 
     If a node represents a backward function, it is gray. Otherwise, the node represents a tensor
     and is either blue, orange, or green:

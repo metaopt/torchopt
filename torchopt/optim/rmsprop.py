@@ -49,7 +49,7 @@ class RMSProp(Optimizer):
         nesterov: bool = False,
         maximize: bool = False,
     ) -> None:
-        r"""The `init` function.
+        r"""Initialize the RMSProp optimizer.
 
         Args:
             params: (iterable of torch.Tensor)

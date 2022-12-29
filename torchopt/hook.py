@@ -26,17 +26,17 @@ __all__ = ['zero_nan_hook', 'nan_to_num_hook', 'register_hook']
 
 
 def zero_nan_hook(g: torch.Tensor) -> torch.Tensor:
-    """A zero ``nan`` hook to replace ``nan`` with zero."""
+    """Replace ``nan`` with zero."""
     return g.nan_to_num(nan=0.0)
 
 
 def nan_to_num_hook(
     nan: float = 0.0, posinf: Optional[float] = None, neginf: Optional[float] = None
 ) -> Callable[[torch.Tensor], torch.Tensor]:
-    """Returns a ``nan`` to num hook to replace ``nan`` / ``+inf`` / ``-inf`` with the given numbers."""
+    """Return a ``nan`` to num hook to replace ``nan`` / ``+inf`` / ``-inf`` with the given numbers."""
 
     def hook(g: torch.Tensor) -> torch.Tensor:
-        """A hook to replace ``nan`` / ``+inf`` / ``-inf`` with the given numbers."""
+        """Replace ``nan`` / ``+inf`` / ``-inf`` with the given numbers."""
         return g.nan_to_num(nan=nan, posinf=posinf, neginf=neginf)
 
     return hook

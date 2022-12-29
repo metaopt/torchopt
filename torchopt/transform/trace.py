@@ -47,7 +47,7 @@ __all__ = ['trace']
 
 
 class TraceState(NamedTuple):
-    """Holds an aggregation of past updates."""
+    """Hold an aggregation of past updates."""
 
     trace: Params
 

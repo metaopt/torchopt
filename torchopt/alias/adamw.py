@@ -55,7 +55,7 @@ def adamw(
     maximize: bool = False,
     use_accelerated_op: bool = False,
 ) -> GradientTransformation:
-    """Adam with weight decay regularization.
+    """Create a functional version of the Adam optimizer with weight decay regularization.
 
     AdamW uses weight decay to regularize learning towards small weights, as
     this leads to better generalization. In SGD you can also use L2 regularization

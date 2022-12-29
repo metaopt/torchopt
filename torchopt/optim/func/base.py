@@ -41,7 +41,7 @@ class FuncOptimizer:  # pylint: disable=too-few-public-methods
     """
 
     def __init__(self, impl: GradientTransformation, *, inplace: bool = False) -> None:
-        """The :meth:`init` function.
+        """Initialize the functional optimizer wrapper.
 
         Args:
             impl (GradientTransformation): A low level optimizer function, it could be a optimizer
