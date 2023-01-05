@@ -19,7 +19,7 @@ repos:
       - id: debug-statements
       - id: double-quote-string-fixer
   - repo: https://github.com/PyCQA/isort
-    rev: v5.11.3
+    rev: 5.11.4
     hooks:
       - id: isort
         stages: [commit, push, manual]
@@ -51,5 +51,18 @@ repos:
           (?x)(
             ^examples/|
             ^tests/|
+            ^setup.py$
+          )
+  - repo: https://github.com/pycqa/pydocstyle
+    rev: 6.2.2
+    hooks:
+      - id: pydocstyle
+        additional_dependencies: ['.[toml]']
+        exclude: |
+          (?x)(
+            ^.github/|
+            ^examples/|
+            ^tests/|
+            ^docs/source/conf.py$|
             ^setup.py$
           )
