@@ -24,17 +24,22 @@ TorchOpt Types
 .. autoclass:: Updates
     :members:
 
-Pytrees
+PyTrees
 -------
 
-`Pytrees <https://optree.readthedocs.io/en/latest/>`_ are an essential
-concept in torchopt. They can be thought as a generalization of vectors.
-They are a way to structure parameters or weights using tuples and
-dictionaries. Many solvers in torchopt have native support for pytrees.
+`PyTrees <https://github.com/metaopt/optree#pytrees>`_ are an essential concept in TorchOpt.
+They can be thought as a generalization of vectors.
+They are a way to structure parameters or weights using tuples and dictionaries.
+Many solvers in TorchOpt have native support for pytrees.
 
 Half precision
 ----------------
 
-torchopt uses single (32-bit) floating precision by default. However, for some
-algorithms, this may not be enough. Double (64-bit) floating precision can be
-enabled by adding the following at the beginning of the file::
+torchopt uses single (32-bit) floating precision (``torch.float32``) by default.
+However, for some algorithms, this may not be enough.
+Double (64-bit) floating precision (``torch.float64``) can be enabled by adding the following lines at the beginning of the file:
+
+.. code-block:: python
+
+    import torch
+    torch.set_default_dtype(torch.float64)

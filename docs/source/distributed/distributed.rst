@@ -1,2 +1,2 @@
-Distributed
-===========
+Distributed Training
+====================

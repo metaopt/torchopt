@@ -1,3 +1,2 @@
-
 Explicit Gradient differentiation
 =================================
