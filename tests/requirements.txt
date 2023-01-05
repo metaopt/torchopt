@@ -19,7 +19,7 @@ flake8
 flake8-bugbear
 # https://github.com/PyCQA/doc8/issues/112
 doc8 < 1.0.0a0
-pydocstyle
+pydocstyle[toml]
 pyenchant
 cpplint
 pre-commit
