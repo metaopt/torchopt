@@ -18,9 +18,3 @@ help:
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
 %: Makefile
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
-
-clean:
-	rm -rf $(BUILDDIR)/*
-	find . -depth -type d -name "build" -exec rm -r "{}" +
-	find . -depth -type d -name "auto_examples" -exec rm -r "{}" +
-	find . -depth -type d -name "_autosummary" -exec rm -r "{}" +

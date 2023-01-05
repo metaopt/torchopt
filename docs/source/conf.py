@@ -19,7 +19,7 @@
 
 # pylint: disable=all
 
-# -- Path setup --------------------------------------------------------------
+# -- Path setup ----------------------------------------------------------------
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -62,7 +62,7 @@ else:
     sphinx_autodoc_typehints._LOGGER.logger.addFilter(RecursiveForwardRefFilter())
 
 
-# -- Project information -----------------------------------------------------
+# -- Project information -------------------------------------------------------
 
 project = 'TorchOpt'
 copyright = '2022 MetaOPT Team'
@@ -71,7 +71,7 @@ author = 'TorchOpt Contributors'
 # The full version, including alpha/beta/rc tags
 release = get_version()
 
-# -- General configuration ---------------------------------------------------
+# -- General configuration -----------------------------------------------------
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
@@ -108,7 +108,7 @@ templates_path = ['_templates']
 #
 # source_suffix = ['.rst', '.md']
 source_suffix = '.rst'
-autosummary_generate = True
+
 # The master toctree document.
 master_doc = 'index'
 
@@ -129,8 +129,9 @@ spelling_word_list_filename = ['spelling_wordlist.txt']
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'default'
 
-# -- Options for autodoc -----------------------------------------------------
+# -- Options for autodoc -------------------------------------------------------
 
+autosummary_generate = True
 autodoc_default_options = {
     'member-order': 'bysource',
     'undoc-members': True,
@@ -141,16 +142,20 @@ autodoc_default_options = {
 autoclass_content = 'both'
 simplify_optional_unions = False
 
-# -- Options for bibtex -----------------------------------------------------
+# -- Options for autosummary ---------------------------------------------------
+
+autosummary_generate = True
+
+# -- Options for bibtex --------------------------------------------------------
 
 bibtex_bibfiles = ['references.bib']
 
-# -- Options for myst -------------------------------------------------------
+# -- Options for myst ----------------------------------------------------------
 
 nb_execution_mode = 'force'
 nb_execution_allow_errors = False
 
-# -- Options for katex ------------------------------------------------------
+# -- Options for katex ---------------------------------------------------------
 
 # See: https://sphinxcontrib-katex.readthedocs.io/en/0.4.1/macros.html
 latex_macros = r"""
@@ -164,7 +169,7 @@ katex_options = 'macros: {' + katex_macros + '}'
 # Add LaTeX macros for LATEX builder
 latex_elements = {'preamble': latex_macros}
 
-# -- Options for HTML output -------------------------------------------------
+# -- Options for HTML output ---------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
@@ -203,27 +208,27 @@ def setup(app):
 #
 # html_sidebars = {}
 
-# -- Source code links -------------------------------------------------------
+# -- Source code links ---------------------------------------------------------
 
 extlinks = {
     'gitcode': ('https://github.com/metaopt/torchopt/blob/HEAD/%s', '%s'),
     'issue': ('https://github.com/metaopt/torchopt/issues/%s', 'issue %s'),
 }
 
-# -- Extension configuration -------------------------------------------------
+# -- Extension configuration ---------------------------------------------------
 
-# -- Options for napoleon extension ------------------------------------------
+# -- Options for napoleon extension --------------------------------------------
 
 napoleon_include_init_with_doc = True
 napoleon_include_private_with_doc = False
 napoleon_include_special_with_doc = True
 
-# -- Options for intersphinx extension ---------------------------------------
+# -- Options for intersphinx extension -----------------------------------------
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
 
-# -- Options for todo extension ----------------------------------------------
+# -- Options for todo extension ------------------------------------------------
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
