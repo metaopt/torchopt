@@ -54,7 +54,6 @@ We provide a `conda <https://github.com/conda/conda>`_ environment recipe to ins
     implicit_diff/implicit_diff.rst
     zero_order_diff/zero_order_diff.rst
     distributed/distributed.rst
-    dasdads
 
 .. toctree::
     :caption: Getting Started
