@@ -6,25 +6,12 @@ This section describes useful concepts across TorchOpt.
 TorchOpt Types
 --------------
 
-.. currentmodule:: torchopt.base
+.. autosummary::
+    :toctree: ../_autosummary
 
-.. autoclass:: GradientTransformation
-    :members:
-
-.. autoclass:: TransformInitFn
-    :members:
-
-.. autoclass:: TransformUpdateFn
-    :members:
-
-.. autoclass:: OptState
-    :members:
-
-.. autoclass:: Params
-    :members:
-
-.. autoclass:: Updates
-    :members:
+    torchopt.base.GradientTransformation
+    torchopt.base.TransformInitFn
+    torchopt.base.TransformUpdateFn
 
 PyTrees
 -------

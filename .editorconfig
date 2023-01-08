@@ -28,5 +28,8 @@ x-soft-wrap-text = true
 [Makefile]
 indent_style = tab
 
+[*.sh]
+indent_style = tab
+
 [*.{cpp,h,cu,cuh}]
 indent_size = 2
