@@ -378,13 +378,15 @@ Requirements
 - (Optional) For visualizing computation graphs
   - [Graphviz](https://graphviz.org/download) (for Linux users use `apt/yum install graphviz` or `conda install -c anaconda python-graphviz`)
 
-**Please follow the instructions at <https://pytorch.org> to install PyTorch in your Python environment first.** Then run the following command to install TorchOpt from PyPI ([![PyPI](https://img.shields.io/pypi/v/torchopt?label=pypi&logo=pypi)](https://pypi.org/project/torchopt) / ![Status](https://img.shields.io/pypi/status/torchopt?label=status)):
+**Please follow the instructions at <https://pytorch.org> to install PyTorch in your Python environment first.**
+Then run the following command to install TorchOpt from PyPI ([![PyPI](https://img.shields.io/pypi/v/torchopt?label=pypi&logo=pypi)](https://pypi.org/project/torchopt) / ![Status](https://img.shields.io/pypi/status/torchopt?label=status)):
 
 ```bash
 pip3 install torchopt
 ```
 
-If the minimum version of PyTorch is not satisfied, `pip` will install/upgrade it for you. Please be careful about the `torch` build for CPU / CUDA support (e.g. `cpu`, `cu116`, `cu117`). You may need to specify the extra index URL for the `torch` package:
+If the minimum version of PyTorch is not satisfied, `pip` will install/upgrade it for you. Please be careful about the `torch` build for CPU / CUDA support (e.g. `cpu`, `cu116`, `cu117`).
+You may need to specify the extra index URL for the `torch` package:
 
 ```bash
 pip3 install torchopt --extra-index-url https://download.pytorch.org/whl/cu117
@@ -400,7 +402,8 @@ cd torchopt
 pip3 install .
 ```
 
-We provide a [conda](https://github.com/conda/conda) environment recipe to install the build toolchain such as `cmake`, `g++`, and `nvcc`:
+We provide a [conda](https://github.com/conda/conda) environment recipe to install the build toolchain such as `cmake`, `g++`, and `nvcc`.
+You can use the following commands with [`conda`](https://github.com/conda/conda) / [`mamba`](https://github.com/mamba-org/mamba) to create a new isolated environment.
 
 ```bash
 git clone https://github.com/metaopt/torchopt.git

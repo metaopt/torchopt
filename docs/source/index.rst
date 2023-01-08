@@ -18,7 +18,8 @@ Requirements:
 * `PyTorch <https://pytorch.org>`_
 * (Optional) `Graphviz <https://graphviz.org/download>`_
 
-Please follow the instructions at https://pytorch.org to install PyTorch in your Python environment first. Then run the following command to install TorchOpt from PyPI:
+Please follow the instructions at https://pytorch.org to install PyTorch in your Python environment first.
+Then run the following command to install TorchOpt from PyPI:
 
 .. code-block:: bash
 
@@ -32,7 +33,8 @@ You can also build shared libraries from source, use:
     cd torchopt
     pip3 install .
 
-We provide a `conda <https://github.com/conda/conda>`_ environment recipe to install the build toolchain such as `cmake`, `g++`, and `nvcc`:
+We provide a `conda <https://github.com/conda/conda>`_ environment recipe to install the build toolchain such as `cmake`, `g++`, and `nvcc`.
+You can use the following commands with `conda <https://github.com/conda/conda>`_ / `mamba <https://github.com/mamba-org/mamba>`_ to create a new isolated environment.
 
 .. code-block:: bash
 

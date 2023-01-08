@@ -12,7 +12,7 @@ Before contributing to TorchOpt, please follow the instructions below to setup.
 
     git remote add upstream git@github.com:metaopt/torchopt.git
 
-2. Setup a development environment via `conda <https://github.com/conda/conda>`_:
+2. Setup a development environment via `conda <https://github.com/conda/conda>`_ / `mamba <https://github.com/mamba-org/mamba>`_:
 
 .. code-block:: bash
 
