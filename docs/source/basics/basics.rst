@@ -37,7 +37,7 @@ Many solvers in TorchOpt have native support for pytrees.
 Floating-Point Precision
 ------------------------
 
-torchopt uses single (32-bit) floating precision (``torch.float32``) by default.
+TorchOpt uses single (32-bit) floating precision (``torch.float32``) by default.
 However, for some algorithms, this may not be enough.
 Double (64-bit) floating precision (``torch.float64``) can be enabled by adding the following lines at the beginning of the file:
 
