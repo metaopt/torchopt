@@ -206,7 +206,6 @@ warn_unused_ignores = true
 
 [tool.pydocstyle]
 convention = "google"
-match-dir = '^(?!(docs))[^\.].*'
 
 [tool.doc8]
 max-line-length = 500
