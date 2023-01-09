@@ -61,7 +61,7 @@ However, MPI-based parallelism has some drawbacks:
   It may not fit into the SPMD paradigm.
   It is hard to implement the distributed Autograd engine on top of MPI.
 
-- **MPI only communicates the value of tensors and not the gradients**.
+- **MPI only communicates the value of tensors but not the gradients and graphs**.
   This is a limitation of MPI.
   The users need to handle the gradients manually cross multiple workers.
   For example, receive the gradients from other workers and put them as ``grad_outputs`` to function |torch.autograd.grad|_.
@@ -69,18 +69,54 @@ However, MPI-based parallelism has some drawbacks:
 .. |torch.autograd.grad| replace:: ``torch.autograd.grad``
 .. _torch.autograd.grad: https://pytorch.org/docs/stable/generated/torch.autograd.grad.html
 
-Remote Procedure Call (RPC) and Distributed Autograd
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Distributed Autograd with Remote Procedure Call (RPC)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To address the needs of meta-learning tasks, which have complex and dynamic nature of the training process.
 TorchOpt uses PyTorch |Distributed RPC|_ to implement the distributed training mechanism.
-PyTorch implements the RPC communication operations with appropriate ``rpcSendBackward`` and ``rpcRecvBackward`` functions.
+PyTorch implements the RPC communication operations with appropriate ``RpcSendBackward`` and ``RpcRecvBackward`` functions.
+The `Distributed Autograd Engine <https://pytorch.org/docs/stable/rpc.html#distributed-autograd-framework>`_ automatically calls these functions to send and receive the gradients between workers.
 
 With **RPC** and **Distributed Autograd**, TorchOpt distributes a **differentiable optimization** job across multiple workers and executes the workers in parallel.
 It allows the users to build the whole computation graph (both forward an backward) cross multiple workers.
 The users can wrap code in the distributed Autograd module and achieve substantial speedup in training time with only a few changes in existing training scripts.
 
-Here is an example of distributed autograd graph using RPC:
+Here is an example of distributed autograd graph using RPC from `Distributed Backward Pass <https://pytorch.org/docs/stable/rpc/distributed_autograd.html#distributed-backward-pass>`_ documentation:
+
+.. code-block:: python
+    :emphasize-lines: 13, 18, 28, 31
+
+    import torch
+    import torch.distributed.autograd as dist_autograd
+    import torch.distributed.rpc as rpc
+
+    def my_add(t1, t2):
+        return torch.add(t1, t2)
+
+    # On worker 0:
+
+    # Setup the autograd context. Computations that take
+    # part in the distributed backward pass must be within
+    # the distributed autograd context manager.
+    with dist_autograd.context() as context_id:
+        t1 = torch.rand((3, 3), requires_grad=True)
+        t2 = torch.rand((3, 3), requires_grad=True)
+
+        # Perform some computation remotely.
+        t3 = rpc.rpc_sync("worker1", my_add, args=(t1, t2))
+
+        # Perform some computation locally based on remote result.
+        t4 = torch.rand((3, 3), requires_grad=True)
+        t5 = torch.mul(t3, t4)
+
+        # Compute some loss.
+        loss = t5.sum()
+
+        # Run the backward pass.
+        dist_autograd.backward(context_id, [loss])
+
+        # Retrieve the gradients from the context.
+        dist_autograd.get_gradients(context_id)
 
 .. image:: https://pytorch.org/docs/stable/_images/distributed_dependencies_computed.png
 
@@ -110,6 +146,7 @@ Initialization and Synchronization
 Users can wrap their program entry function with decorator :func:`torchopt.distributed.auto_init_rpc`:
 
 .. code-block:: python
+    :emphasize-lines: 13
 
     import torchopt.distributed as todist
 
@@ -121,6 +158,7 @@ Users can wrap their program entry function with decorator :func:`torchopt.distr
 
     def worker_init_fn():
         # set process title, seeding, etc.
+        ...
 
     @todist.auto_init_rpc(worker_init_fn)
     def main():
@@ -198,8 +236,13 @@ TorchOpt provides some decorators to execute the decorated function on specific 
 For example, use :func:`torchopt.distributed.rank_zero_only` to execute the function only on the main worker (``worker0``), such as saving checkpoints or logging the results:
 
 .. code-block:: python
+    :emphasize-lines: 3, 7, 11
 
     import torchopt.distributed as todist
+
+    @todist.rank_non_zero_only
+    def greet():
+        print(f'Greetings from worker(rank={todist.get_rank()})!')
 
     @todist.rank_zero_only
     def save_checkpoint(model):
@@ -209,8 +252,10 @@ For example, use :func:`torchopt.distributed.rank_zero_only` to execute the func
     def log_results(writer, results):
         ...
 
-    @todist.auto_init_rpc(worker_init_fn)
+    @todist.auto_init_rpc()
     def main():
+        greet()
+
         ...
 
         for epoch in range(args.epochs):
@@ -240,6 +285,7 @@ The asynchronized version :func:`remote_async_call` function returns a |torch.Fu
 Users can distribute their workload (a function) to a specific worker by:
 
 .. code-block:: python
+    :emphasize-lines: 12
 
     import torchopt.distributed as todist
 
@@ -248,7 +294,12 @@ Users can distribute their workload (a function) to a specific worker by:
         ...
 
         # Execute the function on the remote worker (asynchronously)
-        future = todist.remote_async_call(func, args=(arg1, arg2, ...), kwargs={...}, partitioner=worker_id)
+        future = todist.remote_async_call(
+            func,
+            args=(arg1, arg2, ...),
+            kwargs={...},
+            partitioner=worker_id,
+        )
 
         # Wait for the result
         result = future.wait()
@@ -258,6 +309,7 @@ Users can distribute their workload (a function) to a specific worker by:
 or
 
 .. code-block:: python
+    :emphasize-lines: 12
 
     import torchopt.distributed as todist
 
@@ -266,7 +318,12 @@ or
         ...
 
         # Execute the function on the remote worker
-        result = todist.remote_sync_call(func, args=(arg1, arg2, ...), kwargs={...}, partitioner=worker_id)
+        result = todist.remote_sync_call(
+            func,
+            args=(arg1, arg2, ...),
+            kwargs={...},
+            partitioner=worker_id,
+        )
 
         ...
 
@@ -302,6 +359,7 @@ We provide some predefined partitioners and reducers.
 Users can combine the :func:`torchopt.distributed.batch_partitioner` and :func:`torchopt.distributed.mean_reducer` to achieve the distributed data parallelism (DDP) easily:
 
 .. code-block:: python
+    :emphasize-lines: 18, 19
 
     import torchopt.distributed as todist
 
@@ -330,6 +388,7 @@ We also provide a :func:`torchopt.distributed.dim_partitioner` to partition the 
 While implementing the **Model-Agnostic Meta-Learning** (MAML) :cite:`MAML` algorithm, users can use this to parallel the training for the inner loop:
 
 .. code-block:: python
+    :emphasize-lines: 29, 30
 
     import torchopt.distributed as todist
 
@@ -384,6 +443,7 @@ TorchOpt offers wrappers to parallelize the function execution on the remote wor
 It makes the function execution on the remote workers more transparent to the users and makes the code structure more clear.
 
 .. code-block:: python
+    :emphasize-lines: 3, 9, 10, 11, 12
 
     import torchopt.distributed as todist
 
@@ -430,3 +490,243 @@ Distributed Autograd
     torchopt.distributed.autograd.get_gradients
     torchopt.distributed.autograd.backward
     torchopt.distributed.autograd.grad
+
+In this section, we will introduce the distributed autograd system.
+Please refer to `Autograd mechanics <https://pytorch.org/docs/stable/notes/autograd.html>`_ and `Distributed Autograd Design <https://pytorch.org/docs/stable/rpc/distributed_autograd.html>`_ first before going through this section.
+
+Recap: Autograd mechanics in single-process training
+""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+For single-process training, the autograd engine will automatically track the operations on forward pass and compute the gradients on backward pass.
+For each operation, if the input tensors has ``requires_grad=True`` set, the output tensor will have a ``grad_fn`` attribute to trace the computation graph.
+On backward pass, the autograd engine will traverse the computation graph from the output tensors to the input tensors and compute the gradients for each operation.
+
+The |torch.autograd.grad|_ function will compute the gradients of the given ``outputs`` with respect to the given ``inputs``.
+
+.. code-block:: python
+
+    import torch
+
+    model = build_model()
+    loss = compute_loss(model, data)
+
+    params = tuple(model.parameters())
+    grads = torch.autograd.grad(loss, params)
+
+    print(grads)
+
+In practice, users usually use the PyTorch Autograd Engine with ``loss.backward()`` (or |torch.autograd.backward|_) and optimizers:
+
+.. code-block:: python
+
+    import torch
+    import torch.optim as optim
+
+    model = build_model()
+    optimizer = optim.SGD(model.parameters(), lr=lr)
+
+    loss = compute_loss(model, data)
+
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+
+Compare to |torch.autograd.grad|_, the |torch.autograd.backward|_ function will sum and update the ``.grad`` attribute of the parameters.
+
+.. |torch.autograd.backward| replace:: ``torch.autograd.backward``
+.. _torch.autograd.backward: https://pytorch.org/docs/stable/generated/torch.autograd.backward.html
+
+RPC-based Distributed Autograd
+""""""""""""""""""""""""""""""
+
+PyTorch RPC framework implements the communication ``send-recv`` operations with appropriate backward functions (``RpcSendBackward`` and ``RpcRecvBackward``).
+They can be tracked by the distributed Autograd engine like the single-process program we discussed above.
+
+The only difference between the single-process and distributed training is that users need to explicitly create a **distributed Autograd context** and wrap around the forward and backward passes.
+
+.. code-block:: python
+    :emphasize-lines: 4, 9, 12
+
+    import torch
+    import torch.distributed.autograd as dist_autograd
+
+    with dist_autograd.context() as context_id:
+        # Forward pass
+        loss = ...  # e.g. remote calls
+
+        # Backward pass
+        dist_autograd.backward(context_id, [loss])
+
+        # Retrieve the gradients from the context.
+        grad_dict = dist_autograd.get_gradients(context_id)  # type: Dict[Tensor, Tensor]
+
+.. warning::
+
+    Sending |torch.nn.Parameter|_ over RPC will automatically detach from the Autograd graph.
+    This is an intentional behavior of the PyTorch framework, because the parameters are always leaf tensors.
+    The leaf tensors will not have ``grad_fn`` attribute and thus cannot be tracked by the Autograd engine.
+
+    To make the graph can be properly tracked, users should convert the parameters to tensors before sending them over RPC.
+    For example, explicitly ``clone()`` the parameters to tensors before take them as arguments of the RPC call.
+
+    .. code-block:: python
+
+        import torch
+        import torch.distributed.rpc as rpc
+
+        def compute_loss(param):
+            return param.mean()
+
+        param = torch.nn.Parameter(torch.randn(2, 2), requires_grad=True)
+
+        # The RPC call will detach the parameter from the Autograd graph on worker1
+        loss1 = rpc.rpc_sync('worker1', compute_loss, args=(param,))
+
+        # The RPC call will keep connection to the parameter in the Autograd graph on worker1
+        loss2 = rpc.rpc_sync('worker1', compute_loss, args=(param.clone(),))
+
+    Users can use :func:`torchopt.module_clone` function to clone the module and convert the parameters to tensors.
+    The tensors will have a ``grad_fn`` attribute ``CloneBackward`` to track the computation graph to the original parameters.
+
+    .. code-block:: python
+
+        import torch
+        import torch.nn as nn
+        import torchopt
+
+        model = nn.Linear(2, 2)
+        tuple(model.parameters())  # -> `nn.Parameter`s
+
+        cloned_model = torchopt.module_clone(model, by='clone')
+        tuple(cloned_model.parameters())  # -> `torch.Tensor`s with `CloneBackward` grad_fn
+
+        def compute_loss(model, batch):
+            ...
+            return loss
+
+        # The RPC call will detach the parameter from the Autograd graph on worker1
+        loss1 = rpc.rpc_sync('worker1', compute_loss, args=(model, batch))
+
+        # The RPC call will keep connection to the parameter in the Autograd graph on worker1
+        loss2 = rpc.rpc_sync('worker1', compute_loss, args=(cloned_model, batch))
+
+.. |torch.nn.Parameter| replace:: ``torch.nn.Parameter``
+.. _torch.nn.Parameter: https://pytorch.org/docs/stable/generated/torch.nn.parameter.Parameter.html
+
+TorchOpt wraps the distributed autograd context and provides a more convenient interface to use.
+
+.. code-block:: python
+    :emphasize-lines: 5, 10
+
+    import torchopt.distributed as todist
+
+    model = build_model()
+
+    with todist.autograd.context() as context_id:
+        # Forward pass
+        loss = ...  # e.g. remote calls
+
+        # Backward pass
+        grads = todist.autograd.grads(context_id, loss, model.parameters())
+
+or
+
+.. code-block:: python
+    :emphasize-lines: 7, 13
+
+    import torch
+    import torchopt.distributed as todist
+
+    model = build_model()
+    optimizer = torch.optim.SGD(model.parameters(), lr=lr)
+
+    with todist.autograd.context() as context_id:
+        # Forward pass
+        loss = ...  # e.g. remote calls
+
+        # Backward pass
+        optimizer.zero_grad()
+        todist.autograd.backward(context_id, loss)
+        optimizer.step()
+
+.. warning::
+
+    The distributed Autograd context is not thread-safe.
+    Users should not use the same context in multiple threads.
+
+Users can update their single-process training code to distributed training code with minimum changes:
+
+#. Add the distributed Autograd context around the forward and backward passes.
+#. Wrap the functions with :func:`torchopt.distributed.parallelize` to enable parallel execution.
+#. Convert the parameters to tensors before sending them over RPC.
+#. Replace the ``torch.autograd`` to ``torchopt.distributed.autograd``.
+
+Here is a full example of converting the single-process training code to distributed training code:
+
+.. code-block:: python
+    :emphasize-lines: 17, 32, 40, 42, 43, 47, 52
+
+    import torch
+    import torch.nn as nn
+    import torchopt.distributed as todist
+
+    def parse_arguments():
+        parser = argparse.ArgumentParser(description='TorchOpt Distributed Training')
+        ...
+
+        args = parser.parse_args()
+        return args
+
+    def worker_init_fn():
+        # set process title, seeding, etc.
+        setproctitle.setproctitle(f'Worker{todist.get_rank()}')
+        torch.manual_seed(args.seed + todist.get_rank())
+
+    @todist.parallelize(partitioner=todist.batch_partitioner, reducer=todist.mean_reducer)
+    def compute_loss(model, batch):
+        device = torch.device(f'cuda:{todist.get_local_rank()}')
+        model = model.to(device)
+        batch = batch.to(device)
+
+        # Compute local loss of the given batch
+        ...
+        return loss.cpu()
+
+    def build_model():
+        return nn.Sequential(
+            ...
+        )
+
+    @todist.rank_zero_only
+    def train(args):
+        model = build_model()
+        optimizer = torch.optim.SGD(model.parameters(), lr=args.lr)
+        train_loader = ...
+
+        for epoch in range(args.epochs):
+            for batch in train_loader:
+                with todist.autograd.context() as context_id:
+                    # Forward pass
+                    cloned_model = todist.module_clone(model, by='clone')
+                    loss = compute_loss(cloned_model, batch)
+
+                    # Backward pass
+                    optimizer.zero_grad()
+                    todist.autograd.backward(context_id, loss)
+
+                    # Update parameters
+                    optimizer.step()
+
+    @todist.auto_init_rpc(worker_init_fn)
+    def main():
+        args = parse_arguments()
+        train(args)
+
+    if __name__ == '__main__':
+        main()
+
+Then, users can use |torchrun|_ to launch the program:
+
+.. code-block:: bash
+
+    torchrun --nnodes=1 --nproc_per_node=8 YOUR_TRAINING_SCRIPT.py (--arg1 ... train script args...)
