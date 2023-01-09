@@ -497,7 +497,7 @@ Please refer to `Autograd mechanics <https://pytorch.org/docs/stable/notes/autog
 Recap: Autograd mechanics in single-process training
 """"""""""""""""""""""""""""""""""""""""""""""""""""
 
-For single-process training, the autograd engine will automatically track the operations on forward pass and compute the gradients on backward pass.
+In single-process training, the autograd engine will automatically track the operations on forward pass and compute the gradients on backward pass.
 For each operation, if the input tensors has ``requires_grad=True`` set, the output tensor will have a ``grad_fn`` attribute to trace the computation graph.
 On backward pass, the autograd engine will traverse the computation graph from the output tensors to the input tensors and compute the gradients for each operation.
 
@@ -562,11 +562,11 @@ The only difference between the single-process and distributed training is that 
 
 .. warning::
 
-    Sending |torch.nn.Parameter|_ over RPC will automatically detach from the Autograd graph.
-    This is an intentional behavior of the PyTorch framework, because the parameters are always leaf tensors.
-    The leaf tensors will not have ``grad_fn`` attribute and thus cannot be tracked by the Autograd engine.
+    Sending |torch.nn.Parameter|_\s over RPC will automatically detach from the Autograd graph.
+    This is an intentional behavior of the PyTorch framework, because the |torch.nn.Parameter|_\s are always leaf node in the graph.
+    The leaf tensors will not have ``grad_fn`` attribute and thus cannot be tracked by the Autograd engine after sending to other workers.
 
-    To make the graph can be properly tracked, users should convert the parameters to tensors before sending them over RPC.
+    To make the graph can be properly tracked across workers, users should convert the |torch.nn.Parameter|_\s to |torch.Tensor|_\s before sending them over RPC.
     For example, explicitly ``clone()`` the parameters to tensors before take them as arguments of the RPC call.
 
     .. code-block:: python
@@ -585,7 +585,7 @@ The only difference between the single-process and distributed training is that 
         # The RPC call will keep connection to the parameter in the Autograd graph on worker1
         loss2 = rpc.rpc_sync('worker1', compute_loss, args=(param.clone(),))
 
-    Users can use :func:`torchopt.module_clone` function to clone the module and convert the parameters to tensors.
+    Users can use :func:`torchopt.module_clone` function to clone the module and convert all its parameters to tensors.
     The tensors will have a ``grad_fn`` attribute ``CloneBackward`` to track the computation graph to the original parameters.
 
     .. code-block:: python
@@ -612,6 +612,8 @@ The only difference between the single-process and distributed training is that 
 
 .. |torch.nn.Parameter| replace:: ``torch.nn.Parameter``
 .. _torch.nn.Parameter: https://pytorch.org/docs/stable/generated/torch.nn.parameter.Parameter.html
+.. |torch.Tensor| replace:: ``torch.Tensor``
+.. _torch.Tensor: https://pytorch.org/docs/stable/tensors.html
 
 TorchOpt wraps the distributed autograd context and provides a more convenient interface to use.
 
