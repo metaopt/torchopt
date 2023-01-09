@@ -49,6 +49,7 @@ repos:
         stages: [commit, push, manual]
         exclude: |
           (?x)(
+            ^docs/|
             ^examples/|
             ^tests/|
             ^setup.py$
@@ -61,8 +62,8 @@ repos:
         exclude: |
           (?x)(
             ^.github/|
+            ^docs/|
             ^examples/|
             ^tests/|
-            ^docs/source/conf.py$|
             ^setup.py$
           )

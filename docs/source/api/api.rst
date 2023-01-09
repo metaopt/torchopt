@@ -146,7 +146,6 @@ Custom solvers
 
 .. autofunction:: custom_root
 
-
 Implicit Meta-Gradient Module
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

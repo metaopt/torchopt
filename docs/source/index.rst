@@ -56,6 +56,7 @@ You can use the following commands with `conda <https://github.com/conda/conda>`
     implicit_diff/implicit_diff.rst
     zero_order_diff/zero_order_diff.rst
     distributed/distributed.rst
+    visualization/visualization.rst
 
 .. toctree::
     :caption: Getting Started

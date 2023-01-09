@@ -142,7 +142,7 @@ clang-format: clang-format-install
 # Documentation
 
 addlicense: addlicense-install
-	addlicense -c $(COPYRIGHT) -ignore tests/coverage.xml -l apache -y 2022 -check $(SOURCE_FOLDERS)
+	addlicense -c $(COPYRIGHT) -ignore tests/coverage.xml -l apache -y 2022-$(shell date +"%Y") -check $(SOURCE_FOLDERS)
 
 docstyle: docs-install
 	make -C docs clean
@@ -166,7 +166,7 @@ format: py-format-install clang-format-install addlicense-install
 	$(PYTHON) -m isort --project $(PROJECT_NAME) $(PYTHON_FILES)
 	$(PYTHON) -m black $(PYTHON_FILES) tutorials
 	$(CLANG_FORMAT) -style=file -i $(CXX_FILES)
-	addlicense -c $(COPYRIGHT) -ignore tests/coverage.xml -l apache -y 2022 $(SOURCE_FOLDERS)
+	addlicense -c $(COPYRIGHT) -ignore tests/coverage.xml -l apache -y 2022-$(shell date +"%Y") $(SOURCE_FOLDERS)
 
 clean-py:
 	find . -type f -name  '*.py[co]' -delete

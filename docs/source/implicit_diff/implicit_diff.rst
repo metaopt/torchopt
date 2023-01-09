@@ -11,9 +11,9 @@ Namely, given
 
 .. math::
 
-    x^\star(\theta) := \underset{x}{\text{argmin}} f(x, \theta),
+    x^{\star} (\theta) := \underset{x}{\mathop{\operatorname{argmin}}} ~ f (x, \theta),
 
-we would like to compute the Jacobian :math:`\partial x^\star(\theta)`.
+we would like to compute the Jacobian :math:`\nabla_{\theta} x^{\star} (\theta)`.
 This is usually done either by implicit differentiation or by autodiff through an algorithm's unrolled iterates.
 
 Custom solvers
@@ -28,4 +28,6 @@ TorchOpt provides the ``custom_root`` decorators, for easily adding implicit dif
 
 .. topic:: Examples
 
-    * :ref:`implicit_diff.py`
+    .. literalinclude:: implicit_diff.py
+        :language: python
+        :linenos:
