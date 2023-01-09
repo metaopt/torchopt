@@ -63,6 +63,7 @@ GradientTransformation
 GradientTransformations
 args
 kwargs
+kwds
 chainable
 adam
 Adam
