@@ -59,6 +59,7 @@ Graphviz
 Autograd
 autograd
 attrs
+GradientTransformation
 GradientTransformations
 args
 kwargs
@@ -78,6 +79,7 @@ Moens
 AdamW
 Loshchilov
 pytree
+pytrees
 booleans
 subtrees
 optimality
@@ -107,7 +109,14 @@ broadcasted
 keepdim
 ndim
 partitioner
+partitioners
 RPC
+rpc
+MPI
+async
+asynchronized
+parallelization
+unaggregated
 maxiter
 str
 bool
@@ -137,6 +146,7 @@ pre
 numerics
 parallelize
 parallelizing
+JAX
 Optax
 func
 subfn
@@ -145,3 +155,8 @@ jvp
 ATen
 samplable
 conj
+TransformInitFn
+TransformUpdateFn
+argmin
+Jacobian
+autodiff
