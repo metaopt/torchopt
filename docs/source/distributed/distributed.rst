@@ -340,6 +340,8 @@ Finally, the caller will get a reference to the result on the local worker.
 
   If the ``partitioner`` is given by a worker ID (:class:`int` or :class:`str`), the function will be executed on the specified worker.
 
+  If the ``partitioner`` is not given, the :func:`torchopt.distributed.batch_partitioner` will be used.
+
 - ``mapper``: the ``func`` argument to be executed on the remote worker.
 - ``reducer`` (optional): aggregation function, takes a list of results from the remote workers and returns the final result.
 
