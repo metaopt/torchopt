@@ -25,6 +25,7 @@ Here are some useful resources to learn more about distributed training:
 - `Remote Reference Protocol <https://pytorch.org/docs/stable/rpc/rref.html#remote-reference-protocol>`_
 - `RPC tutorials <https://pytorch.org/docs/stable/rpc.html#tutorials>`_
 - `Autograd mechanics <https://pytorch.org/docs/stable/notes/autograd.html>`_
+- **Example**: :ref:`Using TorchOpt with Distributed Training <distributed-example>`
 
 ------
 
@@ -79,7 +80,7 @@ The `Distributed Autograd Engine <https://pytorch.org/docs/stable/rpc.html#distr
 
 With **RPC** and **Distributed Autograd**, TorchOpt distributes a **differentiable optimization** job across multiple workers and executes the workers in parallel.
 It allows the users to build the whole computation graph (both forward and backward) across multiple workers.
-The users can wrap code in the distributed autograd module and achieve substantial speedup in training time with only a few changes in existing training scripts.
+The users can wrap code in the distributed autograd module and achieve substantial speedup in training time with only a few changes in existing training scripts. (:ref:`example <distributed-example>`)
 
 Here is an example of distributed autograd graph using RPC from `Distributed Backward Pass <https://pytorch.org/docs/stable/rpc/distributed_autograd.html#distributed-backward-pass>`_ documentation:
 
@@ -667,6 +668,7 @@ Here is a full example of converting the single-process training code to distrib
 
 .. code-block:: python
     :emphasize-lines: 17, 32, 40, 42, 43, 47, 52
+    :name: distributed-example
 
     import torch
     import torch.nn as nn
