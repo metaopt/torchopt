@@ -278,7 +278,7 @@ Remote Procedure Call (RPC)
     torchopt.distributed.remote_sync_call
 
 TorchOpt provides two functions to execute the remote procedure call (RPC) on remote workers.
-The asynchronized version :func:`remote_async_call` function returns a |torch.Future|_ object, and the :func:`remote_sync_call` function executes and returns the result directly.
+The asynchronous version :func:`remote_async_call` function returns a |torch.Future|_ object, and the :func:`remote_sync_call` function executes and returns the result directly.
 
 .. |torch.Future| replace:: ``torch.Future``
 .. _torch.Future: https://pytorch.org/docs/stable/futures.html#torch.futures.Future

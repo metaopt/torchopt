@@ -115,7 +115,6 @@ RPC
 rpc
 MPI
 async
-asynchronized
 parallelization
 unaggregated
 maxiter
