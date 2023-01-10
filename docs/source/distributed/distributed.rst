@@ -79,7 +79,7 @@ PyTorch implements the RPC communication operations with appropriate ``RpcSendBa
 The `Distributed Autograd Engine <https://pytorch.org/docs/stable/rpc.html#distributed-autograd-framework>`_ automatically calls these functions to send and receive the gradients between workers.
 
 With **RPC** and **Distributed Autograd**, TorchOpt distributes a **differentiable optimization** job across multiple workers and executes the workers in parallel.
-It allows the users to build the whole computation graph (both forward and backward) across multiple workers.
+It allows the users to build the whole computation graph (**both forward and backward**) across multiple workers.
 The users can wrap code in the distributed autograd module and achieve substantial speedup in training time with only a few changes in existing training scripts. (:ref:`example <distributed-example>`)
 
 Here is an example of distributed autograd graph using RPC from `Distributed Backward Pass <https://pytorch.org/docs/stable/rpc/distributed_autograd.html#distributed-backward-pass>`_ documentation:
@@ -597,15 +597,15 @@ The only difference between the single-process and distributed training is that 
         import torch.nn as nn
         import torchopt
 
+        def compute_loss(model, batch):
+            ...
+            return loss
+
         model = nn.Linear(2, 2)
         tuple(model.parameters())  # -> `nn.Parameter`s
 
         cloned_model = torchopt.module_clone(model, by='clone')
         tuple(cloned_model.parameters())  # -> `torch.Tensor`s with `CloneBackward` grad_fn
-
-        def compute_loss(model, batch):
-            ...
-            return loss
 
         # The RPC call will detach the parameter from the autograd graph on worker1
         loss1 = rpc.rpc_sync('worker1', compute_loss, args=(model, batch))
