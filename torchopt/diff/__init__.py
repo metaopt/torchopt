@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,3 +16,4 @@
 
 from torchopt.diff import implicit, zero_order
 from torchopt.diff.implicit import ImplicitMetaGradientModule
+from torchopt.diff.zero_order import ZeroOrderGradientModule

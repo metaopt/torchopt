@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 import functorch
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import torch.types
 
 import helpers
@@ -30,20 +31,17 @@ class FcNet(nn.Module):
     def __init__(self, dim, out):
         super().__init__()
         self.fc = nn.Linear(in_features=dim, out_features=out, bias=True)
-        nn.init.ones_(self.fc.weight)
-        nn.init.zeros_(self.fc.bias)
 
     def forward(self, x):
         return self.fc(x)
 
 
 @helpers.parametrize(
-    dtype=[torch.float64, torch.float32],
     lr=[1e-2, 1e-3],
     method=['naive', 'forward', 'antithetic'],
     sigma=[0.01, 0.1, 1],
 )
-def test_zero_order(dtype: torch.dtype, lr: float, method: str, sigma: float) -> None:
+def test_zero_order(lr: float, method: str, sigma: float) -> None:
     helpers.seed_everything(42)
     input_size = 32
     output_size = 1
@@ -59,21 +57,63 @@ def test_zero_order(dtype: torch.dtype, lr: float, method: str, sigma: float) ->
     y = torch.randn(input_size) * coef
     distribution = torch.distributions.Normal(loc=0, scale=1)
 
-    @torchopt.diff.zero_order.zero_order(
+    @torchopt.diff.zero_order(
         distribution=distribution, method=method, argnums=0, sigma=sigma, num_samples=num_samples
     )
     def forward_process(params, fn, x, y):
         y_pred = fn(params, x)
-        loss = torch.mean((y - y_pred) ** 2)
+        loss = F.mse_loss(y_pred, y)
         return loss
 
     optimizer = torchopt.adam(lr=lr)
-    opt_state = optimizer.init(params)
+    opt_state = optimizer.init(params)  # init optimizer
 
     for i in range(num_iterations):
-        opt_state = optimizer.init(params)  # init optimizer
         loss = forward_process(params, fmodel, x, y)  # compute loss
 
         grads = torch.autograd.grad(loss, params)  # compute gradients
         updates, opt_state = optimizer.update(grads, opt_state)  # get updates
         params = torchopt.apply_updates(params, updates)  # update network parameters
+
+
+@helpers.parametrize(
+    lr=[1e-2, 1e-3],
+    method=['naive', 'forward', 'antithetic'],
+    sigma=[0.01, 0.1, 1],
+)
+def test_zero_order_module(lr: float, method: str, sigma: float) -> None:
+    helpers.seed_everything(42)
+    input_size = 32
+    output_size = 1
+    batch_size = BATCH_SIZE
+    coef = 0.1
+    num_iterations = NUM_UPDATES
+    num_samples = 500
+
+    class FcNetWithLoss(
+        torchopt.nn.ZeroOrderGradientModule, method=method, sigma=sigma, num_samples=num_samples
+    ):
+        def __init__(self, dim, out):
+            super().__init__()
+            self.net = FcNet(dim, out)
+            self.loss = nn.MSELoss()
+            self.distribution = torch.distributions.Normal(loc=0, scale=1)
+
+        def forward(self, x, y):
+            return self.loss(self.net(x), y)
+
+        def sample(self, sample_shape=torch.Size()):
+            return self.distribution.sample(sample_shape)
+
+    x = torch.randn(batch_size, input_size) * coef
+    y = torch.randn(input_size) * coef
+    model_with_loss = FcNetWithLoss(input_size, output_size)
+
+    optimizer = torchopt.Adam(model_with_loss.parameters(), lr=lr)
+
+    for i in range(num_iterations):
+        loss = model_with_loss(x, y)  # compute loss
+
+        optimizer.zero_grad()
+        loss.backward()  # compute gradients
+        optimizer.step()  # update network parameters
