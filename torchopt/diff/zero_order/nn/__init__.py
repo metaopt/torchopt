@@ -12,25 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""Zero-Order Gradient."""
+"""The base class for zero-order gradient models."""
 
-import sys as _sys
-from types import ModuleType as _ModuleType
-
-from torchopt.diff.zero_order import nn
-from torchopt.diff.zero_order.decorator import zero_order
-from torchopt.diff.zero_order.nn import ZeroOrderGradientModule
+import torchopt.nn.module  # preload to resolve circular references
+from torchopt.diff.zero_order.nn.module import ZeroOrderGradientModule
 
 
-__all__ = ['zero_order', 'ZeroOrderGradientModule']
+__all__ = ['ZeroOrderGradientModule']
 
-
-class _CallableModule(_ModuleType):  # pylint: disable=too-few-public-methods
-    def __call__(self, *args, **kwargs):
-        return self.zero_order(*args, **kwargs)
-
-
-# Replace entry in sys.modules for this module with an instance of _CallableModule
-_modself = _sys.modules[__name__]
-_modself.__class__ = _CallableModule
-del _sys, _ModuleType, _modself, _CallableModule
+del torchopt
