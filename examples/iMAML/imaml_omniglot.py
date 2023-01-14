@@ -51,6 +51,13 @@ class InnerNet(
         self.net = torchopt.module_clone(meta_net, by='deepcopy', detach_buffers=True)
         self.n_inner_iter = n_inner_iter
         self.reg_param = reg_param
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        with torch.no_grad():
+            for p1, p2 in zip(self.parameters(), self.meta_parameters()):
+                p1.data.copy_(p2.data)
+                p1.detach_().requires_grad_()
 
     def forward(self, x):
         return self.net(x)
@@ -145,20 +152,15 @@ def main():
 
 def train(db, net, meta_opt, epoch, log, args):
     n_train_iter = db.x_train.shape[0] // db.batchsz
-    # Given this module we've created, rip out the parameters and buffers
-    # and return a functional version of the module. `fnet` is stateless
-    # and can be called with `fnet(params, buffers, args, kwargs)`
-    # fnet, params, buffers = functorch.make_functional_with_buffers(net)
+    n_inner_iter = args.inner_steps
+    reg_param = args.reg_params
+    task_num = args.task_num
 
+    inner_nets = [InnerNet(net, n_inner_iter, reg_param) for _ in range(task_num)]
     for batch_idx in range(n_train_iter):
         start_time = time.time()
         # Sample a batch of support and query images and labels.
         x_spt, y_spt, x_qry, y_qry = db.next()
-
-        task_num = x_spt.size(0)
-
-        n_inner_iter = args.inner_steps
-        reg_param = args.reg_params
 
         qry_losses = []
         qry_accs = []
@@ -169,7 +171,8 @@ def train(db, net, meta_opt, epoch, log, args):
             # gradient steps w.r.t. the model's parameters.
             # This adapts the model's meta-parameters to the task.
 
-            inner_net = InnerNet(net, n_inner_iter, reg_param)
+            inner_net = inner_nets[i]
+            inner_net.reset_parameters()
             optimal_inner_net = inner_net.solve(x_spt[i], y_spt[i])
 
             # The final set of adapted parameters will induce some
