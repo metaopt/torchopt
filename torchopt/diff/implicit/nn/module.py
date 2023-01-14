@@ -261,7 +261,8 @@ class ImplicitMetaGradientModule(MetaGradientModule):
 
         Returns:
             A tuple of tensors, the optimality residual to the optimal parameters after solving the
-            inner optimization problem.
+            inner optimization problem. The returned tensors should correspond to the outputs of
+            `tuple(self.parameters())`.
         """  # pylint: disable=line-too-long
         raise NotImplementedError
 
