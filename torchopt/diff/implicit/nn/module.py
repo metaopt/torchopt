@@ -17,49 +17,58 @@
 # pylint: disable=redefined-builtin
 
 import abc
-import contextlib
 import functools
 import itertools
-from typing import Any, Generator, Iterable, Optional, Tuple, Type
+from typing import Any, Iterable, Optional, Tuple, Type
 
 import functorch
 import torch
-import torch.nn as nn
 
-from torchopt import pytree
 from torchopt.diff.implicit.decorator import custom_root
 from torchopt.nn.module import MetaGradientModule
-from torchopt.typing import LinearSolver, ModuleTensorContainers, TensorContainer, TupleOfTensors
-from torchopt.utils import extract_module_containers
+from torchopt.nn.stateless import reparameterize, swap_state
+from torchopt.typing import LinearSolver, TupleOfTensors
 
 
 __all__ = ['ImplicitMetaGradientModule']
 
 
-def update_containers(
-    dst_containers: Iterable[TensorContainer],
-    src_containers: Iterable[TensorContainer],
-) -> None:
-    """Update the tensor containers in ``dst_containers`` with the ones in ``src_containers``."""
-    for src_container, dst_container in zip(src_containers, dst_containers):
-        dst_container.update(src_container)
+def _stateless_objective_fn(
+    __flat_params: TupleOfTensors,
+    __flat_meta_params: TupleOfTensors,
+    __params_names: Iterable[str],
+    __meta_params_names: Iterable[str],
+    self: 'ImplicitMetaGradientModule',
+    *input,
+    **kwargs,
+) -> torch.Tensor:
+    with reparameterize(
+        self,
+        itertools.chain(
+            zip(__params_names, __flat_params),
+            zip(__meta_params_names, __flat_meta_params),
+        ),
+    ):
+        return self.objective(*input, **kwargs)
 
 
-@contextlib.contextmanager
-def container_context(
-    orig_containers: Iterable[TensorContainer],
-    args_containers: Iterable[TensorContainer],
-) -> Generator[None, None, None]:
-    # pylint: disable-next=line-too-long
-    """Return a context manager that temporarily updates the containers in ``orig_containers`` with the ones in ``args_containers``."""
-    if not isinstance(orig_containers, (list, tuple)):
-        orig_containers = list(orig_containers)
-    orig_containers_backups = [container.copy() for container in orig_containers]
-    try:
-        update_containers(orig_containers, args_containers)
-        yield
-    finally:
-        update_containers(orig_containers, orig_containers_backups)
+def _stateless_optimality_fn(
+    __flat_params: TupleOfTensors,
+    __flat_meta_params: TupleOfTensors,
+    __params_names: Iterable[str],
+    __meta_params_names: Iterable[str],
+    self: 'ImplicitMetaGradientModule',
+    *input,
+    **kwargs,
+) -> TupleOfTensors:
+    with reparameterize(
+        self,
+        itertools.chain(
+            zip(__params_names, __flat_params),
+            zip(__meta_params_names, __flat_meta_params),
+        ),
+    ):
+        return self.optimality(*input, **kwargs)
 
 
 def make_optimality_from_objective(
@@ -73,22 +82,19 @@ def make_optimality_from_objective(
         raise TypeError('The objective function is not defined.')
 
     def optimality(self: 'ImplicitMetaGradientModule', *input, **kwargs) -> TupleOfTensors:
-        params_containers = extract_module_containers(self, with_buffers=False)[0]
-        flat_params: TupleOfTensors
-        # pylint: disable-next=line-too-long
-        flat_params, params_containers_treespec = pytree.tree_flatten_as_tuple(params_containers)  # type: ignore[arg-type]
+        params_names, flat_params = tuple(zip(*self.named_parameters()))
+        meta_params_names, flat_meta_params = tuple(zip(*self.named_meta_parameters()))
 
-        def objective_fn(__flat_params: TupleOfTensors, *input, **kwargs) -> torch.Tensor:
-            flat_grad_tracking_params = __flat_params
-            grad_tracking_params_containers: ModuleTensorContainers = pytree.tree_unflatten(  # type: ignore[assignment]
-                params_containers_treespec, flat_grad_tracking_params
-            )
-
-            with container_context(params_containers, grad_tracking_params_containers):
-                return self.objective(*input, **kwargs)
-
-        objective_grad_fn = functorch.grad(objective_fn, argnums=0)
-        flat_grads = objective_grad_fn(flat_params, *input, **kwargs)
+        objective_grad_fn = functorch.grad(_stateless_objective_fn, argnums=0)
+        flat_grads = objective_grad_fn(
+            flat_params,
+            flat_meta_params,
+            params_names,
+            meta_params_names,
+            self,
+            *input,
+            **kwargs,
+        )
         return flat_grads
 
     cls.optimality = optimality  # type: ignore[assignment]
@@ -108,83 +114,39 @@ def enable_implicit_gradients(
     else:
         solve_kwargs = {}
 
-    @functools.wraps(cls_solve)
-    def wrapped(  # pylint: disable=too-many-locals
-        self: 'ImplicitMetaGradientModule', *input, **kwargs
-    ) -> Any:
+    @custom_root(_stateless_optimality_fn, argnums=1, has_aux=True, **solve_kwargs)
+    def stateless_solver_fn(
+        # pylint: disable=unused-argument
+        __flat_params: TupleOfTensors,
+        __flat_meta_params: TupleOfTensors,
+        __params_names: Iterable[str],
+        __meta_params_names: Iterable[str],
+        # pylint: enable=unused-argument
+        self: 'ImplicitMetaGradientModule',
+        *input,
+        **kwargs,
+    ) -> Tuple[TupleOfTensors, Any]:
         """Solve the optimization problem."""
-        params_containers = extract_module_containers(self, with_buffers=False)[0]
-        meta_params_containers = [self._meta_parameters]  # pylint: disable=protected-access
-        for meta_module in self.meta_children():
-            meta_params_containers.extend(
-                extract_module_containers(meta_module, with_buffers=False)[0]
-            )
-        meta_params_containers = tuple(meta_params_containers)
+        output = cls_solve(self, *input, **kwargs)
+        flat_optimal_params = tuple(p.detach_() for p in self.parameters())
+        return flat_optimal_params, output
 
-        flat_params: TupleOfTensors
-        flat_meta_params: TupleOfTensors
-        flat_params, params_containers_treespec = pytree.tree_flatten_as_tuple(
-            params_containers  # type: ignore[arg-type]
-        )
-        flat_meta_params, meta_params_containers_treespec = pytree.tree_flatten_as_tuple(
-            meta_params_containers  # type: ignore[arg-type]
-        )
+    @functools.wraps(cls_solve)
+    def wrapped(self: 'ImplicitMetaGradientModule', *input, **kwargs) -> Any:
+        """Solve the optimization problem."""
+        params_names, flat_params = tuple(zip(*self.named_parameters()))
+        meta_params_names, flat_meta_params = tuple(zip(*self.named_meta_parameters()))
 
-        def clone_detach_(t: torch.Tensor) -> torch.Tensor:
-            if isinstance(t, nn.Parameter):
-                return nn.Parameter(t.clone().detach_(), requires_grad=t.requires_grad)
-            return t.clone().detach_().requires_grad_(t.requires_grad)
-
-        def optimality_fn(
-            __flat_params: TupleOfTensors,
-            __flat_meta_params: TupleOfTensors,
-            *input,
-            **kwargs,
-        ) -> TupleOfTensors:
-            flat_grad_tracking_params = __flat_params
-            grad_tracking_params_containers: ModuleTensorContainers = pytree.tree_unflatten(  # type: ignore[assignment]
-                params_containers_treespec, flat_grad_tracking_params
-            )
-            flat_grad_tracking_meta_params = __flat_meta_params
-            # pylint: disable-next=line-too-long
-            grad_tracking_meta_params_containers: ModuleTensorContainers = pytree.tree_unflatten(  # type: ignore[assignment]
-                meta_params_containers_treespec, flat_grad_tracking_meta_params
-            )
-
-            with container_context(
-                itertools.chain(
-                    params_containers,
-                    meta_params_containers,
-                ),
-                itertools.chain(
-                    grad_tracking_params_containers,
-                    grad_tracking_meta_params_containers,
-                ),
-            ):
-                return self.optimality(*input, **kwargs)
-
-        @custom_root(optimality_fn, argnums=1, has_aux=True, **solve_kwargs)
-        def solver_fn(
-            __flat_params: TupleOfTensors,  # pylint: disable=unused-argument
-            __flat_meta_params: TupleOfTensors,  # pylint: disable=unused-argument
-            *input,
-            **kwargs,
-        ) -> Tuple[TupleOfTensors, Any]:
-            output = cls_solve(self, *input, **kwargs)
-
-            flat_optimal_params: TupleOfTensors = tuple(pytree.tree_leaves(params_containers))  # type: ignore[arg-type]
-            return flat_optimal_params, output
-
-        flat_optimal_params, output = solver_fn(
-            tuple(map(clone_detach_, flat_params)),
+        flat_optimal_params, output = stateless_solver_fn(
+            flat_params,
             flat_meta_params,
+            params_names,
+            meta_params_names,
+            self,
             *input,
             **kwargs,
         )
-        optimal_params_containers: ModuleTensorContainers = pytree.tree_unflatten(  # type: ignore[assignment]
-            params_containers_treespec, flat_optimal_params
-        )
-        update_containers(params_containers, optimal_params_containers)
+        swap_state(self, zip(params_names, flat_optimal_params))
         return output
 
     wrapped.__implicit_gradients_enabled__ = True  # type: ignore[attr-defined]

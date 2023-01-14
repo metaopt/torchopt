@@ -32,7 +32,7 @@ from torchopt.alias import adam, adamw, rmsprop, sgd
 from torchopt.clip import clip_grad_norm
 from torchopt.combine import chain
 from torchopt.hook import register_hook
-from torchopt.optim import SGD, Adam, AdamW, Optimizer, RMSProp, RMSprop, meta
+from torchopt.optim import SGD, Adam, AdamW, Optimizer, RMSProp, RMSprop
 from torchopt.optim.func import FuncOptimizer
 from torchopt.optim.meta import (
     MetaAdam,
@@ -56,7 +56,6 @@ from torchopt.version import __version__
 
 __all__ = [
     'accelerated_op_available',
-    'diff',
     'adam',
     'adamw',
     'rmsprop',
