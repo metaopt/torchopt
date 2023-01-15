@@ -145,3 +145,4 @@ jvp
 ATen
 samplable
 conj
+reparameterize
