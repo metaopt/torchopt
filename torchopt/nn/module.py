@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import torch
 import torch.nn as nn
 
 from torchopt import pytree
+from torchopt.typing import TensorContainer
 
 
 class MetaInputsContainer(NamedTuple):
@@ -34,7 +35,7 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
     """Base class for neural network modules that hold meta-parameters and meta-modules."""
 
     _meta_inputs: MetaInputsContainer
-    _meta_parameters: Dict[str, Optional[torch.Tensor]]
+    _meta_parameters: TensorContainer
     _meta_modules: Dict[str, Optional[nn.Module]]
 
     def __new__(cls, *args, **kwargs) -> 'MetaGradientModule':
@@ -49,7 +50,7 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
             meta_modules.update(meta_module.modules())
 
         instance._meta_inputs = MetaInputsContainer(meta_parameters, meta_modules)
-        instance._meta_parameters: Dict[str, Optional[torch.Tensor]] = OrderedDict()  # type: ignore[misc]
+        instance._meta_parameters: TensorContainer = OrderedDict()  # type: ignore[misc]
         instance._meta_modules: Dict[str, Optional[nn.Module]] = OrderedDict()  # type: ignore[misc]
         return instance
 
@@ -199,9 +200,9 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
         if not isinstance(name, str):
             raise TypeError(f'parameter name should be a string. Got {torch.typename(name)}')
         if '.' in name:
-            raise KeyError("parameter name can't contain \".\"")
+            raise KeyError("parameter name can't contain '.'")
         if name == '':
-            raise KeyError("parameter name can't be empty string \"\"")
+            raise KeyError("parameter name can't be empty string ''")
         if hasattr(self, name) and name not in self._parameters:
             raise KeyError(f"attribute '{name}' already exists")
 
@@ -246,9 +247,9 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
         if not isinstance(name, str):
             raise TypeError(f'meta-parameter name should be a string. Got {torch.typename(name)}')
         if '.' in name:
-            raise KeyError("meta-parameter name can't contain \".\"")
+            raise KeyError("meta-parameter name can't contain '.'")
         if name == '':
-            raise KeyError("meta-parameter name can't be empty string \"\"")
+            raise KeyError("meta-parameter name can't be empty string ''")
         if hasattr(self, name) and name not in self._meta_parameters:
             raise KeyError(f"attribute '{name}' already exists")
 
@@ -285,9 +286,9 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
         if hasattr(self, name) and name not in self._modules:
             raise KeyError(f"attribute '{name}' already exists")
         if '.' in name:
-            raise KeyError(f"module name can't contain \".\", got: {name}")
+            raise KeyError(f"module name can't contain '.', got: '{name}'")
         if name == '':
-            raise KeyError("module name can't be empty string \"\"")
+            raise KeyError("module name can't be empty string ''")
         if module in self._meta_inputs.meta_modules:
             raise ValueError(
                 f"cannot add module that is a meta-module to module '{name}'. "
@@ -317,9 +318,9 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
         if hasattr(self, name) and name not in self._meta_modules:
             raise KeyError(f"attribute '{name}' already exists")
         if '.' in name:
-            raise KeyError(f"meta-module name can't contain \".\", got: {name}")
+            raise KeyError(f"meta-module name can't contain '.', got: '{name}'")
         if name == '':
-            raise KeyError("meta-module name can't be empty string \"\"")
+            raise KeyError("meta-module name can't be empty string ''")
 
         self._meta_modules[name] = meta_module
 

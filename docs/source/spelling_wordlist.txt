@@ -161,3 +161,4 @@ argmin
 Jacobian
 autodiff
 backend
+reparameterize

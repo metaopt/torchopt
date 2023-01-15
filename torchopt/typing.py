@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 # ==============================================================================
 """Typing utilities."""
 
-from typing import Callable, List, Optional, Sequence, Tuple, TypeVar, Union
+from typing import Callable, Dict, List, Optional, Sequence, Tuple, TypeVar, Union
 from typing_extensions import TypeAlias  # Python 3.10+
 from typing_extensions import Protocol, runtime_checkable  # Python 3.8+
 
@@ -59,6 +59,8 @@ __all__ = [
     'SequenceOfOptionalTensors',
     'OptionalTensorOrOptionalTensors',
     'OptionalTensorTree',
+    'TensorContainer',
+    'ModuleTensorContainers',
     'Future',
     'LinearSolver',
     'Device',
@@ -89,6 +91,9 @@ TupleOfOptionalTensors = Tuple[OptionalTensor, ...]
 SequenceOfOptionalTensors = Sequence[OptionalTensor]
 OptionalTensorOrOptionalTensors = Union[OptionalTensor, SequenceOfOptionalTensors]
 OptionalTensorTree: TypeAlias = PyTreeTypeVar('OptionalTensorTree', OptionalTensor)  # type: ignore[valid-type]
+
+TensorContainer = Dict[str, Optional[Tensor]]
+ModuleTensorContainers = Tuple[TensorContainer, ...]
 
 # Parameters are arbitrary nests of `torch.Tensor`.
 Params: TypeAlias = TensorTree

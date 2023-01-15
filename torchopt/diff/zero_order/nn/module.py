@@ -18,16 +18,14 @@
 
 import abc
 import functools
-from typing import Dict, Optional, Sequence, Tuple, Type, Union
+from typing import Sequence, Type, Union
 
 import torch
 import torch.nn as nn
 
-from torchopt import pytree
-from torchopt.diff.implicit.nn.module import container_context
 from torchopt.diff.zero_order.decorator import Method, Samplable, zero_order
+from torchopt.nn.stateless import reparameterize
 from torchopt.typing import Numeric, TupleOfTensors
-from torchopt.utils import extract_module_containers
 
 
 __all__ = ['ZeroOrderGradientModule']
@@ -47,34 +45,17 @@ def enable_zero_order_gradients(
         )
 
     @functools.wraps(cls_forward)
-    def wrapped(  # pylint: disable=too-many-locals
-        self: 'ZeroOrderGradientModule', *input, **kwargs
-    ) -> torch.Tensor:
+    def wrapped(self: 'ZeroOrderGradientModule', *input, **kwargs) -> torch.Tensor:
         """Do the forward pass calculation."""
-        params_containers = extract_module_containers(self, with_buffers=False)[0]
-
-        flat_params: TupleOfTensors
-        flat_params, params_containers_treespec = pytree.tree_flatten_as_tuple(
-            params_containers  # type: ignore[arg-type]
-        )
+        params_names, flat_params = tuple(zip(*self.named_parameters()))
 
         @zero_order(self.sample, argnums=0, method=method, num_samples=num_samples, sigma=sigma)
         def forward_fn(
-            __flat_params: TupleOfTensors,  # pylint: disable=unused-argument
+            __flat_params: TupleOfTensors,
             *input,
             **kwargs,
         ) -> torch.Tensor:
-            flat_grad_tracking_params = __flat_params
-            grad_tracking_params_containers: Tuple[
-                Dict[str, Optional[torch.Tensor]], ...
-            ] = pytree.tree_unflatten(  # type: ignore[assignment]
-                params_containers_treespec, flat_grad_tracking_params
-            )
-
-            with container_context(
-                params_containers,
-                grad_tracking_params_containers,
-            ):
+            with reparameterize(self, zip(params_names, __flat_params)):
                 return cls_forward(self, *input, **kwargs)
 
         return forward_fn(flat_params, *input, **kwargs)
