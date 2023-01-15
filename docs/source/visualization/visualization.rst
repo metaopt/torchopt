@@ -75,6 +75,12 @@ Then let's plot a neural network. Note that we can pass the generator returned b
 The computation graph of meta-learning algorithms will be much more complex. Our visualization tool allows users to take as input the extracted network state for better visualization.
 
 .. code-block:: python
+
+    from IPython.display import display
+    import torch
+    from torch import nn
+    import torchopt
+
     class MetaNet(nn.Module):
         def __init__(self, dim):
             super().__init__()
@@ -113,4 +119,3 @@ The computation graph of meta-learning algorithms will be much more complex. Our
             loss, [net_state_0, net_state_1, {'meta_param': meta_param, 'loss': loss}]
         )
     )
-
