@@ -36,11 +36,24 @@ def swap_state(
     if not isinstance(named_tensors, dict):
         named_tensors = dict(named_tensors)
 
-    def recursive_setattr(mod: nn.Module, path: str, value: torch.Tensor) -> torch.Tensor:
+    submodules = {'': module}
+
+    def get_submodule(path: str) -> nn.Module:
+        """Get submodules recursively."""
+        try:
+            return submodules[path]
+        except KeyError:
+            prefix, dot, attr = path.rpartition('.')
+            if dot:
+                submodule = submodules[path] = getattr(get_submodule(prefix), attr)
+            else:
+                submodule = submodules[path] = getattr(module, attr)
+            return submodule
+
+    def recursive_setattr(path: str, value: torch.Tensor) -> torch.Tensor:
         """Set attribute recursively."""
-        attr, dot, suffix = path.partition('.')
-        if dot:
-            return recursive_setattr(getattr(mod, attr), suffix, value)
+        prefix, _, attr = path.rpartition('.')
+        mod = get_submodule(prefix)
 
         if allow_missing:
             orig = getattr(mod, attr, MISSING)
@@ -63,7 +76,7 @@ def swap_state(
         return orig
 
     orig_named_tensors = {
-        name: recursive_setattr(module, name, tensor) for name, tensor in named_tensors.items()
+        name: recursive_setattr(name, tensor) for name, tensor in named_tensors.items()
     }
     return orig_named_tensors
 
