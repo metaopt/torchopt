@@ -7,7 +7,6 @@ TorchOpt Types
 --------------
 
 .. autosummary::
-    :toctree: ../_autosummary
 
     torchopt.base.GradientTransformation
     torchopt.base.TransformInitFn

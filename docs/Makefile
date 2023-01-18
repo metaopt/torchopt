@@ -16,6 +16,9 @@ help:
 clean:
 	find . -depth -type d -name "_autosummary" -exec rm -r "{}" +
 	@$(SPHINXBUILD) -M clean "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+	rm -rf $(BUILDDIR)/*
+	rm -rf $(BUILDDIR)
+
 
 .PHONY: help Makefile
 

@@ -20,7 +20,6 @@ Custom solvers
 --------------
 
 .. autosummary::
-    :toctree: ../_autosummary
 
     torchopt.diff.implicit.custom_root
 

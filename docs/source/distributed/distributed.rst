@@ -139,7 +139,7 @@ Initialization and Synchronization
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autosummary::
-    :toctree: ../_autosummary
+
 
     torchopt.distributed.auto_init_rpc
     torchopt.distributed.barrier
@@ -194,7 +194,7 @@ Process group information
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autosummary::
-    :toctree: ../_autosummary
+
 
     torchopt.distributed.get_world_info
     torchopt.distributed.get_world_rank
@@ -225,7 +225,7 @@ Worker selection
 ~~~~~~~~~~~~~~~~
 
 .. autosummary::
-    :toctree: ../_autosummary
+
 
     torchopt.distributed.on_rank
     torchopt.distributed.not_on_rank
@@ -272,7 +272,7 @@ Remote Procedure Call (RPC)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autosummary::
-    :toctree: ../_autosummary
+
 
     torchopt.distributed.remote_async_call
     torchopt.distributed.remote_sync_call
@@ -351,7 +351,7 @@ Predefined partitioners and reducers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autosummary::
-    :toctree: ../_autosummary
+
 
     torchopt.distributed.dim_partitioner
     torchopt.distributed.batch_partitioner
@@ -436,7 +436,7 @@ Function parallelization wrappers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autosummary::
-    :toctree: ../_autosummary
+    
 
     torchopt.distributed.parallelize
     torchopt.distributed.parallelize_async
@@ -487,7 +487,7 @@ Distributed Autograd
 ~~~~~~~~~~~~~~~~~~~~
 
 .. autosummary::
-    :toctree: ../_autosummary
+
 
     torchopt.distributed.autograd.context
     torchopt.distributed.autograd.get_gradients
