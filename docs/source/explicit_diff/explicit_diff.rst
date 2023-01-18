@@ -9,7 +9,7 @@ Namely, given
 
 .. math::
 
-    \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi}) := \boldsymbol{\theta}^{0} + \alpha \sum_{i=0}^{K-1} \nabla_{\boldsymbol{\theta}^{i}} J^{\text{In}} (\boldsymbol{\phi},\boldsymbol{\theta}^{i}),
+    \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi}) := \boldsymbol{\theta}^{0} - \alpha \sum_{i=0}^{K-1} \nabla_{\boldsymbol{\theta}^{i}} J^{\text{In}} (\boldsymbol{\phi},\boldsymbol{\theta}^{i}),
 
 we would like to compute the Gradient :math:`\nabla_{\boldsymbol{\phi}} \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi})`.
 This is usually done by autodiff through an inner optimization's unrolled iterates.
