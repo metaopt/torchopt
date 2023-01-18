@@ -1,7 +1,7 @@
 Optimizers
 ==========
 
-The design of TorchOpt follows the philosophy of functional programming. Aligned with ``functorch``, users can conduct functional style programing with models, optimizers and training in PyTorch.
+The design of TorchOpt follows the philosophy of functional programming. Aligned with ``functorch``, users can conduct functional style programming with models, optimizers and training in PyTorch.
 
 Classic Optimizers
 ------------------
@@ -69,7 +69,7 @@ Apply Parameter Updates
 Optax-Like API
 ~~~~~~~~~~~~~~
 
-For those users who prefer fully functional programing, we offer Optax-Like API by passing gradients and optimizers states to the optimizer function. Here is an example coupled with ``functorch``:
+For those users who prefer fully functional programming, we offer Optax-Like API by passing gradients and optimizers states to the optimizer function. Here is an example coupled with ``functorch``:
 
 .. code-block:: python
 

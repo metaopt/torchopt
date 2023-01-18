@@ -436,7 +436,7 @@ Function parallelization wrappers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autosummary::
-    
+
 
     torchopt.distributed.parallelize
     torchopt.distributed.parallelize_async
