@@ -144,8 +144,8 @@ simplify_optional_unions = False
 
 # -- Options for autosummary ---------------------------------------------------
 
-autosummary_generate = False
-numpydoc_class_members_toctree = False
+autosummary_generate = True
+# numpydoc_class_members_toctree = False
 
 # -- Options for bibtex --------------------------------------------------------
 
