@@ -131,7 +131,7 @@ pygments_style = 'default'
 
 # -- Options for autodoc -------------------------------------------------------
 
-autosummary_generate = True
+autosummary_generate = False
 autodoc_default_options = {
     'member-order': 'bysource',
     'undoc-members': True,
@@ -144,7 +144,7 @@ simplify_optional_unions = False
 
 # -- Options for autosummary ---------------------------------------------------
 
-autosummary_generate = True
+autosummary_generate = False
 # numpydoc_class_members_toctree = False
 
 # -- Options for bibtex --------------------------------------------------------
