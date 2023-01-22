@@ -84,3 +84,48 @@ We provide the ``torchopt.extract_state_dict`` and ``torchopt.recover_state_dict
         optim.step(inner_loss)
 
     print(f'a = {net.a!r}')  # the same result
+
+
+OOP API
+-------
+
+
+.. code-block:: python
+
+    # Define meta and inner parameters
+    meta_params = ...
+    model = ...
+    # Define differentiable optimizer
+    opt = torchopt.MetaAdam(model)
+
+    for iter in range(iter_times):
+        # Perform the inner update
+        loss = inner_loss(model, meta_params)
+        opt.step(loss)
+
+    loss = outer_loss(model, meta_params)
+    loss.backward()
+
+
+
+Functional API
+--------------
+
+.. code-block:: python
+
+    opt = torchopt.adam()
+    # Define meta and inner parameters
+    meta_params = ...
+    fmodel, params = make_functional(model)
+    # Initialize optimizer state
+    state = opt.init(params)
+
+    for iter in range(iter_times):
+        loss = inner_loss(fmodel, params, meta_params)
+        grads = torch.autograd.grad(loss, params)
+        # Apply non-inplace parameter update
+        updates, state = opt.update(grads, state, inplace=False)
+        params = torchopt.apply_updates(params, updates)
+
+    loss = outer_loss(fmodel, params, meta_params)
+    meta_grads = torch.autograd.grad(loss, meta_params)
