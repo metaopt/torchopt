@@ -164,3 +164,4 @@ backend
 reparameterize
 backpropagate
 NaN
+iteratively
