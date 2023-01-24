@@ -14,6 +14,7 @@
 // =============================================================================
 
 #pragma once
+
 #include <torch/extension.h>
 
 #include <vector>
@@ -69,7 +70,7 @@ TensorArray<2> adamBackwardUpdates(const torch::Tensor &dupdates,
                                    const pyfloat_t b2,
                                    const pyuint_t count);
 
-void buildSubmodule(py::module &mod);  // NOLINT
+void buildSubmodule(py::module &mod);  // NOLINT[runtime/references]
 
 }  // namespace adam_op
 }  // namespace torchopt
