@@ -1,5 +1,10 @@
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
+ci:
+  skip: [pylint]
+  autofix_prs: true
+  autofix_commit_msg: 'fix: [pre-commit.ci] auto fixes [...]'
+  autoupdate_commit_msg: 'chore(pre-commit): [pre-commit.ci] autoupdate'
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0
