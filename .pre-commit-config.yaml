@@ -1,5 +1,10 @@
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
+ci:
+  skip: [pylint]
+  autofix_prs: true
+  autofix_commit_msg: 'fix: [pre-commit.ci] auto fixes [...]'
+  autoupdate_commit_msg: 'chore(pre-commit): [pre-commit.ci] autoupdate'
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0
@@ -18,6 +23,11 @@ repos:
       - id: detect-private-key
       - id: debug-statements
       - id: double-quote-string-fixer
+  - repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: v15.0.7
+    hooks:
+    - id: clang-format
+      stages: [commit, push, manual]
   - repo: https://github.com/PyCQA/isort
     rev: 5.11.4
     hooks:
@@ -55,7 +65,7 @@ repos:
             ^setup.py$
           )
   - repo: https://github.com/pycqa/pydocstyle
-    rev: 6.2.3
+    rev: 6.3.0
     hooks:
       - id: pydocstyle
         additional_dependencies: ['.[toml]']

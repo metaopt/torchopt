@@ -86,6 +86,11 @@ jobs:
         run: |
           make clang-format
 
+      - name: clang-tidy
+        run: |
+          sudo apt-get update && sudo apt-get install libomp-dev --yes
+          make clang-tidy
+
       - name: addlicense
         run: |
           make addlicense

@@ -199,7 +199,6 @@ class ImplicitMetaGradientModule(MetaGradientModule):
         """Solve the inner optimization problem.
 
         .. warning::
-
             For gradient-based optimization methods, the parameter inputs should be explicitly
             specified in the :func:`torch.autograd.backward` function as argument ``inputs``.
             Otherwise, if not provided, the gradient is accumulated into all the leaf Tensors

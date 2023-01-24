@@ -162,6 +162,7 @@ Jacobian
 autodiff
 backend
 reparameterize
+rtype
 backpropagate
 NaN
 iteratively
