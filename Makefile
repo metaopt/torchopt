@@ -5,7 +5,8 @@ PROJECT_PATH   = $(PROJECT_NAME)
 SHELL          = /bin/bash
 SOURCE_FOLDERS = $(PROJECT_PATH) examples include src tests docs
 PYTHON_FILES   = $(shell find $(SOURCE_FOLDERS) -type f -name "*.py" -o -name "*.pyi")
-CXX_FILES      = $(shell find $(SOURCE_FOLDERS) -type f -name "*.h" -o -name "*.cpp" -o -name "*.cuh" -o -name "*.cu")
+CXX_FILES      = $(shell find $(SOURCE_FOLDERS) -type f -name "*.h" -o -name "*.cpp")
+CUDA_FILES      = $(shell find $(SOURCE_FOLDERS) -type f -name "*.cuh" -o -name "*.cu")
 COMMIT_HASH    = $(shell git log -1 --format=%h)
 PATH           := $(HOME)/go/bin:$(PATH)
 PYTHON         ?= $(shell command -v python3 || command -v python)
@@ -81,6 +82,9 @@ pytest-install:
 	$(call check_pip_install,pytest-cov)
 	$(call check_pip_install,pytest-xdist)
 
+cmake-install:
+	command -v cmake || $(call check_pip_install,cmake)
+
 cpplint-install:
 	$(call check_pip_install,cpplint)
 
@@ -129,11 +133,25 @@ pre-commit: pre-commit-install
 
 # C++ linters
 
+cmake-configure: cmake-install
+	cmake -S . -B cmake-build-debug \
+		-DCMAKE_BUILD_TYPE=Debug \
+		-DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+		-DPYTHON_EXECUTABLE="$(PYTHON)"
+
+cmake-build: cmake-configure
+	cmake --build cmake-build-debug --parallel
+
+cmake: cmake-build
+
 cpplint: cpplint-install
-	$(PYTHON) -m cpplint $(CXX_FILES)
+	$(PYTHON) -m cpplint $(CXX_FILES) $(CUDA_FILES)
 
 clang-format: clang-format-install
-	$(CLANG_FORMAT) --style=file -i $(CXX_FILES) -n --Werror
+	$(CLANG_FORMAT) --style=file -i $(CXX_FILES) $(CUDA_FILES) -n --Werror
+
+clang-tidy: clang-tidy-install cmake-configure
+	clang-tidy -p=cmake-build-debug $(CXX_FILES)
 
 # Documentation
 
@@ -156,12 +174,12 @@ clean-docs:
 
 # Utility functions
 
-lint: flake8 py-format mypy pylint clang-format cpplint addlicense docstyle spelling
+lint: flake8 py-format mypy pylint clang-format clang-tidy cpplint addlicense docstyle spelling
 
 format: py-format-install clang-format-install addlicense-install
 	$(PYTHON) -m isort --project $(PROJECT_NAME) $(PYTHON_FILES)
 	$(PYTHON) -m black $(PYTHON_FILES) tutorials
-	$(CLANG_FORMAT) -style=file -i $(CXX_FILES)
+	$(CLANG_FORMAT) -style=file -i $(CXX_FILES) $(CUDA_FILES)
 	addlicense -c $(COPYRIGHT) -ignore tests/coverage.xml -l apache -y 2022-$(shell date +"%Y") $(SOURCE_FOLDERS)
 
 clean-py:

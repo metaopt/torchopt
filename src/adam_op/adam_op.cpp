@@ -149,7 +149,7 @@ TensorArray<2> adamBackwardUpdates(const torch::Tensor &dupdates,
   }
 }
 
-void buildSubmodule(py::module &mod) {  // NOLINT
+void buildSubmodule(py::module &mod) {  // NOLINT[runtime/references]
   py::module m = mod.def_submodule("adam_op", "Adam Ops");
   m.def("forward_",
         &adamForwardInplace,

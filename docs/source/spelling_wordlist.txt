@@ -146,3 +146,4 @@ ATen
 samplable
 conj
 reparameterize
+rtype
