@@ -24,7 +24,7 @@ TorchOpt offers Functional API by passing gradients and optimizers states to the
 .. autosummary::
 
     torchopt.apply_updates
-    
+
 Here is an example of functional optimization coupled with ``functorch``:
 
 .. code-block:: python
@@ -47,7 +47,7 @@ Here is an example of functional optimization coupled with ``functorch``:
     grads = torch.autograd.grad(loss, params)                # compute gradients
     updates, opt_state = optimizer.update(grads, opt_state)  # get updates
     params = torchopt.apply_updates(params, updates)         # update network parameters
-    
+
 We also provide a wrapper ``torchopt.FuncOptimizer`` to make maintaining the optimizer state easier:
 
 .. code-block:: python
@@ -111,7 +111,7 @@ Users always need to conduct multiple gradient transformations (functions) befor
 .. autosummary::
 
     torchopt.chain
-    
+
 .. note::
 
     ``torchopt.chain`` will sequentially conduct transformations, so the order matters. For example, we need to firstly conduct gradient normalization then conduct the optimizer step. The order should be (clip, sgd) in ``torchopt.chain`` function.
@@ -120,7 +120,7 @@ Users always need to conduct multiple gradient transformations (functions) befor
 Here is an example of chaining ``torchopt.clip.clip_grad_norm`` and ``torchopt.adam`` for functional optimizer and OOP optimizer.
 
 .. code-block:: python
-    
+
     func_optimizer = torchopt.chain(torchopt.clip.clip_grad_norm(max_norm=2.0), torchopt.adam(1e-1))
     oop_optimizer = torchopt.Optimizer(net, impl)
 
