@@ -7,7 +7,7 @@ Explicit gradient
 .. image:: /_static/images/explicit_gradient.png
     :scale: 60 %
     :align: center
-    
+
 The idea of Explicit Gradient is to treat the gradient step as a differentiable function and try to backpropagate through the unrolled optimization path.
 Namely, given
 
@@ -40,7 +40,7 @@ By passing the argument ``inplace`` as ``False`` to the ``update`` functions, we
 
     loss = outer_loss(fmodel, params, meta_params)
     meta_grads = torch.autograd.grad(loss, meta_params)
-    
+
 Differentiable OOP meta-optimizers
 ------------------------------
 For PyTorch-like API (e.g. ``step()``), we designed base class ``torchopt.MetaOptimizer`` to wrap our functional optimizers to become differentiable OOP meta-optimizers.
@@ -89,12 +89,12 @@ By manually writing the forward and backward functions using C++ OpenMP (CPU) an
 
     # Check whether the `accelerated_op` is available:
     torchopt.accelerated_op_available(torch.device('cpu'))
-    
+
     torchopt.accelerated_op_available(torch.device('cuda'))
 
     net = Net(1).cuda()
     optim = torchopt.Adam(net.parameters(), lr=1.0, use_accelerated_op=True)
-    
+
 General Utilities
 -----------------
 
@@ -105,7 +105,7 @@ We provide the ``torchopt.extract_state_dict`` and ``torchopt.recover_state_dict
     torchopt.utils.extract_state_dict
     torchopt.utils.recover_state_dict
     torchopt.utils.stop_gradient
-    
+
 Here is an usage example.
 
 .. code-block:: python
@@ -145,7 +145,7 @@ Here is an usage example.
         optim.step(inner_loss)
 
     print(f'a = {net.a!r}')  # the same result
-    
+
 Notebook Tutorial
 -------------------
 Check notebook tutorials at `Meta Optimizer <https://github.com/metaopt/torchopt/blob/main/tutorials/3_Meta_Optimizer.ipynb>`_ and `Stop Gradient <https://github.com/metaopt/torchopt/blob/main/tutorials/4_Stop_Gradient.ipynb>`_.

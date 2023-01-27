@@ -167,8 +167,7 @@ Here is an example of combining optimizer with learning rate scheduler.
             init_value=1e-3, end_value=1e-4, transition_steps=10000, transition_begin=2000
         ),
     )
-    
+
 Notebook Tutorial
 -------------------
 Check notebook tutorial at `Functional Optimizer <https://github.com/metaopt/torchopt/blob/main/tutorials/1_Functional_Optimizer.ipynb>`_.
-
