@@ -59,7 +59,7 @@ You can use the following commands with `conda <https://github.com/conda/conda>`
     visualization/visualization.rst
 
 .. toctree::
-    :caption: Getting Started
+    :caption: Tutorial Notebook
     :maxdepth: 1
 
     torchopt101/torchopt-101.rst

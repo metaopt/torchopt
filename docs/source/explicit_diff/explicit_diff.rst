@@ -4,18 +4,46 @@ Explicit Gradient differentiation
 Explicit gradient
 -----------------
 
+.. image:: /_static/images/explicit_gradient.png
+    :scale: 60 %
+    :align: center
+    
 The idea of Explicit Gradient is to treat the gradient step as a differentiable function and try to backpropagate through the unrolled optimization path.
 Namely, given
 
 .. math::
 
-    \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi}) := \boldsymbol{\theta}^{0} - \alpha \sum_{i=0}^{K-1} \nabla_{\boldsymbol{\theta}^{i}} J^{\text{In}} (\boldsymbol{\phi},\boldsymbol{\theta}^{i}),
+    \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi}) := \boldsymbol{\theta}^{0} - \alpha \sum_{i=0}^{K-1} \nabla_{\boldsymbol{\theta}^{i}} L^{\text{In}} (\boldsymbol{\phi},\boldsymbol{\theta}^{i}),
 
 we would like to compute the Gradient :math:`\nabla_{\boldsymbol{\phi}} \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi})`.
 This is usually done by autodiff through an inner optimization's unrolled iterates.
 
-Differentiable meta-optimizers
+Differentiable Functional optimizers
 ------------------------------
+By passing the argument ``inplace`` as ``False`` to the ``update`` functions, we can make the optimization differentiable. Here is an example of making ``torchopt.adam`` differentiable.
+
+.. code-block:: python
+
+    opt = torchopt.adam()
+    # Define meta and inner parameters
+    meta_params = ...
+    fmodel, params = make_functional(model)
+    # Initialize optimizer state
+    state = opt.init(params)
+
+    for iter in range(iter_times):
+        loss = inner_loss(fmodel, params, meta_params)
+        grads = torch.autograd.grad(loss, params)
+        # Apply non-inplace parameter update
+        updates, state = opt.update(grads, state, inplace=False)
+        params = torchopt.apply_updates(params, updates)
+
+    loss = outer_loss(fmodel, params, meta_params)
+    meta_grads = torch.autograd.grad(loss, meta_params)
+    
+Differentiable OOP meta-optimizers
+------------------------------
+For PyTorch-like API (e.g. ``step()``), we designed base class ``torchopt.MetaOptimizer`` to wrap our functional optimizers to become differentiable OOP meta-optimizers.
 
 .. autosummary::
 
@@ -25,7 +53,7 @@ Differentiable meta-optimizers
     torchopt.MetaRMSProp
     torchopt.MetaAdamW
 
-
+By combining low-level API ``torchopt.MetaOptimizer`` with previous functional optimizer, we can achieve high-level API:
 
 .. code-block:: python
 
@@ -35,17 +63,50 @@ Differentiable meta-optimizers
     # High level API
     optim = torchopt.MetaSGD(net, lr=1.0)
 
+Here is an example of using the OOP API ``torchopt.MetaAdam`` to conduct meta-gradient calculation.
+
+.. code-block:: python
+
+    # Define meta and inner parameters
+    meta_params = ...
+    model = ...
+    # Define differentiable optimizer
+    opt = torchopt.MetaAdam(model)
+
+    for iter in range(iter_times):
+        # Perform the inner update
+        loss = inner_loss(model, meta_params)
+        opt.step(loss)
+
+    loss = outer_loss(model, meta_params)
+    loss.backward()
+
+CPU/GPU Accelerated Optimizer
+~~~~~~~~~~~~~~~~~~~~~
+By manually writing the forward and backward functions using C++ OpenMP (CPU) and CUDA (GPU), TorchOpt performs the symbolic reduction, which largely increase meta-gradient computational efficiency. Users can use accelerated optimizer by setting the ``use_accelerated_op`` as ``True``. TorchOpt will automatically detect the device and allocate the corresponding cccelerated optimizer.
+
+.. code-block:: python
+
+    # Check whether the `accelerated_op` is available:
+    torchopt.accelerated_op_available(torch.device('cpu'))
+    
+    torchopt.accelerated_op_available(torch.device('cuda'))
+
+    net = Net(1).cuda()
+    optim = torchopt.Adam(net.parameters(), lr=1.0, use_accelerated_op=True)
+    
 General Utilities
 -----------------
+
+We provide the ``torchopt.extract_state_dict`` and ``torchopt.recover_state_dict`` functions to extract and restore the state of network and optimizer. By default, the extracted state dictionary is a reference (this design is for accumulating gradient of multi-task batch training, MAML for example). You can also set ``by='copy'`` to extract the copy of state dictionary or set ``by='deepcopy'`` to have a detached copy.
 
 .. autosummary::
 
     torchopt.utils.extract_state_dict
     torchopt.utils.recover_state_dict
     torchopt.utils.stop_gradient
-
-
-We provide the ``torchopt.extract_state_dict`` and ``torchopt.recover_state_dict`` functions to extract and restore the state of network and optimizer. By default, the extracted state dictionary is a reference (this design is for accumulating gradient of multi-task batch training, MAML for example). You can also set ``by='copy'`` to extract the copy of state dictionary or set ``by='deepcopy'`` to have a detached copy.
+    
+Here is an usage example.
 
 .. code-block:: python
 
@@ -84,48 +145,7 @@ We provide the ``torchopt.extract_state_dict`` and ``torchopt.recover_state_dict
         optim.step(inner_loss)
 
     print(f'a = {net.a!r}')  # the same result
-
-
-OOP API
--------
-
-
-.. code-block:: python
-
-    # Define meta and inner parameters
-    meta_params = ...
-    model = ...
-    # Define differentiable optimizer
-    opt = torchopt.MetaAdam(model)
-
-    for iter in range(iter_times):
-        # Perform the inner update
-        loss = inner_loss(model, meta_params)
-        opt.step(loss)
-
-    loss = outer_loss(model, meta_params)
-    loss.backward()
-
-
-
-Functional API
---------------
-
-.. code-block:: python
-
-    opt = torchopt.adam()
-    # Define meta and inner parameters
-    meta_params = ...
-    fmodel, params = make_functional(model)
-    # Initialize optimizer state
-    state = opt.init(params)
-
-    for iter in range(iter_times):
-        loss = inner_loss(fmodel, params, meta_params)
-        grads = torch.autograd.grad(loss, params)
-        # Apply non-inplace parameter update
-        updates, state = opt.update(grads, state, inplace=False)
-        params = torchopt.apply_updates(params, updates)
-
-    loss = outer_loss(fmodel, params, meta_params)
-    meta_grads = torch.autograd.grad(loss, meta_params)
+    
+Notebook Tutorial
+-------------------
+Check notebook tutorials at `Meta Optimizer <https://github.com/metaopt/torchopt/blob/main/tutorials/3_Meta_Optimizer.ipynb>`_ and `Stop Gradient <https://github.com/metaopt/torchopt/blob/main/tutorials/4_Stop_Gradient.ipynb>`_.
