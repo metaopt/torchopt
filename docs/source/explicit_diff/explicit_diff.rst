@@ -102,9 +102,9 @@ We provide the ``torchopt.extract_state_dict`` and ``torchopt.recover_state_dict
 
 .. autosummary::
 
-    torchopt.utils.extract_state_dict
-    torchopt.utils.recover_state_dict
-    torchopt.utils.stop_gradient
+    torchopt.extract_state_dict
+    torchopt.recover_state_dict
+    torchopt.stop_gradient
 
 Here is an usage example.
 

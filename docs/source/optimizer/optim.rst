@@ -131,7 +131,7 @@ Users can also add optimizer hook to control the gradient flow.
 
 .. autosummary::
 
-    torchopt.register_hook
+    torchopt.hook.register_hook
     torchopt.hook.zero_nan_hook
     torchopt.hook.nan_to_num_hook
 
