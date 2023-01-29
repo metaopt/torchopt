@@ -7,7 +7,7 @@ Evolutionary Strategy
 .. image:: /_static/images/zero_order.png
     :scale: 60 %
     :align: center
-    
+
 When the inner-loop process is non-differentiable or one wants to eliminate the heavy computation burdens in the previous two modes (brought by Hessian), one can choose Zeroth-order differentiation. Zeroth-order differentiation typically gets gradients based on zero-order estimation, such as finite-difference, or `Evolutionary Strategy <https://arxiv.org/abs/1703.03864>`_ (ES).  `ES-MAML <https://arxiv.org/pdf/1910.01215.pdf>`_, and `NAC <https://arxiv.org/abs/2106.02745>`_, successfully solve the non-differentiable optimization problem based on ES.
 
 TorchOpt offers API for ES-based differentiation. Instead of optimizing the objective :math:`F`, ES optimizes a Gaussion smoothing objective defined as :math:`\tilde{f}_{\sigma} (\theta) = \mathbb{E}_{{z} \sim \mathcal{N}( {0}, {I}_d )} [ f ({\theta} + \sigma \, z) ]`, where :math:`\sigma` denotes precision. The gradient of such objective is :math:`\nabla_\theta \tilde{f}_{\sigma} (\theta) = \frac{1}{\sigma} \mathbb{E}_{{z} \sim \mathcal{N}( {0}, {I}_d )} [ f({\theta} + \sigma \, z) \cdot z ]`. Based on such technique, one can treat the bi-level process as a whole to calculate the meta-gradient based on pure forward process. Refer to `ES-MAML <https://arxiv.org/pdf/1910.01215.pdf>`_ for more explanations.
@@ -75,7 +75,7 @@ We show the pseudo code in the following part.
     loss = forward(params, data)
     # Backward pass using zero-order differentiation
     grads = torch.autograd.grad(loss, params)
-            
+
 OOP API
 ^^^^^^^
 Coupled with PyTorch ``nn.Module``, we also design the OOP API ``ZeroOrderGradientModule`` for ES. The core idea of ``ZeroOrderGradientModule`` is to enable the gradient flow Forward process  to `self.parameters()` (can be the meta-parameters when calculate meta-gradient). Users need to define the forward process zero-order gradient procedures ``forward()`` and a noise sampling function ``sample()``.
@@ -109,8 +109,7 @@ Coupled with PyTorch ``nn.Module``, we also design the OOP API ``ZeroOrderGradie
     loss = Net(data)
     # Backward pass using zero-order differentiation
     grads = torch.autograd.grad(loss, net.parameters())
-            
+
 Notebook Tutorial
 -------------------
 For more details, check notebook tutorial at `zero order <https://github.com/metaopt/torchopt/blob/main/tutorials/6_Zero_Order_Differentiation.ipynb>`_.
-

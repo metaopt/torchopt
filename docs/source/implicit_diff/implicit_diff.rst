@@ -9,7 +9,7 @@ Implicit differentiation
 .. image:: /_static/images/ig.png
     :scale: 60 %
     :align: center
-    
+
 Implicit differentiation is the task of differentiating a minimization problem's solution with respect to its inputs.
 Namely, given
 
@@ -27,7 +27,7 @@ Custom solvers
 
     torchopt.diff.implicit.custom_root
 
-TorchOpt provides the ``custom_root`` decorators, for easily adding implicit differentiation on top of any existing solver (also called forward optimization). ``custom_root`` requires users to define the stationary conditions for the problem solution, e.g. KKT conditions, and will automatically calculate the gradient for backward gradient computation. 
+TorchOpt provides the ``custom_root`` decorators, for easily adding implicit differentiation on top of any existing solver (also called forward optimization). ``custom_root`` requires users to define the stationary conditions for the problem solution, e.g. KKT conditions, and will automatically calculate the gradient for backward gradient computation.
 
 Here is an example of ``custom_root`` decorators, which is also the **functional API** for implicit gradient.
 
@@ -64,7 +64,7 @@ OOP API
 .. autosummary::
 
     torchopt.diff.implicit.nn.ImplicitMetaGradientModule
-    
+
 Coupled with PyTorch ``nn.Module``, we also design the OOP API ``ImplicitMetaGradientModule`` for implicit gradient. The core idea of ``ImplicitMetaGradientModule`` is to enable the gradient flow from `self.parameters()` (usually lower-level parameters) to `self.meta_parameters()` (usually the high-level parameters). Users need to define the forward process ``forward()``, a stationary function ``optimality()`` (or ``objective()``), and inner-loop optimization ``solve``.
 
 Here is an example of the OOP API.
@@ -146,20 +146,20 @@ Here is an example of the linear solver.
 User can also select corresponding solver in functional and OOP API.
 
 .. code-block:: python
-    
+
     # For functional API
     @torchopt.diff.implicit.custom_root(
         functorch.grad(imaml_objective, argnums=0),  # optimality function
         argnums=1,
         solve=torchopt.linear_solve.solve_normal_cg(maxiter=5, atol=0),
     )
-    
+
     # For OOP API
     class InnerNet(
         torchopt.nn.ImplicitMetaGradientModule,
         linear_solve=torchopt.linear_solve.solve_normal_cg(maxiter=5, atol=0),
     )
-    
+
 Notebook Tutorial
 -------------------
 Check notebook tutorial at `Implicit Differentiation <https://github.com/metaopt/torchopt/blob/main/tutorials/5_Implicit_Differentiation.ipynb>`_.
