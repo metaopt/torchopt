@@ -19,7 +19,7 @@ we would like to compute the Gradient :math:`\nabla_{\boldsymbol{\phi}} \boldsym
 This is usually done by autodiff through an inner optimization's unrolled iterates.
 
 Differentiable Functional optimizers
-------------------------------
+------------------------------------
 By passing the argument ``inplace`` as ``False`` to the ``update`` functions, we can make the optimization differentiable. Here is an example of making ``torchopt.adam`` differentiable.
 
 .. code-block:: python
@@ -42,7 +42,7 @@ By passing the argument ``inplace`` as ``False`` to the ``update`` functions, we
     meta_grads = torch.autograd.grad(loss, meta_params)
 
 Differentiable OOP meta-optimizers
-------------------------------
+----------------------------------
 For PyTorch-like API (e.g. ``step()``), we designed base class ``torchopt.MetaOptimizer`` to wrap our functional optimizers to become differentiable OOP meta-optimizers.
 
 .. autosummary::
@@ -82,7 +82,7 @@ Here is an example of using the OOP API ``torchopt.MetaAdam`` to conduct meta-gr
     loss.backward()
 
 CPU/GPU Accelerated Optimizer
-~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 By manually writing the forward and backward functions using C++ OpenMP (CPU) and CUDA (GPU), TorchOpt performs the symbolic reduction, which largely increase meta-gradient computational efficiency. Users can use accelerated optimizer by setting the ``use_accelerated_op`` as ``True``. TorchOpt will automatically detect the device and allocate the corresponding cccelerated optimizer.
 
 .. code-block:: python

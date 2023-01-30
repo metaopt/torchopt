@@ -23,7 +23,7 @@ Decorators
 Similar with the implicit gradient, we also use the decorator for ES methods.
 
 Functional API
-^^^^^^^
+^^^^^^^^^^^^^^
 
 The basic functional API is ``torchopt.diff.zero_order.zero_order``, which is used as the decorator for the forward process zero-order gradient procedures. Users are required to implement the noise sampling function, which will be used as the input of zero_order decorator. Here we show the specific meaning for each parameter used in the decorator.
 

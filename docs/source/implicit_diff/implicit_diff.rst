@@ -4,7 +4,7 @@ Implicit Gradient differentiation
 =================================
 
 Implicit differentiation
-----------------------
+------------------------
 
 .. image:: /_static/images/ig.png
     :scale: 60 %
@@ -161,5 +161,5 @@ User can also select corresponding solver in functional and OOP API.
     )
 
 Notebook Tutorial
--------------------
+-----------------
 Check notebook tutorial at `Implicit Differentiation <https://github.com/metaopt/torchopt/blob/main/tutorials/5_Implicit_Differentiation.ipynb>`_.

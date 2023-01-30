@@ -65,7 +65,7 @@ We also provide a wrapper ``torchopt.FuncOptimizer`` to make maintaining the opt
         params = optimizer.step(loss, params)                # update network parameters
 
 Classic OOP Optimizers
-------------------
+----------------------
 
 Combined with the functional optimizer above, we can define our classic OOP optimizer. We designed base class ``torchopt.Optimizer`` that has the same interface as ``torch.optim.Optimizer``. We offer original PyTorch APIs (e.g. ``zero_grad()`` or ``step()``) for traditional PyTorch-like(OOP) parameter update.
 
@@ -104,7 +104,7 @@ Here is an example of PyTorch-like APIs:
     optimizer.step()                  # step updates
 
 Combining Transformation
---------------------
+------------------------
 
 Users always need to conduct multiple gradient transformations (functions) before the final update. In the designing of TorchOpt, we treat these functions as derivations of ``combine.chain``. So we can build our own chain like ``combine.chain(torchopt.clip.clip_grad_norm(max_norm=1.), torchopt.sgd(lr=1., requires_grad=True))`` to clip the gradient and update parameters using ``sgd``.
 
@@ -169,5 +169,5 @@ Here is an example of combining optimizer with learning rate scheduler.
     )
 
 Notebook Tutorial
--------------------
+-----------------
 Check notebook tutorial at `Functional Optimizer <https://github.com/metaopt/torchopt/blob/main/tutorials/1_Functional_Optimizer.ipynb>`_.
