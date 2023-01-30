@@ -177,6 +177,32 @@ Indirect solvers
 
 ------
 
+Zero-order differentiation
+==========================
+
+.. currentmodule:: torchopt.diff.zero_order
+
+.. autosummary::
+
+    zero_order
+    nn.ZeroOrderGradientModule
+
+Decorators
+~~~~~~~~~~
+
+.. autofunction:: zero_order
+
+
+Zero-order Gradient Module
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. currentmodule:: torchopt.diff.zero_order.nn
+
+.. autoclass:: ZeroOrderGradientModule
+    :members:
+
+------
+
 Optimizer Hooks
 ===============
 

@@ -111,5 +111,5 @@ Coupled with PyTorch ``nn.Module``, we also design the OOP API ``ZeroOrderGradie
     grads = torch.autograd.grad(loss, net.parameters())
 
 Notebook Tutorial
--------------------
+-----------------
 For more details, check notebook tutorial at `zero order <https://github.com/metaopt/torchopt/blob/main/tutorials/6_Zero_Order_Differentiation.ipynb>`_.
