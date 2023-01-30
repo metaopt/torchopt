@@ -83,7 +83,7 @@ Here is an example of using the OOP API ``torchopt.MetaAdam`` to conduct meta-gr
 
 CPU/GPU Accelerated Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-By manually writing the forward and backward functions using C++ OpenMP (CPU) and CUDA (GPU), TorchOpt performs the symbolic reduction, which largely increase meta-gradient computational efficiency. Users can use accelerated optimizer by setting the ``use_accelerated_op`` as ``True``. TorchOpt will automatically detect the device and allocate the corresponding cccelerated optimizer.
+By manually writing the forward and backward functions using C++ OpenMP (CPU) and CUDA (GPU), TorchOpt performs the symbolic reduction, which largely increase meta-gradient computational efficiency. Users can use accelerated optimizer by setting the ``use_accelerated_op`` as ``True``. TorchOpt will automatically detect the device and allocate the corresponding accelerated optimizer.
 
 .. code-block:: python
 

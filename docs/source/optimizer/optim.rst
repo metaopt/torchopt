@@ -1,7 +1,7 @@
 Optimizers
 ==========
 
-The core design of TorchOpt follows the philosophy of functional programming. Aligned with ``functorch``, users can conduct functional style programming with models, optimizers and training in PyTorch. We firstly introduce our funcitonal optimizers, which treats the optimization process as a functional transformation.
+The core design of TorchOpt follows the philosophy of functional programming. Aligned with ``functorch``, users can conduct functional style programming with models, optimizers and training in PyTorch. We firstly introduce our functional optimizers, which treats the optimization process as a functional transformation.
 
 Functional Optimizers
 ---------------------
