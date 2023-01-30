@@ -2,7 +2,7 @@ Zero-order Gradient differentiation
 ===================================
 
 Evolutionary Strategy
-----------------------------
+---------------------
 
 .. image:: /_static/images/zero_order.png
     :scale: 60 %
@@ -78,6 +78,11 @@ We show the pseudo code in the following part.
 
 OOP API
 ^^^^^^^
+
+.. autosummary::
+
+    torchopt.diff.zero_order.nn.ZeroOrderGradientModule
+
 Coupled with PyTorch ``nn.Module``, we also design the OOP API ``ZeroOrderGradientModule`` for ES. The core idea of ``ZeroOrderGradientModule`` is to enable the gradient flow Forward process  to `self.parameters()` (can be the meta-parameters when calculate meta-gradient). Users need to define the forward process zero-order gradient procedures ``forward()`` and a noise sampling function ``sample()``.
 
 .. code-block:: python
