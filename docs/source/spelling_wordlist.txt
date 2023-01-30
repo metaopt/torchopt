@@ -166,3 +166,7 @@ rtype
 backpropagate
 NaN
 iteratively
+issubclass
+abc
+ABCMeta
+subclasscheck
