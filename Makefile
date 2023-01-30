@@ -6,7 +6,7 @@ SHELL          = /bin/bash
 SOURCE_FOLDERS = $(PROJECT_PATH) examples include src tests docs
 PYTHON_FILES   = $(shell find $(SOURCE_FOLDERS) -type f -name "*.py" -o -name "*.pyi")
 CXX_FILES      = $(shell find $(SOURCE_FOLDERS) -type f -name "*.h" -o -name "*.cpp")
-CUDA_FILES      = $(shell find $(SOURCE_FOLDERS) -type f -name "*.cuh" -o -name "*.cu")
+CUDA_FILES     = $(shell find $(SOURCE_FOLDERS) -type f -name "*.cuh" -o -name "*.cu")
 COMMIT_HASH    = $(shell git log -1 --format=%h)
 PATH           := $(HOME)/go/bin:$(PATH)
 PYTHON         ?= $(shell command -v python3 || command -v python)
