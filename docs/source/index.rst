@@ -6,17 +6,17 @@ TorchOpt
 **TorchOpt** is an efficient library for differentiable optimization built upon `PyTorch <https://pytorch.org>`_.
 Torchopt is
 
-* **Comprehensive**: TorchOpt provides three differentiation mode - explicit differentiation, implicit differentiation and zero-order differentiation for handling different differentiable optimization situations.
-* **Flexible**: TorchOpt provides both functional and objective-oriented API for user different preferences. Users can implement differentiable optimization in JAX-like or PyTorch-like style.
-* **Efficient**: TorchOpt provides (1) CPU/GPU acceleration differentiable optimizer (2) RPC-based distributed training framework (3) Fast Tree Operations, to largely increase the training efficiency for bi-level optimization problem.
+- **Comprehensive**: TorchOpt provides three differentiation modes - explicit differentiation, implicit differentiation, and zero-order differentiation for handling different differentiable optimization situations.
+- **Flexible**: TorchOpt provides both functional and objective-oriented API for users different preferences. Users can implement differentiable optimization in JAX-like or PyTorch-like style.
+- **Efficient**: TorchOpt provides (1) CPU/GPU acceleration differentiable optimizer (2) RPC-based distributed training framework (3) Fast Tree Operations, to largely increase the training efficiency for bi-level optimization problems.
 
 Installation
 ------------
 
 Requirements:
 
-* `PyTorch <https://pytorch.org>`_
-* (Optional) `Graphviz <https://graphviz.org/download>`_
+- `PyTorch <https://pytorch.org>`_
+- (Optional) `Graphviz <https://graphviz.org/download>`_
 
 Please follow the instructions at https://pytorch.org to install PyTorch in your Python environment first.
 Then run the following command to install TorchOpt from PyPI:
@@ -33,7 +33,7 @@ You can also build shared libraries from source, use:
     cd torchopt
     pip3 install .
 
-We provide a `conda <https://github.com/conda/conda>`_ environment recipe to install the build toolchain such as `cmake`, `g++`, and `nvcc`.
+We provide a `conda <https://github.com/conda/conda>`_ environment recipe to install the build toolchain such as ``cmake``, ``g++``, and ``nvcc``.
 You can use the following commands with `conda <https://github.com/conda/conda>`_ / `mamba <https://github.com/mamba-org/mamba>`_ to create a new isolated environment.
 
 .. code-block:: bash
@@ -59,18 +59,16 @@ You can use the following commands with `conda <https://github.com/conda/conda>`
     visualization/visualization.rst
 
 .. toctree::
-    :caption: Tutorial Notebook
+    :caption: Tutorial Notebooks
     :maxdepth: 1
 
     torchopt101/torchopt-101.rst
-
 
 .. toctree::
     :caption: Examples
     :maxdepth: 1
 
     examples/MAML.rst
-
 
 .. toctree::
     :caption: Developer Documentation
@@ -90,12 +88,12 @@ The Team
 
 TorchOpt is a work by
 
-* Jie Ren (`JieRen98 <https://github.com/JieRen98>`_)
-* Xidong Feng (`waterhorse1 <https://github.com/waterhorse1>`_)
-* Bo Liu (`Benjamin-eecs <https://github.com/Benjamin-eecs>`_)
-* Xuehai Pan (`XuehaiPan <https://github.com/XuehaiPan>`_)
-* Luo Mai (`luomai <https://luomai.github.io/>`_)
-* Yaodong Yang (`PKU-YYang <https://www.yangyaodong.com/>`_).
+- Jie Ren (`JieRen98 <https://github.com/JieRen98>`_)
+- Xidong Feng (`waterhorse1 <https://github.com/waterhorse1>`_)
+- Bo Liu (`Benjamin-eecs <https://github.com/Benjamin-eecs>`_)
+- Xuehai Pan (`XuehaiPan <https://github.com/XuehaiPan>`_)
+- Luo Mai (`luomai <https://luomai.github.io/>`_)
+- Yaodong Yang (`PKU-YYang <https://www.yangyaodong.com/>`_).
 
 Support
 -------
@@ -131,4 +129,4 @@ If you find TorchOpt useful, please cite it in your publications.
 Indices and tables
 ==================
 
-* :ref:`genindex`
+- :ref:`genindex`
