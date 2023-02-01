@@ -31,12 +31,6 @@ TorchOpt provides the ``custom_root`` decorators, for easily adding implicit dif
 
 Here is an example of ``custom_root`` decorators, which is also the **functional API** for implicit gradient.
 
-.. .. topic:: Examples
-
-..     .. literalinclude:: implicit_diff.py
-..         :language: python
-..         :linenos:
-
 .. code-block:: python
 
     # Functional API for implicit gradient
