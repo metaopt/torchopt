@@ -131,7 +131,7 @@ Differentiable Meta-RMSProp Optimizer
 
 ------
 
-Implicit differentiation
+Implicit Differentiation
 ========================
 
 .. currentmodule:: torchopt.diff.implicit
@@ -141,7 +141,7 @@ Implicit differentiation
     custom_root
     nn.ImplicitMetaGradientModule
 
-Custom solvers
+Custom Solvers
 ~~~~~~~~~~~~~~
 
 .. autofunction:: custom_root
@@ -157,7 +157,7 @@ Implicit Meta-Gradient Module
 
 ------
 
-Linear system solvers
+Linear System Solvers
 =====================
 
 .. currentmodule:: torchopt.linear_solve
@@ -168,7 +168,7 @@ Linear system solvers
     solve_normal_cg
     solve_inv
 
-Indirect solvers
+Indirect Solvers
 ~~~~~~~~~~~~~~~~
 
 .. autofunction:: solve_cg
@@ -177,7 +177,7 @@ Indirect solvers
 
 ------
 
-Zero-order differentiation
+Zero-Order Differentiation
 ==========================
 
 .. currentmodule:: torchopt.diff.zero_order

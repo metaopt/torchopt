@@ -127,6 +127,6 @@ If you find TorchOpt useful, please cite it in your publications.
 
 
 Indices and tables
-==================
+------------------
 
 - :ref:`genindex`
