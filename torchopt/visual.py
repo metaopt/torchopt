@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -138,16 +138,16 @@ def make_dot(
                 else:
                     param_map.update({v: k for k, v in cast(Mapping, param).items()})
 
-    node_attr = dict(
-        style='filled',
-        shape='box',
-        align='left',
-        fontsize='10',
-        ranksep='0.1',
-        height='0.2',
-        fontname='monospace',
-    )
-    dot = Digraph(node_attr=node_attr, graph_attr=dict(size='12,12'))
+    node_attr = {
+        'style': 'filled',
+        'shape': 'box',
+        'align': 'left',
+        'fontsize': '10',
+        'ranksep': '0.1',
+        'height': '0.2',
+        'fontname': 'monospace',
+    }
+    dot = Digraph(node_attr=node_attr, graph_attr={'size': '12,12'})
     seen = set()
 
     def size_to_str(size):

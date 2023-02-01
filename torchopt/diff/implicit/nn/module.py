@@ -110,7 +110,7 @@ def enable_implicit_gradients(
         raise TypeError('Implicit gradients are already enabled for the `solve` method.')
 
     if cls.linear_solve is not None:
-        solve_kwargs = dict(solve=cls.linear_solve)
+        solve_kwargs = {'solve': cls.linear_solve}
     else:
         solve_kwargs = {}
 
