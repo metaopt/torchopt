@@ -65,7 +65,7 @@ else:
 # -- Project information -------------------------------------------------------
 
 project = 'TorchOpt'
-copyright = '2022 MetaOPT Team'
+copyright = '2022-2023 MetaOPT Team'
 author = 'TorchOpt Contributors'
 
 # The full version, including alpha/beta/rc tags
