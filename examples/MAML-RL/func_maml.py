@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -156,7 +156,6 @@ def main(args):
         param_orig = [p.detach().clone().requires_grad_() for p in params]
         _params = list(params)
         for idx in range(TASK_NUM):
-
             for _ in range(inner_iters):
                 pre_trajs = sample_traj(env, tasks[idx], fpolicy, _params)
                 inner_loss = a2c_loss(pre_trajs, fpolicy, _params, value_coef=0.5)

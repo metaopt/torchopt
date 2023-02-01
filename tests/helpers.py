@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -166,7 +166,6 @@ def assert_model_all_close(
     atol: Optional[float] = None,
     equal_nan: bool = False,
 ):
-
     if isinstance(model, tuple):
         params, buffers = model
     elif isinstance(model, nn.Module):
@@ -191,7 +190,6 @@ def assert_all_close(
     atol: Optional[float] = None,
     equal_nan: bool = False,
 ) -> None:
-
     if base is not None:
         actual = actual - base
         expected = expected - base

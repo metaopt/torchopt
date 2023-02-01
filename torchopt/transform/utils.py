@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -119,7 +119,6 @@ def _update_moment(updates, moments, decay, *, order, inplace=True, already_flat
     assert order in (1, 2)
 
     if inplace:
-
         if order == 2:
 
             def f(g, t):
@@ -131,7 +130,6 @@ def _update_moment(updates, moments, decay, *, order, inplace=True, already_flat
                 return t.mul_(decay).add_(g, alpha=1 - decay) if g is not None else t
 
     else:
-
         if order == 2:
 
             def f(g, t):

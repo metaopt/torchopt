@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -202,7 +202,7 @@ class TensorDimensionPartitioner:
         return (
             TensorDimensionPartitioner,
             (self.dim,),
-            dict(exclusive=self.exclusive, keepdim=self.keepdim, workers=self.workers),
+            {'exclusive': self.exclusive, 'keepdim': self.keepdim, 'workers': self.workers},
         )
 
 

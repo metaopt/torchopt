@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ class theta_model(nn.Module):
 
 class Agent:
     def __init__(self, args):
-
         self.args = args
         # init theta and its optimizer
         self.theta = nn.Parameter(torch.zeros(5, requires_grad=True))

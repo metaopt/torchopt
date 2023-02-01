@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -100,7 +100,6 @@ def _masked(
     *,
     already_flattened: bool = False,
 ) -> GradientTransformation:
-
     if already_flattened:
         tree_map = tree_map_flat
     else:

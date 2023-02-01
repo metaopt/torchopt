@@ -118,7 +118,7 @@ class Omniglot(data.Dataset):
 
 def find_classes(root_dir):
     retour = []
-    for (root, dirs, files) in os.walk(root_dir):
+    for root, dirs, files in os.walk(root_dir):
         for f in files:
             if f.endswith('png'):
                 r = root.split('/')
@@ -170,7 +170,7 @@ class OmniglotNShot:
 
             # {label: [img1, img2..., img20], label2: [img1, img2, ...], ... 1623 labels in total}
             temp = {}
-            for (img, label) in self.x:
+            for img, label in self.x:
                 if label in temp.keys():
                     temp[label].append(img)
                 else:
@@ -255,15 +255,12 @@ class OmniglotNShot:
 
         # print('preload next 50 caches of batchsz of batch.')
         for sample in range(10):  # num of episodes
-
             x_spts, y_spts, x_qrys, y_qrys = [], [], [], []
             for i in range(self.batchsz):  # one batch means one set
-
                 x_spt, y_spt, x_qry, y_qry = [], [], [], []
                 selected_cls = self.rng.choice(data_pack.shape[0], self.n_way, False)
 
                 for j, cur_class in enumerate(selected_cls):
-
                     selected_img = self.rng.choice(20, self.k_shot + self.k_query, False)
 
                     # meta-training and meta-test

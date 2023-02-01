@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ def get_imbalance_dataset(
     class_0=4,
     class_1=9,
 ):
-
     ratio = 1 - pos_ratio
     ratio_test = 0.5
 
@@ -116,7 +115,7 @@ def get_imbalance_dataset(
     x_test_subset = x_test_subset[idx].astype(np.float32)
     y_test_subset = y_test_subset[idx].astype(np.float32)
 
-    (x_train_subset, y_train_subset, x_val_subset, y_val_subset, x_test_subset, y_test_subset,) = (
+    x_train_subset, y_train_subset, x_val_subset, y_val_subset, x_test_subset, y_test_subset = (
         torch.tensor(x_train_subset),
         torch.tensor(y_train_subset),
         torch.tensor(x_val_subset),
