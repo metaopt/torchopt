@@ -8,15 +8,15 @@ Explicit Gradient
     :scale: 60 %
     :align: center
 
-The idea of Explicit Gradient (EG) is to treat the gradient step as a differentiable function and try to backpropagate through the unrolled optimization path.
+The idea of explicit gradient is to treat the gradient step as a differentiable function and try to backpropagate through the unrolled optimization path.
 Namely, given
 
 .. math::
 
-    \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi}) \triangleq \boldsymbol{\theta}^{0} - \alpha \sum_{i=0}^{K-1} \nabla_{\boldsymbol{\theta}^{i}} L^{\text{in}} (\boldsymbol{\phi},\boldsymbol{\theta}^{i}),
+    \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi}) \triangleq \boldsymbol{\theta}^{0} - \alpha \sum_{i=0}^{K-1} \nabla_{\boldsymbol{\theta}^{i}} \mathcal{L}^{\text{in}} (\boldsymbol{\phi},\boldsymbol{\theta}^{i}),
 
-we would like to compute the Gradient :math:`\nabla_{\boldsymbol{\phi}} \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi})`.
-This is usually done by autodiff through an inner optimization's unrolled iterates.
+we would like to compute the gradient :math:`\nabla_{\boldsymbol{\phi}} \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi})`.
+This is usually done by AutoDiff through an inner optimization's unrolled iterates.
 
 Differentiable Functional Optimizers
 ------------------------------------

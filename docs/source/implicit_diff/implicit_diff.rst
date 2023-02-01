@@ -3,33 +3,36 @@
 Implicit Gradient differentiation
 =================================
 
-Implicit differentiation
+Implicit Differentiation
 ------------------------
+
+.. currentmodule:: torchopt.diff.implicit
 
 .. image:: /_static/images/ig.png
     :scale: 60 %
     :align: center
 
-Implicit differentiation is the task of differentiating a minimization problem's solution with respect to its inputs.
+Implicit differentiation is the task of differentiating the solution of a minimization problem with respect to its inputs.
 Namely, given
 
 .. math::
 
-    \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi}) := \underset{\boldsymbol{\theta}}{\mathop{\operatorname{argmin}}} ~
-    J^{\text{In}} (\boldsymbol{\phi},\boldsymbol{\theta}),
+    \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi}) \triangleq \underset{\boldsymbol{\theta}}{\mathop{\operatorname{argmin}}} ~ \mathcal{L}^{\text{in}} (\boldsymbol{\phi},\boldsymbol{\theta}),
 
-By treating the solution :math:`\boldsymbol{\theta}^{\prime}` as an implicit function of :math:`\boldsymbol{\phi}`, the idea of implicit differentiation is to directly get analytical best-response derivatives :math:`\nabla_{\boldsymbol{\phi}} \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi})` by implicit function theorem. This is suitable for algorithms when the inner-level optimal solution is achieved :math:`\frac{\partial J^{\text{In}} (\phi, \boldsymbol{\theta})}{\partial \theta} \rvert_{\theta = \theta^{\prime}} = 0` (so F in the figure means the solution is obtained by unrolled gradient steps) or reaches some stationary conditions :math:`F (\phi, \boldsymbol{\theta}^{\prime}) = 0`, such as `IMAML <https://arxiv.org/abs/1909.04630>`_ and `DEQ <https://arxiv.org/abs/1909.01377>`_.
+By treating the solution :math:`\boldsymbol{\theta}^{\prime}` as an implicit function of :math:`\boldsymbol{\phi}`, the idea of implicit differentiation is to directly get analytical best-response derivatives :math:`\nabla_{\boldsymbol{\phi}} \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi})` by the implicit function theorem.
+This is suitable for algorithms when the inner-level optimal solution is achieved :math:`\left. \frac{\partial \mathcal{L}^{\text{in}} (\boldsymbol{\phi}, \boldsymbol{\theta})}{\partial \boldsymbol{\theta}} \right\rvert_{\boldsymbol{\theta} = \boldsymbol{\theta}^{\prime}} = 0` (e.g., the function :math:`F` in the figure means the solution is obtained by unrolled gradient steps) or reaches some stationary conditions :math:`F (\boldsymbol{\phi}, \boldsymbol{\theta}^{\prime}) = 0`, such as `IMAML <https://arxiv.org/abs/1909.04630>`_ and `DEQ <https://arxiv.org/abs/1909.01377>`_.
 
-Custom solvers
+Custom Solvers
 --------------
 
 .. autosummary::
 
     torchopt.diff.implicit.custom_root
 
-TorchOpt provides the ``custom_root`` decorators, for easily adding implicit differentiation on top of any existing solver (also called forward optimization). ``custom_root`` requires users to define the stationary conditions for the problem solution, e.g. KKT conditions, and will automatically calculate the gradient for backward gradient computation.
+TorchOpt provides the :func:`custom_root` decorators, for easily adding implicit differentiation on top of any existing solver (also called forward optimization).
+:func:`custom_root` requires users to define the stationary conditions for the problem solution (e.g., KKT conditions) and will automatically calculate the gradient for backward gradient computation.
 
-Here is an example of ``custom_root`` decorators, which is also the **functional API** for implicit gradient.
+Here is an example of the :func:`custom_root` decorators, which is also the **functional API** for implicit gradient.
 
 .. code-block:: python
 
@@ -53,13 +56,15 @@ Here is an example of ``custom_root`` decorators, which is also the **functional
     meta_grads = torch.autograd.grad(loss, meta_params)
 
 OOP API
-^^^^^^^
+~~~~~~~
 
 .. autosummary::
 
-    torchopt.diff.implicit.nn.ImplicitMetaGradientModule
+    torchopt.nn.ImplicitMetaGradientModule
 
-Coupled with PyTorch ``nn.Module``, we also design the OOP API ``ImplicitMetaGradientModule`` for implicit gradient. The core idea of ``ImplicitMetaGradientModule`` is to enable the gradient flow from `self.parameters()` (usually lower-level parameters) to `self.meta_parameters()` (usually the high-level parameters). Users need to define the forward process ``forward()``, a stationary function ``optimality()`` (or ``objective()``), and inner-loop optimization ``solve``.
+Coupled with PyTorch ``nn.Module``, we also design the OOP API :class:`nn.ImplicitMetaGradientModule` for implicit gradient.
+The core idea of :class:`nn.ImplicitMetaGradientModule` is to enable the gradient flow from ``self.parameters()`` (usually lower-level parameters) to ``self.meta_parameters()`` (usually the high-level parameters).
+Users need to define the forward process ``forward()``, a stationary function ``optimality()`` (or ``objective()``), and inner-loop optimization ``solve``.
 
 Here is an example of the OOP API.
 
