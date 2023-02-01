@@ -1,4 +1,4 @@
-Explicit Gradient differentiation
+Explicit Gradient Differentiation
 =================================
 
 Explicit Gradient

@@ -1,4 +1,4 @@
-Zero-order Gradient differentiation
+Zero-order Gradient Differentiation
 ===================================
 
 Evolutionary Strategy

@@ -1,6 +1,4 @@
-.. _implicit_diff:
-
-Implicit Gradient differentiation
+Implicit Gradient Differentiation
 =================================
 
 Implicit Differentiation
