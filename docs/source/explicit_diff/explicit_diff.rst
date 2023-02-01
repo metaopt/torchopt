@@ -1,26 +1,28 @@
 Explicit Gradient differentiation
 =================================
 
-Explicit gradient
+Explicit Gradient
 -----------------
 
 .. image:: /_static/images/explicit_gradient.png
     :scale: 60 %
     :align: center
 
-The idea of Explicit Gradient is to treat the gradient step as a differentiable function and try to backpropagate through the unrolled optimization path.
+The idea of Explicit Gradient (EG) is to treat the gradient step as a differentiable function and try to backpropagate through the unrolled optimization path.
 Namely, given
 
 .. math::
 
-    \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi}) := \boldsymbol{\theta}^{0} - \alpha \sum_{i=0}^{K-1} \nabla_{\boldsymbol{\theta}^{i}} L^{\text{In}} (\boldsymbol{\phi},\boldsymbol{\theta}^{i}),
+    \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi}) \triangleq \boldsymbol{\theta}^{0} - \alpha \sum_{i=0}^{K-1} \nabla_{\boldsymbol{\theta}^{i}} L^{\text{in}} (\boldsymbol{\phi},\boldsymbol{\theta}^{i}),
 
 we would like to compute the Gradient :math:`\nabla_{\boldsymbol{\phi}} \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi})`.
 This is usually done by autodiff through an inner optimization's unrolled iterates.
 
-Differentiable Functional optimizers
+Differentiable Functional Optimizers
 ------------------------------------
-By passing the argument ``inplace`` as ``False`` to the ``update`` functions, we can make the optimization differentiable. Here is an example of making ``torchopt.adam`` differentiable.
+
+By passing the argument ``inplace`` as :data:`False` to the ``update`` functions, we can make the optimization differentiable.
+Here is an example of making :func:`torchopt.adam` differentiable.
 
 .. code-block:: python
 
@@ -41,9 +43,10 @@ By passing the argument ``inplace`` as ``False`` to the ``update`` functions, we
     loss = outer_loss(fmodel, params, meta_params)
     meta_grads = torch.autograd.grad(loss, meta_params)
 
-Differentiable OOP meta-optimizers
+Differentiable OOP Meta-Optimizers
 ----------------------------------
-For PyTorch-like API (e.g. ``step()``), we designed base class ``torchopt.MetaOptimizer`` to wrap our functional optimizers to become differentiable OOP meta-optimizers.
+
+For PyTorch-like API (e.g., ``step()``), we designed a base class :func:`torchopt.MetaOptimizer` to wrap our functional optimizers to become differentiable OOP meta-optimizers.
 
 .. autosummary::
 
@@ -53,7 +56,7 @@ For PyTorch-like API (e.g. ``step()``), we designed base class ``torchopt.MetaOp
     torchopt.MetaRMSProp
     torchopt.MetaAdamW
 
-By combining low-level API ``torchopt.MetaOptimizer`` with previous functional optimizer, we can achieve high-level API:
+By combining low-level API :func:`torchopt.MetaOptimizer` with the previous functional optimizer, we can achieve high-level API:
 
 .. code-block:: python
 
@@ -63,7 +66,7 @@ By combining low-level API ``torchopt.MetaOptimizer`` with previous functional o
     # High level API
     optim = torchopt.MetaSGD(net, lr=1.0)
 
-Here is an example of using the OOP API ``torchopt.MetaAdam`` to conduct meta-gradient calculation.
+Here is an example of using the OOP API :func:`torchopt.MetaAdam` to conduct meta-gradient calculation.
 
 .. code-block:: python
 
@@ -83,7 +86,10 @@ Here is an example of using the OOP API ``torchopt.MetaAdam`` to conduct meta-gr
 
 CPU/GPU Accelerated Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-By manually writing the forward and backward functions using C++ OpenMP (CPU) and CUDA (GPU), TorchOpt performs the symbolic reduction, which largely increase meta-gradient computational efficiency. Users can use accelerated optimizer by setting the ``use_accelerated_op`` as ``True``. TorchOpt will automatically detect the device and allocate the corresponding accelerated optimizer.
+
+TorchOpt performs the symbolic reduction by manually writing the forward and backward functions using C++ OpenMP (CPU) and CUDA (GPU), which largely increase meta-gradient computational efficiency.
+Users can use accelerated optimizer by setting the ``use_accelerated_op`` as :data:`True`.
+TorchOpt will automatically detect the device and allocate the corresponding accelerated optimizer.
 
 .. code-block:: python
 
@@ -98,7 +104,9 @@ By manually writing the forward and backward functions using C++ OpenMP (CPU) an
 General Utilities
 -----------------
 
-We provide the ``torchopt.extract_state_dict`` and ``torchopt.recover_state_dict`` functions to extract and restore the state of network and optimizer. By default, the extracted state dictionary is a reference (this design is for accumulating gradient of multi-task batch training, MAML for example). You can also set ``by='copy'`` to extract the copy of state dictionary or set ``by='deepcopy'`` to have a detached copy.
+We provide the :func:`torchopt.extract_state_dict` and :func:`torchopt.recover_state_dict` functions to extract and restore the state of network and optimizer.
+By default, the extracted state dictionary is a reference (this design is for accumulating gradient of multi-task batch training, MAML for example).
+You can also set ``by='copy'`` to extract the copy of state dictionary or set ``by='deepcopy'`` to have a detached copy.
 
 .. autosummary::
 
@@ -147,5 +155,6 @@ Here is an usage example.
     print(f'a = {net.a!r}')  # the same result
 
 Notebook Tutorial
--------------------
+-----------------
+
 Check notebook tutorials at `Meta Optimizer <https://github.com/metaopt/torchopt/blob/main/tutorials/3_Meta_Optimizer.ipynb>`_ and `Stop Gradient <https://github.com/metaopt/torchopt/blob/main/tutorials/4_Stop_Gradient.ipynb>`_.

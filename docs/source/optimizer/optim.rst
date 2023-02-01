@@ -8,8 +8,6 @@ We first introduce our functional optimizers, which treat the optimization proce
 .. |functorch| replace:: ``functorch``
 .. _functorch: https://pytorch.org/functorch
 
-.. currentmodule:: torchopt
-
 Functional Optimizers
 ---------------------
 
@@ -189,4 +187,5 @@ Here is an example of combining optimizer with learning rate scheduler.
 
 Notebook Tutorial
 -----------------
+
 Check notebook tutorial at `Functional Optimizer <https://github.com/metaopt/torchopt/blob/main/tutorials/1_Functional_Optimizer.ipynb>`_.
