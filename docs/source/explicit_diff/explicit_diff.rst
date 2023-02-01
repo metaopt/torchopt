@@ -46,7 +46,7 @@ Here is an example of making :func:`torchopt.adam` differentiable.
 Differentiable OOP Meta-Optimizers
 ----------------------------------
 
-For PyTorch-like API (e.g., ``step()``), we designed a base class :func:`torchopt.MetaOptimizer` to wrap our functional optimizers to become differentiable OOP meta-optimizers.
+For PyTorch-like API (e.g., ``step()``), we designed a base class :class:`torchopt.MetaOptimizer` to wrap our functional optimizers to become differentiable OOP meta-optimizers.
 
 .. autosummary::
 
@@ -56,7 +56,7 @@ For PyTorch-like API (e.g., ``step()``), we designed a base class :func:`torchop
     torchopt.MetaRMSProp
     torchopt.MetaAdamW
 
-By combining low-level API :func:`torchopt.MetaOptimizer` with the previous functional optimizer, we can achieve high-level API:
+By combining low-level API :class:`torchopt.MetaOptimizer` with the previous functional optimizer, we can achieve high-level API:
 
 .. code-block:: python
 
@@ -66,7 +66,7 @@ By combining low-level API :func:`torchopt.MetaOptimizer` with the previous func
     # High level API
     optim = torchopt.MetaSGD(net, lr=1.0)
 
-Here is an example of using the OOP API :func:`torchopt.MetaAdam` to conduct meta-gradient calculation.
+Here is an example of using the OOP API :class:`torchopt.MetaAdam` to conduct meta-gradient calculation.
 
 .. code-block:: python
 
