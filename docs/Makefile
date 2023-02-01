@@ -12,14 +12,6 @@ BUILDDIR      = build
 help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
-# Put it first so that "make" without argument is like "make clean".
-clean:
-	find . -depth -type d -name "_autosummary" -exec rm -r "{}" +
-	@$(SPHINXBUILD) -M clean "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
-	rm -rf $(BUILDDIR)/*
-	rm -rf $(BUILDDIR)
-
-
 .PHONY: help Makefile
 
 # Catch-all target: route all unknown targets to Sphinx using the new
