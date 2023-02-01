@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -57,7 +57,6 @@ def flip_sign_and_add_weight_decay(weight_decay: float = 0.0, maximize=False):
             return updates, state
 
     else:  # gradient ascent
-
         if weight_decay == 0.0:
             # pylint: disable-next=unused-argument
             def update_fn(updates, state, *, params=None, inplace=True):

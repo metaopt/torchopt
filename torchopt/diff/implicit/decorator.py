@@ -91,7 +91,6 @@ def _root_vjp(
     argnums: Tuple[int, ...],
     solve: Callable[..., TensorOrTensors] = linear_solve.solve_normal_cg(),
 ) -> TupleOfOptionalTensors:
-
     if output_is_tensor:
 
         def optimality_cond(solution: TupleOfTensors) -> TensorOrTensors:
