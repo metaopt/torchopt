@@ -1,6 +1,8 @@
 Optimizers
 ==========
 
+.. currentmodule:: torchopt
+
 The core design of TorchOpt follows the philosophy of functional programming.
 Aligned with |functorch|_, users can conduct functional-style programming with models, optimizers, and training in PyTorch.
 We first introduce our functional optimizers, which treat the optimization process as a functional transformation.
@@ -11,7 +13,7 @@ We first introduce our functional optimizers, which treat the optimization proce
 Functional Optimizers
 ---------------------
 
-Currently, TorchOpt supports 4 functional optimizers: :func:`SGD`, :func:`adam`, :func:`rmsprop`, and :func:`adamw`.
+Currently, TorchOpt supports 4 functional optimizers: :func:`sgd`, :func:`adam`, :func:`rmsprop`, and :func:`adamw`.
 
 .. autosummary::
 

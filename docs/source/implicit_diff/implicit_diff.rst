@@ -1,13 +1,13 @@
 Implicit Gradient Differentiation
 =================================
 
+.. currentmodule:: torchopt.diff.implicit
+
 Implicit Differentiation
 ------------------------
 
-.. currentmodule:: torchopt.diff.implicit
-
 .. image:: /_static/images/ig.png
-    :scale: 60 %
+    :scale: 60%
     :align: center
 
 Implicit differentiation is the task of differentiating the solution of a minimization problem with respect to its inputs.
@@ -70,6 +70,8 @@ Users need to define the forward process ``forward()``, a stationary function ``
 Here is an example of the OOP API.
 
 .. code-block:: python
+
+    from torchopt.nn import ImplicitMetaGradientModule
 
     # Inherited from the class ImplicitMetaGradientModule
     class InnerNet(ImplicitMetaGradientModule):

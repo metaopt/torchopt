@@ -1,6 +1,8 @@
 Distributed Training
 ====================
 
+.. currentmodule:: torchopt.distributed
+
 Distributed training is a technique that allows you to train your pipeline on multiple workers/machines.
 This is useful when you have a large model or computation graph that doesn't fit on a single GPU/machine, or when you want to train a model faster by using more resources.
 

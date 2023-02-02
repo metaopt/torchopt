@@ -1,11 +1,13 @@
 Explicit Gradient Differentiation
 =================================
 
+.. currentmodule:: torchopt
+
 Explicit Gradient
 -----------------
 
-.. image:: /_static/images/explicit_gradient.png
-    :scale: 60 %
+.. image:: /_static/images/explicit-gradient.png
+    :scale: 60%
     :align: center
 
 The idea of explicit gradient is to treat the gradient step as a differentiable function and try to backpropagate through the unrolled optimization path.
