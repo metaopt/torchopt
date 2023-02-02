@@ -7,7 +7,7 @@ Evolutionary Strategy
 ---------------------
 
 .. image:: /_static/images/zero-order.png
-    :scale: 60%
+    :width: 80%
     :align: center
 
 When the inner-loop process is non-differentiable or one wants to eliminate the heavy computation burdens in the previous two modes (brought by Hessian), one can choose Zeroth-order differentiation。

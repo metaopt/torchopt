@@ -7,7 +7,7 @@ Implicit Differentiation
 ------------------------
 
 .. image:: /_static/images/implicit-gradient.png
-    :scale: 60%
+    :width: 80%
     :align: center
 
 Implicit differentiation is the task of differentiating the solution of a minimization problem with respect to its inputs.

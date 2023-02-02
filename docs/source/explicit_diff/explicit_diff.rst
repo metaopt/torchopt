@@ -7,7 +7,7 @@ Explicit Gradient
 -----------------
 
 .. image:: /_static/images/explicit-gradient.png
-    :scale: 60%
+    :width: 80%
     :align: center
 
 The idea of explicit gradient is to treat the gradient step as a differentiable function and try to backpropagate through the unrolled optimization path.
@@ -15,7 +15,7 @@ Namely, given
 
 .. math::
 
-    \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi}) \triangleq \boldsymbol{\theta}^{0} - \alpha \sum_{i=0}^{K-1} \nabla_{\boldsymbol{\theta}^{i}} \mathcal{L}^{\text{in}} (\boldsymbol{\phi},\boldsymbol{\theta}^{i}),
+    \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi}) \triangleq \boldsymbol{\theta}_0 - \alpha \sum_{i=0}^{K-1} \nabla_{\boldsymbol{\theta}_i} \mathcal{L}^{\text{in}} (\boldsymbol{\phi},\boldsymbol{\theta}_i),
 
 we would like to compute the gradient :math:`\nabla_{\boldsymbol{\phi}} \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi})`.
 This is usually done by AutoDiff through an inner optimization's unrolled iterates.
