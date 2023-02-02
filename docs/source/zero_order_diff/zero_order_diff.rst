@@ -42,7 +42,7 @@ Here we show the specific meaning for each parameter used in the decorator.
     - Constant variance of :math:`1` for each element: :math:`\mathbb{E}_{\boldsymbol{z} \sim \lambda} [ {\lvert \boldsymbol{z}_i \rvert}^2 ] = 1`.
     - For example, the standard multi-dimensional normal distribution :math:`\mathcal{N} (\boldsymbol{0}, \boldsymbol{1})`.
 
-- ``method`` for different kind of algorithms, we support ``'naive'`` (`ES RL <https://arxiv.org/abs/1703.03864>`_), ``'forward'`` (`Forward-FD <http://proceedings.mlr.press/v80/choromanski18a/choromanski18a.pdf>`_), and ``'antithetic'`` (`antithetic <https://d1wqtxts1xzle7.cloudfront.net/75609515/coredp2011_1web-with-cover-page-v2.pdf?Expires=1670215467&Signature=RfP~mQhhhI7aGknwXbRBgSggFrKuNTPYdyUSdMmfTxOa62QoOJAm-Xhr3F1PLyjUQc2JVxmKIKGGuyYvyfCTpB31dfmMtuVQxZMWVF-SfErTN05SliC93yjA1x1g2kjhn8bkBFdQqGl~1RQSKnhj88BakgSeDNzyCxwbD5VgR89BXRs4YIK5RBIKYtgLhoyz5jar7wHS3TJhRzs3WNeTIAjAmLqJ068oGFZ0Jr7maGquTe3w~8LEEIprJ6cyCMc6b1UUJkmwjNq0RLTVbxgFjfi4Z9kyxyJB9IOS1J25OOON4jfwh5JlXS7MVskuONUyHJim1TQ8OwCraKlBsQLPQw__&Key-Pair-Id=APKAJLOHF5GGSLRBV4ZA>`_).
+- ``method`` for different kind of algorithms, we support ``'naive'`` (`ES RL <https://arxiv.org/abs/1703.03864>`_), ``'forward'`` (`Forward-FD <http://proceedings.mlr.press/v80/choromanski18a/choromanski18a.pdf>`_), and ``'antithetic'`` (`antithetic <https://arxiv.org/abs/1803.07055>`_).
 
     .. math::
 
