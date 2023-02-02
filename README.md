@@ -114,7 +114,7 @@ for xs, ys in loader:                                    # get data
 
 ### PyTorch-Like API
 
-We also design the base class `torchopt.Optimizer` that has the same interface as `torch.optim.Optimizer`.
+We also design a base class `torchopt.Optimizer` that has the same interface as `torch.optim.Optimizer`.
 We offer origin PyTorch APIs (e.g. `zero_grad()` or `step()`) by wrapping our Optax-Like API for traditional PyTorch users.
 
 ```python
@@ -311,7 +311,7 @@ distribution = torch.distributions.Normal(loc=0, scale=1)
 def forward(params, batch, labels):
     # Forward process
     ...
-    return objective  # the returned tensor should be a scalar-tensor
+    return objective  # the returned tensor should be a scalar tensor
 ```
 
 #### OOP API  <!-- omit in toc -->

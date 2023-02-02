@@ -98,7 +98,7 @@ Coupled with PyTorch ``nn.Module``, we also design the OOP API ``ZeroOrderGradie
         def forward(self, batch):
             # Forward process
             ...
-            return objective  # the returned tensor should be a scalar-tensor
+            return objective  # the returned tensor should be a scalar tensor
 
         def sample(self, sample_shape=torch.Size()):
             # Generate a batch of noise samples
