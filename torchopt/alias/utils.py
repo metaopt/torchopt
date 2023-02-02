@@ -13,29 +13,89 @@
 # limitations under the License.
 r"""Utilities for the aliases of preset :class:`GradientTransformation`\s for optimizers."""
 
+import threading
+from typing import Optional, Tuple
+
+from torchopt import pytree
 from torchopt.base import EmptyState, GradientTransformation, identity
 from torchopt.transform import scale, scale_by_schedule
-from torchopt.transform.utils import tree_map_flat
-from torchopt.typing import ScalarOrSchedule
+from torchopt.transform.utils import tree_map_flat, tree_map_flat_
+from torchopt.typing import OptState, Params, ScalarOrSchedule, Updates
 
 
 __all__ = ['flip_sign_and_add_weight_decay', 'scale_by_neg_lr']
 
 
-def flip_sign_and_add_weight_decay(weight_decay: float = 0.0, maximize=False):
+__USE_CHAIN_FLAT_LOCK = threading.Lock()
+__USE_CHAIN_FLAT = True
+
+
+def _set_use_chain_flat(use_chain_flat: bool) -> None:  # only used for testing purposes
+    global __USE_CHAIN_FLAT  # pylint: disable=global-statement
+    with __USE_CHAIN_FLAT_LOCK:
+        __USE_CHAIN_FLAT = use_chain_flat
+
+
+def _get_use_chain_flat() -> bool:  # only used for testing purposes
+    with __USE_CHAIN_FLAT_LOCK:
+        return __USE_CHAIN_FLAT
+
+
+def flip_sign_and_add_weight_decay(
+    weight_decay: float = 0.0, maximize=False
+) -> GradientTransformation:
     """Flip the sign of the updates and adds weight decay."""
-    if not 0.0 <= weight_decay:  # pylint: disable=unneeded-not
+    return _flip_sign_and_add_weight_decay(
+        weight_decay=weight_decay,
+        maximize=maximize,
+        already_flattened=False,
+    )
+
+
+def _flip_sign_and_add_weight_decay_flat(
+    weight_decay: float = 0.0, maximize=False
+) -> GradientTransformation:
+    """Flip the sign of the updates and adds weight decay."""
+    return _flip_sign_and_add_weight_decay(
+        weight_decay=weight_decay,
+        maximize=maximize,
+        already_flattened=True,
+    )
+
+
+def _flip_sign_and_add_weight_decay(
+    weight_decay: float = 0.0,
+    maximize=False,
+    *,
+    already_flattened: bool = False,
+) -> GradientTransformation:
+    """Flip the sign of the updates and adds weight decay."""
+    # pylint: disable-next=unneeded-not
+    if not 0.0 <= weight_decay:  # pragma: no cover
         raise ValueError(f'Invalid weight_decay value: {weight_decay}')
 
     if not maximize and weight_decay == 0.0:
         return identity()
 
-    def init_fn(params):  # pylint: disable=unused-argument
+    if already_flattened:
+        tree_map = tree_map_flat
+        tree_map_ = tree_map_flat_
+    else:
+        tree_map = pytree.tree_map  # type: ignore[assignment]
+        tree_map_ = pytree.tree_map_  # type: ignore[assignment]
+
+    def init_fn(params: Params) -> OptState:  # pylint: disable=unused-argument
         return EmptyState()
 
     if not maximize:  # gradient descent
 
-        def update_fn(updates, state, *, params=None, inplace=True):
+        def update_fn(
+            updates: Updates,
+            state: OptState,
+            *,
+            params: Optional[Params] = None,
+            inplace: bool = True,
+        ) -> Tuple[Updates, OptState]:
             assert params is not None, (
                 'Parameters are required for weight decay. '
                 'Call `update(updates, state, params=params)` instead.'
@@ -48,34 +108,52 @@ def flip_sign_and_add_weight_decay(weight_decay: float = 0.0, maximize=False):
                         return g.add_(p, alpha=weight_decay)
                     return g.add_(p.data, alpha=weight_decay)
 
+                updates = tree_map_(f, updates, params)
+
             else:
 
                 def f(g, p):
                     return g.add(p, alpha=weight_decay)
 
-            updates = tree_map_flat(f, updates, params)
+                updates = tree_map(f, updates, params)
+
             return updates, state
 
     else:  # gradient ascent
         if weight_decay == 0.0:
-            # pylint: disable-next=unused-argument
-            def update_fn(updates, state, *, params=None, inplace=True):
+
+            def update_fn(
+                updates: Updates,
+                state: OptState,
+                *,
+                params: Optional[Params] = None,  # pylint: disable=unused-argument
+                inplace: bool = True,
+            ) -> Tuple[Updates, OptState]:
                 if inplace:
 
                     def f(g):
                         return g.neg_()
+
+                    updates = tree_map_(f, updates)
 
                 else:
 
                     def f(g):
                         return g.neg()
 
-                updates = tree_map_flat(f, updates)
+                    updates = tree_map(f, updates)
+
                 return updates, state
 
         else:
 
-            def update_fn(updates, state, *, params=None, inplace=True):
+            def update_fn(
+                updates: Updates,
+                state: OptState,
+                *,
+                params: Optional[Params] = None,
+                inplace: bool = True,
+            ) -> Tuple[Updates, OptState]:
                 assert params is not None, (
                     'Parameters are required for weight decay. '
                     'Call `update(updates, state, params=params)` instead.'
@@ -84,26 +162,39 @@ def flip_sign_and_add_weight_decay(weight_decay: float = 0.0, maximize=False):
                 if inplace:
 
                     def f(g, p):
-                        if g is not None:
-                            if g.requires_grad:
-                                return g.neg_().add_(p, alpha=weight_decay)
-                            return g.neg_().add_(p.data, alpha=weight_decay)
-                        return None
+                        if g.requires_grad:
+                            return g.neg_().add_(p, alpha=weight_decay)
+                        return g.neg_().add_(p.data, alpha=weight_decay)
+
+                    updates = tree_map_(f, updates, params)
 
                 else:
 
                     def f(g, p):
                         return g.neg().add_(p, alpha=weight_decay)
 
-                updates = tree_map_flat(f, updates, params)
+                    updates = tree_map(f, updates, params)
+
                 return updates, state
 
     return GradientTransformation(init_fn, update_fn)
 
 
-def scale_by_neg_lr(lr: ScalarOrSchedule):
+flip_sign_and_add_weight_decay.flat = _flip_sign_and_add_weight_decay_flat  # type: ignore[attr-defined]
+flip_sign_and_add_weight_decay.impl = _flip_sign_and_add_weight_decay  # type: ignore[attr-defined]
+
+
+def scale_by_neg_lr(lr: ScalarOrSchedule) -> GradientTransformation:
     """Scale the updates by the negative learning rate."""
-    if not (callable(lr) or 0.0 <= lr):
+    return _scale_by_neg_lr(lr=lr, already_flattened=False)
+
+
+def _scale_by_neg_lr_flat(lr: ScalarOrSchedule) -> GradientTransformation:
+    return _scale_by_neg_lr(lr=lr, already_flattened=True)
+
+
+def _scale_by_neg_lr(lr: ScalarOrSchedule, *, already_flattened=False) -> GradientTransformation:
+    if not (callable(lr) or 0.0 <= lr):  # pragma: no cover
         raise ValueError(f'Invalid learning rate: {lr}')
 
     if callable(lr):
@@ -112,4 +203,8 @@ def scale_by_neg_lr(lr: ScalarOrSchedule):
             return -lr(count)  # type: ignore[operator]
 
         return scale_by_schedule.flat(schedule_wrapper)  # type: ignore[attr-defined]
-    return scale.flat(-lr)  # type: ignore[attr-defined]
+    return scale.impl(-lr, already_flattened=already_flattened)  # type: ignore[attr-defined]
+
+
+scale_by_neg_lr.flat = _scale_by_neg_lr_flat  # type: ignore[attr-defined]
+scale_by_neg_lr.impl = _scale_by_neg_lr  # type: ignore[attr-defined]

@@ -161,6 +161,7 @@ argmin
 Jacobian
 autodiff
 backend
+reparametrize
 reparameterize
 rtype
 backpropagate

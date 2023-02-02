@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,9 +31,12 @@
 # ==============================================================================
 """Preset transformation for scaling updates by learning rate."""
 
+from typing import Optional, Tuple
+
 from torchopt import pytree
 from torchopt.base import EmptyState, GradientTransformation
-from torchopt.transform.utils import tree_map_flat
+from torchopt.transform.utils import tree_map_flat, tree_map_flat_
+from torchopt.typing import OptState, Params, Updates
 
 
 __all__ = ['scale']
@@ -58,27 +61,42 @@ def _scale_flat(step_size: float) -> GradientTransformation:
     return _scale(step_size=step_size, already_flattened=True)
 
 
-def _scale(step_size: float, *, already_flattened: bool = False) -> GradientTransformation:
+def _scale(
+    step_size: float,
+    *,
+    already_flattened: bool = False,
+) -> GradientTransformation:
     if already_flattened:
         tree_map = tree_map_flat
+        tree_map_ = tree_map_flat_
     else:
         tree_map = pytree.tree_map  # type: ignore[assignment]
+        tree_map_ = pytree.tree_map_  # type: ignore[assignment]
 
-    def init_fn(params):  # pylint: disable=unused-argument
+    def init_fn(params: Params) -> OptState:  # pylint: disable=unused-argument
         return ScaleState()
 
-    def update_fn(updates, state, *, params=None, inplace=True):  # pylint: disable=unused-argument
+    def update_fn(
+        updates: Updates,
+        state: OptState,
+        *,
+        params: Optional[Params] = None,  # pylint: disable=unused-argument
+        inplace: bool = True,
+    ) -> Tuple[Updates, OptState]:
         if inplace:
 
             def f(g):
                 return g.mul_(step_size)
+
+            updates = tree_map_(f, updates)
 
         else:
 
             def f(g):
                 return g.mul(step_size)
 
-        updates = tree_map(f, updates)
+            updates = tree_map(f, updates)
+
         return updates, state
 
     return GradientTransformation(init_fn, update_fn)

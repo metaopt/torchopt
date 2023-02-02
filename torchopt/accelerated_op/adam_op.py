@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 # pylint: disable=c-extension-no-member,invalid-name
 
+import contextlib
 from typing import Any, Optional, Tuple
 
 import torch
@@ -104,8 +105,10 @@ class AdamOp:  # pylint: disable=too-few-public-methods
             """Define a formula for differentiating the operation with backward mode automatic differentiation (alias to the :meth:`vjp` function)."""
             dupdates = args[0]
             updates, new_mu, new_nu = ctx.saved_tensors
-            b1, b2, _, _, count = ctx.others
-            result = adam_op.backward_updates(dupdates, updates, new_mu, new_nu, b1, b2, count)
+            b1, b2, _, eps_root, count = ctx.others
+            result = adam_op.backward_updates(
+                dupdates, updates, new_mu, new_nu, b1, b2, eps_root, count
+            )
             return result[0], result[1], None
 
     # pylint: disable-next=too-many-arguments
@@ -126,24 +129,44 @@ class AdamOp:  # pylint: disable=too-few-public-methods
         self.inplace = inplace
 
     def __call__(
-        self, mu: torch.Tensor, nu: torch.Tensor, updates: Optional[torch.Tensor], count: int
+        self,
+        mu: torch.Tensor,
+        nu: torch.Tensor,
+        updates: Optional[torch.Tensor],
+        count: int,
     ) -> Tuple[torch.Tensor, torch.Tensor, Optional[torch.Tensor]]:
         """Apply the Adam operator."""
         if updates is None:
             return mu, nu, None
-        if updates.is_cuda:
-            current_device = torch.cuda.current_device()
-            torch.cuda.set_device(updates.device)
-        if self.inplace:
-            new_updates, new_mu, new_nu = adam_op.forward_(
-                updates, mu, nu, self.b1, self.b2, self.eps, self.eps_root, count
-            )
-        else:
-            new_mu = self.MuOp.apply(updates, mu, self.b1)
-            new_nu = self.NuOp.apply(updates, nu, self.b2)
-            new_updates = self.UpdatesOp.apply(
-                new_mu, new_nu, (self.b1, self.b2, self.eps, self.eps_root, count)
-            )
-        if updates.is_cuda:
-            torch.cuda.set_device(current_device)
+        device_context = (
+            torch.cuda.device(torch.cuda.current_device())
+            if updates.is_cuda
+            else contextlib.nullcontext()
+        )
+        with device_context:  # type: ignore[attr-defined]
+            if self.inplace:
+                new_updates, new_mu, new_nu = adam_op.forward_(
+                    updates,
+                    mu,
+                    nu,
+                    self.b1,
+                    self.b2,
+                    self.eps,
+                    self.eps_root,
+                    count,
+                )
+            else:
+                new_mu = self.MuOp.apply(updates, mu, self.b1)
+                new_nu = self.NuOp.apply(updates, nu, self.b2)
+                new_updates = self.UpdatesOp.apply(
+                    new_mu,
+                    new_nu,
+                    (
+                        self.b1,
+                        self.b2,
+                        self.eps,
+                        self.eps_root,
+                        count,
+                    ),
+                )
         return new_mu, new_nu, new_updates

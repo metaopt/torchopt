@@ -14,7 +14,6 @@ isort >= 5.11.0
 black[jupyter] >= 22.6.0
 pylint[spelling] >= 2.15.0
 mypy >= 0.990
-types-setuptools
 flake8
 flake8-bugbear
 # https://github.com/PyCQA/doc8/issues/112

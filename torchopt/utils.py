@@ -39,7 +39,7 @@ from torchopt import pytree
 from torchopt.typing import Device, ModuleTensorContainers, OptState, TensorContainer, TensorTree
 
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from torchopt.optim.meta.base import MetaOptimizer
 
 
@@ -65,7 +65,7 @@ class ModuleState(NamedTuple):
 CopyMode: TypeAlias = Literal['reference', 'copy', 'deepcopy', 'ref', 'clone', 'deepclone']
 
 
-def stop_gradient(target: Union[TensorTree, ModuleState, nn.Module, 'MetaOptimizer']) -> None:
+def stop_gradient(target: Union[ModuleState, nn.Module, 'MetaOptimizer', TensorTree]) -> None:
     """Stop the gradient for the input object.
 
     Since a tensor use :attr:`grad_fn` to connect itself with the previous computation graph, the
@@ -108,11 +108,11 @@ def extract_state_dict(
     target: nn.Module,
     *,
     by: CopyMode = 'reference',
-    device: Device = None,
+    device: Optional[Device] = None,
     with_buffers: bool = True,
     enable_visual: bool = False,
     visual_prefix: str = '',
-) -> ModuleState:
+) -> ModuleState:  # pragma: no cover
     ...
 
 
@@ -121,11 +121,11 @@ def extract_state_dict(
     target: 'MetaOptimizer',
     *,
     by: CopyMode = 'reference',
-    device: Device = None,
+    device: Optional[Device] = None,
     with_buffers: bool = True,
     enable_visual: bool = False,
     visual_prefix: str = '',
-) -> Tuple[OptState, ...]:
+) -> Tuple[OptState, ...]:  # pragma: no cover
     ...
 
 
@@ -134,7 +134,7 @@ def extract_state_dict(
     target: Union[nn.Module, 'MetaOptimizer'],
     *,
     by: CopyMode = 'reference',
-    device: Device = None,
+    device: Optional[Device] = None,
     with_buffers: bool = True,
     detach_buffers: bool = False,
     enable_visual: bool = False,
@@ -191,10 +191,10 @@ def extract_state_dict(
 
         def clone_detach_(t: torch.Tensor) -> torch.Tensor:
             if isinstance(t, nn.Parameter):
-                return nn.Parameter(t.clone().detach_(), requires_grad=t.requires_grad).to(
-                    device=target_device
+                return nn.Parameter(
+                    t.clone().to(device=target_device).detach_(), requires_grad=t.requires_grad
                 )
-            return t.clone().detach_().to(device=target_device).requires_grad_(t.requires_grad)
+            return t.clone().to(device=target_device).detach_().requires_grad_(t.requires_grad)
 
     else:
 
@@ -367,8 +367,8 @@ def module_clone(
     *,
     by: CopyMode = 'reference',
     detach_buffers: bool = False,
-    device: Device = None,
-) -> nn.Module:
+    device: Optional[Device] = None,
+) -> nn.Module:  # pragma: no cover
     ...
 
 
@@ -378,8 +378,8 @@ def module_clone(
     *,
     by: CopyMode = 'reference',
     detach_buffers: bool = False,
-    device: Device = None,
-) -> 'MetaOptimizer':
+    device: Optional[Device] = None,
+) -> 'MetaOptimizer':  # pragma: no cover
     ...
 
 
@@ -389,8 +389,8 @@ def module_clone(
     *,
     by: CopyMode = 'reference',
     detach_buffers: bool = False,
-    device: Device = None,
-) -> TensorTree:
+    device: Optional[Device] = None,
+) -> TensorTree:  # pragma: no cover
     ...
 
 
@@ -400,7 +400,7 @@ def module_clone(
     *,
     by: CopyMode = 'reference',
     detach_buffers: bool = False,
-    device: Device = None,
+    device: Optional[Device] = None,
 ) -> Union[nn.Module, 'MetaOptimizer', TensorTree]:
     """Clone a module.
 
@@ -460,10 +460,10 @@ def module_clone(
 
         def clone_detach_(t: torch.Tensor) -> torch.Tensor:
             if isinstance(t, nn.Parameter):
-                return nn.Parameter(t.clone().detach_(), requires_grad=t.requires_grad).to(
-                    device=target_device
+                return nn.Parameter(
+                    t.clone().to(device=target_device).detach_(), requires_grad=t.requires_grad
                 )
-            return t.clone().detach_().to(device=target_device).requires_grad_(t.requires_grad)
+            return t.clone().to(device=target_device).detach_().requires_grad_(t.requires_grad)
 
     else:
 
@@ -488,9 +488,29 @@ def module_clone(
     return pytree.tree_map(replicate, cast(TensorTree, target))
 
 
+@overload
+def module_detach_(target: ModuleState) -> ModuleState:  # pragma: no cover
+    ...
+
+
+@overload
+def module_detach_(target: nn.Module) -> nn.Module:  # pragma: no cover
+    ...
+
+
+@overload
+def module_detach_(target: 'MetaOptimizer') -> 'MetaOptimizer':  # pragma: no cover
+    ...
+
+
+@overload
+def module_detach_(target: TensorTree) -> TensorTree:  # pragma: no cover
+    ...
+
+
 def module_detach_(
-    target: Union[TensorTree, ModuleState, nn.Module, 'MetaOptimizer']
-) -> Union[TensorTree, ModuleState, nn.Module, 'MetaOptimizer']:
+    target: Union[ModuleState, nn.Module, 'MetaOptimizer', TensorTree]
+) -> Union[ModuleState, nn.Module, 'MetaOptimizer', TensorTree]:
     """Detach a module from the computation graph.
 
     Args:

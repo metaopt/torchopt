@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,11 +19,10 @@ from typing import Iterable, Optional, Union
 import torch
 
 from torchopt.accelerated_op.adam_op import AdamOp
+from torchopt.typing import Device
 
 
-def is_available(
-    devices: Optional[Union[int, str, torch.device, Iterable[Union[int, str, torch.device]]]] = None
-) -> bool:
+def is_available(devices: Optional[Union[Device, Iterable[Device]]] = None) -> bool:
     """Check the availability of accelerated optimizer."""
     op = AdamOp()
 
@@ -42,5 +41,5 @@ def is_available(
             updates = torch.tensor(1.0, device=device)
             op(updates, updates, updates, 1)
         return True
-    except BaseException:  # pylint: disable=broad-except
+    except Exception:  # pylint: disable=broad-except
         return False

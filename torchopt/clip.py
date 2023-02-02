@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,12 +17,13 @@
 # ==============================================================================
 """Utilities for gradient clipping."""
 
-from typing import Union
+from typing import Optional, Tuple, Union
 
 import torch
 
 from torchopt import pytree
 from torchopt.base import EmptyState, GradientTransformation
+from torchopt.typing import OptState, Params, Updates
 
 
 __all__ = ['clip_grad_norm']
@@ -49,10 +50,16 @@ def clip_grad_norm(
         An ``(init_fn, update_fn)`` tuple.
     """
 
-    def init_fn(params):  # pylint: disable=unused-argument
+    def init_fn(params: Params) -> OptState:  # pylint: disable=unused-argument
         return ClipState()
 
-    def update_fn(updates, state, *, params=None, inplace=True):  # pylint: disable=unused-argument
+    def update_fn(
+        updates: Updates,
+        state: OptState,
+        *,
+        params: Optional[Params] = None,  # pylint: disable=unused-argument
+        inplace: bool = True,
+    ) -> Tuple[Updates, OptState]:
         available_updates = pytree.tree_leaves(updates)
         if len(available_updates) == 0:
             return updates, state

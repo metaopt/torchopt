@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -230,8 +230,7 @@ def test_imaml_solve_normal_cg(
         nn.Parameter(torch.tensor(np.asarray(jax_params[j]), dtype=dtype)) for j in jax_params
     )
 
-    for p, p_ref in zip(params, jax_params_as_tensor):
-        helpers.assert_all_close(p, p_ref)
+    helpers.assert_pytree_all_close(params, jax_params_as_tensor)
 
 
 @helpers.parametrize(
@@ -358,8 +357,7 @@ def test_imaml_solve_inv(
         nn.Parameter(torch.tensor(np.asarray(jax_params[j]), dtype=dtype)) for j in jax_params
     )
 
-    for p, p_ref in zip(params, jax_params_as_tensor):
-        helpers.assert_all_close(p, p_ref)
+    helpers.assert_pytree_all_close(params, jax_params_as_tensor)
 
 
 @helpers.parametrize(
@@ -470,8 +468,7 @@ def test_imaml_module(dtype: torch.dtype, lr: float, inner_lr: float, inner_upda
         nn.Parameter(torch.tensor(np.asarray(jax_params[j]), dtype=dtype)) for j in jax_params
     )
 
-    for p, p_ref in zip(model.parameters(), jax_params_as_tensor):
-        helpers.assert_all_close(p, p_ref)
+    helpers.assert_pytree_all_close(tuple(model.parameters()), jax_params_as_tensor)
 
 
 @helpers.parametrize(

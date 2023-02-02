@@ -33,7 +33,7 @@ from typing import (
 import torch
 import torch.distributed.rpc as rpc
 
-import torchopt.pytree as pytree
+from torchopt import pytree
 from torchopt.distributed.world import get_worker_id, get_world_rank, get_world_size
 from torchopt.typing import Future
 

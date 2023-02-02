@@ -88,12 +88,11 @@ dependencies:
   - conda-forge::black-jupyter >= 22.6.0
   - pylint >= 2.15.0
   - mypy >= 0.990
-  - types-setuptools
   - flake8
   - flake8-bugbear
   - doc8 < 1.0.0a0
   - pydocstyle
   - clang-format >= 14
-  - clang-tools  # clang-tidy
+  - clang-tools >= 14  # clang-tidy
   - cpplint
   - pre-commit

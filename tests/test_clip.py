@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ from torch.nn.utils import clip_grad_norm_
 
 import helpers
 import torchopt
+from torchopt.alias.utils import _set_use_chain_flat
 
 
 @helpers.parametrize(
@@ -31,6 +32,7 @@ import torchopt
     nesterov=[False, True],
     weight_decay=[0.0, 1e-2],
     maximize=[False, True],
+    use_chain_flat=[True, False],
 )
 def test_sgd(
     dtype: torch.dtype,
@@ -41,9 +43,12 @@ def test_sgd(
     nesterov: bool,
     weight_decay: float,
     maximize: bool,
+    use_chain_flat: bool,
 ) -> None:
     if nesterov and (momentum <= 0.0 or dampening != 0.0):
         pytest.skip('Nesterov momentum requires a momentum and zero dampening.')
+
+    _set_use_chain_flat(use_chain_flat)
 
     model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
 
@@ -86,3 +91,4 @@ def test_sgd(
         optim_ref.step()
 
     helpers.assert_model_all_close(model, model_ref, model_base, dtype=dtype)
+    _set_use_chain_flat(True)

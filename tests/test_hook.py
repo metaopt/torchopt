@@ -12,19 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""Distributed utilities."""
 
-import torch.distributed as dist
-import torch.distributed.rpc as rpc
+import torch
 
-from torchopt.distributed import api, autograd, world
-from torchopt.distributed.api import *
-from torchopt.distributed.world import *
+import torchopt
+from torchopt import pytree
 
 
-__all__ = ['is_available', *api.__all__, *world.__all__]
+def test_nan_to_num_hook() -> None:
+    nan = torch.tensor(torch.nan)
+    inf = torch.tensor(torch.inf)
+    ninf = torch.tensor(-torch.inf)
+    hook = torchopt.hook.nan_to_num_hook(0.0, 1.0, -1.0)
+    result = pytree.tree_map(hook, [nan, inf, ninf])
+    assert result[0] == 0.0
+    assert result[1] == 1.0
+    assert result[2] == -1.0
 
 
-def is_available() -> bool:
-    """Check if the distributed module is available."""
-    return dist.is_available() and rpc.is_available() and autograd.is_available()
+def test_zero_nan_hook() -> None:
+    tensor = torch.tensor(1.0, requires_grad=True)
+    hook = torchopt.hook.zero_nan_hook
+    fn = torchopt.register_hook(hook)
+    fn.update(tensor, None)
+    assert tensor._backward_hooks[0] is hook

@@ -26,6 +26,9 @@ import torch.nn as nn
 import torch.types
 from torch.utils import data
 
+from torchopt import pytree
+from torchopt.typing import TensorTree
+
 
 BATCH_SIZE = 64
 NUM_UPDATES = 5
@@ -100,12 +103,8 @@ class MyLinear(nn.Module):
 
 
 @torch.no_grad()
-def get_models(
-    device: torch.types.Device = None, dtype: torch.dtype = torch.float32
-) -> Tuple[nn.Module, nn.Module, nn.Module, data.DataLoader]:
-    seed_everything(seed=42)
-
-    model_base = nn.Sequential(
+def get_model():
+    return nn.Sequential(
         MyLinear(
             in_features=MODEL_NUM_INPUTS,
             out_features=MODEL_HIDDEN_SIZE,
@@ -132,7 +131,16 @@ def get_models(
             bias=False,
         ),
         nn.Softmax(dim=-1),
-    ).to(dtype=dtype)
+    )
+
+
+@torch.no_grad()
+def get_models(
+    device: torch.types.Device = None, dtype: torch.dtype = torch.float32
+) -> Tuple[nn.Module, nn.Module, nn.Module, data.DataLoader]:
+    seed_everything(seed=42)
+
+    model_base = get_model().to(dtype=dtype)
     for name, param in model_base.named_parameters(recurse=True):
         if name.endswith('weight') and param.ndim >= 2:
             nn.init.orthogonal_(param)
@@ -165,7 +173,7 @@ def assert_model_all_close(
     rtol: Optional[float] = None,
     atol: Optional[float] = None,
     equal_nan: bool = False,
-):
+) -> None:
     if isinstance(model, tuple):
         params, buffers = model
     elif isinstance(model, nn.Module):
@@ -209,3 +217,32 @@ def assert_all_close(
         equal_nan=equal_nan,
         check_dtype=True,
     )
+
+
+@torch.no_grad()
+def assert_pytree_all_close(
+    actual: TensorTree,
+    expected: TensorTree,
+    base: Optional[TensorTree] = None,
+    rtol: Optional[float] = None,
+    atol: Optional[float] = None,
+    equal_nan: bool = False,
+) -> None:
+    actual_leaves, actual_treespec = pytree.tree_flatten(actual)
+    expected_leaves, expected_treespec = pytree.tree_flatten(expected)
+    assert actual_treespec == expected_treespec
+    if base is not None:
+        base_leaves, base_treespec = pytree.tree_flatten(base)
+        assert base_treespec == expected_treespec
+    else:
+        base_leaves = [None] * len(actual_leaves)
+
+    for actual_leaf, expected_leaf, base_leaf in zip(actual_leaves, expected_leaves, base_leaves):
+        assert_all_close(
+            actual_leaf,
+            expected_leaf,
+            base=base_leaf,
+            rtol=rtol,
+            atol=atol,
+            equal_nan=equal_nan,
+        )

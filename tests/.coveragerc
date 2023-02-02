@@ -1,0 +1,8 @@
+[run]
+omit =
+    ../torchopt/distributed/*
+    ../torchopt/visual.py
+    ../torchopt/version.py
+    ../docs/*
+    ../examples/*
+    ../tutorials/*

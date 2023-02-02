@@ -54,7 +54,7 @@ def test_zero_order(lr: float, method: str, sigma: float) -> None:
 
     fmodel, params = functorch.make_functional(model)
     x = torch.randn(batch_size, input_size) * coef
-    y = torch.randn(input_size) * coef
+    y = torch.randn(batch_size, 1) * coef
     distribution = torch.distributions.Normal(loc=0, scale=1)
 
     @torchopt.diff.zero_order(
@@ -106,7 +106,7 @@ def test_zero_order_module(lr: float, method: str, sigma: float) -> None:
             return self.distribution.sample(sample_shape)
 
     x = torch.randn(batch_size, input_size) * coef
-    y = torch.randn(input_size) * coef
+    y = torch.randn(batch_size, 1) * coef
     model_with_loss = FcNetWithLoss(input_size, output_size)
 
     optimizer = torchopt.Adam(model_with_loss.parameters(), lr=lr)

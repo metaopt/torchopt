@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,27 +32,32 @@ def forward_(
     count: int,
 ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """Adam forward inplace."""
-    inv_one_minus_pow_b1 = 1.0 / (1.0 - pow(b1, count))
-    inv_one_minus_pow_b2 = 1.0 / (1.0 - pow(b2, count))
-
     mu = mu.mul_(b1).add_(updates, alpha=1.0 - b1)
-    nu = nu.mul_(b2).add_(updates.square(), alpha=1.0 - b2)
+    nu = nu.mul_(b2).addcmul_(updates, updates, value=1.0 - b2)
     updates.copy_(
-        mu.mul(inv_one_minus_pow_b1).div_(
-            nu.mul(inv_one_minus_pow_b2).add_(eps_root).sqrt_().add_(eps)
+        mu.div(1.0 - pow(b1, count)).div_(
+            nu.div(1.0 - pow(b2, count)).add_(eps_root).sqrt_().add_(eps)
         )
     )
     return updates, mu, nu
 
 
-def forward_mu(updates: torch.Tensor, mu: torch.Tensor, b1: float) -> torch.Tensor:
+def forward_mu(
+    updates: torch.Tensor,
+    mu: torch.Tensor,
+    b1: float,
+) -> torch.Tensor:
     """Adam forward mu."""
     return mu.mul(b1).add_(updates, alpha=1.0 - b1)
 
 
-def forward_nu(updates: torch.Tensor, nu: torch.Tensor, b2: float) -> torch.Tensor:
+def forward_nu(
+    updates: torch.Tensor,
+    nu: torch.Tensor,
+    b2: float,
+) -> torch.Tensor:
     """Adam forward nu."""
-    return nu.mul(b2).add_(updates.square(), alpha=1.0 - b2)
+    return nu.mul(b2).addcmul_(updates, updates, value=1.0 - b2)
 
 
 def forward_updates(
@@ -65,15 +70,16 @@ def forward_updates(
     count: int,
 ) -> torch.Tensor:
     """Adam forward updates."""
-    inv_one_minus_pow_b1 = 1.0 / (1.0 - pow(b1, count))
-    inv_one_minus_pow_b2 = 1.0 / (1.0 - pow(b2, count))
-    return new_mu.mul(inv_one_minus_pow_b1).div_(
-        new_nu.mul(inv_one_minus_pow_b2).add_(eps_root).sqrt_().add_(eps)
+    return new_mu.div(1.0 - pow(b1, count)).div_(
+        new_nu.div(1.0 - pow(b2, count)).add_(eps_root).sqrt_().add_(eps)
     )
 
 
 def backward_mu(
-    dmu: torch.Tensor, updates: torch.Tensor, mu: torch.Tensor, b1: float
+    dmu: torch.Tensor,
+    updates: torch.Tensor,
+    mu: torch.Tensor,
+    b1: float,
 ) -> Tuple[torch.Tensor, torch.Tensor]:
     """Adam backward mu."""
     dupdates = dmu.mul(1.0 - b1)
@@ -82,7 +88,10 @@ def backward_mu(
 
 
 def backward_nu(
-    dnu: torch.Tensor, updates: torch.Tensor, nu: torch.Tensor, b2: float
+    dnu: torch.Tensor,
+    updates: torch.Tensor,
+    nu: torch.Tensor,
+    b2: float,
 ) -> Tuple[torch.Tensor, torch.Tensor]:
     """Adam backward nu."""
     dupdates = updates.mul(dnu).mul_(2.0 * (1.0 - b2))
@@ -97,17 +106,18 @@ def backward_updates(
     new_nu: torch.Tensor,
     b1: float,
     b2: float,
+    eps_root: float,
     count: int,
 ) -> Tuple[torch.Tensor, torch.Tensor]:
     """Adam backward updates."""
     one_minus_pow_b1 = 1.0 - pow(b1, count)
-    inv_one_minus_pow_b2 = 1.0 / (1.0 - pow(b2, count))
+    inv_one_minus_pow_b2 = 1.0 / (1.0 - pow(b2, count) + eps_root)
 
     updates_div_new_mu = updates.div(new_mu)
-    denominator = updates_div_new_mu.mul_(one_minus_pow_b1)
     dnew_mu_out = dupdates.mul(updates_div_new_mu)
+    denominator = updates_div_new_mu.mul_(one_minus_pow_b1)
     dnew_nu_out = (
-        dupdates.mul(updates).mul_(denominator.square_()).mul_(-0.5 * inv_one_minus_pow_b2)
+        denominator.square_().mul_(dupdates).mul_(updates).mul_(-0.5 * inv_one_minus_pow_b2)
     )
 
     mask = new_mu == 0

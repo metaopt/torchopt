@@ -12,19 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""Distributed utilities."""
 
-import torch.distributed as dist
-import torch.distributed.rpc as rpc
+import torch
 
-from torchopt.distributed import api, autograd, world
-from torchopt.distributed.api import *
-from torchopt.distributed.world import *
+import torchopt
 
 
-__all__ = ['is_available', *api.__all__, *world.__all__]
-
-
-def is_available() -> bool:
-    """Check if the distributed module is available."""
-    return dist.is_available() and rpc.is_available() and autograd.is_available()
+def test_normalize_matvec() -> None:
+    A = [torch.rand(10, 10) for _ in range(10)]
+    x = [torch.rand(10, 1) for _ in range(10)]
+    AxFn = torchopt.linalg.utils.normalize_matvec(A)
+    Ax = AxFn(x)
+    for Ax_item, A_item, x_item in zip(Ax, A, x):
+        assert torch.equal(Ax_item, A_item @ x_item)
