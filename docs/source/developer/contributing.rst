@@ -53,7 +53,7 @@ We use several tools to secure code quality, including:
 
     * PEP8 code style: ``black``, ``isort``, ``pylint``, ``flake8``
     * Type hint check: ``mypy``
-    * C++ Google-style: ``cpplint``, ``clang-format``
+    * C++ Google-style: ``cpplint``, ``clang-format``, ``clang-tidy``
     * License: ``addlicense``
     * Documentation: ``pydocstyle``, ``doc8``
 
