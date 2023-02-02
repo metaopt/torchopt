@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Update Sphinx documentation by [@XuehaiPan](https://github.com/XuehaiPan) and [@Benjamin-eecs](https://github.com/Benjamin-eecs) and [@waterhorse1](https://github.com/waterhorse1) and [@JieRen98](https://github.com/JieRen98) in [#127](https://github.com/metaopt/torchopt/pull/127).
 - Add object-oriented modules support for zero-order differentiation by [@XuehaiPan](https://github.com/XuehaiPan) in [#125](https://github.com/metaopt/torchopt/pull/125).
 
 ### Changed
