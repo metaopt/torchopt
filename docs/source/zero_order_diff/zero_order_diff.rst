@@ -15,7 +15,7 @@ Zero-order differentiation typically gets gradients based on zero-order estimati
 `ES-MAML <https://arxiv.org/pdf/1910.01215.pdf>`_ and `NAC <https://arxiv.org/abs/2106.02745>`_ successfully solve the non-differentiable optimization problem based on ES.
 
 TorchOpt offers API for ES-based differentiation.
-Instead of optimizing the objective :math:`F`, ES optimizes a Gaussian smoothing objective defined as :math:`\tilde{f}_{\sigma} (\boldsymbol{\theta}) = \mathbb{E}_{\boldsymbol{z} \sim \mathcal{N}( 0, {I}_d )} [ f (\boldsymbol{\theta} + \sigma \, \boldsymbol{z}) ]`, where :math:`\sigma` denotes the precision.
+Instead of optimizing the objective :math:`f (\boldsymbol{\theta}): \mathbb{R}^n \to \mathbb{R}`, ES optimizes a Gaussian smoothing objective defined as :math:`\tilde{f}_{\sigma} (\boldsymbol{\theta}) = \mathbb{E}_{\boldsymbol{z} \sim \mathcal{N}( 0, {I}_d )} [ f (\boldsymbol{\theta} + \sigma \, \boldsymbol{z}) ]`, where :math:`\sigma` denotes the precision.
 The gradient of such objective is :math:`\nabla_{\boldsymbol{\theta}} \tilde{f}_{\sigma} (\boldsymbol{\theta}) = \frac{1}{\sigma} \mathbb{E}_{\boldsymbol{z} \sim \mathcal{N}( 0, {I}_d )} [ f (\boldsymbol{\theta} + \sigma \, \boldsymbol{z}) \cdot \boldsymbol{z} ]`.
 Based on such technique, one can treat the bi-level process as a whole to calculate the meta-gradient based on pure forward process.
 Refer to `ES-MAML <https://arxiv.org/pdf/1910.01215.pdf>`_ for more explanations.
@@ -39,7 +39,7 @@ Here we show the specific meaning for each parameter used in the decorator.
 - ``distribution`` for noise sampling distribution. The distribution :math:`\lambda` should be spherical symmetric and with a constant variance of :math:`1` for each element. I.e.:
 
     - Spherical symmetric: :math:`\mathbb{E}_{\boldsymbol{z} \sim \lambda} [ \boldsymbol{z} ] = \boldsymbol{0}`.
-    - Constant variance of :math:`1` for each element: :math:`\mathbb{E}_{\boldsymbol{z} \sim \lambda} [ {\lvert \boldsymbol{z}_i \rvert}^2 ] = 1`.
+    - Constant variance of :math:`1` for each element: :math:`\mathbb{E}_{\boldsymbol{z} \sim \lambda} [ {\lvert z_i \rvert}^2 ] = 1`.
     - For example, the standard multi-dimensional normal distribution :math:`\mathcal{N} (\boldsymbol{0}, \boldsymbol{1})`.
 
 - ``method`` for different kind of algorithms, we support ``'naive'`` (`ES RL <https://arxiv.org/abs/1703.03864>`_), ``'forward'`` (`Forward-FD <http://proceedings.mlr.press/v80/choromanski18a/choromanski18a.pdf>`_), and ``'antithetic'`` (`antithetic <https://arxiv.org/abs/1803.07055>`_).
