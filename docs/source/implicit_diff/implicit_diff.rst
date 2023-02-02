@@ -6,7 +6,7 @@ Implicit Gradient Differentiation
 Implicit Differentiation
 ------------------------
 
-.. image:: /_static/images/ig.png
+.. image:: /_static/images/implicit-gradient.png
     :scale: 60%
     :align: center
 
@@ -15,7 +15,7 @@ Namely, given
 
 .. math::
 
-    \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi}) \triangleq \underset{\boldsymbol{\theta}}{\mathop{\operatorname{argmin}}} ~ \mathcal{L}^{\text{in}} (\boldsymbol{\phi},\boldsymbol{\theta}),
+    \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi}) \triangleq \underset{\boldsymbol{\theta}}{\mathop{\operatorname{argmin}}} ~ \mathcal{L}^{\text{in}} (\boldsymbol{\phi},\boldsymbol{\theta}).
 
 By treating the solution :math:`\boldsymbol{\theta}^{\prime}` as an implicit function of :math:`\boldsymbol{\phi}`, the idea of implicit differentiation is to directly get analytical best-response derivatives :math:`\nabla_{\boldsymbol{\phi}} \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi})` by the implicit function theorem.
 This is suitable for algorithms when the inner-level optimal solution is achieved :math:`\left. \frac{\partial \mathcal{L}^{\text{in}} (\boldsymbol{\phi}, \boldsymbol{\theta})}{\partial \boldsymbol{\theta}} \right\rvert_{\boldsymbol{\theta} = \boldsymbol{\theta}^{\prime}} = 0` (e.g., the function :math:`F` in the figure means the solution is obtained by unrolled gradient steps) or reaches some stationary conditions :math:`F (\boldsymbol{\phi}, \boldsymbol{\theta}^{\prime}) = 0`, such as `IMAML <https://arxiv.org/abs/1909.04630>`_ and `DEQ <https://arxiv.org/abs/1909.01377>`_.
