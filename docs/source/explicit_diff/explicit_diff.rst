@@ -63,7 +63,7 @@ By combining low-level API :class:`torchopt.MetaOptimizer` with the previous fun
     # Low-level API
     optim = torchopt.MetaOptimizer(net, torchopt.sgd(lr=1.0))
 
-    # High level API
+    # High-level API
     optim = torchopt.MetaSGD(net, lr=1.0)
 
 Here is an example of using the OOP API :class:`torchopt.MetaAdam` to conduct meta-gradient calculation.
@@ -106,7 +106,7 @@ General Utilities
 
 We provide the :func:`torchopt.extract_state_dict` and :func:`torchopt.recover_state_dict` functions to extract and restore the state of network and optimizer.
 By default, the extracted state dictionary is a reference (this design is for accumulating gradient of multi-task batch training, MAML for example).
-You can also set ``by='copy'`` to extract the copy of state dictionary or set ``by='deepcopy'`` to have a detached copy.
+You can also set ``by='copy'`` to extract the copy of the state dictionary or set ``by='deepcopy'`` to have a detached copy.
 
 .. autosummary::
 
@@ -129,7 +129,7 @@ Here is an usage example.
     # If set `detach_buffers=True`, the parameters are referenced as references while buffers are detached copies
     init_net_state = torchopt.extract_state_dict(net, by='reference', detach_buffers=True)
 
-    # Set `copy` to get the copy of state dictionary
+    # Set `copy` to get the copy of the state dictionary
     init_net_state_copy = torchopt.extract_state_dict(net, by='copy')
     init_optim_state_copy = torchopt.extract_state_dict(optim, by='copy')
 
@@ -157,4 +157,4 @@ Here is an usage example.
 Notebook Tutorial
 -----------------
 
-Check notebook tutorials at `Meta Optimizer <https://github.com/metaopt/torchopt/blob/main/tutorials/3_Meta_Optimizer.ipynb>`_ and `Stop Gradient <https://github.com/metaopt/torchopt/blob/main/tutorials/4_Stop_Gradient.ipynb>`_.
+Check the notebook tutorials at `Meta Optimizer <https://github.com/metaopt/torchopt/blob/main/tutorials/3_Meta_Optimizer.ipynb>`_ and `Stop Gradient <https://github.com/metaopt/torchopt/blob/main/tutorials/4_Stop_Gradient.ipynb>`_.

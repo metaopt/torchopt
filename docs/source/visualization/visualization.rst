@@ -2,7 +2,7 @@ Visualization
 =============
 
 In `PyTorch <https://pytorch.org>`_, if the attribute ``requires_grad`` a tensor is ``True``, the computation graph will be created if we use the tensor to do any operations.
-The computation graph is implemented likes a link list -- ``Tensors`` are nodes and they are linked by their attribute ``gran_fn``.
+The computation graph is implemented like a link list -- ``Tensors`` are nodes and they are linked by their attribute ``gran_fn``.
 `PyTorchViz <https://github.com/szagoruyko/pytorchviz>`_ is a Python package that uses `Graphviz <https://graphviz.org>`_ as a backend for plotting computation graphs.
 TorchOpt uses PyTorchViz as the blueprint and provides more easy-to-use visualization functions on the premise of supporting all its functions.
 

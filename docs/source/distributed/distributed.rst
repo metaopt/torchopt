@@ -1,7 +1,7 @@
 Distributed Training
 ====================
 
-Distributed training is a technique that allows you to train your pipeline on multiple worker/machines.
+Distributed training is a technique that allows you to train your pipeline on multiple workers/machines.
 This is useful when you have a large model or computation graph that doesn't fit on a single GPU/machine, or when you want to train a model faster by using more resources.
 
 TorchOpt offers a simple API to train your model on multiple GPUs/machines based on the PyTorch |Distributed RPC|_.
@@ -106,7 +106,7 @@ Here is an example of distributed autograd graph using RPC from `Distributed Bac
         # Perform some computation remotely.
         t3 = rpc.rpc_sync("worker1", my_add, args=(t1, t2))
 
-        # Perform some computation locally based on remote result.
+        # Perform some computation locally based on the remote result.
         t4 = torch.rand((3, 3), requires_grad=True)
         t5 = torch.mul(t3, t4)
 
@@ -144,7 +144,7 @@ Initialization and Synchronization
     torchopt.distributed.auto_init_rpc
     torchopt.distributed.barrier
 
-Users can wrap their program entry function with decorator :func:`torchopt.distributed.auto_init_rpc`:
+Users can wrap their program entry function with the decorator :func:`torchopt.distributed.auto_init_rpc`:
 
 .. code-block:: python
     :emphasize-lines: 13
@@ -610,7 +610,7 @@ The only difference between the single-process and distributed training is that 
         # The RPC call will detach the parameter from the autograd graph on worker1
         loss1 = rpc.rpc_sync('worker1', compute_loss, args=(model, batch))
 
-        # The RPC call will keep connection to the parameter in the autograd graph on worker1
+        # The RPC call will keep the connection to the parameter in the autograd graph on worker1
         loss2 = rpc.rpc_sync('worker1', compute_loss, args=(cloned_model, batch))
 
 .. |torch.nn.Parameter| replace:: ``torch.nn.Parameter``

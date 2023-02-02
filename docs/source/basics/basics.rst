@@ -15,7 +15,7 @@ TorchOpt Types
 PyTrees
 -------
 
-`PyTrees <https://github.com/metaopt/optree#pytrees>`_ are an essential concept in TorchOpt.
+`PyTrees <https://github.com/metaopt/optree#pytrees>`_ is an essential concept in TorchOpt.
 They can be thought as a generalization of vectors.
 They are a way to structure parameters or weights using tuples and dictionaries.
 Many solvers in TorchOpt have native support for pytrees.

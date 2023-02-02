@@ -100,7 +100,7 @@ Here is an example of the OOP API.
     meta_params, data = ..., ...
     inner_net = InnerNet()
 
-    # Solve for inner-loop process related with the meta-parameters
+    # Solve for inner-loop process related to the meta-parameters
     optimal_inner_net = inner_net.solve(meta_params, *data)
 
     # Get outer-loss and solve for meta-gradient
@@ -127,9 +127,9 @@ Linear System Solvers
     torchopt.linear_solve.solve_inv
     torchopt.linear_solve.solve_normal_cg
 
-Usually, the computation of implicit gradient involves the computation of inverse Hessian matrix.
+Usually, the computation of implicit gradient involves the computation of the inverse Hessian matrix.
 However, the high-dimensional Hessian matrix also makes direct computation intractable, and this is where linear solver comes into play.
-By iteratively solving the linear system problem, we can calculate inverse Hessian matrix up to some precision. We offer the `conjugate-gradient <https://arxiv.org/abs/1909.04630>`_ based solver and `neuman-series <https://arxiv.org/abs/1911.02590>`_ based solver.
+By iteratively solving the linear system problem, we can calculate the inverse Hessian matrix up to some precision. We offer the `conjugate-gradient <https://arxiv.org/abs/1909.04630>`_ based solver and `neuman-series <https://arxiv.org/abs/1911.02590>`_ based solver.
 
 Here is an example of the linear solver.
 
@@ -150,7 +150,7 @@ Here is an example of the linear solver.
     sol = linear_solve.solve_cg(matvec_A, b, tol=1e-5)
     print(sol)
 
-Users can also select corresponding solver in functional and OOP APIs.
+Users can also select the corresponding solver in functional and OOP APIs.
 
 .. code-block:: python
 
@@ -173,4 +173,4 @@ Users can also select corresponding solver in functional and OOP APIs.
 Notebook Tutorial
 -----------------
 
-Check notebook tutorial at `Implicit Differentiation <https://github.com/metaopt/torchopt/blob/main/tutorials/5_Implicit_Differentiation.ipynb>`_.
+Check the notebook tutorial at `Implicit Differentiation <https://github.com/metaopt/torchopt/blob/main/tutorials/5_Implicit_Differentiation.ipynb>`_.
