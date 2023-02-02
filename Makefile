@@ -42,6 +42,7 @@ check_pip_install_extra = $(PYTHON) -m pip show $(1) &>/dev/null || (cd && $(PYT
 
 pylint-install:
 	$(call check_pip_install_extra,pylint,pylint[spelling])
+	$(call check_pip_install,pyenchant)
 
 flake8-install:
 	$(call check_pip_install,flake8)
@@ -82,6 +83,9 @@ pytest-install:
 	$(call check_pip_install,pytest-cov)
 	$(call check_pip_install,pytest-xdist)
 
+test-install: pytest-install
+	$(PYTHON) -m pip install --requirement tests/requirements.txt
+
 cmake-install:
 	command -v cmake || $(call check_pip_install,cmake)
 
@@ -105,7 +109,7 @@ addlicense-install: go-install
 
 # Tests
 
-pytest: pytest-install
+pytest: test-install
 	cd tests && \
 	$(PYTHON) -m pytest --verbose --color=yes --durations=0 \
 		--cov="$(PROJECT_NAME)" --cov-report=xml --cov-report=term-missing \

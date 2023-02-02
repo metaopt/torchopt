@@ -12,7 +12,7 @@ Before contributing to TorchOpt, please follow the instructions below to setup.
 
     git remote add upstream git@github.com:metaopt/torchopt.git
 
-2. Setup a development environment via `conda <https://github.com/conda/conda>`_:
+2. Setup a development environment via `conda <https://github.com/conda/conda>`_ / `mamba <https://github.com/mamba-org/mamba>`_:
 
 .. code-block:: bash
 
@@ -53,7 +53,7 @@ We use several tools to secure code quality, including:
 
     * PEP8 code style: ``black``, ``isort``, ``pylint``, ``flake8``
     * Type hint check: ``mypy``
-    * C++ Google-style: ``cpplint``, ``clang-format``
+    * C++ Google-style: ``cpplint``, ``clang-format``, ``clang-tidy``
     * License: ``addlicense``
     * Documentation: ``pydocstyle``, ``doc8``
 

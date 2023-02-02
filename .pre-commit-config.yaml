@@ -34,7 +34,7 @@ repos:
       - id: isort
         stages: [commit, push, manual]
   - repo: https://github.com/psf/black
-    rev: 22.12.0
+    rev: 23.1.0
     hooks:
       - id: black-jupyter
         stages: [commit, push, manual]
@@ -59,6 +59,7 @@ repos:
         stages: [commit, push, manual]
         exclude: |
           (?x)(
+            ^docs/|
             ^examples/|
             ^tests/|
             ^setup.py$
@@ -71,8 +72,8 @@ repos:
         exclude: |
           (?x)(
             ^.github/|
+            ^docs/|
             ^examples/|
             ^tests/|
-            ^docs/source/conf.py$|
             ^setup.py$
           )
