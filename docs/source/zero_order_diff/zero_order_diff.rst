@@ -15,8 +15,8 @@ Zero-order differentiation typically gets gradients based on zero-order estimati
 `ES-MAML <https://arxiv.org/pdf/1910.01215.pdf>`_ and `NAC <https://arxiv.org/abs/2106.02745>`_ successfully solve the non-differentiable optimization problem based on ES.
 
 TorchOpt offers API for ES-based differentiation.
-Instead of optimizing the objective :math:`F`, ES optimizes a Gaussian smoothing objective defined as :math:`\tilde{f}_{\sigma} (\theta) = \mathbb{E}_{{z} \sim \mathcal{N}( {0}, {I}_d )} [ f ({\theta} + \sigma \, z) ]`, where :math:`\sigma` denotes the precision.
-The gradient of such objective is :math:`\nabla_\theta \tilde{f}_{\sigma} (\theta) = \frac{1}{\sigma} \mathbb{E}_{{z} \sim \mathcal{N}( {0}, {I}_d )} [ f({\theta} + \sigma \, z) \cdot z ]`.
+Instead of optimizing the objective :math:`F`, ES optimizes a Gaussian smoothing objective defined as :math:`\tilde{f}_{\sigma} (\boldsymbol{\theta}) = \mathbb{E}_{\boldsymbol{z} \sim \mathcal{N}( 0, {I}_d )} [ f (\boldsymbol{\theta} + \sigma \, \boldsymbol{z}) ]`, where :math:`\sigma` denotes the precision.
+The gradient of such objective is :math:`\nabla_{\boldsymbol{\theta}} \tilde{f}_{\sigma} (\boldsymbol{\theta}) = \frac{1}{\sigma} \mathbb{E}_{\boldsymbol{z} \sim \mathcal{N}( 0, {I}_d )} [ f (\boldsymbol{\theta} + \sigma \, \boldsymbol{z}) \cdot \boldsymbol{z} ]`.
 Based on such technique, one can treat the bi-level process as a whole to calculate the meta-gradient based on pure forward process.
 Refer to `ES-MAML <https://arxiv.org/pdf/1910.01215.pdf>`_ for more explanations.
 
@@ -36,13 +36,22 @@ The basic functional API is :func:`torchopt.diff.zero_order.zero_order`, which i
 Users are required to implement the noise sampling function, which will be used as the input of the zero_order decorator.
 Here we show the specific meaning for each parameter used in the decorator.
 
-- ``distribution`` for noise sampling distribution. The distribution :math:`\lambda` should be spherical symmetric and with a constant variance of :math:`1` for each element.
+- ``distribution`` for noise sampling distribution. The distribution :math:`\lambda` should be spherical symmetric and with a constant variance of :math:`1` for each element. I.e.:
 
     - Spherical symmetric: :math:`\mathbb{E}_{\boldsymbol{z} \sim \lambda} [ \boldsymbol{z} ] = \boldsymbol{0}`.
     - Constant variance of :math:`1` for each element: :math:`\mathbb{E}_{\boldsymbol{z} \sim \lambda} [ {\lvert \boldsymbol{z}_i \rvert}^2 ] = 1`.
-    - For example, normal distribution
+    - For example, the standard multi-dimensional normal distribution :math:`\mathcal{N} (\boldsymbol{0}, \boldsymbol{1})`.
 
 - ``method`` for different kind of algorithms, we support ``'naive'`` (`ES RL <https://arxiv.org/abs/1703.03864>`_), ``'forward'`` (`Forward-FD <http://proceedings.mlr.press/v80/choromanski18a/choromanski18a.pdf>`_), and ``'antithetic'`` (`antithetic <https://d1wqtxts1xzle7.cloudfront.net/75609515/coredp2011_1web-with-cover-page-v2.pdf?Expires=1670215467&Signature=RfP~mQhhhI7aGknwXbRBgSggFrKuNTPYdyUSdMmfTxOa62QoOJAm-Xhr3F1PLyjUQc2JVxmKIKGGuyYvyfCTpB31dfmMtuVQxZMWVF-SfErTN05SliC93yjA1x1g2kjhn8bkBFdQqGl~1RQSKnhj88BakgSeDNzyCxwbD5VgR89BXRs4YIK5RBIKYtgLhoyz5jar7wHS3TJhRzs3WNeTIAjAmLqJ068oGFZ0Jr7maGquTe3w~8LEEIprJ6cyCMc6b1UUJkmwjNq0RLTVbxgFjfi4Z9kyxyJB9IOS1J25OOON4jfwh5JlXS7MVskuONUyHJim1TQ8OwCraKlBsQLPQw__&Key-Pair-Id=APKAJLOHF5GGSLRBV4ZA>`_).
+
+    .. math::
+
+        \begin{align*}
+            \text{naive}      \qquad & \nabla_{\boldsymbol{\theta}} \tilde{f}_{\sigma} (\boldsymbol{\theta}) = \frac{1}{\sigma} \mathbb{E}_{\boldsymbol{z} \sim \lambda} [ f (\boldsymbol{\theta} + \sigma \, \boldsymbol{z}) \cdot \boldsymbol{z} ] \\
+            \text{forward}    \qquad & \nabla_{\boldsymbol{\theta}} \tilde{f}_{\sigma} (\boldsymbol{\theta}) = \frac{1}{\sigma} \mathbb{E}_{\boldsymbol{z} \sim \lambda} [ ( f (\boldsymbol{\theta} + \sigma \, \boldsymbol{z}) - f (\boldsymbol{\theta}) ) \cdot \boldsymbol{z} ] \\
+            \text{antithetic} \qquad & \nabla_{\boldsymbol{\theta}} \tilde{f}_{\sigma} (\boldsymbol{\theta}) = \frac{1}{2 \sigma} \mathbb{E}_{\boldsymbol{z} \sim \lambda} [ (f (\boldsymbol{\theta} + \sigma \, \boldsymbol{z}) - f (\boldsymbol{\theta} + \sigma \, \boldsymbol{z}) ) \cdot \boldsymbol{z} ]
+        \end{align*}
+
 - ``argnums`` specifies which parameter we want to trace the meta-gradient.
 - ``num_samples`` specifies how many times we want to conduct the sampling.
 - ``sigma`` is for precision. This is the scaling factor for the sampling distribution.
