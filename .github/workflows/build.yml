@@ -14,7 +14,7 @@ on:
       - include/**
       - src/**
       - torchopt/version.py
-      - .github/workflow/build.yml
+      - .github/workflows/build.yml
   release:
     types:
       - published
