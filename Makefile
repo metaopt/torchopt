@@ -102,7 +102,7 @@ clang-tidy-install:
 
 go-install:
 	# requires go >= 1.16
-	command -v go || (sudo apt-get install -y golang-1.16 && sudo ln -sf /usr/lib/go-1.16/bin/go /usr/bin/go)
+	command -v go || (sudo apt-get install -y golang && sudo ln -sf /usr/lib/go/bin/go /usr/bin/go)
 
 addlicense-install: go-install
 	command -v addlicense || go install github.com/google/addlicense@latest
