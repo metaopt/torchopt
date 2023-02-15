@@ -25,9 +25,9 @@ def test_nan_to_num_hook() -> None:
     ninf = torch.tensor(-torch.inf)
     hook = torchopt.hook.nan_to_num_hook(0.0, 1.0, -1.0)
     result = pytree.tree_map(hook, [nan, inf, ninf])
-    assert result[0] == 0.0
-    assert result[1] == 1.0
-    assert result[2] == -1.0
+    assert torch.equal(result[0], torch.tensor(0.0))
+    assert torch.equal(result[1], torch.tensor(1.0))
+    assert torch.equal(result[2], torch.tensor(-1.0))
 
 
 def test_zero_nan_hook() -> None:

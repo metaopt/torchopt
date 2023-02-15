@@ -54,6 +54,10 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
         instance._meta_modules: Dict[str, Optional[nn.Module]] = OrderedDict()  # type: ignore[misc]
         return instance
 
+    def __init__(self, *args, **kwargs) -> None:  # pylint: disable=unused-argument
+        """Initialize a new module instance."""
+        super().__init__()
+
     def __getattr__(self, name: str) -> Union[torch.Tensor, nn.Module]:
         """Get an attribute of the module."""
         if '_parameters' in self.__dict__:
