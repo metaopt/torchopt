@@ -14,7 +14,7 @@
 # ==============================================================================
 """TorchOpt: a high-performance optimizer library built upon PyTorch."""
 
-__version__ = '0.5.0'
+__version__ = '0.6.0'
 __license__ = 'Apache License, Version 2.0'
 __author__ = 'TorchOpt Contributors'
 __release__ = False
@@ -29,7 +29,7 @@ if not __release__:
                 ['git', 'describe', '--abbrev=7'],
                 cwd=os.path.dirname(os.path.abspath(__file__)),
                 stderr=subprocess.DEVNULL,
-                universal_newlines=True,
+                text=True,
             )
             .strip()
             .lstrip('v')

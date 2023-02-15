@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,13 +17,11 @@
 # ==============================================================================
 """Computation graph visualization."""
 
-import warnings
 from collections import namedtuple
 from typing import Generator, Iterable, Mapping, Optional, Union, cast
 
 import torch
 from graphviz import Digraph
-from pkg_resources import parse_version
 
 from torchopt.typing import TensorOrTensors
 from torchopt.utils import ModuleState
@@ -39,7 +37,7 @@ SAVED_PREFIX = '_saved_'
 
 
 def get_fn_name(fn, show_attrs, max_attr_chars):
-    """Returns function name."""
+    """Return function name."""
     name = str(type(fn).__name__)
     if not show_attrs:
         return name
@@ -85,7 +83,7 @@ def make_dot(
     show_saved: bool = False,
     max_attr_chars: int = 50,
 ) -> Digraph:
-    """Produces Graphviz representation of PyTorch autograd graph.
+    """Produce Graphviz representation of PyTorch autograd graph.
 
     If a node represents a backward function, it is gray. Otherwise, the node represents a tensor
     and is either blue, orange, or green:
@@ -113,13 +111,6 @@ def make_dot(
         max_attr_chars: If ``show_attrs`` is :data:`True`, sets max number of characters to display
             for any given attribute.
     """
-    if parse_version(torch.__version__) < parse_version('1.9') and (show_attrs or show_saved):
-        warnings.warn(
-            'make_dot: showing grad_fn attributes and saved variables '
-            'requires PyTorch version >= 1.9. (This does NOT apply to '
-            'saved tensors saved by custom autograd functions.)'
-        )
-
     param_map = {}
 
     if params is not None:
@@ -138,16 +129,16 @@ def make_dot(
                 else:
                     param_map.update({v: k for k, v in cast(Mapping, param).items()})
 
-    node_attr = dict(
-        style='filled',
-        shape='box',
-        align='left',
-        fontsize='10',
-        ranksep='0.1',
-        height='0.2',
-        fontname='monospace',
-    )
-    dot = Digraph(node_attr=node_attr, graph_attr=dict(size='12,12'))
+    node_attr = {
+        'style': 'filled',
+        'shape': 'box',
+        'align': 'left',
+        'fontsize': '10',
+        'ranksep': '0.1',
+        'height': '0.2',
+        'fontname': 'monospace',
+    }
+    dot = Digraph(node_attr=node_attr, graph_attr={'size': '12,12'})
     seen = set()
 
     def size_to_str(size):

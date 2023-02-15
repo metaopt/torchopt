@@ -1,4 +1,4 @@
-// Copyright 2022 MetaOPT Team. All Rights Reserved.
+// Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -40,9 +40,8 @@ void adamForwardInplaceCPUKernel(const other_t b1,
                                  scalar_t *__restrict__ updates_ptr,
                                  scalar_t *__restrict__ mu_ptr,
                                  scalar_t *__restrict__ nu_ptr) {
-#pragma omp parallel for num_threads( \
-    std::min(n / MIN_NUMEL_USE_OMP,   \
-             static_cast <size_t>(omp_get_num_procs()))) if (n > MIN_NUMEL_USE_OMP)  // NOLINT
+#pragma omp parallel for num_threads(std::min( \
+    n / MIN_NUMEL_USE_OMP, static_cast <size_t>(omp_get_num_procs()))) if (n > MIN_NUMEL_USE_OMP)
   for (size_t tid = 0; tid < n; ++tid) {
     const scalar_t updates = updates_ptr[tid];
     const scalar_t mu = mu_ptr[tid];
@@ -50,8 +49,10 @@ void adamForwardInplaceCPUKernel(const other_t b1,
 
     const scalar_t mu_out = b1 * mu + (1 - b1) * updates;
     const scalar_t nu_out = b2 * nu + (1 - b2) * updates * updates;
-    const scalar_t updates_out =
-        mu_out * inv_one_minus_pow_b1 / (sqrt(nu_out * inv_one_minus_pow_b2 + eps_root) + eps);
+    const scalar_t mu_hat = mu_out * inv_one_minus_pow_b1;
+    const scalar_t nu_hat = nu_out * inv_one_minus_pow_b2;
+
+    const scalar_t updates_out = mu_hat / (sqrt(nu_hat + eps_root) + eps);
 
     mu_ptr[tid] = mu_out;
     nu_ptr[tid] = nu_out;
@@ -94,9 +95,8 @@ void adamForwardMuCPUKernel(const scalar_t *__restrict__ updates_ptr,
                             const other_t b1,
                             const size_t n,
                             scalar_t *__restrict__ mu_out_ptr) {
-#pragma omp parallel for num_threads( \
-    std::min(n / MIN_NUMEL_USE_OMP,   \
-             static_cast <size_t>(omp_get_num_procs()))) if (n > MIN_NUMEL_USE_OMP)  // NOLINT
+#pragma omp parallel for num_threads(std::min( \
+    n / MIN_NUMEL_USE_OMP, static_cast <size_t>(omp_get_num_procs()))) if (n > MIN_NUMEL_USE_OMP)
   for (size_t tid = 0; tid < n; ++tid) {
     const scalar_t updates = updates_ptr[tid];
     const scalar_t mu = mu_ptr[tid];
@@ -128,14 +128,13 @@ void adamForwardNuCPUKernel(const scalar_t *__restrict__ updates_ptr,
                             const other_t b2,
                             const size_t n,
                             scalar_t *__restrict__ nu_out_ptr) {
-#pragma omp parallel for num_threads( \
-    std::min(n / MIN_NUMEL_USE_OMP,   \
-             static_cast <size_t>(omp_get_num_procs()))) if (n > MIN_NUMEL_USE_OMP)  // NOLINT
+#pragma omp parallel for num_threads(std::min( \
+    n / MIN_NUMEL_USE_OMP, static_cast <size_t>(omp_get_num_procs()))) if (n > MIN_NUMEL_USE_OMP)
   for (size_t tid = 0; tid < n; ++tid) {
     const scalar_t updates = updates_ptr[tid];
     const scalar_t nu = nu_ptr[tid];
 
-    const scalar_t nu_out = b2 * nu + (1 - b2) * pow(updates, 2);
+    const scalar_t nu_out = b2 * nu + (1 - b2) * updates * updates;
     nu_out_ptr[tid] = nu_out;
   }
 }
@@ -166,9 +165,8 @@ void adamForwardUpdatesCPUKernel(const scalar_t *__restrict__ new_mu_ptr,
                                  const other_t eps_root,
                                  const size_t n,
                                  scalar_t *__restrict__ updates_out_ptr) {
-#pragma omp parallel for num_threads( \
-    std::min(n / MIN_NUMEL_USE_OMP,   \
-             static_cast <size_t>(omp_get_num_procs()))) if (n > MIN_NUMEL_USE_OMP)  // NOLINT
+#pragma omp parallel for num_threads(std::min( \
+    n / MIN_NUMEL_USE_OMP, static_cast <size_t>(omp_get_num_procs()))) if (n > MIN_NUMEL_USE_OMP)
   for (size_t tid = 0; tid < n; ++tid) {
     const scalar_t new_mu = new_mu_ptr[tid];
     const scalar_t new_nu = new_nu_ptr[tid];
@@ -186,13 +184,10 @@ torch::Tensor adamForwardUpdatesCPU(const torch::Tensor &new_mu,
                                     const pyfloat_t eps_root,
                                     const pyuint_t count) {
   using other_t = pyfloat_t;
+  const other_t inv_one_minus_pow_b1 = 1 / (1 - std::pow(b1, count));
+  const other_t inv_one_minus_pow_b2 = 1 / (1 - std::pow(b2, count));
 
   auto updates_out = torch::empty_like(new_mu);
-
-  const other_t one_minus_pow_b1 = 1 - std::pow(b1, count);
-  const other_t inv_one_minus_pow_b1 = 1 / one_minus_pow_b1;
-  const other_t one_minus_pow_b2 = 1 - std::pow(b2, count);
-  const other_t inv_one_minus_pow_b2 = 1 / one_minus_pow_b2;
 
   const size_t n = getTensorPlainSize(new_mu);
   AT_DISPATCH_SCALAR_TYPES(new_mu.scalar_type(), "adamForwardUpdatesCPU", ([&] {
@@ -215,9 +210,8 @@ void adamBackwardMuCPUKernel(const scalar_t *__restrict__ dmu_ptr,
                              const size_t n,
                              scalar_t *__restrict__ dupdates_out_ptr,
                              scalar_t *__restrict__ dmu_out_ptr) {
-#pragma omp parallel for num_threads( \
-    std::min(n / MIN_NUMEL_USE_OMP,   \
-             static_cast <size_t>(omp_get_num_procs()))) if (n > MIN_NUMEL_USE_OMP)  // NOLINT
+#pragma omp parallel for num_threads(std::min( \
+    n / MIN_NUMEL_USE_OMP, static_cast <size_t>(omp_get_num_procs()))) if (n > MIN_NUMEL_USE_OMP)
   for (size_t tid = 0; tid < n; ++tid) {
     const scalar_t dmu = dmu_ptr[tid];
 
@@ -252,9 +246,8 @@ void adamBackwardNuCPUKernel(const scalar_t *__restrict__ dnu_ptr,
                              const size_t n,
                              scalar_t *__restrict__ dupdates_out_ptr,
                              scalar_t *__restrict__ dnu_out_ptr) {
-#pragma omp parallel for num_threads( \
-    std::min(n / MIN_NUMEL_USE_OMP,   \
-             static_cast <size_t>(omp_get_num_procs()))) if (n > MIN_NUMEL_USE_OMP)  // NOLINT
+#pragma omp parallel for num_threads(std::min( \
+    n / MIN_NUMEL_USE_OMP, static_cast <size_t>(omp_get_num_procs()))) if (n > MIN_NUMEL_USE_OMP)
   for (size_t tid = 0; tid < n; ++tid) {
     const scalar_t dnu = dnu_ptr[tid];
     const scalar_t updates = updates_ptr[tid];
@@ -293,9 +286,8 @@ void adamBackwardUpdatesCPUKernel(const scalar_t *__restrict__ dupdates_ptr,
                                   const size_t n,
                                   scalar_t *__restrict__ dnew_mu_out_ptr,
                                   scalar_t *__restrict__ dnew_nu_out_ptr) {
-#pragma omp parallel for num_threads( \
-    std::min(n / MIN_NUMEL_USE_OMP,   \
-             static_cast <size_t>(omp_get_num_procs()))) if (n > MIN_NUMEL_USE_OMP)  // NOLINT
+#pragma omp parallel for num_threads(std::min( \
+    n / MIN_NUMEL_USE_OMP, static_cast <size_t>(omp_get_num_procs()))) if (n > MIN_NUMEL_USE_OMP)
   for (size_t tid = 0; tid < n; ++tid) {
     const scalar_t dupdates = dupdates_ptr[tid];
     const scalar_t updates = updates_ptr[tid];
@@ -323,15 +315,14 @@ TensorArray<2> adamBackwardUpdatesCPU(const torch::Tensor &dupdates,
                                       const torch::Tensor &new_nu,
                                       const pyfloat_t b1,
                                       const pyfloat_t b2,
+                                      const pyfloat_t eps_root,
                                       const pyuint_t count) {
   using other_t = pyfloat_t;
+  const other_t one_minus_pow_b1 = 1 - std::pow(b1, count);
+  const other_t inv_one_minus_pow_b2 = 1 / (1 - std::pow(b2, count) + eps_root);
 
   auto dmu_out = torch::empty_like(new_mu);
   auto dnu_out = torch::empty_like(new_nu);
-
-  const other_t one_minus_pow_b1 = 1 - std::pow(b1, count);
-  const other_t one_minus_pow_b2 = 1 - std::pow(b2, count);
-  const other_t inv_one_minus_pow_b2 = 1 / one_minus_pow_b2;
 
   const size_t n = getTensorPlainSize(dupdates);
   AT_DISPATCH_SCALAR_TYPES(dupdates.scalar_type(), "adamBackwardUpdatesCPU", ([&] {

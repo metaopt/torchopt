@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,6 +25,6 @@ from torchopt.distributed.world import *
 __all__ = ['is_available', *api.__all__, *world.__all__]
 
 
-def is_available():
+def is_available() -> bool:
     """Check if the distributed module is available."""
     return dist.is_available() and rpc.is_available() and autograd.is_available()

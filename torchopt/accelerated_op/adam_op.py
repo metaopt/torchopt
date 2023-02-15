@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,11 +16,16 @@
 
 # pylint: disable=c-extension-no-member,invalid-name
 
+import contextlib
 from typing import Any, Optional, Tuple
 
 import torch
 
-from torchopt._C import adam_op  # pylint: disable=no-name-in-module
+
+try:
+    from torchopt._C import adam_op  # pylint: disable=no-name-in-module
+except ImportError:
+    from torchopt.accelerated_op._src import adam_op  # type: ignore[no-redef]
 
 
 class AdamOp:  # pylint: disable=too-few-public-methods
@@ -31,13 +36,13 @@ class AdamOp:  # pylint: disable=too-few-public-methods
 
         @staticmethod
         def jvp(ctx: Any, *grad_inputs: Any) -> Any:
-            """Defines a formula for differentiating the operation with forward mode automatic differentiation."""
+            """Define a formula for differentiating the operation with forward mode automatic differentiation."""
 
         @staticmethod
         def forward(ctx: Any, *args: Any, **kwargs: Any) -> Any:
-            """Performs the operation."""
+            """Perform the operation."""
             updates, mu, b1 = args
-            new_mu = adam_op.forwardMu(updates, mu, b1)
+            new_mu = adam_op.forward_mu(updates, mu, b1)
             ctx.save_for_backward(updates, mu)
             ctx.b1 = b1
             return new_mu
@@ -45,11 +50,11 @@ class AdamOp:  # pylint: disable=too-few-public-methods
         @staticmethod
         def backward(ctx: Any, *args: Any) -> Any:
             # pylint: disable-next=line-too-long
-            """Defines a formula for differentiating the operation with backward mode automatic differentiation (alias to the :meth:`vjp` method)."""
+            """Define a formula for differentiating the operation with backward mode automatic differentiation (alias to the :meth:`vjp` method)."""
             dmu = args[0]
             updates, mu = ctx.saved_tensors
             b1 = ctx.b1
-            result = adam_op.backwardMu(dmu, updates, mu, b1)
+            result = adam_op.backward_mu(dmu, updates, mu, b1)
             return result[0], result[1], None
 
     class NuOp(torch.autograd.Function):  # pylint: disable=abstract-method
@@ -57,13 +62,13 @@ class AdamOp:  # pylint: disable=too-few-public-methods
 
         @staticmethod
         def jvp(ctx: Any, *grad_inputs: Any) -> Any:
-            """Defines a formula for differentiating the operation with forward mode automatic differentiation."""
+            """Define a formula for differentiating the operation with forward mode automatic differentiation."""
 
         @staticmethod
         def forward(ctx: Any, *args: Any, **kwargs: Any) -> Any:
-            """Performs the operation."""
+            """Perform the operation."""
             updates, nu, b2 = args
-            new_nu = adam_op.forwardNu(updates, nu, b2)
+            new_nu = adam_op.forward_nu(updates, nu, b2)
             ctx.save_for_backward(updates, nu)
             ctx.b2 = b2
             return new_nu
@@ -71,11 +76,11 @@ class AdamOp:  # pylint: disable=too-few-public-methods
         @staticmethod
         def backward(ctx: Any, *args: Any) -> Any:
             # pylint: disable-next=line-too-long
-            """Defines a formula for differentiating the operation with backward mode automatic differentiation (alias to the :meth:`vjp` function)."""
+            """Define a formula for differentiating the operation with backward mode automatic differentiation (alias to the :meth:`vjp` function)."""
             dnu = args[0]
             updates, nu = ctx.saved_tensors
             b2 = ctx.b2
-            result = adam_op.backwardNu(dnu, updates, nu, b2)
+            result = adam_op.backward_nu(dnu, updates, nu, b2)
             return result[0], result[1], None
 
     class UpdatesOp(torch.autograd.Function):  # pylint: disable=abstract-method
@@ -83,13 +88,13 @@ class AdamOp:  # pylint: disable=too-few-public-methods
 
         @staticmethod
         def jvp(ctx: Any, *grad_inputs: Any) -> Any:
-            """Defines a formula for differentiating the operation with forward mode automatic differentiation."""
+            """Define a formula for differentiating the operation with forward mode automatic differentiation."""
 
         @staticmethod
         def forward(ctx: Any, *args: Any, **kwargs: Any) -> Any:
-            """Performs the operation."""
+            """Perform the operation."""
             new_mu, new_nu, (b1, b2, eps, eps_root, count) = args
-            new_updates = adam_op.forwardUpdates(new_mu, new_nu, b1, b2, eps, eps_root, count)
+            new_updates = adam_op.forward_updates(new_mu, new_nu, b1, b2, eps, eps_root, count)
             ctx.save_for_backward(new_updates, new_mu, new_nu)
             ctx.others = (b1, b2, eps, eps_root, count)
             return new_updates
@@ -97,11 +102,13 @@ class AdamOp:  # pylint: disable=too-few-public-methods
         @staticmethod
         def backward(ctx: Any, *args: Any) -> Any:
             # pylint: disable-next=line-too-long
-            """Defines a formula for differentiating the operation with backward mode automatic differentiation (alias to the :meth:`vjp` function)."""
+            """Define a formula for differentiating the operation with backward mode automatic differentiation (alias to the :meth:`vjp` function)."""
             dupdates = args[0]
             updates, new_mu, new_nu = ctx.saved_tensors
-            b1, b2, _, _, count = ctx.others
-            result = adam_op.backwardUpdates(dupdates, updates, new_mu, new_nu, b1, b2, count)
+            b1, b2, _, eps_root, count = ctx.others
+            result = adam_op.backward_updates(
+                dupdates, updates, new_mu, new_nu, b1, b2, eps_root, count
+            )
             return result[0], result[1], None
 
     # pylint: disable-next=too-many-arguments
@@ -114,7 +121,7 @@ class AdamOp:  # pylint: disable=too-few-public-methods
         eps_root: float = 0.0,
         inplace: bool = True,
     ) -> None:
-        """The :meth:`__init__` function."""
+        """Initialize the Adam operator."""
         self.b1 = b1
         self.b2 = b2
         self.eps = eps
@@ -122,24 +129,44 @@ class AdamOp:  # pylint: disable=too-few-public-methods
         self.inplace = inplace
 
     def __call__(
-        self, mu: torch.Tensor, nu: torch.Tensor, updates: Optional[torch.Tensor], count: int
+        self,
+        mu: torch.Tensor,
+        nu: torch.Tensor,
+        updates: Optional[torch.Tensor],
+        count: int,
     ) -> Tuple[torch.Tensor, torch.Tensor, Optional[torch.Tensor]]:
-        """The :meth:`__call__` function."""
+        """Apply the Adam operator."""
         if updates is None:
             return mu, nu, None
-        if updates.is_cuda:
-            current_device = torch.cuda.current_device()
-            torch.cuda.set_device(updates.device)
-        if self.inplace:
-            new_updates, new_mu, new_nu = adam_op.forward_(
-                updates, mu, nu, self.b1, self.b2, self.eps, self.eps_root, count
-            )
-        else:
-            new_mu = self.MuOp.apply(updates, mu, self.b1)
-            new_nu = self.NuOp.apply(updates, nu, self.b2)
-            new_updates = self.UpdatesOp.apply(
-                new_mu, new_nu, (self.b1, self.b2, self.eps, self.eps_root, count)
-            )
-        if updates.is_cuda:
-            torch.cuda.set_device(current_device)
+        device_context = (
+            torch.cuda.device(torch.cuda.current_device())
+            if updates.is_cuda
+            else contextlib.nullcontext()
+        )
+        with device_context:  # type: ignore[attr-defined]
+            if self.inplace:
+                new_updates, new_mu, new_nu = adam_op.forward_(
+                    updates,
+                    mu,
+                    nu,
+                    self.b1,
+                    self.b2,
+                    self.eps,
+                    self.eps_root,
+                    count,
+                )
+            else:
+                new_mu = self.MuOp.apply(updates, mu, self.b1)
+                new_nu = self.NuOp.apply(updates, nu, self.b2)
+                new_updates = self.UpdatesOp.apply(
+                    new_mu,
+                    new_nu,
+                    (
+                        self.b1,
+                        self.b2,
+                        self.eps,
+                        self.eps_root,
+                        count,
+                    ),
+                )
         return new_mu, new_nu, new_updates

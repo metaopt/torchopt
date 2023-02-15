@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ from typing import (
 import torch
 import torch.distributed.rpc as rpc
 
-import torchopt.pytree as pytree
+from torchopt import pytree
 from torchopt.distributed.world import get_worker_id, get_world_rank, get_world_size
 from torchopt.typing import Future
 
@@ -52,7 +52,10 @@ __all__ = [
 ]
 
 
-UNSET_RPC_TIMEOUT = rpc.api.UNSET_RPC_TIMEOUT
+if rpc.is_available():
+    UNSET_RPC_TIMEOUT = rpc.api.UNSET_RPC_TIMEOUT
+else:
+    UNSET_RPC_TIMEOUT = -1.0
 
 
 T = TypeVar('T')
@@ -199,7 +202,7 @@ class TensorDimensionPartitioner:
         return (
             TensorDimensionPartitioner,
             (self.dim,),
-            dict(exclusive=self.exclusive, keepdim=self.keepdim, workers=self.workers),
+            {'exclusive': self.exclusive, 'keepdim': self.keepdim, 'workers': self.workers},
         )
 
 
@@ -333,7 +336,7 @@ def remote_sync_call(
     reducer: Optional[Callable[[Iterable[T]], U]] = None,
     timeout: Optional[float] = UNSET_RPC_TIMEOUT,
 ) -> Union[List[T], U]:
-    """Synchronously do an RPC on remote workers and return the result to the current worker.
+    """Do an RPC synchronously on remote workers and return the result to the current worker.
 
     Args:
         func (Callable[..., T]): The function to call.
@@ -366,7 +369,7 @@ def parallelize_async(
     reducer: Optional[Callable[[Iterable[T]], U]] = None,
     timeout: Optional[float] = UNSET_RPC_TIMEOUT,
 ) -> Callable[[Callable[..., T]], Callable[..., Union[Future[List[T]], Future[U]]]]:
-    """Decorator for parallelizing a function.
+    """Return a decorator for parallelizing a function.
 
     This decorator can be used to parallelize a function call across multiple workers. The
     function will be called asynchronously on remote workers. The decorated function will
@@ -424,7 +427,7 @@ def parallelize(
     reducer: Optional[Callable[[Iterable[T]], U]] = None,
     timeout: Optional[float] = UNSET_RPC_TIMEOUT,
 ) -> Callable[[Callable[..., T]], Callable[..., Union[List[T], U]]]:
-    """Decorator for parallelizing a function.
+    """Return a decorator for parallelizing a function.
 
     This decorator can be used to parallelize a function call across multiple workers.
 

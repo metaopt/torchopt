@@ -10,15 +10,15 @@ optax
 pytest
 pytest-cov
 pytest-xdist
-isort
+isort >= 5.11.0
 black[jupyter] >= 22.6.0
-pylint
-mypy
+pylint[spelling] >= 2.15.0
+mypy >= 0.990
 flake8
 flake8-bugbear
 # https://github.com/PyCQA/doc8/issues/112
 doc8 < 1.0.0a0
-pydocstyle
+pydocstyle[toml]
 pyenchant
 cpplint
 pre-commit

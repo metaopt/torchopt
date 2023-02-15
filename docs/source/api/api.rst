@@ -131,7 +131,7 @@ Differentiable Meta-RMSProp Optimizer
 
 ------
 
-Implicit differentiation
+Implicit Differentiation
 ========================
 
 .. currentmodule:: torchopt.diff.implicit
@@ -141,7 +141,7 @@ Implicit differentiation
     custom_root
     nn.ImplicitMetaGradientModule
 
-Custom solvers
+Custom Solvers
 ~~~~~~~~~~~~~~
 
 .. autofunction:: custom_root
@@ -157,7 +157,7 @@ Implicit Meta-Gradient Module
 
 ------
 
-Linear system solvers
+Linear System Solvers
 =====================
 
 .. currentmodule:: torchopt.linear_solve
@@ -168,12 +168,38 @@ Linear system solvers
     solve_normal_cg
     solve_inv
 
-Indirect solvers
+Indirect Solvers
 ~~~~~~~~~~~~~~~~
 
 .. autofunction:: solve_cg
 .. autofunction:: solve_normal_cg
 .. autofunction:: solve_inv
+
+------
+
+Zero-Order Differentiation
+==========================
+
+.. currentmodule:: torchopt.diff.zero_order
+
+.. autosummary::
+
+    zero_order
+    nn.ZeroOrderGradientModule
+
+Decorators
+~~~~~~~~~~
+
+.. autofunction:: zero_order
+
+
+Zero-order Gradient Module
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. currentmodule:: torchopt.diff.zero_order.nn
+
+.. autoclass:: ZeroOrderGradientModule
+    :members:
 
 ------
 
@@ -186,28 +212,32 @@ Optimizer Hooks
 
     register_hook
     zero_nan_hook
+    nan_to_num_hook
 
 Hook
 ~~~~
 
 .. autofunction:: register_hook
 .. autofunction:: zero_nan_hook
+.. autofunction:: nan_to_num_hook
 
 ------
 
 Gradient Transformation
 =======================
 
-.. currentmodule:: torchopt.clip
+.. currentmodule:: torchopt
 
 .. autosummary::
 
     clip_grad_norm
+    nan_to_num
 
 Transforms
 ~~~~~~~~~~
 
 .. autofunction:: clip_grad_norm
+.. autofunction:: nan_to_num
 
 Optimizer Schedules
 ===================

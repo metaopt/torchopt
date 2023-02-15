@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,11 +13,78 @@
 # limitations under the License.
 # ==============================================================================
 
+from typing import Tuple
+
+import torch
+import torch.nn.functional as F
+
 import helpers
 import torchopt
 
 
-def test_filter_nones_in_params():
-    model = helpers.get_models()[0]
+@helpers.parametrize(
+    dtype=[torch.float64],
+    outer_lr=[1e-2, 1e-3, 1e-4],
+    inner_lr=[1e-2, 1e-3, 1e-4],
+    inner_update=[2, 3, 5],
+    betas=[(0.9, 0.999), (0.95, 0.9995)],
+    eps=[1e-8],
+    eps_root=[0.0, 1e-8],
+    weight_decay=[0.0, 1e-2],
+    maximize=[False, True],
+    use_accelerated_op=[False, True],
+    moment_requires_grad=[True, False],
+)
+def test_maml_meta_adam(
+    dtype: torch.dtype,
+    outer_lr: float,
+    inner_lr: float,
+    inner_update: int,
+    betas: Tuple[float, float],
+    eps: float,
+    eps_root: float,
+    weight_decay: float,
+    maximize: bool,
+    use_accelerated_op: bool,
+    moment_requires_grad: bool,
+) -> None:
+    model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
 
-    meta_adam = torchopt.MetaAdam(model)
+    outer_optim = torchopt.Adam(
+        model.parameters(),
+        outer_lr,
+        betas=betas,
+        eps=eps,
+        eps_root=0.0,
+        weight_decay=weight_decay,
+        maximize=maximize,
+        use_accelerated_op=use_accelerated_op,
+    )
+
+    for xs, ys in loader:
+        xs = xs.to(dtype=dtype)
+
+        inner_optim = torchopt.MetaAdam(
+            module=model,
+            lr=inner_lr,
+            betas=betas,
+            eps=eps,
+            eps_root=eps_root,
+            moment_requires_grad=moment_requires_grad,
+            weight_decay=weight_decay,
+            maximize=maximize,
+            use_accelerated_op=use_accelerated_op,
+        )
+
+        for _ in range(inner_update):
+            pred = model(xs)
+            inner_loss = F.cross_entropy(pred, ys)  # compute loss
+            inner_optim.step(inner_loss)
+
+        pred = model(xs)
+        outer_loss = F.cross_entropy(pred, ys)
+        outer_optim.zero_grad()
+        outer_loss.backward()
+        outer_optim.step()
+
+        torchopt.stop_gradient(model)

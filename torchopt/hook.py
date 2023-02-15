@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,18 +14,33 @@
 # ==============================================================================
 """Hook utilities."""
 
+from typing import Callable, Optional, Tuple
+
 import torch
 
 from torchopt import pytree
 from torchopt.base import EmptyState, GradientTransformation
+from torchopt.typing import OptState, Params, Updates
 
 
-__all__ = ['zero_nan_hook', 'register_hook']
+__all__ = ['zero_nan_hook', 'nan_to_num_hook', 'register_hook']
 
 
 def zero_nan_hook(g: torch.Tensor) -> torch.Tensor:
-    """Registers a zero nan hook to replace nan with zero."""
-    return torch.where(torch.isnan(g), torch.zeros_like(g), g)
+    """Replace ``nan`` with zero."""
+    return g.nan_to_num(nan=0.0)
+
+
+def nan_to_num_hook(
+    nan: float = 0.0, posinf: Optional[float] = None, neginf: Optional[float] = None
+) -> Callable[[torch.Tensor], torch.Tensor]:
+    """Return a ``nan`` to num hook to replace ``nan`` / ``+inf`` / ``-inf`` with the given numbers."""
+
+    def hook(g: torch.Tensor) -> torch.Tensor:
+        """Replace ``nan`` / ``+inf`` / ``-inf`` with the given numbers."""
+        return g.nan_to_num(nan=nan, posinf=posinf, neginf=neginf)
+
+    return hook
 
 
 def register_hook(hook) -> GradientTransformation:
@@ -37,14 +52,20 @@ def register_hook(hook) -> GradientTransformation:
         An ``(init_fn, update_fn)`` tuple.
     """
 
-    def init_fn(params):  # pylint: disable=unused-argument
+    def init_fn(params: Params) -> OptState:  # pylint: disable=unused-argument
         return EmptyState()
 
-    def update_fn(updates, state, *, params=None, inplace=True):  # pylint: disable=unused-argument
+    def update_fn(
+        updates: Updates,
+        state: OptState,
+        *,
+        params: Optional[Params] = None,  # pylint: disable=unused-argument
+        inplace: bool = True,  # pylint: disable=unused-argument
+    ) -> Tuple[Updates, OptState]:
         def f(g):
             return g.register_hook(hook)
 
-        pytree.tree_map(f, updates)
+        pytree.tree_map_(f, updates)
         return updates, state
 
     return GradientTransformation(init_fn, update_fn)

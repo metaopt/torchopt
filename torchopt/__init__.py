@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,12 +15,18 @@
 """TorchOpt: a high-performance optimizer library built upon PyTorch."""
 
 from torchopt import (
+    accelerated_op,
+    alias,
+    base,
     clip,
     combine,
     diff,
     distributed,
     hook,
+    linalg,
     linear_solve,
+    nn,
+    optim,
     pytree,
     schedule,
     typing,
@@ -30,7 +36,8 @@ from torchopt.accelerated_op import is_available as accelerated_op_available
 from torchopt.alias import adam, adamw, rmsprop, sgd
 from torchopt.clip import clip_grad_norm
 from torchopt.combine import chain
-from torchopt.optim import SGD, Adam, AdamW, Optimizer, RMSProp, RMSprop, meta
+from torchopt.hook import register_hook
+from torchopt.optim import SGD, Adam, AdamW, Optimizer, RMSProp, RMSprop
 from torchopt.optim.func import FuncOptimizer
 from torchopt.optim.meta import (
     MetaAdam,
@@ -40,6 +47,7 @@ from torchopt.optim.meta import (
     MetaRMSprop,
     MetaSGD,
 )
+from torchopt.transform import nan_to_num
 from torchopt.update import apply_updates
 from torchopt.utils import (
     extract_state_dict,
@@ -53,12 +61,13 @@ from torchopt.version import __version__
 
 __all__ = [
     'accelerated_op_available',
-    'diff',
     'adam',
     'adamw',
     'rmsprop',
     'sgd',
     'clip_grad_norm',
+    'nan_to_num',
+    'register_hook',
     'chain',
     'Optimizer',
     'SGD',

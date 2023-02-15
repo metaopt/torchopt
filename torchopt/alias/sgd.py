@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,8 +31,12 @@
 # ==============================================================================
 """Preset :class:`GradientTransformation` for the SGD optimizer."""
 
-from torchopt.alias.utils import flip_sign_and_add_weight_decay, scale_by_neg_lr
-from torchopt.combine import chain_flat
+from torchopt.alias.utils import (
+    _get_use_chain_flat,
+    flip_sign_and_add_weight_decay,
+    scale_by_neg_lr,
+)
+from torchopt.combine import chain
 from torchopt.transform import trace
 from torchopt.typing import GradientTransformation, ScalarOrSchedule
 
@@ -50,7 +54,7 @@ def sgd(
     moment_requires_grad: bool = False,
     maximize: bool = False,
 ) -> GradientTransformation:
-    """The functional version of the canonical Stochastic Gradient Descent optimizer.
+    """Create a functional version of the canonical Stochastic Gradient Descent optimizer.
 
     This implements stochastic gradient descent. It also includes support for momentum, and nesterov
     acceleration, as these are standard practice when using stochastic gradient descent to train
@@ -83,23 +87,34 @@ def sgd(
         The functional optimizer wrapper :class:`torchopt.FuncOptimizer`.
     """
     # pylint: disable=unneeded-not
-    if not (callable(lr) or 0.0 <= lr):
+    if not (callable(lr) or 0.0 <= lr):  # pragma: no cover
         raise ValueError(f'Invalid learning rate: {lr}')
-    if not 0.0 <= momentum:
+    if not 0.0 <= momentum:  # pragma: no cover
         raise ValueError(f'Invalid momentum value: {momentum}')
-    if not 0.0 <= weight_decay:
+    if not 0.0 <= weight_decay:  # pragma: no cover
         raise ValueError(f'Invalid weight_decay value: {weight_decay}')
-    if nesterov and (momentum <= 0.0 or dampening != 0.0):
+    if nesterov and (momentum <= 0.0 or dampening != 0.0):  # pragma: no cover
         raise ValueError('Nesterov momentum requires a momentum and zero dampening')
     # pylint: enable=unneeded-not
 
-    return chain_flat(
-        flip_sign_and_add_weight_decay(weight_decay=weight_decay, maximize=maximize),
-        trace.flat(  # type: ignore[attr-defined]
+    chain_fn = chain
+    flip_sign_and_add_weight_decay_fn = flip_sign_and_add_weight_decay
+    trace_fn = trace
+    scale_by_neg_lr_fn = scale_by_neg_lr
+
+    if _get_use_chain_flat():  # default behavior
+        chain_fn = chain_fn.flat  # type: ignore[attr-defined]
+        flip_sign_and_add_weight_decay_fn = flip_sign_and_add_weight_decay_fn.flat  # type: ignore[attr-defined]
+        trace_fn = trace_fn.flat  # type: ignore[attr-defined]
+        scale_by_neg_lr_fn = scale_by_neg_lr_fn.flat  # type: ignore[attr-defined]
+
+    return chain_fn(
+        flip_sign_and_add_weight_decay_fn(weight_decay=weight_decay, maximize=maximize),
+        trace_fn(
             momentum=momentum,
             dampening=dampening,
             nesterov=nesterov,
             moment_requires_grad=moment_requires_grad,
         ),
-        scale_by_neg_lr(lr),
+        scale_by_neg_lr_fn(lr),
     )

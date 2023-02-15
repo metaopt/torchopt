@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,8 +13,11 @@
 # limitations under the License.
 # ==============================================================================
 
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.11)  # for FetchContent
 project(torchopt LANGUAGES CXX)
+
+include(FetchContent)
+set(PYBIND11_VERSION v2.10.3)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
@@ -26,6 +29,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(Threads REQUIRED)           # -pthread
 find_package(OpenMP REQUIRED)            # -Xpreprocessor -fopenmp
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)  # -fPIC
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)  # -fvisibility=hidden
 
 if(MSVC)
     string(APPEND CMAKE_CXX_FLAGS " /Wall")
@@ -186,7 +190,7 @@ if("${PYTHON_INCLUDE_DIR}" STREQUAL "")
     message(FATAL_ERROR "Python include directory not found")
 else()
     message(STATUS "Detected Python include directory: \"${PYTHON_INCLUDE_DIR}\"")
-    include_directories(${PYTHON_INCLUDE_DIR})
+    include_directories("${PYTHON_INCLUDE_DIR}")
 endif()
 
 system(
@@ -195,6 +199,7 @@ system(
 )
 message(STATUS "Detected Python site packages: \"${PYTHON_SITE_PACKAGES}\"")
 
+# Include pybind11
 set(PYBIND11_PYTHON_VERSION "${PYTHON_VERSION}")
 
 if(NOT DEFINED PYBIND11_CMAKE_DIR)
@@ -206,14 +211,27 @@ if(NOT DEFINED PYBIND11_CMAKE_DIR)
 endif()
 
 if("${PYBIND11_CMAKE_DIR}" STREQUAL "")
-    message(FATAL_ERROR "Pybind11 CMake directory not found")
+    FetchContent_Declare(
+        pybind11
+        GIT_REPOSITORY https://github.com/pybind/pybind11.git
+        GIT_TAG "${PYBIND11_VERSION}"
+        GIT_SHALLOW TRUE
+        SOURCE_DIR "${CMAKE_SOURCE_DIR}/third-party/pybind11"
+        BINARY_DIR "${CMAKE_SOURCE_DIR}/third-party/.cmake/pybind11/build"
+        STAMP_DIR "${CMAKE_SOURCE_DIR}/third-party/.cmake/pybind11/stamp"
+    )
+    FetchContent_GetProperties(pybind11)
+    if(NOT pybind11_POPULATED)
+        message(STATUS "Populating Git repository pybind11@${PYBIND11_VERSION} to third-party/pybind11...")
+        FetchContent_MakeAvailable(pybind11)
+    endif()
 else()
     message(STATUS "Detected Pybind11 CMake directory: \"${PYBIND11_CMAKE_DIR}\"")
     find_package(pybind11 CONFIG PATHS "${PYBIND11_CMAKE_DIR}")
 endif()
 
 if(NOT DEFINED TORCH_INCLUDE_PATH)
-    message(STATUS "Auto detecting PyTorch include directory...")
+    message(STATUS "Auto detecting Torch include directory...")
     system(
         STRIP OUTPUT_VARIABLE TORCH_INCLUDE_PATH
         COMMAND "${PYTHON_EXECUTABLE}" -c "print('\\\;'.join(__import__('torch.utils.cpp_extension', fromlist=[None]).include_paths()))"
@@ -232,7 +250,7 @@ else()
 endif()
 
 if(NOT DEFINED TORCH_LIBRARY_PATH)
-    message(STATUS "Auto detecting PyTorch library directory...")
+    message(STATUS "Auto detecting Torch library directory...")
     system(
         STRIP OUTPUT_VARIABLE TORCH_LIBRARY_PATH
         COMMAND "${PYTHON_EXECUTABLE}" -c "print('\\\;'.join(__import__('torch.utils.cpp_extension', fromlist=[None]).library_paths()))"
@@ -252,18 +270,22 @@ endif()
 unset(TORCH_LIBRARIES)
 
 foreach(VAR_PATH ${TORCH_LIBRARY_PATH})
+    file(GLOB TORCH_LIBRARY "${VAR_PATH}/*")
+    message(STATUS "Detected Torch libraries: \"${TORCH_LIBRARY}\"")
+endforeach()
+
+foreach(VAR_PATH ${TORCH_LIBRARY_PATH})
     if(WIN32)
         file(GLOB TORCH_LIBRARY "${VAR_PATH}/*.lib")
     else()
         file(GLOB TORCH_LIBRARY "${VAR_PATH}/libtorch_python.*")
     endif()
-
     list(APPEND TORCH_LIBRARIES "${TORCH_LIBRARY}")
 endforeach()
 
-message(STATUS "Detected Torch libraries: \"${TORCH_LIBRARIES}\"")
+message(STATUS "Detected Torch Python libraries: \"${TORCH_LIBRARIES}\"")
 
 add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
 
-include_directories(${CMAKE_SOURCE_DIR})
+include_directories("${CMAKE_SOURCE_DIR}")
 add_subdirectory(src)

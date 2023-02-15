@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -50,19 +50,21 @@ def tree_flatten_as_tuple(
     is_leaf: Optional[Callable[[T], bool]] = None,
     *,
     none_is_leaf: bool = False,
+    namespace: str = '',
 ) -> Tuple[Tuple[T, ...], PyTreeSpec]:
     """Flatten a pytree to a tuple of leaves and a PyTreeSpec.
 
     Args:
         tree: The pytree to flatten.
-        is_leaf: A function that returns True if a given node is a leaf.
+        is_leaf: A function that returns :data:`True` if a given node is a leaf.
         none_is_leaf: If :data:`True`, None is considered a leaf rather than a internal node with no
             children.
+        namespace: The namespace of custom tree node types.
 
     Returns:
         A tuple of (leaves, treespec).
     """
-    leaves, treespec = tree_flatten(tree, is_leaf, none_is_leaf=none_is_leaf)
+    leaves, treespec = tree_flatten(tree, is_leaf, none_is_leaf=none_is_leaf, namespace=namespace)
     return tuple(leaves), treespec
 
 
@@ -82,12 +84,12 @@ def acc_matmul(*args: T) -> T:
 
 
 def tree_pos(tree: PyTree[T]) -> PyTree[T]:
-    """Applies `operator.pos` over leaves."""
+    """Apply :func:`operator.pos` over leaves."""
     return tree_map(operator.pos, tree)
 
 
 def tree_neg(tree: PyTree[T]) -> PyTree[T]:
-    """Applies `operator.neg` over leaves."""
+    """Apply :func:`operator.neg` over leaves."""
     return tree_map(operator.neg, tree)
 
 
@@ -99,7 +101,7 @@ def tree_add(*trees: PyTree[T]) -> PyTree[T]:
 def tree_add_scalar_mul(
     tree_x: TensorTree, tree_y: TensorTree, alpha: Optional[Scalar] = None
 ) -> TensorTree:
-    """Computes tree_x + alpha * tree_y."""
+    """Compute ``tree_x + alpha * tree_y``."""
     if alpha is None:
         return tree_map(lambda x, y: x.add(y), tree_x, tree_y)
     return tree_map(lambda x, y: x.add(y, alpha=alpha), tree_x, tree_y)
@@ -113,7 +115,7 @@ def tree_sub(minuend_tree: PyTree[T], subtrahend_tree: PyTree[T]) -> PyTree[T]:
 def tree_sub_scalar_mul(
     tree_x: TensorTree, tree_y: TensorTree, alpha: Optional[Scalar] = None
 ) -> TensorTree:
-    """Computes tree_x - alpha * tree_y."""
+    """Compute ``tree_x - alpha * tree_y``."""
     if alpha is None:
         return tree_map(lambda x, y: x.sub(y), tree_x, tree_y)
     return tree_map(lambda x, y: x.sub(y, alpha=alpha), tree_x, tree_y)
@@ -140,7 +142,7 @@ def tree_truediv(dividend_tree: PyTree[T], divisor_tree: PyTree[T]) -> PyTree[T]
 
 
 def _vdot_real_kernel(x: torch.Tensor, y: torch.Tensor) -> float:
-    """Computes dot(x.conj(), y).real."""
+    """Compute ``dot(x.conj(), y).real``."""
     x = x.contiguous().view(-1)
     y = y.contiguous().view(-1)
     vdot = torch.dot(x.real, y.real).item()
@@ -150,7 +152,7 @@ def _vdot_real_kernel(x: torch.Tensor, y: torch.Tensor) -> float:
 
 
 def tree_vdot_real(tree_x: TensorTree, tree_y: TensorTree) -> float:
-    """Computes dot(tree_x.conj(), tree_y).real.sum()."""
+    """Compute ``dot(tree_x.conj(), tree_y).real.sum()``."""
     leaves_x, treespec = tree_flatten(tree_x)
     leaves_y = treespec.flatten_up_to(tree_y)
     return sum(map(_vdot_real_kernel, leaves_x, leaves_y))  # type: ignore[arg-type]
@@ -165,7 +167,7 @@ def tree_wait(future_tree: PyTree[Future[T]]) -> PyTree[T]:
     return tree_unflatten(treespec, results)
 
 
-if rpc.is_available():
+if rpc.is_available():  # pragma: no cover
 
     def tree_as_rref(tree: PyTree[T]) -> PyTree[RRef[T]]:
         r"""Convert a tree of local objects to a tree of :class:`RRef`\s."""

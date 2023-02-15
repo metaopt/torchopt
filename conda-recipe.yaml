@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ channels:
   - conda-forge
 
 dependencies:
-  - python = 3.9
+  - python = 3.10
   - pip
 
   # Learning
@@ -42,23 +42,21 @@ dependencies:
   - optax                    # for tutorials
   - jaxopt                   # for tests
   - tensorboard              # for examples
-  - wandb
 
   # Device select
   - nvidia/label/cuda-11.7.1::cuda-toolkit = 11.7
 
   # Build toolchain
-  - cmake >= 3.4
+  - cmake >= 3.11
   - make
   - cxx-compiler
-  - gxx = 10
   - nvidia/label/cuda-11.7.1::cuda-nvcc
   - nvidia/label/cuda-11.7.1::cuda-cudart-dev
   - patchelf >= 0.14
-  - pybind11
+  - pybind11 >= 2.10.1
 
   # Misc
-  - optree >= 0.3.0
+  - optree >= 0.4.1
   - typing-extensions >= 4.0.0
   - numpy
   - matplotlib-base
@@ -68,13 +66,13 @@ dependencies:
   - setproctitle
 
   # Documentation
-  - sphinx
-  - sphinx_rtd_theme
+  - sphinx >= 5.2.1
+  - sphinx-rtd-theme
   - sphinx-autobuild
   - sphinx-copybutton
   - sphinxcontrib-spelling
   - sphinxcontrib-bibtex
-  - sphinx-autodoc-typehints
+  - sphinx-autodoc-typehints >= 1.19.2
   - pyenchant
   - hunspell-en
   - myst-nb
@@ -86,15 +84,15 @@ dependencies:
   - pytest
   - pytest-cov
   - pytest-xdist
-  - isort
+  - isort >= 5.11.0
   - conda-forge::black-jupyter >= 22.6.0
-  - pylint
-  - mypy
+  - pylint >= 2.15.0
+  - mypy >= 0.990
   - flake8
   - flake8-bugbear
   - doc8 < 1.0.0a0
   - pydocstyle
   - clang-format >= 14
-  - clang-tools  # clang-tidy
+  - clang-tools >= 14  # clang-tidy
   - cpplint
   - pre-commit

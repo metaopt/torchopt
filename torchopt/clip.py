@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,10 +17,13 @@
 # ==============================================================================
 """Utilities for gradient clipping."""
 
+from typing import Optional, Tuple, Union
+
 import torch
 
 from torchopt import pytree
 from torchopt.base import EmptyState, GradientTransformation
+from torchopt.typing import OptState, Params, Updates
 
 
 __all__ = ['clip_grad_norm']
@@ -30,27 +33,36 @@ ClipState = EmptyState
 
 
 def clip_grad_norm(
-    max_norm: float, norm_type: float = 2.0, error_if_nonfinite: bool = False
+    max_norm: Union[float, int],
+    norm_type: Union[float, int] = 2.0,
+    error_if_nonfinite: bool = False,
 ) -> GradientTransformation:
-    """Clips gradient norm of an iterable of parameters.
+    """Clip gradient norm of an iterable of parameters.
 
     Args:
-        max_delta: The maximum absolute value for each element in the update.
+        max_norm (float or int): The maximum absolute value for each element in the update.
+        norm_type (float or int): type of the used p-norm. Can be ``'inf'`` for
+            infinity norm.
+        error_if_nonfinite (bool): if :data:`True`, an error is thrown if the total norm of the
+            gradients from :attr:`updates` is ``nan``, ``inf``, or ``-inf``.
 
     Returns:
         An ``(init_fn, update_fn)`` tuple.
     """
 
-    def init_fn(params):  # pylint: disable=unused-argument
+    def init_fn(params: Params) -> OptState:  # pylint: disable=unused-argument
         return ClipState()
 
-    def update_fn(updates, state, *, params=None, inplace=True):  # pylint: disable=unused-argument
-        available_updates = []
-        for g in updates:
-            if g is not None:
-                available_updates.append(g)
+    def update_fn(
+        updates: Updates,
+        state: OptState,
+        *,
+        params: Optional[Params] = None,  # pylint: disable=unused-argument
+        inplace: bool = True,
+    ) -> Tuple[Updates, OptState]:
+        available_updates = pytree.tree_leaves(updates)
         if len(available_updates) == 0:
-            return torch.tensor(0.0)
+            return updates, state
         device = available_updates[0].device
         with torch.no_grad():
             if norm_type == torch.inf:
@@ -67,20 +79,21 @@ def clip_grad_norm(
                     f'non-finite, so it cannot be clipped. To disable this error and scale the '
                     f'gradients by the non-finite norm anyway, set `error_if_nonfinite=False`'
                 )
-        clip_coef = max_norm / (float(total_norm) + 1e-6)
-        # Note: multiplying by the clamped coef is redundant when the coef is clamped to 1, but
-        # doing so avoids a `if clip_coef < 1:` conditional which can require a CPU <=> device
-        # synchronization when the gradients do not reside in CPU memory.
-        clip_coef_clamped = min(clip_coef, 1.0)
+        clip_coefficient = max_norm / (float(total_norm) + 1e-6)
+        # Note: multiplying by the clamped coefficient is redundant when the coefficient is
+        # clamped to 1, but doing so avoids a `if clip_coefficient < 1:` conditional which
+        # can require a CPU <=> device synchronization when the gradients do not reside in
+        # CPU memory.
+        clip_coefficient_clamped = min(clip_coefficient, 1.0)
         if inplace:
 
             def f(g):
-                return g.mul_(clip_coef_clamped)
+                return g.mul_(clip_coefficient_clamped)
 
         else:
 
             def f(g):
-                return g.mul(clip_coef_clamped)
+                return g.mul(clip_coefficient_clamped)
 
         new_updates = pytree.tree_map(f, updates)
         return new_updates, state

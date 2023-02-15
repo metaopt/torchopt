@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,19 +32,19 @@
 # ==============================================================================
 """Preset transformations for adding weight decay to updates."""
 
-from typing import Any, Callable, NamedTuple, Optional, Union
+from typing import Any, Callable, NamedTuple, Optional, Tuple, Union
 
 from torchopt import pytree
 from torchopt.base import EmptyState, GradientTransformation, identity
-from torchopt.transform.utils import tree_map_flat
-from torchopt.typing import Params
+from torchopt.transform.utils import tree_map_flat, tree_map_flat_
+from torchopt.typing import OptState, Params, Updates
 
 
 __all__ = ['masked', 'add_decayed_weights']
 
 
 class MaskedState(NamedTuple):
-    """Maintains inner transform state for masked transformations."""
+    """Maintain inner transform state for masked transformations."""
 
     inner_state: Any
 
@@ -100,7 +100,6 @@ def _masked(
     *,
     already_flattened: bool = False,
 ) -> GradientTransformation:
-
     if already_flattened:
         tree_map = tree_map_flat
     else:
@@ -109,12 +108,18 @@ def _masked(
     def tree_mask(params, mask_tree):
         return tree_map(lambda p, m: p if m else MaskedNode(), params, mask_tree)
 
-    def init_fn(params):
+    def init_fn(params: Params) -> OptState:
         mask_tree = mask(params) if callable(mask) else mask
         masked_params = tree_mask(params, mask_tree)
         return MaskedState(inner_state=inner.init(masked_params))
 
-    def update_fn(updates, state, params=None, inplace=True):  # pylint: disable=unused-argument
+    def update_fn(
+        updates: Updates,
+        state: OptState,
+        *,
+        params: Optional[Params] = None,
+        inplace: bool = True,
+    ) -> Tuple[Updates, OptState]:
         mask_tree = mask(updates) if callable(mask) else mask
         masked_updates = tree_mask(updates, mask_tree)
         masked_params = None if params is None else tree_mask(params, mask_tree)
@@ -124,7 +129,7 @@ def _masked(
         )
 
         new_updates = tree_map(
-            lambda new_u, old_u, m: new_u if m else old_u, new_masked_updates, updates, mask_tree
+            lambda old_u, new_u, m: new_u if m else old_u, updates, new_masked_updates, mask_tree
         )
         return new_updates, MaskedState(inner_state=new_inner_state)
 
@@ -178,7 +183,8 @@ def _add_decayed_weights(
     *,
     already_flattened: bool = False,
 ) -> GradientTransformation:
-    if not 0.0 <= weight_decay:  # pylint: disable=unneeded-not
+    # pylint: disable-next=unneeded-not
+    if not 0.0 <= weight_decay:  # pragma: no cover
         raise ValueError(f'Invalid weight_decay value: {weight_decay}')
 
     if weight_decay == 0.0 and mask is None:
@@ -186,13 +192,21 @@ def _add_decayed_weights(
 
     if already_flattened:
         tree_map = tree_map_flat
+        tree_map_ = tree_map_flat_
     else:
         tree_map = pytree.tree_map  # type: ignore[assignment]
+        tree_map_ = pytree.tree_map_  # type: ignore[assignment]
 
-    def init_fn(params):  # pylint: disable=unused-argument
+    def init_fn(params: Params) -> OptState:  # pylint: disable=unused-argument
         return AddDecayedWeightsState()
 
-    def update_fn(updates, state, params=None, inplace=True):  # pylint: disable=unused-argument
+    def update_fn(
+        updates: Updates,
+        state: OptState,
+        *,
+        params: Optional[Params] = None,
+        inplace: bool = True,
+    ) -> Tuple[Updates, OptState]:
         assert params is not None, (
             'Parameters are required for weight decay. '
             'Call `update(updates, state, params=params)` instead.'
@@ -205,12 +219,15 @@ def _add_decayed_weights(
                     return g.add_(p, alpha=weight_decay)
                 return g.add_(p.data, alpha=weight_decay)
 
+            updates = tree_map_(f, updates, params)
+
         else:
 
             def f(g, p):
                 return g.add(p, alpha=weight_decay)
 
-        updates = tree_map(f, updates, params)
+            updates = tree_map(f, updates, params)
+
         return updates, state
 
     # If mask is not `None`, apply mask to the gradient transformation.

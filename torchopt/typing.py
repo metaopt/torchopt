@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,22 +14,31 @@
 # ==============================================================================
 """Typing utilities."""
 
-from typing import Callable, List, Optional, Sequence, Tuple, TypeVar, Union
+import abc
+from typing import Callable, Dict, List, Optional, Sequence, Tuple, TypeVar, Union
 from typing_extensions import TypeAlias  # Python 3.10+
+from typing_extensions import Protocol, runtime_checkable  # Python 3.8+
 
+import torch
 import torch.distributed.rpc as rpc
 from optree.typing import PyTree, PyTreeTypeVar
 from torch import Tensor
+from torch.distributions import Distribution
 from torch.futures import Future
-from torch.types import Device
 
-from torchopt.base import ChainedGradientTransformation, EmptyState, GradientTransformation
+from torchopt.base import (
+    ChainedGradientTransformation,
+    EmptyState,
+    GradientTransformation,
+    UninitializedState,
+)
 
 
 __all__ = [
     'GradientTransformation',
     'ChainedGradientTransformation',
     'EmptyState',
+    'UninitializedState',
     'Params',
     'Updates',
     'OptState',
@@ -50,12 +59,20 @@ __all__ = [
     'SequenceOfOptionalTensors',
     'OptionalTensorOrOptionalTensors',
     'OptionalTensorTree',
+    'TensorContainer',
+    'ModuleTensorContainers',
     'Future',
     'LinearSolver',
     'Device',
+    'Size',
+    'Distribution',
+    'SampleFunc',
+    'Samplable',
 ]
 
 T = TypeVar('T')
+
+Device: TypeAlias = Union[torch.device, str, int]
 
 Scalar: TypeAlias = Union[float, int, bool]
 Numeric: TypeAlias = Union[Tensor, Scalar]
@@ -77,17 +94,43 @@ SequenceOfOptionalTensors = Sequence[OptionalTensor]
 OptionalTensorOrOptionalTensors = Union[OptionalTensor, SequenceOfOptionalTensors]
 OptionalTensorTree: TypeAlias = PyTreeTypeVar('OptionalTensorTree', OptionalTensor)  # type: ignore[valid-type]
 
+TensorContainer = Dict[str, Optional[Tensor]]
+ModuleTensorContainers = Tuple[TensorContainer, ...]
+
 # Parameters are arbitrary nests of `torch.Tensor`.
 Params: TypeAlias = TensorTree
 Updates: TypeAlias = Params  # Gradient updates are of the same type as parameters.
 OptState: TypeAlias = TensorTree  # States are arbitrary nests of `torch.Tensor`.
 
-if rpc.is_available():
+if rpc.is_available():  # pragma: no cover
     from torch.distributed.rpc import RRef  # pylint: disable=ungrouped-imports,unused-import
 
     __all__.extend(['RRef'])
-else:
-    RRef = None  # type: ignore[misc,assignment] # pylint: disable=invalid-name
+else:  # pragma: no cover
+    # pylint: disable-next=invalid-name
+    RRef = None  # type: ignore[misc,assignment]
 
 # solver(matvec, b) -> solution
 LinearSolver: TypeAlias = Callable[[Callable[[TensorTree], TensorTree], TensorTree], TensorTree]
+
+
+Size = torch.Size
+
+# sample(sample_shape) -> Tensor
+SampleFunc: TypeAlias = Callable[[Size], Union[Tensor, Sequence[Numeric]]]
+
+
+@runtime_checkable
+class Samplable(Protocol):  # pylint: disable=too-few-public-methods
+    """Abstract protocol class that supports sampling."""
+
+    @abc.abstractmethod
+    def sample(
+        self, sample_shape: Size = Size()  # pylint: disable=unused-argument
+    ) -> Union[Tensor, Sequence[Numeric]]:
+        # pylint: disable-next=line-too-long
+        """Generate a sample_shape shaped sample or sample_shape shaped batch of samples if the distribution parameters are batched."""
+        raise NotImplementedError  # pragma: no cover
+
+
+Samplable.register(Distribution)

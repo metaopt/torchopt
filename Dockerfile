@@ -16,12 +16,12 @@ SHELL ["/bin/bash", "-c"]
 # Install packages
 RUN apt-get update && \
     apt-get install -y sudo ca-certificates openssl \
-        git ssh build-essential gcc-10 g++-10 cmake make \
-        python3.9-dev python3.9-venv graphviz && \
+        git ssh build-essential gcc g++ cmake make \
+        python3-dev python3-venv graphviz && \
     rm -rf /var/lib/apt/lists/*
 
 ENV LANG C.UTF-8
-ENV CC=gcc-10 CXX=g++-10
+ENV CC=gcc CXX=g++
 
 # Add a new user
 RUN useradd -m -s /bin/bash torchopt && \
@@ -30,7 +30,7 @@ USER torchopt
 RUN echo "export PS1='[\[\e[1;33m\]\u\[\e[0m\]:\[\e[1;35m\]\w\[\e[0m\]]\$ '" >> ~/.bashrc
 
 # Setup virtual environment
-RUN /usr/bin/python3.9 -m venv --upgrade-deps ~/venv && rm -rf ~/.pip/cache
+RUN /usr/bin/python3 -m venv --upgrade-deps ~/venv && rm -rf ~/.pip/cache
 RUN PIP_EXTRA_INDEX_URL="https://download.pytorch.org/whl/cu$(echo "${CUDA_VERSION}" | cut -d'.' -f-2  | tr -d '.')" && \
     echo "export PIP_EXTRA_INDEX_URL='${PIP_EXTRA_INDEX_URL}'" >> ~/venv/bin/activate && \
     echo "source /home/torchopt/venv/bin/activate" >> ~/.bashrc
@@ -48,14 +48,13 @@ FROM builder AS devel-builder
 
 # Install extra dependencies
 RUN sudo apt-get update && \
-    sudo apt-get install -y golang-1.16 clang-format clang-tidy && \
-    sudo chown -R "$(whoami):$(whoami)" /usr/lib/go-1.16 && \
+    sudo apt-get install -y golang clang-format clang-tidy && \
+    sudo chown -R "$(whoami):$(whoami)" "$(realpath /usr/lib/go)" && \
     sudo rm -rf /var/lib/apt/lists/*
 
 # Install addlicense
-ENV GOPATH="/usr/lib/go-1.16"
-ENV GOBIN="${GOPATH}/bin"
-ENV GOROOT="${GOPATH}"
+ENV GOROOT="/usr/lib/go"
+ENV GOBIN="${GOROOT}/bin"
 ENV PATH="${GOBIN}:${PATH}"
 RUN go install github.com/google/addlicense@latest
 
@@ -74,7 +73,7 @@ COPY --chown=torchopt . .
 
 # Install TorchOpt
 RUN source ~/venv/bin/activate && \
-    python -m pip install -e . && \
+    make install-editable && \
     rm -rf .eggs *.egg-info ~/.pip/cache ~/.cache/pip
 
 ENTRYPOINT [ "/bin/bash", "--login" ]

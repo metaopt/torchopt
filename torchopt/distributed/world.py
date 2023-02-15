@@ -46,7 +46,7 @@ def default_worker_name_format(
     local_rank: int,  # pylint: disable=unused-argument
     local_world_size: int,  # pylint: disable=unused-argument
 ) -> str:
-    """Default worker name format."""
+    """Get the default worker name format."""
     return f'worker{world_rank:0{len(str(world_size))}d}'
 
 
@@ -64,12 +64,12 @@ class WorldInfo(NamedTuple):
 
     @property
     def rank(self) -> int:
-        """The global world rank of the current worker."""
+        """Get the global world rank of the current worker."""
         return self.world_rank
 
     @property
     def worker_name(self) -> str:
-        """The name of the current worker."""
+        """Get the name of the current worker."""
         return _WORKER_NAME_FORMAT(
             world_rank=self.world_rank,
             world_size=self.world_size,
@@ -135,7 +135,7 @@ def get_worker_id(id: Optional[Union[str, int]] = None) -> int:
 
 
 def barrier(worker_names: Optional[Iterable[str]] = None) -> None:
-    r"""Synchronizes local and remote RPC processes.
+    r"""Synchronize local and remote RPC processes.
 
     This will block until all local and remote RPC processes specified under worker_names
     reach this method to wait for all outstanding work to complete.
@@ -151,10 +151,10 @@ def auto_init_rpc(
     worker_init_fn: Optional[Callable[[], None]] = None,
     worker_name_format: Callable[..., str] = default_worker_name_format,
     *,
-    backend: Optional[rpc.BackendType] = None,
-    rpc_backend_options: Optional[rpc.RpcBackendOptions] = None,
+    backend: Optional['rpc.BackendType'] = None,
+    rpc_backend_options: Optional['rpc.RpcBackendOptions'] = None,
 ) -> Callable[[F], F]:
-    """Decorator to automatically initialize RPC on the decorated function."""
+    """Return a decorator to automatically initialize RPC on the decorated function."""
     global _WORKER_NAME_FORMAT  # pylint: disable=global-statement
     _WORKER_NAME_FORMAT = worker_name_format
 
@@ -204,25 +204,25 @@ def __on_ranks(ranks: Iterable[int], inverse: bool = False) -> Callable[[F], F]:
 
 
 def on_rank(*ranks: int) -> Callable[[F], F]:
-    """Decorator to mark a function to be executed only on given ranks."""
+    """Return a decorator to mark a function to be executed only on given ranks."""
     return __on_ranks(ranks=ranks, inverse=False)
 
 
 def not_on_rank(*ranks) -> Callable[[F], F]:
-    """Decorator to mark a function to be executed only on non given ranks."""
+    """Return a decorator to mark a function to be executed only on non given ranks."""
     return __on_ranks(ranks=ranks, inverse=True)
 
 
 def rank_all(func: F) -> F:
-    """Decorator to mark a function to be executed on all ranks."""
+    """Return a decorator to mark a function to be executed on all ranks."""
     return func
 
 
 def rank_zero_only(func: F) -> F:
-    """Decorator to mark a function to be executed only on rank zero."""
+    """Return a decorator to mark a function to be executed only on rank zero."""
     return on_rank(0)(func)
 
 
 def rank_non_zero_only(func: F) -> F:
-    """Decorator to mark a function to be executed only on non rank zero."""
+    """Return a decorator to mark a function to be executed only on non rank zero."""
     return not_on_rank(0)(func)

@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -33,8 +33,12 @@
 
 from typing import Tuple
 
-from torchopt.alias.utils import flip_sign_and_add_weight_decay, scale_by_neg_lr
-from torchopt.combine import chain_flat
+from torchopt.alias.utils import (
+    _get_use_chain_flat,
+    flip_sign_and_add_weight_decay,
+    scale_by_neg_lr,
+)
+from torchopt.combine import chain
 from torchopt.transform import scale_by_accelerated_adam, scale_by_adam
 from torchopt.typing import GradientTransformation, ScalarOrSchedule
 
@@ -54,7 +58,7 @@ def adam(
     maximize: bool = False,
     use_accelerated_op: bool = False,
 ) -> GradientTransformation:
-    """The functional Adam optimizer.
+    """Create a functional version of the Adam optimizer.
 
     Adam is an SGD variant with learning rate adaptation. The *learning rate* used for each weight
     is computed from estimates of first- and second-order moments of the gradients (using suitable
@@ -93,31 +97,40 @@ def adam(
     """
     b1, b2 = betas  # pylint: disable=invalid-name
     # pylint: disable=unneeded-not
-    if not (callable(lr) or 0.0 <= lr):
+    if not (callable(lr) or 0.0 <= lr):  # pragma: no cover
         raise ValueError(f'Invalid learning rate: {lr}')
-    if not 0.0 <= eps:
+    if not 0.0 <= eps:  # pragma: no cover
         raise ValueError(f'Invalid epsilon value: {eps}')
-    if not 0.0 <= b1 < 1.0:
+    if not 0.0 <= b1 < 1.0:  # pragma: no cover
         raise ValueError(f'Invalid beta parameter at index 0: {b1}')
-    if not 0.0 <= b2 < 1.0:
+    if not 0.0 <= b2 < 1.0:  # pragma: no cover
         raise ValueError(f'Invalid beta parameter at index 1: {b2}')
-    if not 0.0 <= weight_decay:
+    if not 0.0 <= weight_decay:  # pragma: no cover
         raise ValueError(f'Invalid weight_decay value: {weight_decay}')
     # pylint: enable=unneeded-not
 
+    chain_fn = chain
+    flip_sign_and_add_weight_decay_fn = flip_sign_and_add_weight_decay
     if use_accelerated_op:
-        adam_scaler = scale_by_accelerated_adam.flat  # type: ignore[attr-defined]
+        adam_scaler_fn = scale_by_accelerated_adam
     else:
-        adam_scaler = scale_by_adam.flat  # type: ignore[attr-defined]
+        adam_scaler_fn = scale_by_adam
+    scale_by_neg_lr_fn = scale_by_neg_lr
 
-    return chain_flat(
-        flip_sign_and_add_weight_decay(weight_decay=weight_decay, maximize=maximize),
-        adam_scaler(
+    if _get_use_chain_flat():  # default behavior
+        chain_fn = chain_fn.flat  # type: ignore[attr-defined]
+        flip_sign_and_add_weight_decay_fn = flip_sign_and_add_weight_decay_fn.flat  # type: ignore[attr-defined]
+        adam_scaler_fn = adam_scaler_fn.flat  # type: ignore[attr-defined]
+        scale_by_neg_lr_fn = scale_by_neg_lr_fn.flat  # type: ignore[attr-defined]
+
+    return chain_fn(
+        flip_sign_and_add_weight_decay_fn(weight_decay=weight_decay, maximize=maximize),
+        adam_scaler_fn(
             b1=b1,
             b2=b2,
             eps=eps,
             eps_root=eps_root,
             moment_requires_grad=moment_requires_grad,
         ),
-        scale_by_neg_lr(lr),
+        scale_by_neg_lr_fn(lr),
     )

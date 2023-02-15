@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,4 +14,17 @@
 # ==============================================================================
 """Base class for neural network modules that hold meta-parameters and meta-modules."""
 
+from torchopt.diff.implicit.nn.module import ImplicitMetaGradientModule  # circular reference
+from torchopt.diff.zero_order.nn.module import ZeroOrderGradientModule  # circular reference
 from torchopt.nn.module import MetaGradientModule
+from torchopt.nn.stateless import reparameterize, reparametrize, swap_state
+
+
+__all__ = [
+    'MetaGradientModule',
+    'ImplicitMetaGradientModule',
+    'ZeroOrderGradientModule',
+    'reparametrize',
+    'reparameterize',
+    'swap_state',
+]

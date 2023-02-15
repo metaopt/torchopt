@@ -19,8 +19,6 @@
 import numpy as np
 import torch
 
-
-# isort: off
 from helpers.agent import Agent
 from helpers.argument import parse_args
 from helpers.env import IPD

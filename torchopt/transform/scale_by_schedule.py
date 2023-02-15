@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,21 +31,21 @@
 # ==============================================================================
 """Preset transformation for scaling updates by learning rate schedules."""
 
-from typing import NamedTuple
+from typing import NamedTuple, Optional, Tuple
 
 import torch
 
 from torchopt import pytree
 from torchopt.base import GradientTransformation
-from torchopt.transform.utils import inc_count, tree_map_flat
-from torchopt.typing import Schedule, SequenceOfTensors
+from torchopt.transform.utils import inc_count, tree_map_flat, tree_map_flat_
+from torchopt.typing import OptState, Params, Schedule, SequenceOfTensors, Updates
 
 
 __all__ = ['scale_by_schedule']
 
 
 class ScaleByScheduleState(NamedTuple):
-    """Maintains count for scale scheduling."""
+    """Maintain count for scale scheduling."""
 
     count: SequenceOfTensors  # type: ignore
 
@@ -69,25 +69,37 @@ def _scale_by_schedule_flat(step_size_fn: Schedule) -> GradientTransformation:
 
 
 def _scale_by_schedule(
-    step_size_fn: Schedule, *, already_flattened: bool = False
+    step_size_fn: Schedule,
+    *,
+    already_flattened: bool = False,
 ) -> GradientTransformation:
     if already_flattened:
         tree_map = tree_map_flat
+        tree_map_ = tree_map_flat_
     else:
         tree_map = pytree.tree_map  # type: ignore[assignment]
+        tree_map_ = pytree.tree_map_  # type: ignore[assignment]
 
-    def init_fn(params):
+    def init_fn(params: Params) -> OptState:
         zero = tree_map(  # count init
             lambda t: torch.zeros(1, dtype=torch.int64, device=t.device).squeeze_(), params
         )
         return ScaleByScheduleState(count=zero)
 
-    def update_fn(updates, state, *, params=None, inplace=True):  # pylint: disable=unused-argument
+    def update_fn(
+        updates: Updates,
+        state: OptState,
+        *,
+        params: Optional[Params] = None,  # pylint: disable=unused-argument
+        inplace: bool = True,
+    ) -> Tuple[Updates, OptState]:
         if inplace:
 
             def f(g, c):  # pylint: disable=invalid-name
                 step_size = step_size_fn(c)
                 return g.mul_(step_size)
+
+            updates = tree_map_(f, updates, state.count)
 
         else:
 
@@ -95,7 +107,8 @@ def _scale_by_schedule(
                 step_size = step_size_fn(c)
                 return g.mul(step_size)
 
-        updates = tree_map(f, updates, state.count)
+            updates = tree_map(f, updates, state.count)
+
         return (
             updates,
             ScaleByScheduleState(

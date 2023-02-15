@@ -13,6 +13,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Update Sphinx documentation by [@XuehaiPan](https://github.com/XuehaiPan) and [@Benjamin-eecs](https://github.com/Benjamin-eecs) and [@waterhorse1](https://github.com/waterhorse1) and [@JieRen98](https://github.com/JieRen98) in [#127](https://github.com/metaopt/torchopt/pull/127).
+- Add object-oriented modules support for zero-order differentiation by [@XuehaiPan](https://github.com/XuehaiPan) in [#125](https://github.com/metaopt/torchopt/pull/125).
+
+### Changed
+
+- Rewrite setup CUDA Toolkit logic by [@XuehaiPan](https://github.com/XuehaiPan) in [#133](https://github.com/metaopt/torchopt/pull/133).
+
+### Fixed
+
+- Update tests and fix corresponding bugs by [@XuehaiPan](https://github.com/XuehaiPan) and [@Benjamin-eecs](https://github.com/Benjamin-eecs) and [@JieRen98](https://github.com/JieRen98) in [#78](https://github.com/metaopt/torchopt/pull/78).
+- Fix memory leak in implicit MAML omniglot few-shot classification example with OOP APIs by [@XuehaiPan](https://github.com/XuehaiPan) in [#113](https://github.com/metaopt/torchopt/pull/113).
+
+### Removed
+
+
+
+------
+
+## [0.6.0] - 2022-12-07
+
+### Added
+
+- Add unroll pragma for CUDA OPs by [@JieRen98](https://github.com/JieRen98) and [@XuehaiPan](https://github.com/XuehaiPan) in [#112](https://github.com/metaopt/torchopt/pull/112).
+- Add Python implementation of accelerated OP and pure-Python wheels by [@XuehaiPan](https://github.com/XuehaiPan) in [#67](https://github.com/metaopt/torchopt/pull/67).
+- Add `nan_to_num` hook and gradient transformation by [@XuehaiPan](https://github.com/XuehaiPan) in [#119](https://github.com/metaopt/torchopt/pull/119).
 - Add matrix inversion linear solver with neumann series approximation by [@Benjamin-eecs](https://github.com/Benjamin-eecs) and [@XuehaiPan](https://github.com/XuehaiPan) in [#98](https://github.com/metaopt/torchopt/pull/98).
 - Add if condition of number of threads for CPU OPs by [@JieRen98](https://github.com/JieRen98) in [#105](https://github.com/metaopt/torchopt/pull/105).
 - Add implicit MAML omniglot few-shot classification example with OOP APIs by [@XuehaiPan](https://github.com/XuehaiPan) in [#107](https://github.com/metaopt/torchopt/pull/107).
@@ -38,12 +63,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix backward errors when using inplace `sqrt_` and `add_` by [@Benjamin-eecs](https://github.com/Benjamin-eecs) and [@JieRen98](https://github.com/JieRen98) and [@XuehaiPan](https://github.com/XuehaiPan).
 - Fix LR scheduling by [@XuehaiPan](https://github.com/XuehaiPan) in [#76](https://github.com/metaopt/torchopt/pull/76).
 - Fix the step count tensor (`shape=(1,)`) can change the shape of the scalar updates (`shape=()`) by [@XuehaiPan](https://github.com/XuehaiPan) in [#71](https://github.com/metaopt/torchopt/pull/71).
-
-### Removed
-
-
-
-------
 
 ## [0.5.0] - 2022-09-05
 
@@ -130,9 +149,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ------
 
-[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/v0.5.0...HEAD
-[0.5.0]: https://github.com/olivierlacan/keep-a-changelog/compare/v0.4.3...v0.5.0
-[0.4.3]: https://github.com/olivierlacan/keep-a-changelog/compare/v0.4.2...v0.4.3
-[0.4.2]: https://github.com/olivierlacan/keep-a-changelog/compare/v0.4.1...v0.4.2
-[0.4.1]: https://github.com/olivierlacan/keep-a-changelog/compare/v0.4.0...v0.4.1
-[0.4.0]: https://github.com/olivierlacan/keep-a-changelog/releases/tag/v0.4.0
+[Unreleased]: https://github.com/metaopt/torchopt/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/metaopt/torchopt/compare/v0.5.0...v0.6.0
+[0.5.0]: https://github.com/metaopt/torchopt/compare/v0.4.3...v0.5.0
+[0.4.3]: https://github.com/metaopt/torchopt/compare/v0.4.2...v0.4.3
+[0.4.2]: https://github.com/metaopt/torchopt/compare/v0.4.1...v0.4.2
+[0.4.1]: https://github.com/metaopt/torchopt/compare/v0.4.0...v0.4.1
+[0.4.0]: https://github.com/metaopt/torchopt/releases/tag/v0.4.0

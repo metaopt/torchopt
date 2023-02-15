@@ -1,3 +1,6 @@
+##### Project Specific #####
+third-party/
+
 ##### Python.gitignore #####
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -73,8 +76,8 @@ instance/
 
 # Sphinx documentation
 docs/_build/
-docs/build/
 docs/source/_build/
+_autosummary/
 
 # PyBuilder
 .pybuilder/

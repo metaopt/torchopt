@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,6 @@
 # ==============================================================================
 
 # pylint: disable=all
-# isort: off
 
 from typing import Tuple
 
@@ -30,9 +29,9 @@ def forward_(
     eps_root: float,
     count: int,
 ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]: ...
-def forwardMu(updates: torch.Tensor, mu: torch.Tensor, b1: float) -> torch.Tensor: ...
-def forwardNu(updates: torch.Tensor, nu: torch.Tensor, b2: float) -> torch.Tensor: ...
-def forwardUpdates(
+def forward_mu(updates: torch.Tensor, mu: torch.Tensor, b1: float) -> torch.Tensor: ...
+def forward_nu(updates: torch.Tensor, nu: torch.Tensor, b2: float) -> torch.Tensor: ...
+def forward_updates(
     new_mu: torch.Tensor,
     new_nu: torch.Tensor,
     b1: float,
@@ -41,18 +40,19 @@ def forwardUpdates(
     eps_root: float,
     count: int,
 ) -> torch.Tensor: ...
-def backwardMu(
+def backward_mu(
     dmu: torch.Tensor, updates: torch.Tensor, mu: torch.Tensor, b1: float
 ) -> Tuple[torch.Tensor, torch.Tensor]: ...
-def backwardNu(
+def backward_nu(
     dnu: torch.Tensor, updates: torch.Tensor, nu: torch.Tensor, b2: float
 ) -> Tuple[torch.Tensor, torch.Tensor]: ...
-def backwardUpdates(
+def backward_updates(
     dupdates: torch.Tensor,
     updates: torch.Tensor,
     new_mu: torch.Tensor,
     new_nu: torch.Tensor,
     b1: float,
     b2: float,
+    eps_root: float,
     count: int,
 ) -> Tuple[torch.Tensor, torch.Tensor]: ...

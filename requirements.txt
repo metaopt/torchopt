@@ -1,6 +1,6 @@
 # Sync with project.dependencies
 torch >= 1.13
-optree >= 0.3.0
+optree >= 0.4.1
 numpy
 graphviz
 typing-extensions >= 4.0.0

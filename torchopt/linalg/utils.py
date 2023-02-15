@@ -24,7 +24,7 @@ from torchopt.typing import TensorTree
 
 
 def cat_shapes(tree: TensorTree) -> Tuple[int, ...]:
-    """Concatenates the shapes of the leaves of a tree of tensors."""
+    """Concatenate the shapes of the leaves of a tree of tensors."""
     leaves = pytree.tree_leaves(tree)
     return tuple(itertools.chain.from_iterable(tuple(leaf.shape) for leaf in leaves))
 
@@ -32,7 +32,7 @@ def cat_shapes(tree: TensorTree) -> Tuple[int, ...]:
 def normalize_matvec(
     matvec: Union[TensorTree, Callable[[TensorTree], TensorTree]]
 ) -> Callable[[TensorTree], TensorTree]:
-    """Normalizes an argument for computing matrix-vector product."""
+    """Normalize an argument for computing matrix-vector product."""
     if callable(matvec):
         return matvec
 

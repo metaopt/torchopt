@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,7 +31,8 @@
 # ==============================================================================
 """Preset transformations."""
 
-from torchopt.transform.add_decayed_weights import add_decayed_weights
+from torchopt.transform.add_decayed_weights import add_decayed_weights, masked
+from torchopt.transform.nan_to_num import nan_to_num
 from torchopt.transform.scale import scale
 from torchopt.transform.scale_by_adam import scale_by_accelerated_adam, scale_by_adam
 from torchopt.transform.scale_by_rms import scale_by_rms
@@ -46,9 +47,11 @@ __all__ = [
     'scale',
     'scale_by_schedule',
     'add_decayed_weights',
+    'masked',
     'scale_by_adam',
     'scale_by_accelerated_adam',
     'scale_by_rss',
     'scale_by_rms',
     'scale_by_stddev',
+    'nan_to_num',
 ]

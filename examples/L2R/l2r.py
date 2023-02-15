@@ -36,9 +36,6 @@ from torch.utils.tensorboard import SummaryWriter
 from torchvision.datasets import MNIST
 
 import torchopt
-
-
-# isort: off
 from helpers.argument import parse_args
 from helpers.model import LeNet5
 from helpers.utils import get_imbalance_dataset, plot, set_seed

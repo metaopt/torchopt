@@ -53,7 +53,7 @@ def _solve_inv(
     ns: bool = False,
     **kwargs,
 ) -> TensorTree:
-    """Solves ``A x = b`` using matrix inversion.
+    """Solve ``A x = b`` using matrix inversion.
 
     If ``ns = False``, this assumes the matrix ``A`` is a constant matrix and will materialize it
     in memory.
@@ -88,7 +88,7 @@ def _solve_inv(
 
 
 def solve_inv(**kwargs):
-    """A wrapper that returns a solver function to solve ``A x = b`` using matrix inversion.
+    """Return a solver function to solve ``A x = b`` using matrix inversion.
 
     If ``ns = False``, this assumes the matrix ``A`` is a constant matrix and will materialize it
     in memory.

@@ -5,11 +5,13 @@ PROJECT_PATH   = $(PROJECT_NAME)
 SHELL          = /bin/bash
 SOURCE_FOLDERS = $(PROJECT_PATH) examples include src tests docs
 PYTHON_FILES   = $(shell find $(SOURCE_FOLDERS) -type f -name "*.py" -o -name "*.pyi")
-CXX_FILES      = $(shell find $(SOURCE_FOLDERS) -type f -name "*.h" -o -name "*.cpp" -o -name "*.cuh" -o -name "*.cu")
+CXX_FILES      = $(shell find $(SOURCE_FOLDERS) -type f -name "*.h" -o -name "*.cpp")
+CUDA_FILES     = $(shell find $(SOURCE_FOLDERS) -type f -name "*.cuh" -o -name "*.cu")
 COMMIT_HASH    = $(shell git log -1 --format=%h)
 PATH           := $(HOME)/go/bin:$(PATH)
 PYTHON         ?= $(shell command -v python3 || command -v python)
 CLANG_FORMAT   ?= $(shell command -v clang-format-14 || command -v clang-format)
+PYTESTOPTS     ?=
 
 .PHONY: default
 default: install
@@ -39,7 +41,8 @@ check_pip_install = $(PYTHON) -m pip show $(1) &>/dev/null || (cd && $(PYTHON) -
 check_pip_install_extra = $(PYTHON) -m pip show $(1) &>/dev/null || (cd && $(PYTHON) -m pip install $(2) --upgrade)
 
 pylint-install:
-	$(call check_pip_install,pylint)
+	$(call check_pip_install_extra,pylint,pylint[spelling])
+	$(call check_pip_install,pyenchant)
 
 flake8-install:
 	$(call check_pip_install,flake8)
@@ -57,7 +60,7 @@ pre-commit-install:
 	$(PYTHON) -m pre_commit install --install-hooks
 
 docs-install:
-	$(call check_pip_install,pydocstyle)
+	$(call check_pip_install_extra,pydocstyle,pydocstyle[toml])
 	$(call check_pip_install_extra,doc8,"doc8<1.0.0a0")
 	if ! $(PYTHON) -c "import sys; exit(sys.version_info < (3, 8))"; then \
 		$(PYTHON) -m pip uninstall --yes importlib-metadata; \
@@ -71,13 +74,19 @@ docs-install:
 	$(call check_pip_install,sphinxcontrib-katex)
 	$(call check_pip_install,sphinxcontrib-bibtex)
 	$(call check_pip_install,sphinx-autodoc-typehints)
-	$(call check_pip_install,myst_nb)
+	$(call check_pip_install,myst-nb)
 	$(call check_pip_install_extra,sphinxcontrib.spelling,sphinxcontrib.spelling pyenchant)
 
 pytest-install:
 	$(call check_pip_install,pytest)
-	$(call check_pip_install,pytest_cov)
-	$(call check_pip_install,pytest_xdist)
+	$(call check_pip_install,pytest-cov)
+	$(call check_pip_install,pytest-xdist)
+
+test-install: pytest-install
+	$(PYTHON) -m pip install --requirement tests/requirements.txt
+
+cmake-install:
+	command -v cmake || $(call check_pip_install,cmake)
 
 cpplint-install:
 	$(call check_pip_install,cpplint)
@@ -92,18 +101,18 @@ clang-tidy-install:
 
 go-install:
 	# requires go >= 1.16
-	command -v go || (sudo apt-get install -y golang-1.16 && sudo ln -sf /usr/lib/go-1.16/bin/go /usr/bin/go)
+	command -v go || (sudo apt-get install -y golang && sudo ln -sf /usr/lib/go/bin/go /usr/bin/go)
 
 addlicense-install: go-install
 	command -v addlicense || go install github.com/google/addlicense@latest
 
 # Tests
 
-pytest: pytest-install
-	cd tests && \
+pytest: test-install
+	cd tests && $(PYTHON) -c 'import $(PROJECT_NAME)' && \
 	$(PYTHON) -m pytest --verbose --color=yes --durations=0 \
-		--cov="$(PROJECT_NAME)" --cov-report=xml --cov-report=term-missing \
-		.
+		--cov="$(PROJECT_NAME)" --cov-config=.coveragerc --cov-report=xml --cov-report=term-missing \
+		$(PYTESTOPTS) .
 
 test: pytest
 
@@ -127,16 +136,30 @@ pre-commit: pre-commit-install
 
 # C++ linters
 
+cmake-configure: cmake-install
+	cmake -S . -B cmake-build-debug \
+		-DCMAKE_BUILD_TYPE=Debug \
+		-DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+		-DPYTHON_EXECUTABLE="$(PYTHON)"
+
+cmake-build: cmake-configure
+	cmake --build cmake-build-debug --parallel
+
+cmake: cmake-build
+
 cpplint: cpplint-install
-	$(PYTHON) -m cpplint $(CXX_FILES)
+	$(PYTHON) -m cpplint $(CXX_FILES) $(CUDA_FILES)
 
 clang-format: clang-format-install
-	$(CLANG_FORMAT) --style=file -i $(CXX_FILES) -n --Werror
+	$(CLANG_FORMAT) --style=file -i $(CXX_FILES) $(CUDA_FILES) -n --Werror
+
+clang-tidy: clang-tidy-install cmake-configure
+	clang-tidy -p=cmake-build-debug $(CXX_FILES)
 
 # Documentation
 
 addlicense: addlicense-install
-	addlicense -c $(COPYRIGHT) -l apache -y 2022 -check $(SOURCE_FOLDERS)
+	addlicense -c $(COPYRIGHT) -ignore tests/coverage.xml -l apache -y 2022-$(shell date +"%Y") -check $(SOURCE_FOLDERS)
 
 docstyle: docs-install
 	make -C docs clean
@@ -154,18 +177,21 @@ clean-docs:
 
 # Utility functions
 
-lint: flake8 py-format mypy pylint clang-format cpplint docstyle spelling
+lint: flake8 py-format mypy pylint clang-format clang-tidy cpplint addlicense docstyle spelling
 
 format: py-format-install clang-format-install addlicense-install
 	$(PYTHON) -m isort --project $(PROJECT_NAME) $(PYTHON_FILES)
 	$(PYTHON) -m black $(PYTHON_FILES) tutorials
-	$(CLANG_FORMAT) -style=file -i $(CXX_FILES)
-	addlicense -c $(COPYRIGHT) -l apache -y 2022 $(SOURCE_FOLDERS)
+	$(CLANG_FORMAT) -style=file -i $(CXX_FILES) $(CUDA_FILES)
+	addlicense -c $(COPYRIGHT) -ignore tests/coverage.xml -l apache -y 2022-$(shell date +"%Y") $(SOURCE_FOLDERS)
 
 clean-py:
 	find . -type f -name  '*.py[co]' -delete
+	find . -depth -type d -name "__pycache__" -exec rm -r "{}" +
 	find . -depth -type d -name ".mypy_cache" -exec rm -r "{}" +
 	find . -depth -type d -name ".pytest_cache" -exec rm -r "{}" +
+	rm tests/.coverage
+	rm tests/coverage.xml
 
 clean-build:
 	rm -rf build/ dist/

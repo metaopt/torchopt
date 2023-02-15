@@ -25,9 +25,7 @@ from torchrl.envs.utils import set_exploration_mode, step_tensordict
 from torchrl.objectives.returns.functional import td_lambda_advantage_estimate
 
 import torchopt
-
-
-from helpers.policy_torchrl import ActorCritic  # isort: skip
+from helpers.policy_torchrl import ActorCritic
 
 
 TASK_NUM = 40

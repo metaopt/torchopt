@@ -26,8 +26,12 @@ concurrency:
   group: "${{ github.workflow }}-${{ github.ref }}"
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
+env:
+  CUDA_VERSION: "11.7"
+
 jobs:
   test:
+    name: Test with CXX/CUDA extensions on ubuntu-latest
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -44,21 +48,23 @@ jobs:
           update-environment: true
 
       - name: Setup CUDA Toolkit
-        uses: Jimver/cuda-toolkit@v0.2.8
         id: cuda-toolkit
-        with:
-          cuda: "11.7.0"
-          method: network
-          sub-packages: '["nvcc"]'
-      - run: |
-          CUDA_VERSION="${{steps.cuda-toolkit.outputs.cuda}}"
-          echo "CUDA_VERSION=${CUDA_VERSION}" >> "${GITHUB_ENV}"
-          PIP_EXTRA_INDEX_URL="https://download.pytorch.org/whl/cu$(echo "${CUDA_VERSION}" | cut -d'.' -f-2  | tr -d '.')"
-          echo "PIP_EXTRA_INDEX_URL=${PIP_EXTRA_INDEX_URL}" >> "${GITHUB_ENV}"
+        run: |
+          CUDA_PKG_SUFFIX="$(echo "${CUDA_VERSION}" | cut -d'.' -f-2 | tr '.' '-')"
+          sudo apt-get update && sudo apt-get install wget --yes
+          (
+            source /etc/os-release
+            wget -O cuda-keyring.deb "https://developer.download.nvidia.com/compute/cuda/repos/ubuntu${VERSION_ID//./}/$(uname -m)/cuda-keyring_1.0-1_all.deb"
+            sudo dpkg -i cuda-keyring.deb
+          )
+          sudo apt-get update && sudo apt-get install "cuda-minimal-build-${CUDA_PKG_SUFFIX}" --yes
+          echo "PATH=/usr/local/cuda/bin${PATH:+:${PATH}}" >> "${GITHUB_ENV}"
+          echo "LD_LIBRARY_PATH=/usr/local/cuda/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}" >> "${GITHUB_ENV}"
 
+          PIP_EXTRA_INDEX_URL="https://download.pytorch.org/whl/cu$(echo "${CUDA_PKG_SUFFIX}" | tr -d '-')"
+          echo "PIP_EXTRA_INDEX_URL=${PIP_EXTRA_INDEX_URL}" >> "${GITHUB_ENV}"
           echo "Installed CUDA version is: ${CUDA_VERSION}"
-          echo "CUDA install location: ${{steps.cuda-toolkit.outputs.CUDA_PATH}}"
-          nvcc -V
+          /usr/local/cuda/bin/nvcc -V
           echo "Torch index URL: ${PIP_EXTRA_INDEX_URL}"
 
       - name: Upgrade pip
@@ -81,10 +87,60 @@ jobs:
           make pytest
 
       - name: Upload coverage to Codecov
+        if: runner.os == 'Linux'
         uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ./tests/coverage.xml
           flags: unittests
           name: codecov-umbrella
+          fail_ci_if_error: false
+
+  test-pure-python:
+    name: Test for pure-Python on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest] # jaxlib is not available on Windows
+      fail-fast: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: "recursive"
+          fetch-depth: 1
+
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.7" # the lowest version we support (sync with requires-python in pyproject.toml)
+          update-environment: true
+
+      - name: Upgrade pip
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+
+      - name: Install dependencies
+        run: |
+          python -m pip install -r tests/requirements.txt
+
+      - name: Install TorchOpt
+        run: |
+          python -m pip install -vvv -e .
+        env:
+          TORCHOPT_NO_EXTENSIONS: "true"
+
+      - name: Test with pytest
+        run: |
+          make pytest
+
+      - name: Upload coverage to Codecov
+        if: runner.os == 'Linux'
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./tests/coverage.xml
+          flags: unittests
+          name: codecov-umbrella-pure-python
           fail_ci_if_error: false
