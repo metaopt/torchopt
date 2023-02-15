@@ -202,7 +202,10 @@ def _scale_by_neg_lr(lr: ScalarOrSchedule, *, already_flattened=False) -> Gradie
         def schedule_wrapper(count):
             return -lr(count)  # type: ignore[operator]
 
-        return scale_by_schedule.flat(schedule_wrapper)  # type: ignore[attr-defined]
+        return scale_by_schedule.impl(  # type: ignore[attr-defined]
+            schedule_wrapper,
+            already_flattened=already_flattened,
+        )
     return scale.impl(-lr, already_flattened=already_flattened)  # type: ignore[attr-defined]
 
 

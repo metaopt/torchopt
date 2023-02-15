@@ -32,7 +32,7 @@
 """Utilities for the preset transformations."""
 
 from collections import deque
-from typing import Any, Callable, Iterable, List
+from typing import Any, Callable, Sequence
 
 import torch
 
@@ -48,9 +48,10 @@ INT64_MAX = torch.iinfo(torch.int64).max
 
 def tree_map_flat(
     func: Callable,
+    flat_arg: Sequence[Any],
     *flat_args: Any,
     none_is_leaf: bool = False,
-) -> List[Any]:
+) -> Sequence[Any]:
     """Apply a function to each element of a flattened list."""
     if none_is_leaf:
         fn = func
@@ -59,15 +60,15 @@ def tree_map_flat(
         def fn(x, *xs):
             return func(x, *xs) if x is not None else None
 
-    return list(map(fn, *flat_args))
+    return flat_arg.__class__(map(fn, flat_arg, *flat_args))  # type: ignore[call-arg]
 
 
 def tree_map_flat_(
     func: Callable,
-    flat_arg: Iterable[Any],
+    flat_arg: Sequence[Any],
     *flat_args: Any,
     none_is_leaf: bool = False,
-) -> Iterable[Any]:
+) -> Sequence[Any]:
     """Apply a function to each element of a flattened list and return the original list."""
     if none_is_leaf:
         fn = func
@@ -112,8 +113,8 @@ def _inc_count(
         return c + (c != INT64_MAX).to(torch.int64) if g is not None else c
 
     if already_flattened:
-        return tree_map_flat(f, count, updates)
-    return pytree.tree_map(f, count, updates)
+        return tree_map_flat(f, count, updates, none_is_leaf=True)
+    return pytree.tree_map(f, count, updates, none_is_leaf=True)
 
 
 inc_count.flat = _inc_count_flat  # type: ignore[attr-defined]
