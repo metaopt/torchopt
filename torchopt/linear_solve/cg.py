@@ -33,8 +33,10 @@
 
 # pylint: disable=invalid-name
 
+from __future__ import annotations
+
 import functools
-from typing import Callable, Optional
+from typing import Callable
 
 from torchopt import linalg
 from torchopt.linear_solve.utils import make_ridge_matvec
@@ -47,8 +49,8 @@ __all__ = ['solve_cg']
 def _solve_cg(
     matvec: Callable[[TensorTree], TensorTree],  # (x) -> A @ x
     b: TensorTree,
-    ridge: Optional[float] = None,
-    init: Optional[TensorTree] = None,
+    ridge: float | None = None,
+    init: TensorTree | None = None,
     **kwargs,
 ) -> TensorTree:
     """Solve ``A x = b`` using conjugate gradient.

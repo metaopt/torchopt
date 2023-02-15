@@ -31,7 +31,9 @@
 # ==============================================================================
 """Preset transformation for scaling updates by learning rate schedules."""
 
-from typing import NamedTuple, Optional, Tuple
+from __future__ import annotations
+
+from typing import NamedTuple
 
 import torch
 
@@ -90,9 +92,9 @@ def _scale_by_schedule(
         updates: Updates,
         state: OptState,
         *,
-        params: Optional[Params] = None,  # pylint: disable=unused-argument
+        params: Params | None = None,  # pylint: disable=unused-argument
         inplace: bool = True,
-    ) -> Tuple[Updates, OptState]:
+    ) -> tuple[Updates, OptState]:
         if inplace:
 
             def f(g, c):  # pylint: disable=invalid-name

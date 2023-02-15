@@ -33,8 +33,10 @@
 
 # pylint: disable=invalid-name
 
+from __future__ import annotations
+
 from functools import partial
-from typing import Callable, Optional, Union
+from typing import Callable
 
 import torch
 
@@ -100,14 +102,14 @@ def _cg_solve(
 
 def _isolve(
     _isolve_solve: Callable,
-    A: Union[TensorTree, Callable[[TensorTree], TensorTree]],
+    A: TensorTree | Callable[[TensorTree], TensorTree],
     b: TensorTree,
-    x0: Optional[TensorTree] = None,
+    x0: TensorTree | None = None,
     *,
     rtol: float = 1e-5,
     atol: float = 0.0,
-    maxiter: Optional[int] = None,
-    M: Optional[Union[TensorTree, Callable[[TensorTree], TensorTree]]] = None,
+    maxiter: int | None = None,
+    M: TensorTree | Callable[[TensorTree], TensorTree] | None = None,
 ) -> TensorTree:
     if x0 is None:
         x0 = pytree.tree_map(torch.zeros_like, b)
@@ -133,14 +135,14 @@ def _isolve(
 
 
 def cg(
-    A: Union[TensorTree, Callable[[TensorTree], TensorTree]],
+    A: TensorTree | Callable[[TensorTree], TensorTree],
     b: TensorTree,
-    x0: Optional[TensorTree] = None,
+    x0: TensorTree | None = None,
     *,
     rtol: float = 1e-5,
     atol: float = 0.0,
-    maxiter: Optional[int] = None,
-    M: Optional[Union[TensorTree, Callable[[TensorTree], TensorTree]]] = None,
+    maxiter: int | None = None,
+    M: TensorTree | Callable[[TensorTree], TensorTree] | None = None,
 ) -> TensorTree:
     """Use Conjugate Gradient iteration to solve ``Ax = b``.
 

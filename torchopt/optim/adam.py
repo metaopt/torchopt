@@ -14,7 +14,9 @@
 # ==============================================================================
 """Adam optimizer."""
 
-from typing import Iterable, Tuple
+from __future__ import annotations
+
+from typing import Iterable
 
 import torch
 
@@ -39,7 +41,7 @@ class Adam(Optimizer):
         self,
         params: Iterable[torch.Tensor],
         lr: ScalarOrSchedule,
-        betas: Tuple[float, float] = (0.9, 0.999),
+        betas: tuple[float, float] = (0.9, 0.999),
         eps: float = 1e-8,
         weight_decay: float = 0.0,
         *,

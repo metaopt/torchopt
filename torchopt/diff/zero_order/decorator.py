@@ -14,8 +14,10 @@
 # ==============================================================================
 """Zero-Order Gradient Estimation."""
 
+from __future__ import annotations
+
 import functools
-from typing import Any, Callable, List, Sequence, Tuple, Union
+from typing import Any, Callable, Sequence
 from typing_extensions import Literal  # Python 3.8+
 from typing_extensions import TypeAlias  # Python 3.10+
 
@@ -33,9 +35,7 @@ class WrappedSamplable(Samplable):  # pylint: disable=too-few-public-methods
         """Wrap a sample function to make it a :class:`Samplable` object."""
         self.sample_fn = sample_fn
 
-    def sample(
-        self, sample_shape: torch.Size = torch.Size()
-    ) -> Union[torch.Tensor, Sequence[Numeric]]:
+    def sample(self, sample_shape: torch.Size = torch.Size()) -> torch.Tensor | Sequence[Numeric]:
         # pylint: disable-next=line-too-long
         """Generate a sample_shape shaped sample or sample_shape shaped batch of samples if the distribution parameters are batched."""
         return self.sample_fn(sample_shape)
@@ -44,14 +44,14 @@ class WrappedSamplable(Samplable):  # pylint: disable=too-few-public-methods
 def _zero_order_naive(  # pylint: disable=too-many-statements
     fn: Callable[..., torch.Tensor],
     distribution: Samplable,
-    argnums: Tuple[int, ...],
+    argnums: tuple[int, ...],
     num_samples: int,
     sigma: Numeric,
 ) -> Callable[..., torch.Tensor]:
     @functools.wraps(fn)
     def apply(*args: Any) -> torch.Tensor:  # pylint: disable=too-many-statements
         diff_params = [args[argnum] for argnum in argnums]
-        flat_diff_params: List[Any]
+        flat_diff_params: list[Any]
         flat_diff_params, diff_params_treespec = pytree.tree_flatten(diff_params)  # type: ignore[arg-type]
 
         class ZeroOrder(Function):  # pylint: disable=missing-class-docstring,abstract-method
@@ -59,7 +59,7 @@ def _zero_order_naive(  # pylint: disable=too-many-statements
             def forward(ctx: Any, *args: Any, **kwargs: Any) -> torch.Tensor:
                 flat_diff_params = args[:-1]
                 origin_args = list(args[-1][0])
-                flat_args: List[Any]
+                flat_args: list[Any]
                 flat_args, args_treespec = pytree.tree_flatten(origin_args, none_is_leaf=True)  # type: ignore[arg-type]
                 ctx.args_treespec = args_treespec
 
@@ -107,7 +107,7 @@ def _zero_order_naive(  # pylint: disable=too-many-statements
                         flat_args.append(non_tensors[non_tensors_counter])
                         non_tensors_counter += 1
 
-                args: List[Any] = pytree.tree_unflatten(ctx.args_treespec, flat_args)  # type: ignore[assignment]
+                args: list[Any] = pytree.tree_unflatten(ctx.args_treespec, flat_args)  # type: ignore[assignment]
 
                 def add_perturbation(tensor, noises):
                     return tensor.add(noises, alpha=sigma)
@@ -119,7 +119,7 @@ def _zero_order_naive(  # pylint: disable=too-many-statements
                     flat_noisy_params = [
                         add_perturbation(t, n) for t, n in zip(flat_diff_params, noises)
                     ]
-                    noisy_params: List[Any] = pytree.tree_unflatten(  # type: ignore[assignment]
+                    noisy_params: list[Any] = pytree.tree_unflatten(  # type: ignore[assignment]
                         diff_params_treespec, flat_noisy_params
                     )
 
@@ -145,14 +145,14 @@ def _zero_order_naive(  # pylint: disable=too-many-statements
 def _zero_order_forward(  # pylint: disable=too-many-statements
     fn: Callable[..., torch.Tensor],
     distribution: Samplable,
-    argnums: Tuple[int, ...],
+    argnums: tuple[int, ...],
     num_samples: int,
     sigma: Numeric,
 ) -> Callable[..., torch.Tensor]:
     @functools.wraps(fn)
     def apply(*args: Any) -> torch.Tensor:  # pylint: disable=too-many-statements
         diff_params = [args[argnum] for argnum in argnums]
-        flat_diff_params: List[Any]
+        flat_diff_params: list[Any]
         flat_diff_params, diff_params_treespec = pytree.tree_flatten(diff_params)  # type: ignore[arg-type]
 
         class ZeroOrder(Function):  # pylint: disable=missing-class-docstring,abstract-method
@@ -160,7 +160,7 @@ def _zero_order_forward(  # pylint: disable=too-many-statements
             def forward(ctx: Any, *args: Any, **kwargs: Any) -> torch.Tensor:
                 flat_diff_params = args[:-1]
                 origin_args = list(args[-1][0])
-                flat_args: List[Any]
+                flat_args: list[Any]
                 flat_args, args_treespec = pytree.tree_flatten(origin_args, none_is_leaf=True)  # type: ignore[arg-type]
                 ctx.args_treespec = args_treespec
 
@@ -209,7 +209,7 @@ def _zero_order_forward(  # pylint: disable=too-many-statements
                         flat_args.append(non_tensors[non_tensors_counter])
                         non_tensors_counter += 1
 
-                args: List[Any] = pytree.tree_unflatten(ctx.args_treespec, flat_args)  # type: ignore[assignment]
+                args: list[Any] = pytree.tree_unflatten(ctx.args_treespec, flat_args)  # type: ignore[assignment]
 
                 def add_perturbation(tensor, noises):
                     return tensor.add(noises, alpha=sigma)
@@ -221,7 +221,7 @@ def _zero_order_forward(  # pylint: disable=too-many-statements
                     flat_noisy_params = [
                         add_perturbation(t, n) for t, n in zip(flat_diff_params, noises)
                     ]
-                    noisy_params: List[Any] = pytree.tree_unflatten(  # type: ignore[assignment]
+                    noisy_params: list[Any] = pytree.tree_unflatten(  # type: ignore[assignment]
                         diff_params_treespec, flat_noisy_params
                     )
 
@@ -248,14 +248,14 @@ def _zero_order_forward(  # pylint: disable=too-many-statements
 def _zero_order_antithetic(  # pylint: disable=too-many-statements
     fn: Callable[..., torch.Tensor],
     distribution: Samplable,
-    argnums: Tuple[int, ...],
+    argnums: tuple[int, ...],
     num_samples: int,
     sigma: Numeric,
 ) -> Callable[..., torch.Tensor]:
     @functools.wraps(fn)
     def apply(*args: Any) -> torch.Tensor:  # pylint: disable=too-many-statements
         diff_params = [args[argnum] for argnum in argnums]
-        flat_diff_params: List[Any]
+        flat_diff_params: list[Any]
         flat_diff_params, diff_params_treespec = pytree.tree_flatten(diff_params)  # type: ignore[arg-type]
 
         class ZeroOrder(Function):  # pylint: disable=missing-class-docstring,abstract-method
@@ -263,7 +263,7 @@ def _zero_order_antithetic(  # pylint: disable=too-many-statements
             def forward(ctx: Any, *args: Any, **kwargs: Any) -> torch.Tensor:
                 flat_diff_params = args[:-1]
                 origin_args = list(args[-1][0])
-                flat_args: List[Any]
+                flat_args: list[Any]
                 flat_args, args_treespec = pytree.tree_flatten(origin_args, none_is_leaf=True)  # type: ignore[arg-type]
                 ctx.args_treespec = args_treespec
 
@@ -309,7 +309,7 @@ def _zero_order_antithetic(  # pylint: disable=too-many-statements
                         flat_args.append(non_tensors[non_tensors_counter])
                         non_tensors_counter += 1
 
-                args: List[Any] = pytree.tree_unflatten(ctx.args_treespec, flat_args)  # type: ignore[assignment]
+                args: list[Any] = pytree.tree_unflatten(ctx.args_treespec, flat_args)  # type: ignore[assignment]
 
                 param_grads: ListOfTensors = [0.0 for _ in range(len(flat_diff_params))]  # type: ignore[misc]
 
@@ -318,7 +318,7 @@ def _zero_order_antithetic(  # pylint: disable=too-many-statements
                         add_perturbation_fn(t, n, alpha=sigma)
                         for t, n in zip(flat_diff_params, noises)
                     ]
-                    noisy_params: List[Any] = pytree.tree_unflatten(  # type: ignore[assignment]
+                    noisy_params: list[Any] = pytree.tree_unflatten(  # type: ignore[assignment]
                         diff_params_treespec, flat_noisy_params
                     )
 
@@ -349,9 +349,9 @@ Method: TypeAlias = Literal['naive', 'forward', 'antithetic']
 
 
 def zero_order(
-    distribution: Union[SampleFunc, Samplable],
+    distribution: SampleFunc | Samplable,
     method: Method = 'naive',
-    argnums: Union[int, Tuple[int, ...]] = (0,),
+    argnums: int | tuple[int, ...] = (0,),
     num_samples: int = 1,
     sigma: Numeric = 1.0,
 ) -> Callable[[Callable[..., torch.Tensor]], Callable[..., torch.Tensor]]:

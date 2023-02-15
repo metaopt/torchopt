@@ -14,7 +14,9 @@
 # ==============================================================================
 """The base class for optimizers."""
 
-from typing import Callable, Iterable, List, Optional, Sequence, Tuple
+from __future__ import annotations
+
+from typing import Callable, Iterable, Sequence
 
 import torch
 
@@ -46,9 +48,9 @@ class Optimizer:
             raise TypeError(f'{impl} (type: {type(impl).__name__}) is not a GradientTransformation')
 
         self.impl: GradientTransformation = impl
-        self.param_groups: List[TupleOfTensors] = []
-        self.param_treespecs: List[pytree.PyTreeSpec] = []
-        self.state_groups: List[OptState] = []
+        self.param_groups: list[TupleOfTensors] = []
+        self.param_treespecs: list[pytree.PyTreeSpec] = []
+        self.state_groups: list[OptState] = []
 
         if not isinstance(params, (list, tuple)):
             params = tuple(params)
@@ -80,7 +82,7 @@ class Optimizer:
 
         pytree.tree_map_(f, self.param_groups)  # type: ignore[arg-type]
 
-    def state_dict(self) -> Tuple[OptState, ...]:
+    def state_dict(self) -> tuple[OptState, ...]:
         """Return the state of the optimizer."""
         return tuple(self.state_groups)
 
@@ -93,7 +95,7 @@ class Optimizer:
         """
         self.state_groups[:] = list(state_dict)
 
-    def step(self, closure: Optional[Callable[[], torch.Tensor]] = None) -> Optional[torch.Tensor]:
+    def step(self, closure: Callable[[], torch.Tensor] | None = None) -> torch.Tensor | None:
         """Perform a single optimization step.
 
         The behavior is similar to :meth:`torch.optim.Optimizer.step`.

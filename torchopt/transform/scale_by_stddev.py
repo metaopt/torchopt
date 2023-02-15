@@ -33,7 +33,9 @@
 
 # pylint: disable=invalid-name
 
-from typing import NamedTuple, Optional, Tuple
+from __future__ import annotations
+
+from typing import NamedTuple
 
 import torch
 
@@ -125,9 +127,9 @@ def _scale_by_stddev(
         updates: Updates,
         state: OptState,
         *,
-        params: Optional[Params] = None,  # pylint: disable=unused-argument
+        params: Params | None = None,  # pylint: disable=unused-argument
         inplace: bool = True,
-    ) -> Tuple[Updates, OptState]:
+    ) -> tuple[Updates, OptState]:
         mu = update_moment.impl(  # type: ignore[attr-defined]
             updates, state.mu, alpha, order=1, inplace=inplace, already_flattened=already_flattened
         )

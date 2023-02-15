@@ -13,7 +13,9 @@
 # limitations under the License.
 # ==============================================================================
 
-from typing import Callable, Tuple
+from __future__ import annotations
+
+from typing import Callable
 
 import functorch
 import numpy as np
@@ -62,7 +64,7 @@ def test_lr_linear_schedule(
     dtype: torch.dtype,
     lr: float,
     total_iters: int,
-    optimizers: Tuple[Callable, torch.optim.Optimizer],
+    optimizers: tuple[Callable, torch.optim.Optimizer],
     inplace: bool,
     weight_decay: float,
     use_chain_flat: bool,

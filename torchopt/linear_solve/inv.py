@@ -33,8 +33,10 @@
 
 # pylint: disable=invalid-name
 
+from __future__ import annotations
+
 import functools
-from typing import Callable, Optional
+from typing import Callable
 
 import torch
 
@@ -49,7 +51,7 @@ __all__ = ['solve_inv']
 def _solve_inv(
     matvec: Callable[[TensorTree], TensorTree],  # (x) -> A @ x
     b: TensorTree,
-    ridge: Optional[float] = None,
+    ridge: float | None = None,
     ns: bool = False,
     **kwargs,
 ) -> TensorTree:

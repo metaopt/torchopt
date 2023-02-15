@@ -16,7 +16,7 @@
 
 # pylint: disable=invalid-name,too-many-arguments,unused-argument
 
-from typing import Tuple
+from __future__ import annotations
 
 import torch
 
@@ -30,7 +30,7 @@ def forward_(
     eps: float,
     eps_root: float,
     count: int,
-) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """Adam forward inplace."""
     mu = mu.mul_(b1).add_(updates, alpha=1.0 - b1)
     nu = nu.mul_(b2).addcmul_(updates, updates, value=1.0 - b2)
@@ -80,7 +80,7 @@ def backward_mu(
     updates: torch.Tensor,
     mu: torch.Tensor,
     b1: float,
-) -> Tuple[torch.Tensor, torch.Tensor]:
+) -> tuple[torch.Tensor, torch.Tensor]:
     """Adam backward mu."""
     dupdates = dmu.mul(1.0 - b1)
     dmu = dmu.mul(b1)
@@ -92,7 +92,7 @@ def backward_nu(
     updates: torch.Tensor,
     nu: torch.Tensor,
     b2: float,
-) -> Tuple[torch.Tensor, torch.Tensor]:
+) -> tuple[torch.Tensor, torch.Tensor]:
     """Adam backward nu."""
     dupdates = updates.mul(dnu).mul_(2.0 * (1.0 - b2))
     dnu = dnu.mul(b2)
@@ -108,7 +108,7 @@ def backward_updates(
     b2: float,
     eps_root: float,
     count: int,
-) -> Tuple[torch.Tensor, torch.Tensor]:
+) -> tuple[torch.Tensor, torch.Tensor]:
     """Adam backward updates."""
     one_minus_pow_b1 = 1.0 - pow(b1, count)
     inv_one_minus_pow_b2 = 1.0 / (1.0 - pow(b2, count) + eps_root)

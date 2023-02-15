@@ -14,7 +14,9 @@
 # ==============================================================================
 """The base class for differentiable meta-optimizers."""
 
-from typing import List, Sequence, Tuple
+from __future__ import annotations
+
+from typing import Sequence
 
 import torch
 import torch.nn as nn
@@ -49,8 +51,8 @@ class MetaOptimizer:
             raise TypeError(f'{impl} (type: {type(impl).__name__}) is not a GradientTransformation')
 
         self.impl: GradientTransformation = impl
-        self.param_containers_groups: List[ModuleTensorContainers] = []
-        self.state_groups: List[OptState] = []
+        self.param_containers_groups: list[ModuleTensorContainers] = []
+        self.state_groups: list[OptState] = []
 
         self.add_param_group(module)
 
@@ -99,7 +101,7 @@ class MetaOptimizer:
         self.param_containers_groups.append(params_container)
         self.state_groups.append(UninitializedState())
 
-    def state_dict(self) -> Tuple[OptState, ...]:
+    def state_dict(self) -> tuple[OptState, ...]:
         """Extract the references of the optimizer states.
 
         Note that the states are references, so any in-place operations will change the states

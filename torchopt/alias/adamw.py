@@ -31,7 +31,9 @@
 # ==============================================================================
 """Preset :class:`GradientTransformation` for the AdamW optimizer."""
 
-from typing import Any, Callable, Optional, Tuple, Union
+from __future__ import annotations
+
+from typing import Callable
 
 from torchopt.alias.utils import (
     _get_use_chain_flat,
@@ -40,7 +42,7 @@ from torchopt.alias.utils import (
 )
 from torchopt.combine import chain
 from torchopt.transform import add_decayed_weights, scale_by_accelerated_adam, scale_by_adam
-from torchopt.typing import GradientTransformation, Params, ScalarOrSchedule
+from torchopt.typing import GradientTransformation, OptState, Params, ScalarOrSchedule
 
 
 __all__ = ['adamw']
@@ -49,12 +51,12 @@ __all__ = ['adamw']
 # pylint: disable-next=too-many-arguments,too-many-locals
 def adamw(
     lr: ScalarOrSchedule = 1e-3,
-    betas: Tuple[float, float] = (0.9, 0.999),
+    betas: tuple[float, float] = (0.9, 0.999),
     eps: float = 1e-8,
     weight_decay: float = 1e-2,
     *,
     eps_root: float = 0.0,
-    mask: Optional[Union[Any, Callable[[Params], Any]]] = None,
+    mask: OptState | Callable[[Params], OptState] | None = None,
     moment_requires_grad: bool = False,
     maximize: bool = False,
     use_accelerated_op: bool = False,

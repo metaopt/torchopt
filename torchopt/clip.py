@@ -17,7 +17,7 @@
 # ==============================================================================
 """Utilities for gradient clipping."""
 
-from typing import Optional, Tuple, Union
+from __future__ import annotations
 
 import torch
 
@@ -33,8 +33,8 @@ ClipState = EmptyState
 
 
 def clip_grad_norm(
-    max_norm: Union[float, int],
-    norm_type: Union[float, int] = 2.0,
+    max_norm: float | int,
+    norm_type: float | int = 2.0,
     error_if_nonfinite: bool = False,
 ) -> GradientTransformation:
     """Clip gradient norm of an iterable of parameters.
@@ -57,9 +57,9 @@ def clip_grad_norm(
         updates: Updates,
         state: OptState,
         *,
-        params: Optional[Params] = None,  # pylint: disable=unused-argument
+        params: Params | None = None,  # pylint: disable=unused-argument
         inplace: bool = True,
-    ) -> Tuple[Updates, OptState]:
+    ) -> tuple[Updates, OptState]:
         available_updates = pytree.tree_leaves(updates)
         if len(available_updates) == 0:
             return updates, state

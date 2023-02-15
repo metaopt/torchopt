@@ -14,21 +14,11 @@
 # ==============================================================================
 """Utilities for TorchOpt."""
 
+from __future__ import annotations
+
 import copy
 import itertools
-from typing import (
-    TYPE_CHECKING,
-    Dict,
-    List,
-    NamedTuple,
-    Optional,
-    Sequence,
-    Set,
-    Tuple,
-    Union,
-    cast,
-    overload,
-)
+from typing import TYPE_CHECKING, NamedTuple, Sequence, cast, overload
 from typing_extensions import Literal  # Python 3.8+
 from typing_extensions import TypeAlias  # Python 3.10+
 
@@ -56,16 +46,16 @@ __all__ = [
 class ModuleState(NamedTuple):
     """Container for module state."""
 
-    params: Tuple[Dict[str, torch.Tensor], ...]
-    buffers: Tuple[Dict[str, torch.Tensor], ...]
-    visual_contents: Optional[Dict] = None
+    params: tuple[dict[str, torch.Tensor], ...]
+    buffers: tuple[dict[str, torch.Tensor], ...]
+    visual_contents: dict | None = None
     detach_buffers: bool = False
 
 
 CopyMode: TypeAlias = Literal['reference', 'copy', 'deepcopy', 'ref', 'clone', 'deepclone']
 
 
-def stop_gradient(target: Union[ModuleState, nn.Module, 'MetaOptimizer', TensorTree]) -> None:
+def stop_gradient(target: ModuleState | nn.Module | MetaOptimizer | TensorTree) -> None:
     """Stop the gradient for the input object.
 
     Since a tensor use :attr:`grad_fn` to connect itself with the previous computation graph, the
@@ -108,7 +98,7 @@ def extract_state_dict(
     target: nn.Module,
     *,
     by: CopyMode = 'reference',
-    device: Optional[Device] = None,
+    device: Device | None = None,
     with_buffers: bool = True,
     enable_visual: bool = False,
     visual_prefix: str = '',
@@ -118,28 +108,28 @@ def extract_state_dict(
 
 @overload
 def extract_state_dict(
-    target: 'MetaOptimizer',
+    target: MetaOptimizer,
     *,
     by: CopyMode = 'reference',
-    device: Optional[Device] = None,
+    device: Device | None = None,
     with_buffers: bool = True,
     enable_visual: bool = False,
     visual_prefix: str = '',
-) -> Tuple[OptState, ...]:  # pragma: no cover
+) -> tuple[OptState, ...]:  # pragma: no cover
     ...
 
 
 # pylint: disable-next=too-many-branches,too-many-locals
 def extract_state_dict(
-    target: Union[nn.Module, 'MetaOptimizer'],
+    target: nn.Module | MetaOptimizer,
     *,
     by: CopyMode = 'reference',
-    device: Optional[Device] = None,
+    device: Device | None = None,
     with_buffers: bool = True,
     detach_buffers: bool = False,
     enable_visual: bool = False,
     visual_prefix: str = '',
-) -> Union[ModuleState, Tuple[OptState, ...]]:
+) -> ModuleState | tuple[OptState, ...]:
     """Extract target state.
 
     Since a tensor use :attr:`grad_fn` to connect itself with the previous computation graph, the
@@ -228,9 +218,9 @@ def extract_state_dict(
         else:
             visual_contents = None
 
-        params: List[Dict[str, torch.Tensor]] = []
-        buffers: List[Dict[str, torch.Tensor]] = []
-        memo: Set[nn.Module] = set()
+        params: list[dict[str, torch.Tensor]] = []
+        buffers: list[dict[str, torch.Tensor]] = []
+        memo: set[nn.Module] = set()
 
         def update_params(container):
             if len(container) > 0:
@@ -287,12 +277,12 @@ def extract_state_dict(
 
 def extract_module_containers(
     module: nn.Module, with_buffers: bool = True
-) -> Tuple[ModuleTensorContainers, ModuleTensorContainers]:
+) -> tuple[ModuleTensorContainers, ModuleTensorContainers]:
     """Extract the references to the containers of parameters and buffers from a module."""
     if isinstance(module, nn.Module):
-        params: List[TensorContainer] = []
-        buffers: List[TensorContainer] = []
-        memo: Set[nn.Module] = set()
+        params: list[TensorContainer] = []
+        buffers: list[TensorContainer] = []
+        memo: set[nn.Module] = set()
 
         def update_container(container, items):
             if len(items) > 0:
@@ -316,8 +306,8 @@ def extract_module_containers(
 
 
 def recover_state_dict(
-    target: Union[nn.Module, 'MetaOptimizer'],
-    state: Union[ModuleState, Sequence[OptState]],
+    target: nn.Module | MetaOptimizer,
+    state: ModuleState | Sequence[OptState],
 ) -> None:
     """Recover state.
 
@@ -344,10 +334,7 @@ def recover_state_dict(
                     return nn.Parameter(t.clone().detach_(), requires_grad=t.requires_grad)
                 return t.clone().detach_().requires_grad_(t.requires_grad)
 
-            buffers = cast(
-                Tuple[Dict[str, torch.Tensor], ...],
-                pytree.tree_map(clone_detach_, buffers),  # type: ignore[arg-type]
-            )
+            buffers = pytree.tree_map(clone_detach_, buffers)  # type: ignore[assignment,arg-type]
 
         for tgt, src in itertools.chain(
             zip(params_containers, params),
@@ -367,19 +354,19 @@ def module_clone(
     *,
     by: CopyMode = 'reference',
     detach_buffers: bool = False,
-    device: Optional[Device] = None,
+    device: Device | None = None,
 ) -> nn.Module:  # pragma: no cover
     ...
 
 
 @overload
 def module_clone(
-    target: 'MetaOptimizer',
+    target: MetaOptimizer,
     *,
     by: CopyMode = 'reference',
     detach_buffers: bool = False,
-    device: Optional[Device] = None,
-) -> 'MetaOptimizer':  # pragma: no cover
+    device: Device | None = None,
+) -> MetaOptimizer:  # pragma: no cover
     ...
 
 
@@ -389,19 +376,19 @@ def module_clone(
     *,
     by: CopyMode = 'reference',
     detach_buffers: bool = False,
-    device: Optional[Device] = None,
+    device: Device | None = None,
 ) -> TensorTree:  # pragma: no cover
     ...
 
 
 # pylint: disable-next=too-many-locals
 def module_clone(
-    target: Union[nn.Module, 'MetaOptimizer', TensorTree],
+    target: nn.Module | MetaOptimizer | TensorTree,
     *,
     by: CopyMode = 'reference',
     detach_buffers: bool = False,
-    device: Optional[Device] = None,
-) -> Union[nn.Module, 'MetaOptimizer', TensorTree]:
+    device: Device | None = None,
+) -> nn.Module | MetaOptimizer | TensorTree:
     """Clone a module.
 
     Args:
@@ -499,7 +486,7 @@ def module_detach_(target: nn.Module) -> nn.Module:  # pragma: no cover
 
 
 @overload
-def module_detach_(target: 'MetaOptimizer') -> 'MetaOptimizer':  # pragma: no cover
+def module_detach_(target: MetaOptimizer) -> MetaOptimizer:  # pragma: no cover
     ...
 
 
@@ -509,8 +496,8 @@ def module_detach_(target: TensorTree) -> TensorTree:  # pragma: no cover
 
 
 def module_detach_(
-    target: Union[ModuleState, nn.Module, 'MetaOptimizer', TensorTree]
-) -> Union[ModuleState, nn.Module, 'MetaOptimizer', TensorTree]:
+    target: ModuleState | nn.Module | MetaOptimizer | TensorTree,
+) -> ModuleState | nn.Module | MetaOptimizer | TensorTree:
     """Detach a module from the computation graph.
 
     Args:

@@ -14,8 +14,10 @@
 # ==============================================================================
 """Utility functions for stateless module calls."""
 
+from __future__ import annotations
+
 import contextlib
-from typing import Dict, Generator, Iterable, Tuple, Union
+from typing import Generator, Iterable
 
 import torch
 import torch.nn as nn
@@ -29,9 +31,9 @@ MISSING: torch.Tensor = object()  # type: ignore[assignment]
 
 def swap_state(
     module: nn.Module,
-    named_tensors: Union[Dict[str, torch.Tensor], Iterable[Tuple[str, torch.Tensor]]],
+    named_tensors: dict[str, torch.Tensor] | Iterable[tuple[str, torch.Tensor]],
     allow_missing: bool = False,
-) -> Dict[str, torch.Tensor]:
+) -> dict[str, torch.Tensor]:
     """Swap the module parameters and/or buffers."""
     if not isinstance(named_tensors, dict):
         named_tensors = dict(named_tensors)
@@ -84,7 +86,7 @@ def swap_state(
 @contextlib.contextmanager
 def reparametrize(
     module: nn.Module,
-    named_tensors: Union[Dict[str, torch.Tensor], Iterable[Tuple[str, torch.Tensor]]],
+    named_tensors: dict[str, torch.Tensor] | Iterable[tuple[str, torch.Tensor]],
     allow_missing: bool = False,
 ) -> Generator[nn.Module, None, None]:
     """Reparameterize the module parameters and/or buffers."""

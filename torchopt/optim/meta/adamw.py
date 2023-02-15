@@ -14,7 +14,9 @@
 # ==============================================================================
 """Differentiable AdamW optimizer."""
 
-from typing import Any, Callable, Optional, Tuple, Union
+from __future__ import annotations
+
+from typing import Any, Callable
 
 import torch.nn as nn
 
@@ -39,12 +41,12 @@ class MetaAdamW(MetaOptimizer):
         self,
         module: nn.Module,
         lr: ScalarOrSchedule = 1e-3,
-        betas: Tuple[float, float] = (0.9, 0.999),
+        betas: tuple[float, float] = (0.9, 0.999),
         eps: float = 1e-8,
         weight_decay: float = 1e-2,
         *,
         eps_root: float = 0.0,
-        mask: Optional[Union[Any, Callable[[Params], Any]]] = None,
+        mask: Any | Callable[[Params], Any] | None = None,
         moment_requires_grad: bool = False,
         maximize: bool = False,
         use_accelerated_op: bool = False,

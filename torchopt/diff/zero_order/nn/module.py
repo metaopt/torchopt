@@ -16,9 +16,11 @@
 
 # pylint: disable=redefined-builtin
 
+from __future__ import annotations
+
 import abc
 import functools
-from typing import Sequence, Type, Union
+from typing import Sequence
 
 import torch
 import torch.nn as nn
@@ -32,11 +34,11 @@ __all__ = ['ZeroOrderGradientModule']
 
 
 def enable_zero_order_gradients(
-    cls: Type['ZeroOrderGradientModule'],
+    cls: type[ZeroOrderGradientModule],
     method: Method = 'naive',
     num_samples: int = 1,
     sigma: Numeric = 1.0,
-) -> Type['ZeroOrderGradientModule']:
+) -> type[ZeroOrderGradientModule]:
     """Enable zero-order gradient estimation for the :func:`forward` method."""
     cls_forward = cls.forward
     if getattr(cls_forward, '__zero_order_gradients_enabled__', False):
@@ -45,7 +47,7 @@ def enable_zero_order_gradients(
         )
 
     @functools.wraps(cls_forward)
-    def wrapped(self: 'ZeroOrderGradientModule', *input, **kwargs) -> torch.Tensor:
+    def wrapped(self: ZeroOrderGradientModule, *input, **kwargs) -> torch.Tensor:
         """Do the forward pass calculation."""
         params_names, flat_params = tuple(zip(*self.named_parameters()))
 
@@ -91,7 +93,7 @@ class ZeroOrderGradientModule(nn.Module, Samplable):
     @abc.abstractmethod
     def sample(
         self, sample_shape: torch.Size = torch.Size()  # pylint: disable=unused-argument
-    ) -> Union[torch.Tensor, Sequence[Numeric]]:
+    ) -> torch.Tensor | Sequence[Numeric]:
         # pylint: disable-next=line-too-long
         """Generate a sample_shape shaped sample or sample_shape shaped batch of samples if the distribution parameters are batched."""
         raise NotImplementedError

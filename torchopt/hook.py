@@ -14,7 +14,9 @@
 # ==============================================================================
 """Hook utilities."""
 
-from typing import Callable, Optional, Tuple
+from __future__ import annotations
+
+from typing import Callable
 
 import torch
 
@@ -32,7 +34,7 @@ def zero_nan_hook(g: torch.Tensor) -> torch.Tensor:
 
 
 def nan_to_num_hook(
-    nan: float = 0.0, posinf: Optional[float] = None, neginf: Optional[float] = None
+    nan: float = 0.0, posinf: float | None = None, neginf: float | None = None
 ) -> Callable[[torch.Tensor], torch.Tensor]:
     """Return a ``nan`` to num hook to replace ``nan`` / ``+inf`` / ``-inf`` with the given numbers."""
 
@@ -59,9 +61,9 @@ def register_hook(hook) -> GradientTransformation:
         updates: Updates,
         state: OptState,
         *,
-        params: Optional[Params] = None,  # pylint: disable=unused-argument
+        params: Params | None = None,  # pylint: disable=unused-argument
         inplace: bool = True,  # pylint: disable=unused-argument
-    ) -> Tuple[Updates, OptState]:
+    ) -> tuple[Updates, OptState]:
         def f(g):
             return g.register_hook(hook)
 

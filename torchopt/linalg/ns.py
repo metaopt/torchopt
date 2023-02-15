@@ -16,8 +16,10 @@
 
 # pylint: disable=invalid-name
 
+from __future__ import annotations
+
 import functools
-from typing import Callable, Optional, Union
+from typing import Callable
 
 import torch
 
@@ -33,7 +35,7 @@ def _ns_solve(
     A: torch.Tensor,
     b: torch.Tensor,
     maxiter: int,
-    alpha: Optional[float] = None,
+    alpha: float | None = None,
 ) -> torch.Tensor:
     """Use Neumann Series Matrix Inversion Approximation to solve ``Ax = b``."""
     if A.ndim != 2 or A.shape[0] != A.shape[1]:
@@ -57,11 +59,11 @@ def _ns_solve(
 
 
 def ns(
-    A: Union[TensorTree, Callable[[TensorTree], TensorTree]],
+    A: TensorTree | Callable[[TensorTree], TensorTree],
     b: TensorTree,
-    maxiter: Optional[int] = None,
+    maxiter: int | None = None,
     *,
-    alpha: Optional[float] = None,
+    alpha: float | None = None,
 ) -> TensorTree:
     """Use Neumann Series Matrix Inversion Approximation to solve ``Ax = b``.
 
@@ -111,7 +113,7 @@ def ns(
     return inv_A_hat_b
 
 
-def _ns_inv(A: torch.Tensor, maxiter: int, alpha: Optional[float] = None):
+def _ns_inv(A: torch.Tensor, maxiter: int, alpha: float | None = None):
     """Use Neumann Series iteration to solve ``A^{-1}``."""
     if A.ndim != 2 or A.shape[0] != A.shape[1]:
         raise ValueError(f'`A` must be a square matrix, but has shape: {A.shape}')
@@ -134,9 +136,9 @@ def _ns_inv(A: torch.Tensor, maxiter: int, alpha: Optional[float] = None):
 
 def ns_inv(
     A: TensorTree,
-    maxiter: Optional[int] = None,
+    maxiter: int | None = None,
     *,
-    alpha: Optional[float] = None,
+    alpha: float | None = None,
 ) -> TensorTree:
     """Use Neumann Series iteration to solve ``A^{-1}``.
 

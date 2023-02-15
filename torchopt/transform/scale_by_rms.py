@@ -31,7 +31,9 @@
 # ==============================================================================
 """Preset transformations for scaling updates by exponential root mean-squared (RMS)."""
 
-from typing import NamedTuple, Optional, Tuple
+from __future__ import annotations
+
+from typing import NamedTuple
 
 import torch
 
@@ -121,9 +123,9 @@ def _scale_by_rms(
         updates: Updates,
         state: OptState,
         *,
-        params: Optional[Params] = None,  # pylint: disable=unused-argument
+        params: Params | None = None,  # pylint: disable=unused-argument
         inplace: bool = True,
-    ) -> Tuple[Updates, OptState]:
+    ) -> tuple[Updates, OptState]:
         nu = update_moment.impl(  # type: ignore[attr-defined]
             updates, state.nu, alpha, order=2, inplace=inplace, already_flattened=already_flattened
         )

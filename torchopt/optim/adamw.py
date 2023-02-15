@@ -14,7 +14,9 @@
 # ==============================================================================
 """AdamW optimizer."""
 
-from typing import Any, Callable, Iterable, Optional, Tuple, Union
+from __future__ import annotations
+
+from typing import Any, Callable, Iterable
 
 import torch
 
@@ -39,12 +41,12 @@ class AdamW(Optimizer):
         self,
         params: Iterable[torch.Tensor],
         lr: ScalarOrSchedule = 1e-3,
-        betas: Tuple[float, float] = (0.9, 0.999),
+        betas: tuple[float, float] = (0.9, 0.999),
         eps: float = 1e-8,
         weight_decay: float = 1e-2,
         *,
         eps_root: float = 0.0,
-        mask: Optional[Union[Any, Callable[[Params], Any]]] = None,
+        mask: Any | Callable[[Params], Any] | None = None,
         maximize: bool = False,
         use_accelerated_op: bool = False,
     ) -> None:

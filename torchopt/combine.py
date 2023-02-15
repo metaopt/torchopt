@@ -31,7 +31,7 @@
 # ==============================================================================
 """Utilities to define a chained transformation."""
 
-from typing import Optional, Tuple
+from __future__ import annotations
 
 from torchopt import pytree
 from torchopt.base import ChainedGradientTransformation, GradientTransformation, identity
@@ -86,9 +86,9 @@ def chain_flat(*transformations: GradientTransformation) -> GradientTransformati
         updates: Updates,
         state: OptState,
         *,
-        params: Optional[Params] = None,
+        params: Params | None = None,
         inplace: bool = True,
-    ) -> Tuple[Updates, OptState]:
+    ) -> tuple[Updates, OptState]:
         flat_updates, treespec = pytree.tree_flatten(updates, none_is_leaf=True)
         if params is not None:
             flat_params = pytree.tree_leaves(params, none_is_leaf=True)

@@ -17,8 +17,10 @@
 # ==============================================================================
 """Computation graph visualization."""
 
+from __future__ import annotations
+
 from collections import namedtuple
-from typing import Generator, Iterable, Mapping, Optional, Union, cast
+from typing import Generator, Iterable, Mapping, cast
 
 import torch
 from graphviz import Digraph
@@ -71,14 +73,13 @@ def get_fn_name(fn, show_attrs, max_attr_chars):
 # pylint: disable-next=too-many-branches,too-many-statements,too-many-locals
 def make_dot(
     var: TensorOrTensors,
-    params: Optional[
-        Union[
-            Mapping[str, torch.Tensor],
-            ModuleState,
-            Generator,
-            Iterable[Union[Mapping[str, torch.Tensor], ModuleState, Generator]],
-        ]
-    ] = None,
+    params: (
+        Mapping[str, torch.Tensor]
+        | ModuleState
+        | Generator
+        | Iterable[Mapping[str, torch.Tensor] | ModuleState | Generator]
+        | None
+    ) = None,
     show_attrs: bool = False,
     show_saved: bool = False,
     max_attr_chars: int = 50,

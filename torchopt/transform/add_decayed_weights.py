@@ -32,7 +32,9 @@
 # ==============================================================================
 """Preset transformations for adding weight decay to updates."""
 
-from typing import Any, Callable, NamedTuple, Optional, Tuple, Union
+from __future__ import annotations
+
+from typing import Any, Callable, NamedTuple
 
 from torchopt import pytree
 from torchopt.base import EmptyState, GradientTransformation, identity
@@ -59,7 +61,7 @@ class MaskedNode(NamedTuple):
 
 def masked(
     inner: GradientTransformation,
-    mask: Union[Any, Callable[[Params], Any]],
+    mask: OptState | Callable[[Params], OptState] | None = None,
 ) -> GradientTransformation:
     """Mask updates so only some are transformed, the rest are passed through.
 
@@ -89,14 +91,14 @@ def masked(
 
 def _masked_flat(
     inner: GradientTransformation,
-    mask: Union[Any, Callable[[Params], Any]],
+    mask: OptState | Callable[[Params], OptState] | None = None,
 ) -> GradientTransformation:
     return _masked(inner, mask, already_flattened=True)
 
 
 def _masked(
     inner: GradientTransformation,
-    mask: Union[Any, Callable[[Params], Any]],
+    mask: OptState | Callable[[Params], OptState] | None = None,
     *,
     already_flattened: bool = False,
 ) -> GradientTransformation:
@@ -117,9 +119,9 @@ def _masked(
         updates: Updates,
         state: OptState,
         *,
-        params: Optional[Params] = None,
+        params: Params | None = None,
         inplace: bool = True,
-    ) -> Tuple[Updates, OptState]:
+    ) -> tuple[Updates, OptState]:
         mask_tree = mask(updates) if callable(mask) else mask
         masked_updates = tree_mask(updates, mask_tree)
         masked_params = None if params is None else tree_mask(params, mask_tree)
@@ -145,7 +147,7 @@ AddDecayedWeightsState = EmptyState
 
 def add_decayed_weights(
     weight_decay: float = 0.0,
-    mask: Optional[Union[Any, Callable[[Params], Any]]] = None,
+    mask: OptState | Callable[[Params], OptState] | None = None,
 ) -> GradientTransformation:
     """Add parameter scaled by `weight_decay`.
 
@@ -168,7 +170,7 @@ def add_decayed_weights(
 
 def _add_decayed_weights_flat(
     weight_decay: float = 0.0,
-    mask: Optional[Union[Any, Callable[[Params], Any]]] = None,
+    mask: OptState | Callable[[Params], OptState] | None = None,
 ) -> GradientTransformation:
     return _add_decayed_weights(
         weight_decay=weight_decay,
@@ -179,7 +181,7 @@ def _add_decayed_weights_flat(
 
 def _add_decayed_weights(
     weight_decay: float = 0.0,
-    mask: Optional[Union[Any, Callable[[Params], Any]]] = None,
+    mask: OptState | Callable[[Params], OptState] | None = None,
     *,
     already_flattened: bool = False,
 ) -> GradientTransformation:
@@ -204,9 +206,9 @@ def _add_decayed_weights(
         updates: Updates,
         state: OptState,
         *,
-        params: Optional[Params] = None,
+        params: Params | None = None,
         inplace: bool = True,
-    ) -> Tuple[Updates, OptState]:
+    ) -> tuple[Updates, OptState]:
         assert params is not None, (
             'Parameters are required for weight decay. '
             'Call `update(updates, state, params=params)` instead.'

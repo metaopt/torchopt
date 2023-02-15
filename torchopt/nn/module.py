@@ -14,8 +14,10 @@
 # ==============================================================================
 """Base class for neural network modules that hold meta-parameters and meta-modules."""
 
+from __future__ import annotations
+
 from collections import OrderedDict
-from typing import Any, Dict, Iterator, List, NamedTuple, Optional, Set, Tuple, Union
+from typing import Any, Iterator, NamedTuple
 
 import torch
 import torch.nn as nn
@@ -27,8 +29,8 @@ from torchopt.typing import TensorContainer
 class MetaInputsContainer(NamedTuple):
     """Container for parameters and modules in the constructor input arguments."""
 
-    meta_parameters: Set[torch.Tensor]
-    meta_modules: Set[nn.Module]
+    meta_parameters: set[torch.Tensor]
+    meta_modules: set[nn.Module]
 
 
 class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
@@ -36,12 +38,12 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
 
     _meta_inputs: MetaInputsContainer
     _meta_parameters: TensorContainer
-    _meta_modules: Dict[str, Optional[nn.Module]]
+    _meta_modules: dict[str, nn.Module | None]
 
-    def __new__(cls, *args, **kwargs) -> 'MetaGradientModule':
+    def __new__(cls, *args, **kwargs) -> MetaGradientModule:
         """Create a new module instance."""
         instance = super().__new__(cls)
-        flat_args: List[Any]
+        flat_args: list[Any]
         flat_args = pytree.tree_leaves((args, kwargs))  # type: ignore[arg-type]
         meta_parameters = {x for x in flat_args if isinstance(x, torch.Tensor) and x.requires_grad}
         meta_modules = {x for x in flat_args if isinstance(x, nn.Module) and x.training}
@@ -51,14 +53,14 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
 
         instance._meta_inputs = MetaInputsContainer(meta_parameters, meta_modules)
         instance._meta_parameters: TensorContainer = OrderedDict()  # type: ignore[misc]
-        instance._meta_modules: Dict[str, Optional[nn.Module]] = OrderedDict()  # type: ignore[misc]
+        instance._meta_modules: dict[str, nn.Module | None] = OrderedDict()  # type: ignore[misc]
         return instance
 
     def __init__(self, *args, **kwargs) -> None:  # pylint: disable=unused-argument
         """Initialize a new module instance."""
         super().__init__()
 
-    def __getattr__(self, name: str) -> Union[torch.Tensor, nn.Module]:
+    def __getattr__(self, name: str) -> torch.Tensor | nn.Module:
         """Get an attribute of the module."""
         if '_parameters' in self.__dict__:
             _parameters = self.__dict__['_parameters']
@@ -83,7 +85,7 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
         raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
 
     # pylint: disable-next=too-many-branches,too-many-statements
-    def __setattr__(self, name: str, value: Union[torch.Tensor, nn.Module]) -> None:
+    def __setattr__(self, name: str, value: torch.Tensor | nn.Module) -> None:
         """Set an attribute of the module."""
 
         def remove_from(*dicts_or_sets):
@@ -186,7 +188,7 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
         else:
             object.__delattr__(self, name)
 
-    def register_parameter(self, name: str, param: Optional[torch.Tensor]) -> None:
+    def register_parameter(self, name: str, param: torch.Tensor | None) -> None:
         r"""Add a parameter to the module.
 
         The parameter can be accessed as an attribute using given name.
@@ -231,7 +233,7 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
 
         self._parameters[name] = param  # type: ignore
 
-    def register_meta_parameter(self, name: str, param: Optional[torch.Tensor]) -> None:
+    def register_meta_parameter(self, name: str, param: torch.Tensor | None) -> None:
         r"""Add a meta-parameter to the module.
 
         The meta-parameter can be accessed as an attribute using given name.
@@ -273,7 +275,7 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
 
         self._meta_parameters[name] = param
 
-    def add_module(self, name: str, module: Optional[nn.Module]) -> None:
+    def add_module(self, name: str, module: nn.Module | None) -> None:
         r"""Add a child module to the current module.
 
         The module can be accessed as an attribute using the given name.
@@ -301,11 +303,11 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
 
         self._modules[name] = module
 
-    def register_module(self, name: str, module: Optional[nn.Module]) -> None:
+    def register_module(self, name: str, module: nn.Module | None) -> None:
         r"""Alias for :func:`add_module`."""
         self.add_module(name, module)
 
-    def add_meta_module(self, name: str, meta_module: Optional[nn.Module]) -> None:
+    def add_meta_module(self, name: str, meta_module: nn.Module | None) -> None:
         r"""Add a child meta-module to the current module.
 
         The meta-module can be accessed as an attribute using the given name.
@@ -328,7 +330,7 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
 
         self._meta_modules[name] = meta_module
 
-    def register_meta_module(self, name: str, meta_module: Optional[nn.Module]) -> None:
+    def register_meta_module(self, name: str, meta_module: nn.Module | None) -> None:
         r"""Alias for :func:`add_meta_module`."""
         self.add_meta_module(name, meta_module)
 
@@ -358,7 +360,7 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
 
     def named_meta_parameters(
         self, prefix: str = '', recurse: bool = True
-    ) -> Iterator[Tuple[str, torch.Tensor]]:
+    ) -> Iterator[tuple[str, torch.Tensor]]:
         r"""Return an iterator over module meta-parameters, yielding both the name of the meta-parameter as well as the meta-parameter itself.
 
         Args:
@@ -398,7 +400,7 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
         for _, module in self.named_meta_children():
             yield module
 
-    def named_meta_children(self) -> Iterator[Tuple[str, nn.Module]]:
+    def named_meta_children(self) -> Iterator[tuple[str, nn.Module]]:
         r"""Return an iterator over immediate children meta-modules, yielding both the name of the meta-module as well as the meta-module itself.
 
         Yields:
@@ -430,8 +432,8 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
             yield meta_module
 
     def named_meta_modules(
-        self, memo: Optional[Set[nn.Module]] = None, prefix: str = '', remove_duplicate: bool = True
-    ) -> Iterator[Tuple[str, nn.Module]]:
+        self, memo: set[nn.Module] | None = None, prefix: str = '', remove_duplicate: bool = True
+    ) -> Iterator[tuple[str, nn.Module]]:
         r"""Return an iterator over all meta-modules in the network, yielding both the name of the meta-module as well as the meta-module itself.
 
         Args:

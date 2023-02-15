@@ -13,10 +13,11 @@
 # limitations under the License.
 # ==============================================================================
 
+from __future__ import annotations
+
 import copy
 from collections import OrderedDict
 from types import FunctionType
-from typing import Tuple
 
 import functorch
 import jax
@@ -55,7 +56,7 @@ class FcNet(nn.Module):
         return self.fc(x)
 
 
-def get_model_jax(dtype: np.dtype = np.float32) -> Tuple[FunctionType, OrderedDict]:
+def get_model_jax(dtype: np.dtype = np.float32) -> tuple[FunctionType, OrderedDict]:
     helpers.seed_everything(seed=42)
 
     def func(params, x):
@@ -73,7 +74,7 @@ def get_model_jax(dtype: np.dtype = np.float32) -> Tuple[FunctionType, OrderedDi
 @torch.no_grad()
 def get_model_torch(
     device: torch.types.Device = None, dtype: torch.dtype = torch.float32
-) -> Tuple[nn.Module, data.DataLoader]:
+) -> tuple[nn.Module, data.DataLoader]:
     helpers.seed_everything(seed=42)
 
     model = FcNet(MODEL_NUM_INPUTS, MODEL_NUM_CLASSES).to(dtype=dtype)

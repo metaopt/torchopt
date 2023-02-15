@@ -14,7 +14,7 @@
 # ==============================================================================
 """Functional optimizer wrappers."""
 
-from typing import Optional
+from __future__ import annotations
 
 import torch
 
@@ -53,14 +53,14 @@ class FuncOptimizer:  # pylint: disable=too-few-public-methods
             raise TypeError(f'{impl} (type: {type(impl).__name__}) is not a GradientTransformation')
 
         self.impl: GradientTransformation = impl
-        self.optim_state: Optional[OptState] = UninitializedState()
+        self.optim_state: OptState | None = UninitializedState()
         self.inplace: bool = bool(inplace)
 
     def step(
         self,
         loss: torch.Tensor,
         params: Params,
-        inplace: Optional[bool] = None,
+        inplace: bool | None = None,
     ) -> Params:
         r"""Compute the gradients of loss to the network parameters and update network parameters.
 

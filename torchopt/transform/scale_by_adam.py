@@ -33,7 +33,9 @@
 
 # pylint: disable=invalid-name
 
-from typing import NamedTuple, Optional, Tuple
+from __future__ import annotations
+
+from typing import NamedTuple
 
 import torch
 
@@ -169,9 +171,9 @@ def _scale_by_adam(
         updates: Updates,
         state: OptState,
         *,
-        params: Optional[Params] = None,  # pylint: disable=unused-argument
+        params: Params | None = None,  # pylint: disable=unused-argument
         inplace: bool = True,
-    ) -> Tuple[Updates, OptState]:
+    ) -> tuple[Updates, OptState]:
         mu = update_moment.impl(  # type: ignore[attr-defined]
             updates, state.mu, b1, order=1, inplace=inplace, already_flattened=already_flattened
         )
@@ -285,9 +287,9 @@ def _scale_by_accelerated_adam(
             updates: Updates,
             state: OptState,
             *,
-            params: Optional[Params] = None,  # pylint: disable=unused-argument
+            params: Params | None = None,  # pylint: disable=unused-argument
             inplace: bool = True,
-        ) -> Tuple[Updates, OptState]:
+        ) -> tuple[Updates, OptState]:
             count_inc = inc_count.impl(updates, state.count, already_flattened=True)  # type: ignore[attr-defined]
 
             op = AdamOp(b1=b1, b2=b2, eps=eps, eps_root=eps_root, inplace=inplace)
@@ -303,9 +305,9 @@ def _scale_by_accelerated_adam(
             updates: Updates,
             state: OptState,
             *,
-            params: Optional[Params] = None,  # pylint: disable=unused-argument
+            params: Params | None = None,  # pylint: disable=unused-argument
             inplace: bool = True,
-        ) -> Tuple[Updates, OptState]:
+        ) -> tuple[Updates, OptState]:
             count_inc = inc_count.impl(updates, state.count, already_flattened=False)  # type: ignore[attr-defined]
 
             treespec = pytree.tree_structure(updates, none_is_leaf=True)

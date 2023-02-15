@@ -31,7 +31,7 @@
 # ==============================================================================
 """Preset :class:`GradientTransformation` for the Adam optimizer."""
 
-from typing import Tuple
+from __future__ import annotations
 
 from torchopt.alias.utils import (
     _get_use_chain_flat,
@@ -49,7 +49,7 @@ __all__ = ['adam']
 # pylint: disable-next=too-many-arguments
 def adam(
     lr: ScalarOrSchedule = 1e-3,
-    betas: Tuple[float, float] = (0.9, 0.999),
+    betas: tuple[float, float] = (0.9, 0.999),
     eps: float = 1e-8,
     weight_decay: float = 0.0,
     *,

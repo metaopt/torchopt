@@ -14,8 +14,10 @@
 # ==============================================================================
 """Distributed Autograd."""
 
+from __future__ import annotations
+
 from threading import Lock
-from typing import Optional, overload
+from typing import overload
 
 import torch
 import torch.distributed.autograd as autograd
@@ -43,7 +45,7 @@ if is_available():
         autograd_ctx_id: int,
         tensors: TensorOrTensors,
         retain_graph: bool = False,
-        inputs: Optional[TensorOrTensors] = None,
+        inputs: TensorOrTensors | None = None,
     ) -> None:
         """Perform distributed backward pass for local parameters.
 

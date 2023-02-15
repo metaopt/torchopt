@@ -13,11 +13,13 @@
 # limitations under the License.
 # ==============================================================================
 
+from __future__ import annotations
+
 import copy
 import itertools
 import os
 import random
-from typing import Iterable, Optional, Tuple, Union
+from typing import Iterable
 
 import numpy as np
 import pytest
@@ -137,7 +139,7 @@ def get_model():
 @torch.no_grad()
 def get_models(
     device: torch.types.Device = None, dtype: torch.dtype = torch.float32
-) -> Tuple[nn.Module, nn.Module, nn.Module, data.DataLoader]:
+) -> tuple[nn.Module, nn.Module, nn.Module, data.DataLoader]:
     seed_everything(seed=42)
 
     model_base = get_model().to(dtype=dtype)
@@ -166,12 +168,12 @@ def get_models(
 
 @torch.no_grad()
 def assert_model_all_close(
-    model: Union[nn.Module, Tuple[Iterable[torch.Tensor], Iterable[torch.Tensor]]],
+    model: nn.Module | tuple[Iterable[torch.Tensor], Iterable[torch.Tensor]],
     model_ref: nn.Module,
     model_base: nn.Module,
     dtype: torch.dtype = torch.float32,
-    rtol: Optional[float] = None,
-    atol: Optional[float] = None,
+    rtol: float | None = None,
+    atol: float | None = None,
     equal_nan: bool = False,
 ) -> None:
     if isinstance(model, tuple):
@@ -194,8 +196,8 @@ def assert_all_close(
     actual: torch.Tensor,
     expected: torch.Tensor,
     base: torch.Tensor = None,
-    rtol: Optional[float] = None,
-    atol: Optional[float] = None,
+    rtol: float | None = None,
+    atol: float | None = None,
     equal_nan: bool = False,
 ) -> None:
     if base is not None:
@@ -223,9 +225,9 @@ def assert_all_close(
 def assert_pytree_all_close(
     actual: TensorTree,
     expected: TensorTree,
-    base: Optional[TensorTree] = None,
-    rtol: Optional[float] = None,
-    atol: Optional[float] = None,
+    base: TensorTree | None = None,
+    rtol: float | None = None,
+    atol: float | None = None,
     equal_nan: bool = False,
 ) -> None:
     actual_leaves, actual_treespec = pytree.tree_flatten(actual)

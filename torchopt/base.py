@@ -31,9 +31,11 @@
 # ==============================================================================
 """The base classes for gradient transformation."""
 
+from __future__ import annotations
+
 import itertools
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Callable, NamedTuple, Optional, Tuple
+from typing import TYPE_CHECKING, Callable, NamedTuple
 from typing_extensions import Protocol  # Python 3.8+
 
 
@@ -67,7 +69,7 @@ class TransformInitFn(Protocol):  # pylint: disable=too-few-public-methods
     """
 
     @abstractmethod
-    def __call__(self, params: 'Params') -> 'OptState':
+    def __call__(self, params: Params) -> OptState:
         """Initialize the gradient transformation state.
 
         Args:
@@ -93,12 +95,12 @@ class TransformUpdateFn(Protocol):  # pylint: disable=too-few-public-methods
     @abstractmethod
     def __call__(
         self,
-        updates: 'Updates',
-        state: 'OptState',
+        updates: Updates,
+        state: OptState,
         *,
-        params: Optional['Params'] = None,
+        params: Params | None = None,
         inplace: bool = True,
-    ) -> Tuple['Updates', 'OptState']:
+    ) -> tuple[Updates, OptState]:
         """Transform the updates and state.
 
         Args:
@@ -145,7 +147,7 @@ class GradientTransformation(NamedTuple):
     update: TransformUpdateFn
 
     # pylint: disable-next=redefined-builtin
-    def chain(self, next: 'GradientTransformation') -> 'ChainedGradientTransformation':
+    def chain(self, next: GradientTransformation) -> ChainedGradientTransformation:
         """Chain two gradient transformations together."""
         return ChainedGradientTransformation(self, next)
 
@@ -157,9 +159,9 @@ class ChainedGradientTransformation(GradientTransformation):
     gradient transformations.
     """
 
-    transformations: Tuple[GradientTransformation, ...]
+    transformations: tuple[GradientTransformation, ...]
 
-    def __new__(cls, *transformations: GradientTransformation) -> 'ChainedGradientTransformation':
+    def __new__(cls, *transformations: GradientTransformation) -> ChainedGradientTransformation:
         """Create a new chained gradient transformation."""
         transformations = tuple(
             itertools.chain.from_iterable(
@@ -175,16 +177,16 @@ class ChainedGradientTransformation(GradientTransformation):
 
         init_fns, update_fns = tuple(zip(*transformations))
 
-        def init_fn(params: 'Params') -> 'OptState':
+        def init_fn(params: Params) -> OptState:
             return tuple(fn(params) for fn in init_fns)
 
         def update_fn(
-            updates: 'Updates',
-            state: 'OptState',
+            updates: Updates,
+            state: OptState,
             *,
-            params: Optional['Params'] = None,
+            params: Params | None = None,
             inplace: bool = True,
-        ) -> Tuple['Updates', 'OptState']:
+        ) -> tuple[Updates, OptState]:
             if len(update_fns) != len(state):
                 raise ValueError(
                     'The number of updates and states has to be the same in chain! Make sure you'
@@ -219,15 +221,15 @@ class ChainedGradientTransformation(GradientTransformation):
         """Return the hash of the chained gradient transformation."""
         return hash(self.transformations)
 
-    def __getstate__(self) -> Tuple[GradientTransformation, ...]:
+    def __getstate__(self) -> tuple[GradientTransformation, ...]:
         """Return the state of the chained gradient transformation for serialization."""
         return self.transformations
 
-    def __setstate__(self, state: Tuple[GradientTransformation, ...]) -> None:
+    def __setstate__(self, state: tuple[GradientTransformation, ...]) -> None:
         """Set the state of the chained gradient transformation from serialization."""
         self.transformations = state
 
-    def __reduce__(self) -> Tuple[Callable, Tuple[Tuple[GradientTransformation, ...]]]:
+    def __reduce__(self) -> tuple[Callable, tuple[tuple[GradientTransformation, ...]]]:
         """Serialize the chained gradient transformation."""
         return ChainedGradientTransformation, (self.transformations,)
 
@@ -240,18 +242,18 @@ class IdentityGradientTransformation(GradientTransformation):
         return super().__new__(cls, init=cls.init_fn, update=cls.update_fn)
 
     @staticmethod
-    def init_fn(params: 'Params') -> 'OptState':  # pylint: disable=unused-argument
+    def init_fn(params: Params) -> OptState:  # pylint: disable=unused-argument
         """Return empty state."""
         return EmptyState()
 
     @staticmethod
     def update_fn(
-        updates: 'Updates',
-        state: 'OptState',
+        updates: Updates,
+        state: OptState,
         *,
-        params: Optional['Params'] = None,  # pylint: disable=unused-argument
+        params: Params | None = None,  # pylint: disable=unused-argument
         inplace: bool = True,  # pylint: disable=unused-argument
-    ) -> Tuple['Updates', 'OptState']:
+    ) -> tuple[Updates, OptState]:
         """Return updates unchanged."""
         return updates, state
 
