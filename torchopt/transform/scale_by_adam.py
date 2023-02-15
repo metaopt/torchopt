@@ -90,17 +90,17 @@ def scale_by_adam(
         [Kingma et al, 2014](https://arxiv.org/abs/1412.6980)
 
     Args:
-        b1: (default: :const:`0.9`)
-            Decay rate for the exponentially weighted average of grads.
-        b2: (default: :const:`0.999`)
-            Decay rate for the exponentially weighted average of squared grads.
-        eps: (default: :const:`1e-8`)
-            Term added to the denominator to improve numerical stability.
-        eps_root: (default: :const:`0.0`)
-            Term added to the denominator inside the square-root to improve
+        b1 (float, optional): Decay rate for the exponentially weighted average of grads.
+            (default: :const:`0.9`)
+        b2 (float, optional): Decay rate for the exponentially weighted average of squared grads.
+            (default: :const:`0.999`)
+        eps (float, optional): Term added to the denominator to improve numerical stability.
+            (default: :const:`1e-8`)
+        eps_root (float, optional): Term added to the denominator inside the square-root to improve
             numerical stability when backpropagating gradients through the rescaling.
-        moment_requires_grad: (default: :data:`False`)
-            If :data:`True`, states will be created with flag `requires_grad = True`.
+            (default: :const:`0.0`)
+        moment_requires_grad (bool, optional): If :data:`True`, states will be created with flag
+            ``requires_grad = True``. (default: :data:`False`)
 
     Returns:
         An (init_fn, update_fn) tuple.
@@ -220,17 +220,17 @@ def scale_by_accelerated_adam(
         [Kingma et al, 2014](https://arxiv.org/abs/1412.6980)
 
     Args:
-        b1: (default: :const:`0.9`)
-            Decay rate for the exponentially weighted average of grads.
-        b2: (default: :const:`0.999`)
-            Decay rate for the exponentially weighted average of squared grads.
-        eps: (default: :const:`1e-8`)
-            Term added to the denominator to improve numerical stability.
-        eps_root: (default: :const:`0.0`)
-            Term added to the denominator inside the square-root to improve
+        b1 (float, optional): Decay rate for the exponentially weighted average of grads.
+            (default: :const:`0.9`)
+        b2 (float, optional): Decay rate for the exponentially weighted average of squared grads.
+            (default: :const:`0.999`)
+        eps (float, optional): Term added to the denominator to improve numerical stability.
+            (default: :const:`1e-8`)
+        eps_root (float, optional): Term added to the denominator inside the square-root to improve
             numerical stability when backpropagating gradients through the rescaling.
-        moment_requires_grad: (default: :data:`False`)
-            If :data:`True`, states will be created with flag `requires_grad = True`.
+            (default: :const:`0.0`)
+        moment_requires_grad (bool, optional): If :data:`True`, states will be created with flag
+            ``requires_grad = True``. (default: :data:`False`)
 
     Returns:
         An (init_fn, update_fn) tuple.

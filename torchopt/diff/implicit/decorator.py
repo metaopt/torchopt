@@ -444,18 +444,17 @@ def custom_root(
     **In best practice, the ``optimality_fn`` should have the same signature as ``solver_fn``.**
 
     Args:
-        optimality_fn: (callable)
-            An equation function, ``optimality_fn(params, *args)``. The invariant is
-            ``optimality_fn(solution, *args) == 0`` at the solution / root of ``solution``.
-        argnums: (int or tuple of ints)
-            Specifies arguments to compute gradients with respect to. The ``argnums`` can be an
-            integer or a tuple of integers, which respect to the zero-based indices of the arguments
-            of the ``solver_fn(params, *args)`` function. The argument ``params`` is included
-            for the counting, while it is indexed as ``argnums=0``.
-        has_aux: (default: :data:`False`)
-            Whether the decorated solver function returns auxiliary data.
-        solve: (callable, optional, default: :func:`linear_solve.solve_normal_cg`)
-            a linear solver of the form ``solve(matvec, b)``.
+        optimality_fn (callable): An equation function, ``optimality_fn(params, *args)``. The
+            invariant is ``optimality_fn(solution, *args) == 0`` at the solution / root of
+            ``solution``.
+        argnums (int or tuple of int): Specifies arguments to compute gradients with respect to. The
+            ``argnums`` can be an integer or a tuple of integers, which respect to the zero-based
+            indices of the arguments of the ``solver_fn(params, *args)`` function. The argument
+            ``params`` is included for the counting, while it is indexed as ``argnums=0``.
+        has_aux (bool, optional): Whether the decorated solver function returns auxiliary data.
+            (default: :data:`False`)
+        solve (callable, optional): A linear solver of the form ``solve(matvec, b)``.
+            (default: :func:`linear_solve.solve_normal_cg`)
 
     Returns:
         A solver function decorator, i.e., ``custom_root(optimality_fn)(solver_fn)``.

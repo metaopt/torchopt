@@ -56,9 +56,8 @@ def scale_by_schedule(step_size_fn: Schedule) -> GradientTransformation:
     """Scale updates using a custom schedule for the ``step_size``.
 
     Args:
-        step_size_fn:
-            A function that takes an update count as input and proposes the ``step_size`` to
-            multiply the updates by.
+        step_size_fn (callable): A function that takes an update count as input and proposes the
+            ``step_size`` to multiply the updates by.
 
     Returns:
         An ``(init_fn, update_fn)`` tuple.

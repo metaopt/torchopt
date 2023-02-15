@@ -67,14 +67,12 @@ def trace(
     Both are frequently found in the optimization literature.
 
     Args:
-        momentum: (default: :const:`0.9`)
-            The decay rate for the trace of past updates.
-        dampening: (default: :const:`0.0`)
-            Dampening for momentum.
-        nesterov: (default: :data:`False`)
-            Whether to use Nesterov momentum.
-        moment_requires_grad: (default: :data:`False`)
-            If :data:`True`, states will be created with flag `requires_grad = True`.
+        momentum (float, optional): The decay rate for the trace of past updates.
+            (default: :const:`0.9`)
+        dampening (float, optional): Dampening for momentum. (default: :const:`0.0`)
+        nesterov (bool, optional): Whether to use Nesterov momentum. (default: :data:`False`)
+        moment_requires_grad (bool, optional): If :data:`True`, states will be created with flag
+            ``requires_grad = True``. (default: :data:`False`)
 
     Returns:
         An (init_fn, update_fn) tuple.

@@ -77,11 +77,12 @@ def masked(
     of :data:`True`.
 
     Args:
-        inner: Inner transformation to mask.
-        mask: A tree with same structure as (or a prefix of) the params tree, or a Callable that
-        returns such a tree given the params/updates. The leaves should be booleans, :data:`True`
-        for leaves/subtrees you want to apply the transformation to, and :data:`False` for those
-        you want to skip. The mask must be static for the gradient transformation to be jit-compilable.
+        inner (GradientTransformation): Inner transformation to mask.
+        mask (tree of Tensor, callable, or None, optional): A tree with same structure as (or a
+            prefix of) the params tree, or a function that returns such a tree given the
+            params/updates. The leaves should be booleans, :data:`True` for leaves/subtrees you want
+            to apply the transformation to, and :data:`False` for those you want to skip.
+            (default: :data:`None`)
 
     Returns:
         A :class:`GradientTransformation` wrapping ``inner``.
@@ -152,11 +153,12 @@ def add_decayed_weights(
     """Add parameter scaled by `weight_decay`.
 
     Args:
-        weight_decay: a scalar weight decay rate.
-        mask: a tree with same structure as (or a prefix of) the params tree, or a Callable that
-            returns such a pytree given the params/updates. The leaves should be booleans,
-            :data:`True` for leaves/subtrees you want to apply the transformation to, and
-            :data:`False` for those you want to skip.
+        weight_decay (float, optional): A scalar weight decay rate. (default: :const:`0.0`)
+        mask (tree of Tensor, callable, or None, optional): A tree with same structure as (or a
+            prefix of) the params tree, or a function that returns such a tree given the
+            params/updates. The leaves should be booleans, :data:`True` for leaves/subtrees you want
+            to apply the transformation to, and :data:`False` for those you want to skip.
+            (default: :data:`None`)
 
     Returns:
         An (init_fn, update_fn) tuple.

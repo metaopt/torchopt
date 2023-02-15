@@ -90,7 +90,7 @@ def make_dot(
     and is either blue, orange, or green:
 
         - **Blue**
-            Reachable leaf tensors that requires grad (tensors whose :attr:`grad` fields will be
+            Reachable leaf tensors that requires grad (tensors whose ``grad`` fields will be
             populated during :meth:`backward`).
         - **Orange**
             Saved tensors of custom autograd functions as well as those saved by built-in backward
@@ -101,16 +101,16 @@ def make_dot(
             If any output is a view, we represent its base tensor with a dark green node.
 
     Args:
-        var: Output tensor.
-        params: ([dict of (name, tensor) or state_dict])
-            Parameters to add names to node that requires grad.
-        show_attrs: Whether to display non-tensor attributes of backward nodes
-            (Requires PyTorch version >= 1.9)
-        show_saved: Whether to display saved tensor nodes that are not by custom autograd
-            functions. Saved tensor nodes for custom functions, if present, are always displayed.
-            (Requires PyTorch version >= 1.9)
-        max_attr_chars: If ``show_attrs`` is :data:`True`, sets max number of characters to display
-            for any given attribute.
+        var (Tensor or sequence of Tensor): Output tensor.
+        params: (dict[str, Tensor], ModuleState, iterable of tuple[str, Tensor], or None, optional):
+            Parameters to add names to node that requires grad. (default: :data:`None`)
+        show_attrs (bool, optional): Whether to display non-tensor attributes of backward nodes.
+            (default: :data:`False`)
+        show_saved (bool, optional): Whether to display saved tensor nodes that are not by custom
+            autograd functions. Saved tensor nodes for custom functions, if present, are always
+            displayed. (default: :data:`False`)
+        max_attr_chars (int, optional): If ``show_attrs`` is :data:`True`, sets max number of
+            characters to display for any given attribute. (default: :const:`50`)
     """
     param_map = {}
 

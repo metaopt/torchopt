@@ -143,7 +143,8 @@ def barrier(worker_names: Iterable[str] | None = None) -> None:
     reach this method to wait for all outstanding work to complete.
 
     Args:
-        worker_names: The set of workers to synchronize. If :data:`None`, all workers.
+        worker_names (iterable of str or None, optional): The set of workers to synchronize.
+            If :data:`None`, all workers. (default: :data:`None`)
     """
     worker_names = {} if worker_names is None else set(worker_names)
     rpc.api._barrier(worker_names)  # pylint: disable=protected-access

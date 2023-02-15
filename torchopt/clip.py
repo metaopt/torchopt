@@ -41,10 +41,11 @@ def clip_grad_norm(
 
     Args:
         max_norm (float or int): The maximum absolute value for each element in the update.
-        norm_type (float or int): type of the used p-norm. Can be ``'inf'`` for
-            infinity norm.
-        error_if_nonfinite (bool): if :data:`True`, an error is thrown if the total norm of the
-            gradients from :attr:`updates` is ``nan``, ``inf``, or ``-inf``.
+        norm_type (float or int, optional): Type of the used p-norm. Can be ``'inf'`` for infinity
+            norm. (default: :const:`2.0`)
+        error_if_nonfinite (bool, optional): If :data:`True`, an error is thrown if the total norm
+            of the gradients from ``updates`` is ``nan``, ``inf``, or ``-inf``.
+            (default: :data:`False`)
 
     Returns:
         An ``(init_fn, update_fn)`` tuple.

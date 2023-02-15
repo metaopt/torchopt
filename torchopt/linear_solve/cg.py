@@ -58,10 +58,12 @@ def _solve_cg(
     This assumes that ``A`` is a hermitian, positive definite matrix.
 
     Args:
-        matvec: A function that returns the product between ``A`` and a vector.
-        b: A tree of tensors for the right hand side of the equation.
-        ridge: Optional ridge regularization.
-        init: Optional initialization to be used by conjugate gradient.
+        matvec (callable): A function that returns the product between ``A`` and a vector.
+        b (Tensor or tree of Tensor): A tree of tensors for the right hand side of the equation.
+        ridge (float or None, optional): Optional ridge regularization. If provided, solves the
+            equation for ``A x + ridge x = b``. (default: :data:`None`)
+        init (Tensor, tree of Tensor, or None, optional): Optional initialization to be used by
+            conjugate gradient. If :data:`None`, uses zero initialization. (default: :data:`None`)
         **kwargs: Additional keyword arguments for the conjugate gradient solver.
 
     Returns:
@@ -82,8 +84,10 @@ def solve_cg(**kwargs):
     This assumes that ``A`` is a hermitian, positive definite matrix.
 
     Args:
-        ridge: Optional ridge regularization. Solves the equation for ``(A + ridge * I) @ x = b``.
-        init: Optional initialization to be used by conjugate gradient.
+        ridge (float or None, optional): Optional ridge regularization. If provided, solves the
+            equation for ``A x + ridge x = b``. (default: :data:`None`)
+        init (Tensor, tree of Tensor, or None, optional): Optional initialization to be used by
+            conjugate gradient. If :data:`None`, uses zero initialization. (default: :data:`None`)
         **kwargs: Additional keyword arguments for the conjugate gradient solver
             :func:`torchopt.linalg.cg`.
 

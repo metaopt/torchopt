@@ -39,8 +39,8 @@ class Optimizer:
             params (iterable of torch.Tensor): An iterable of :class:`torch.Tensor`\s. Specifies
                 what tensors should be optimized.
             impl (GradientTransformation): A low level optimizer function, it could be a optimizer
-                function provided by ``alias.py`` or a customized ``chain`` provided by
-                ``combine.py``.
+                function provided in :mod:`torchopt.alias` or a customized :func:`torchopt.chain`\ed
+                transformation.
                 Note that using ``Optimizer(sgd())`` or ``Optimizer(chain(sgd()))`` is equivalent to
                 :class:`torchopt.SGD`.
         """
@@ -62,7 +62,8 @@ class Optimizer:
         The behavior is similar to :meth:`torch.optim.Optimizer.zero_grad`.
 
         Args:
-            set_to_none (bool): Instead of setting to zero, set the ``grads`` to :data:`None`.
+            set_to_none (bool, optional): Instead of setting to zero, set the ``grads`` to
+                :data:`None`. (default: :data:`False`)
         """
         if set_to_none:
 
@@ -90,8 +91,8 @@ class Optimizer:
         """Load the optimizer state.
 
         Args:
-            state_dict: Optimizer state. Should be an object returned from a call to
-                :meth:`state_dict`.
+            state_dict (sequence of tree of Tensor): Optimizer state. Should be an object returned
+                from a call to :meth:`state_dict`.
         """
         self.state_groups[:] = list(state_dict)
 
@@ -101,7 +102,8 @@ class Optimizer:
         The behavior is similar to :meth:`torch.optim.Optimizer.step`.
 
         Args:
-            closure (callable, optional): A closure that reevaluates the model and returns the loss.
+            closure (callable or None, optional): A closure that reevaluates the model and returns
+                the loss. Optional for most optimizers. (default: :data:`None`)
         """
         loss = None
         if closure is not None:
@@ -122,7 +124,7 @@ class Optimizer:
         return loss
 
     def add_param_group(self, params: Params) -> None:
-        """Add a param group to the optimizer's :attr:`param_groups`."""
+        """Add a param group to the optimizer's ``param_groups``."""
         flat_params: TupleOfTensors
         flat_params, params_treespec = pytree.tree_flatten_as_tuple(params)
         self.param_groups.append(flat_params)

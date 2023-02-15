@@ -58,20 +58,18 @@ CopyMode: TypeAlias = Literal['reference', 'copy', 'deepcopy', 'ref', 'clone', '
 def stop_gradient(target: ModuleState | nn.Module | MetaOptimizer | TensorTree) -> None:
     """Stop the gradient for the input object.
 
-    Since a tensor use :attr:`grad_fn` to connect itself with the previous computation graph, the
+    Since a tensor use ``grad_fn`` to connect itself with the previous computation graph, the
     backpropagated gradient will flow over the tensor and continue flow to the tensors that is
-    connected by :attr:`grad_fn`. Some algorithms requires manually detaching tensors from the
+    connected by ``grad_fn``. Some algorithms requires manually detaching tensors from the
     computation graph.
 
     Note that the :func:`stop_gradient` operation is in-place.
 
     Args:
-        target: The target that to be detached from the computation graph, it could be a
-            :class:`nn.Module`, :class:`torchopt.MetaOptimizer`, state of the
-            :class:`torchopt.MetaOptimizer`, or just a plain list of tensors.
-        inplace: If :data:`True`, the target will be detached in-place. if :data:`Frue`, this
-            function will return a detached copy of the target. The in-place operation is fast and
-            memory efficient but may raise backpropagation error.
+        target (ModuleState, nn.Module, MetaOptimizer, or tree of Tensor): The target that to be
+            detached from the computation graph, it could be a :class:`nn.Module`,
+            :class:`torchopt.MetaOptimizer`, state of the :class:`torchopt.MetaOptimizer`, or just
+            a plain list of tensors.
     """
     # pylint: disable-next=import-outside-toplevel
     from torchopt.optim.meta.base import MetaOptimizer
@@ -132,33 +130,38 @@ def extract_state_dict(
 ) -> ModuleState | tuple[OptState, ...]:
     """Extract target state.
 
-    Since a tensor use :attr:`grad_fn` to connect itself with the previous computation graph, the
+    Since a tensor use ``grad_fn`` to connect itself with the previous computation graph, the
     backpropagated gradient will flow over the tensor and continue flow to the tensors that is
-    connected by :attr:`grad_fn`. Some algorithms requires manually detaching tensors from the
+    connected by ``grad_fn``. Some algorithms requires manually detaching tensors from the
     computation graph.
 
     Note that the extracted state is a reference, which means any in-place operator will affect the
     target that the state is extracted from.
 
     Args:
-        target: It could be a :class:`nn.Module` or :class:`torchopt.MetaOptimizer`.
-        by: The extract policy of tensors in the target.
+        target (nn.Module or MetaOptimizer): It could be a :class:`nn.Module` or
+            :class:`torchopt.MetaOptimizer`.
+        by (str, optional): The extract policy of tensors in the target. (default: :const:`'reference'`)
             - :const:`'reference'`: The extracted tensors will be references to the original
             tensors.
             - :const:`'copy'`: The extracted tensors will be clones of the original tensors. This
-            makes the copied tensors have :attr:`grad_fn` to be a ``<CloneBackward>`` function
-            points to the original tensors.
+            makes the copied tensors have ``grad_fn`` to be a ``<CloneBackward>`` function points
+            to the original tensors.
             - :const:`'deepcopy'`: The extracted tensors will be deep-copied from the original
             tensors. The deep-copied tensors will detach from the original computation graph.
-        device: If specified, move the extracted state to the specified device.
-        with_buffers: Extract buffer together with parameters, this argument is only used if the
-            input target is :class:`nn.Module`.
-        detach_buffers: Whether to detach the reference to the buffers, this argument is only used
-            if the input target is :class:`nn.Module` and ``by='reference'``.
-        enable_visual: Add additional annotations, which could be used in computation graph
-            visualization. Currently, this flag only has effect on :class:`nn.Module` but we will
-            support :class:`torchopt.MetaOptimizer` later.
-        visual_prefix: Prefix for the visualization annotations.
+        device (Device or None, optional): If specified, move the extracted state to the specified
+            device. (default: :const:`None`)
+        with_buffers (bool, optional): Extract buffer together with parameters, this argument is
+            only used if the input target is :class:`nn.Module`. (default: :const:`True`)
+        detach_buffers (bool, optional): Whether to detach the reference to the buffers, this
+            argument is only used if the input target is :class:`nn.Module` and ``by='reference'``.
+            (default: :const:`False`)
+        enable_visual (bool, optional): Add additional annotations, which could be used in
+            computation graph visualization. Currently, this flag only has effect on
+            :class:`nn.Module` but we will support :class:`torchopt.MetaOptimizer` later.
+            (default: :const:`False`)
+        visual_prefix (str, optional): Prefix for the visualization annotations.
+            (default: :const:`''`)
 
     Returns:
         State extracted of the input object.
@@ -317,8 +320,8 @@ def recover_state_dict(
     modified.
 
     Args:
-        target: Target that need to recover.
-        state: The recovering state.
+        target (nn.Module or MetaOptimizer): Target that need to recover.
+        state (ModuleState or sequence of tree of Tensor): The recovering state.
     """
     # pylint: disable-next=import-outside-toplevel
     from torchopt.optim.meta.base import MetaOptimizer
@@ -392,18 +395,20 @@ def module_clone(
     """Clone a module.
 
     Args:
-        target: The target to be cloned.
-        by: The extract policy of tensors in the target.
+        target (nn.Module, MetaOptimizer, or tree of Tensor): The target to be cloned.
+        by (str, optional): The extract policy of tensors in the target. (default: :const:`'reference'`)
             - :const:`'reference'`: The extracted tensors will be references to the original
             tensors.
             - :const:`'copy'`: The extracted tensors will be clones of the original tensors. This
-            makes the copied tensors have :attr:`grad_fn` to be a ``<CloneBackward>`` function
-            points to the original tensors.
+            makes the copied tensors have ``grad_fn`` to be a ``<CloneBackward>`` function points
+            to the original tensors.
             - :const:`'deepcopy'`: The extracted tensors will be deep-copied from the original
             tensors. The deep-copied tensors will detach from the original computation graph.
-        detach_buffers: Whether to detach the reference to the buffers, this argument is only used
-            if the input target is :class:`nn.Module` and ``by='reference'``.
-        device: If specified, move the cloned module to the specified device.
+        detach_buffers (bool, optional): Whether to detach the reference to the buffers, this
+            argument is only used if the input target is :class:`nn.Module` and ``by='reference'``.
+            (default: :const:`False`)
+        device (Device or None, optional): If specified, move the cloned module to the specified
+            device. (default: :const:`None`)
 
     Returns:
         The cloned module.
@@ -501,7 +506,8 @@ def module_detach_(
     """Detach a module from the computation graph.
 
     Args:
-        target: The target to be detached.
+        target (ModuleState, nn.Module, MetaOptimizer, or tree of Tensor): The
+            target to be detached.
 
     Returns:
         The detached module.

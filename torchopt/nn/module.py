@@ -194,12 +194,11 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
         The parameter can be accessed as an attribute using given name.
 
         Args:
-            name (string): name of the parameter. The parameter can be accessed
-                from this module using the given name
-            param (torch.Tensor or None): parameter to be added to the module. If
-                ``None``, then operations that run on parameters, such as :attr:`cuda`,
-                are ignored. If ``None``, the parameter is **not** included in the
-                module's :attr:`state_dict`.
+            name (str): The name of the parameter. The parameter can be accessed from this module
+                using the given name.
+            param (Tensor or None): The parameter to be added to the module. If :data:`None`, then
+                operations that run on parameters, such as ``cuda``, are ignored. If :data:`None`,
+                the parameter is **not** included in the module's ``state_dict``.
         """
         if '_parameters' not in self.__dict__:
             raise AttributeError('cannot assign parameter before Module.__init__() call')
@@ -239,12 +238,11 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
         The meta-parameter can be accessed as an attribute using given name.
 
         Args:
-            name (string): name of the parameter. The parameter can be accessed
-                from this module using the given name
-            param (torch.Tensor or None): parameter to be added to the module. If
-                ``None``, then operations that run on parameters, such as :attr:`cuda`,
-                are ignored. If ``None``, the parameter is **not** included in the
-                module's :attr:`state_dict`.
+            name (str): The name of the meta-parameter. The meta-parameter can be accessed from this
+                module using the given name.
+            param (Tensor or None): The meta-parameter to be added to the module. If :data:`None`,
+                then operations that run on meta-parameters, such as ``cuda``, are ignored. If
+                :data:`None`, the meta-parameter is **not** included in the module's ``state_dict``.
         """
         if '_meta_parameters' not in self.__dict__:
             raise AttributeError(
@@ -281,9 +279,9 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
         The module can be accessed as an attribute using the given name.
 
         Args:
-            name (string): name of the child module. The child module can be
-                accessed from this module using the given name
-            module (Module): child module to be added to the module.
+            name (str): The name of the child module. The child module can be accessed from this
+                module using the given name
+            module (nn.Module or None): The child module to be added to the module.
         """
         if not isinstance(module, nn.Module) and module is not None:
             raise TypeError(f'{torch.typename(module)} is not a Module subclass')
@@ -313,9 +311,9 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
         The meta-module can be accessed as an attribute using the given name.
 
         Args:
-            name (string): name of the child meta-module. The child meta-module can be
-                accessed from this module using the given name
-            meta_module (Module): child meta-module to be added to the module.
+            name (str): The name of the child meta-module. The child meta-module can be accessed
+                from this module using the given name
+            meta_module (nn.Module or None): The child meta-module to be added to the module.
         """
         if not isinstance(meta_module, nn.Module) and meta_module is not None:
             raise TypeError(f'{torch.typename(meta_module)} is not a Module subclass')
@@ -340,9 +338,9 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
         This is typically passed to an optimizer.
 
         Args:
-            recurse (bool): if True, then yields parameters of this module and
-                all submodules. Otherwise, yields only meta-parameters that
-                are direct members of this module.
+            recurse (bool, optional): If :data:`True`, then yields parameters of this module and
+                all submodules. Otherwise, yields only meta-parameters that are direct members of
+                this module. (default: :data:`True`)
 
         Yields:
             Parameter: module meta-parameter
@@ -364,10 +362,11 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
         r"""Return an iterator over module meta-parameters, yielding both the name of the meta-parameter as well as the meta-parameter itself.
 
         Args:
-            prefix (str): prefix to prepend to all meta-parameter names.
-            recurse (bool): if True, then yields meta-parameters of this module
-                and all submodules. Otherwise, yields only meta-parameters that
-                are direct members of this module.
+            prefix (str, optional): The prefix to prepend to all meta-parameter names.
+                (default: :const:`''`)
+            recurse (bool, optional): if :data:`True`, then yields meta-parameters of this module
+                and all submodules. Otherwise, yields only meta-parameters that are direct members
+                of this module. (default: :data:`True`)
 
         Yields:
             (string, Parameter): Tuple containing the name and parameter
@@ -437,10 +436,13 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
         r"""Return an iterator over all meta-modules in the network, yielding both the name of the meta-module as well as the meta-module itself.
 
         Args:
-            memo: a memo to store the set of meta-modules already added to the result
-            prefix: a prefix that will be added to the name of the meta-module
-            remove_duplicate: whether to remove the duplicated meta-module instances in the result
-                or not
+            memo (set of nn.Module or None, optional): A memory to store the set of meta-modules
+                already added to the result. If not provided, a new set will be created.
+                (default: :const:`None`)
+            prefix (str, optional): A prefix that will be added to the name of the meta-module.
+                (default: :const:`''`)
+            remove_duplicate (bool, optional): whether to remove the duplicated meta-module
+                instances in the result or not. (default: :const:`True`)
 
         Yields:
             (string, Module): Tuple of name and meta-module

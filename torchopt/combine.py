@@ -49,8 +49,8 @@ def chain(*transformations: GradientTransformation) -> GradientTransformation:
     :func:`update_fn` which chains the update transformations feeding the appropriate state to each.
 
     Args:
-        *transformations:
-            A sequence of chainable ``(init_fn, update_fn)`` tuples.
+        *transformations (iterable of GradientTransformation): A sequence of chainable
+            ``(init_fn, update_fn)`` tuples.
 
     Returns:
         A single ``(init_fn, update_fn)`` tuple.
@@ -66,8 +66,8 @@ def chain_flat(*transformations: GradientTransformation) -> GradientTransformati
     """Wrap around the inner transformations that manipulate the flattened tree structure (:class:``list``).
 
     Args:
-        *transformations:
-            A sequence of chainable ``(init_fn, update_fn)`` tuples.
+        *transformations (iterable of GradientTransformation): A sequence of chainable
+            ``(init_fn, update_fn)`` tuples.
 
     Returns:
         A single ``(init_fn, update_fn)`` tuple.

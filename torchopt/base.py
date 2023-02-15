@@ -73,8 +73,7 @@ class TransformInitFn(Protocol):  # pylint: disable=too-few-public-methods
         """Initialize the gradient transformation state.
 
         Args:
-            params:
-                The initial value of the parameters.
+            params (tree of Tensor): The initial value of the parameters.
 
         Returns:
             The initial state of the gradient transformation.
@@ -104,12 +103,12 @@ class TransformUpdateFn(Protocol):  # pylint: disable=too-few-public-methods
         """Transform the updates and state.
 
         Args:
-            updates: A tree of candidate updates.
-            state: The state of the gradient transformation.
-            params: (optional)
-                The current value of the parameters.
-            inplace: (optional)
-                If :data:`True`, modify updates and state using inplace operations.
+            updates (tree of Tensor): A tree of candidate updates.
+            state (tree of Tensor): The state of the gradient transformation.
+            params (tree of Tensor or None, optional): The current value of the parameters.
+                (default: :data:`None`)
+            inplace (bool, optional): If :data:`True`, modify updates and state using inplace
+                operations. (default: :data:`True`)
 
         Returns:
             The transformed ``updates``, and the updated ``state``.
@@ -136,9 +135,9 @@ class GradientTransformation(NamedTuple):
             optimizer state.
         update:
             A pure function which takes as input a pytree of updates (with the same tree structure
-            as the original params ``pytree`` passed to :attr:`init`), the previous optimizer state
-            (which may have been initialized using the :attr:`init` function), and optionally the
-            ``inplace`` flag. The :attr:`update` function then returns the computed gradient
+            as the original params ``pytree`` passed to ``init``), the previous optimizer state
+            (which may have been initialized using the ``init`` function), and optionally the
+            ``inplace`` flag. The ``update`` function then returns the computed gradient
             updates, and a updates optimizer state. If the ``inplace`` flag is :data:`True`, the
             output results are the same instance as the input.
     """

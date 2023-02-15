@@ -49,7 +49,7 @@ def scale(step_size: float) -> GradientTransformation:
     """Scale updates by some fixed scalar ``step_size``.
 
     Args:
-        step_size: A scalar corresponding to a fixed scaling factor for updates.
+        step_size (float): A scalar corresponding to a fixed scaling factor for updates.
 
     Returns:
         An ``(init_fn, update_fn)`` tuple.

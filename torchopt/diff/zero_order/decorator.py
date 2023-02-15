@@ -358,19 +358,19 @@ def zero_order(
     """Return a decorator for applying zero-order differentiation.
 
     Args:
-        distribution: (function or Samplable)
-            A samplable object that has method ``samplable.sample(sample_shape)`` or a function that
-            takes the shape as input and returns a shaped batch of samples. This is used to sample
-            perturbations from the given distribution. The distribution should be sphere symmetric.
-        method: (str)
-            The algorithm to use. The currently supported algorithms are :const:`'naive'`,
-            :const:`'forward'`, and :const:`'antithetic'`. Defaults to :const:`'naive'`.
-        argnums: (int or tuple of int, default: :const:`0`)
-            Specifies arguments to compute gradients with respect to.
-        num_samples: (int, default :const:`1`)
-            The number of sample to get the averaged estimated gradient.
-        sigma: (Numeric)
-            The standard deviation of the perturbation. Defaults to :const:`1.0`.
+        distribution (callable or Samplable): A samplable object that has method
+            ``samplable.sample(sample_shape)`` or a function that takes the shape as input and
+            returns a shaped batch of samples. This is used to sample perturbations from the given
+            distribution. The distribution should be sphere symmetric.
+        method (str, optional): The algorithm to use. The currently supported algorithms are
+            :const:`'naive'`, :const:`'forward'`, and :const:`'antithetic'`.
+            (default: :const:`'naive'`)
+        argnums (int or tuple of int, optional): Specifies arguments to compute gradients with
+            respect to. (default: :const:`0`)
+        num_samples (int, optional): The number of sample to get the averaged estimated gradient.
+            (default: :const:`1`)
+        sigma (float or Tensor, optional): The standard deviation of the perturbation.
+            (default: :const:`1.0`)
 
     Returns:
         A function decorator that enables zero-order gradient estimation.

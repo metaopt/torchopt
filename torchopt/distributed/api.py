@@ -75,8 +75,8 @@ class TensorDimensionPartitioner:
     while the non-tensor values will be broadcasted to partitions.
 
     Args:
-        dim: The dimension to partition.
-        exclusive: Whether to partition the batch exclusively.
+        dim (int): The dimension to partition.
+        exclusive (bool, optional): Whether to partition the batch exclusively. (default: :data:`False`)
             If :data:`True`, the batch will be partitioned into ``batch_size`` partitions, where
             ``batch_size`` is the size of the batch along the given dimension. Each batch sample
             will be assigned to a separate RPC call.
@@ -84,11 +84,12 @@ class TensorDimensionPartitioner:
             partitions, where ``num_workers`` is the number of workers in the world. When
             ``batch_size > num_workers``, there can be multiple batch samples forward in a single
             RPC call.
-        keepdim: Whether to keep the partitioned dimension. Defaults to :data:`True`, i.e., keep the
-            batch dimension. If :data:`False`, use select instead of slicing. This functionality
-            should be used with ``exclusive=True``.
-        workers: The workers to partition the batch to. If :data:`None`, the batch will be
-            partitioned to all workers in the world.
+        keepdim (bool, optional): Whether to keep the partitioned dimension. (default: :data:`True`)
+            If :data:`True`, keep the batch dimension. If :data:`False`, use select instead of
+            slicing. This functionality should be used with ``exclusive=True``.
+        workers (sequence of int or str, or None, optional): The workers to partition the batch to.
+            If :data:`None`, the batch will be partitioned to all workers in the world.
+            (default: :data:`None`)
     """
 
     def __init__(
@@ -221,8 +222,8 @@ def dim_partitioner(
     while the non-tensor values will be broadcasted to partitions.
 
     Args:
-        dim: The dimension to partition.
-        exclusive: Whether to partition the batch exclusively.
+        dim (int, optional): The dimension to partition. (default: :const:`0`)
+        exclusive (bool, optional): Whether to partition the batch exclusively. (default: :data:`False`)
             If :data:`True`, the batch will be partitioned into ``batch_size`` partitions, where
             ``batch_size`` is the size of the batch along the given dimension. Each batch sample
             will be assigned to a separate RPC call.
@@ -230,11 +231,12 @@ def dim_partitioner(
             partitions, where ``num_workers`` is the number of workers in the world. When
             ``batch_size > num_workers``, there can be multiple batch samples forward in a single
             RPC call.
-        keepdim: Whether to keep the partitioned dimension. Defaults to :data:`True`, i.e., keep the
-            batch dimension. If :data:`False`, use select instead of slicing. This functionality
-            should be used with ``exclusive=True``.
-        workers: The workers to partition the batch to. If :data:`None`, the batch will be
-            partitioned to all workers in the world.
+        keepdim (bool, optional): Whether to keep the partitioned dimension. (default: :data:`False`)
+            If :data:`True`, keep the batch dimension. If :data:`False`, use select instead of
+            slicing. This functionality should be used with ``exclusive=True``.
+        workers (sequence of int or str, or None, optional): The workers to partition the batch to.
+            If :data:`None`, the batch will be partitioned to all workers in the world.
+            (default: :data:`None`)
 
     Returns:
         A partition function.
@@ -284,17 +286,17 @@ def remote_async_call(
     """Asynchronously do an RPC on remote workers and return the a :class:`torch.Future` instance at the current worker.
 
     Args:
-        func (Callable[..., T]): The function to call.
-        args (Optional[Args], optional): The arguments to pass to the function. Defaults to
-            :data:`None`.
-        kwargs (Optional[KwArgs], optional): The keyword arguments to pass to the function. Defaults
-            to :data:`None`.
-        partitioner (Partitioner, optional): A partitioner that partitions the arguments to multiple
-            workers. Defaults to :func:`batch_partitioner`.
-        reducer (Callable[[Iterable[T]], U], optional): A reducer that reduces the results from
-            multiple workers. Defaults to :data:`None`.
-        timeout (float, optional): The timeout for the RPC call. Defaults to
-            :data:`rpc.api.UNSET_RPC_TIMEOUT`.
+        func (callable): The function to call.
+        args (tuple of object or None, optional): The arguments to pass to the function.
+            (default: :data:`None`)
+        kwargs (dict[str, object] or None, optional): The keyword arguments to pass to the function.
+            (default: :data:`None`)
+        partitioner (int, str, or callable, optional): A partitioner that partitions the arguments
+            to multiple workers. (default: :func:`batch_partitioner`)
+        reducer (callable or None, optional): A reducer that reduces the results from multiple
+            workers. If :data:`None`, do not reduce the results. (default: :data:`None`)
+        timeout (float, optional): The timeout for the RPC call.
+            (default: :data:`rpc.api.UNSET_RPC_TIMEOUT`)
 
     Returns:
         A :class:`torch.Future` instance for the result. The result is at the current worker.
@@ -341,17 +343,17 @@ def remote_sync_call(
     """Do an RPC synchronously on remote workers and return the result to the current worker.
 
     Args:
-        func (Callable[..., T]): The function to call.
-        args (Optional[Args], optional): The arguments to pass to the function. Defaults to
-            :data:`None`.
-        kwargs (Optional[KwArgs], optional): The keyword arguments to pass to the function. Defaults
-            to :data:`None`.
-        partitioner (Partitioner, optional): A partitioner that partitions the arguments to multiple
-            workers. Defaults to :func:`batch_partitioner`.
-        reducer (Callable[[Iterable[T]], U], optional): A reducer that reduces the results from
-            multiple workers. Defaults to :data:`None`.
-        timeout (float, optional): The timeout for the RPC call. Defaults to
-            :data:`rpc.api.UNSET_RPC_TIMEOUT`.
+        func (callable): The function to call.
+        args (tuple of object or None, optional): The arguments to pass to the function.
+            (default: :data:`None`)
+        kwargs (dict[str, object] or None, optional): The keyword arguments to pass to the function.
+            (default: :data:`None`)
+        partitioner (int, str, or callable, optional): A partitioner that partitions the arguments
+            to multiple workers. (default: :func:`batch_partitioner`)
+        reducer (callable or None, optional): A reducer that reduces the results from multiple
+            workers. If :data:`None`, do not reduce the results. (default: :data:`None`)
+        timeout (float, optional): The timeout for the RPC call.
+            (default: :data:`rpc.api.UNSET_RPC_TIMEOUT`)
 
     Returns:
         The result of the RPC call. The result is at the current worker.
@@ -378,13 +380,12 @@ def parallelize_async(
     return a :class:`torch.Future` instance of the result.
 
     Args:
-        partitioner (Partitioner, optional): A partitioner that partitions the arguments to multiple
-            workers. Defaults to :func:`batch_partitioner`.
-        reducer (Callable[[Iterable[T]], U], optional): A reducer that reduces the results from
-            multiple workers. Defaults to :func:`mean_reducer` if the ``partitioner`` is not
-            specified, i.e., :func:`batch_partitioner`. Otherwise, it defaults to :data:`None`.
-        timeout (float, optional): The timeout for the RPC call. Defaults to
-            :data:`rpc.api.UNSET_RPC_TIMEOUT`.
+        partitioner (int, str, or callable, optional): A partitioner that partitions the arguments
+            to multiple workers. (default: :func:`batch_partitioner`)
+        reducer (callable or None, optional): A reducer that reduces the results from multiple
+            workers. If :data:`None`, do not reduce the results. (default: :data:`None`)
+        timeout (float, optional): The timeout for the RPC call.
+            (default: :data:`rpc.api.UNSET_RPC_TIMEOUT`)
 
     Returns:
         The decorator function.
@@ -434,13 +435,12 @@ def parallelize(
     This decorator can be used to parallelize a function call across multiple workers.
 
     Args:
-        partitioner (Partitioner, optional): A partitioner that partitions the arguments to multiple
-            workers. Defaults to :func:`batch_partitioner`.
-        reducer (Callable[[Iterable[T]], U], optional): A reducer that reduces the results from
-            multiple workers. Defaults to :func:`mean_reducer` if the ``partitioner`` is not
-            specified, i.e., :func:`batch_partitioner`. Otherwise, it defaults to :data:`None`.
-        timeout (float, optional): The timeout for the RPC call. Defaults to
-            :data:`rpc.api.UNSET_RPC_TIMEOUT`.
+        partitioner (int, str, or callable, optional): A partitioner that partitions the arguments
+            to multiple workers. (default: :func:`batch_partitioner`)
+        reducer (callable or None, optional): A reducer that reduces the results from multiple
+            workers. If :data:`None`, do not reduce the results. (default: :data:`None`)
+        timeout (float, optional): The timeout for the RPC call.
+            (default: :data:`rpc.api.UNSET_RPC_TIMEOUT`)
 
     Returns:
         The decorator function.

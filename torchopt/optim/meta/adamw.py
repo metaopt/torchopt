@@ -16,13 +16,13 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable
+from typing import Callable
 
 import torch.nn as nn
 
 from torchopt import alias
 from torchopt.optim.meta.base import MetaOptimizer
-from torchopt.typing import Params, ScalarOrSchedule
+from torchopt.typing import OptState, Params, ScalarOrSchedule
 
 
 __all__ = ['MetaAdamW']
@@ -46,7 +46,7 @@ class MetaAdamW(MetaOptimizer):
         weight_decay: float = 1e-2,
         *,
         eps_root: float = 0.0,
-        mask: Any | Callable[[Params], Any] | None = None,
+        mask: OptState | Callable[[Params], OptState] | None = None,
         moment_requires_grad: bool = False,
         maximize: bool = False,
         use_accelerated_op: bool = False,
@@ -54,37 +54,35 @@ class MetaAdamW(MetaOptimizer):
         """Initialize the meta-AdamW optimizer.
 
         Args:
-            module: (nn.Module)
-                A network whose parameters should be optimized.
-            lr: (default: :const:`1e-3`)
-                This is a fixed global scaling factor.
-            betas: (default: :const:`(0.9, 0.999)`)
-                Coefficients used for computing running averages of gradient and its square.
-            eps: (default: :const:`1e-8`)
-                A small constant applied to denominator outside of the square root (as in the Adam
-                paper) to avoid dividing by zero when rescaling.
-            weight_decay: (default: :const:`1e-2`)
-                Strength of the weight decay regularization. Note that this weight decay is
-                multiplied with the learning rate. This is consistent with other frameworks such as
-                PyTorch, but different from (Loshchilov et al, 2019) where the weight decay is only
-                multiplied with the "schedule multiplier", but not the base learning rate.
-            eps_root: (default: :data:`0.0`)
-                A small constant applied to denominator inside the square root (as in RMSProp), to
-                avoid dividing by zero when rescaling. This is needed for example when computing
-                (meta-)gradients through Adam.
-            mask: (default: :data:`None`)
-                A tree with same structure as (or a prefix of) the params PyTree, or a Callable that
+            module (nn.Module): A network whose parameters should be optimized.
+            lr (float or callable, optional): This is a fixed global scaling factor or a learning
+                rate scheduler. (default: :const:`1e-3`)
+            betas (tuple of float, optional): Coefficients used for computing running averages of
+                gradient and its square. (default: :const:`(0.9, 0.999)`)
+            eps (float, optional): A small constant applied to denominator outside of the square
+                root (as in the Adam paper) to avoid dividing by zero when rescaling.
+                (default: :const:`1e-8`)
+            weight_decay (float, optional): Strength of the weight decay regularization. Note that
+                this weight decay is multiplied with the learning rate. This is consistent with
+                other frameworks such as PyTorch, but different from (Loshchilov et al, 2019) where
+                the weight decay is only multiplied with the "schedule multiplier", but not the base
+                learning rate. (default: :const:`1e-2`)
+            eps_root (float, optional): A small constant applied to denominator inside the square
+                root (as in RMSProp), to avoid dividing by zero when rescaling. This is needed for
+                example when computing (meta-)gradients through Adam. (default: :const:`0.0`)
+            mask (tree of Tensor, callable, or None, optional):
+                A tree with same structure as (or a prefix of) the params pytree, or a function that
                 returns such a pytree given the params/updates. The leaves should be booleans,
                 :data:`True` for leaves/subtrees you want to apply the weight decay to, and
                 :data:`False` for those you want to skip. Note that the Adam gradient
-                transformations are applied to all parameters.
-            moment_requires_grad: (default: :data:`False`)
-                If :data:`True` the momentums will be created with flag ``requires_grad=True``, this
-                flag is often used in Meta-Learning algorithms.
-            maximize: (default: :data:`False`)
-                Maximize the params based on the objective, instead of minimizing.
-            use_accelerated_op: (default: :data:`False`)
-                If :data:`True` use our implemented fused operator.
+                transformations are applied to all parameters. (default: :data:`None`)
+            moment_requires_grad (bool, optional): If :data:`True` the momentums will be created
+                with flag ``requires_grad=True``, this flag is often used in Meta-Learning
+                algorithms. (default: :data:`False`)
+            maximize (bool, optional): Maximize the params based on the objective, instead of
+                minimizing. (default: :data:`False`)
+            use_accelerated_op (bool, optional): If :data:`True` use our implemented fused operator.
+                (default: :data:`False`)
         """
         super().__init__(
             module,

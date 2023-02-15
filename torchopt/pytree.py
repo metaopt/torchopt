@@ -57,11 +57,12 @@ def tree_flatten_as_tuple(
     """Flatten a pytree to a tuple of leaves and a PyTreeSpec.
 
     Args:
-        tree: The pytree to flatten.
-        is_leaf: A function that returns :data:`True` if a given node is a leaf.
-        none_is_leaf: If :data:`True`, None is considered a leaf rather than a internal node with no
-            children.
-        namespace: The namespace of custom tree node types.
+        tree (pytree): The pytree to flatten.
+        is_leaf (callable or None, optional): An optionally specified function that returns
+            :data:`True` if a given node is a leaf. (default: :data:`None`)
+        none_is_leaf (bool, optional): If :data:`True`, :data:`None` is considered a leaf rather
+            than a internal node with no children. (default: :data:`False`)
+        namespace (str, optional): The namespace of custom tree node types. (default: :const:`''`)
 
     Returns:
         A tuple of (leaves, treespec).
