@@ -33,7 +33,9 @@
 
 # pylint: disable=invalid-name
 
-from typing import NamedTuple, Optional, Tuple
+from __future__ import annotations
+
+from typing import NamedTuple
 
 import torch
 
@@ -88,17 +90,17 @@ def scale_by_adam(
         [Kingma et al, 2014](https://arxiv.org/abs/1412.6980)
 
     Args:
-        b1: (default: :const:`0.9`)
-            Decay rate for the exponentially weighted average of grads.
-        b2: (default: :const:`0.999`)
-            Decay rate for the exponentially weighted average of squared grads.
-        eps: (default: :const:`1e-8`)
-            Term added to the denominator to improve numerical stability.
-        eps_root: (default: :const:`0.0`)
-            Term added to the denominator inside the square-root to improve
+        b1 (float, optional): Decay rate for the exponentially weighted average of grads.
+            (default: :const:`0.9`)
+        b2 (float, optional): Decay rate for the exponentially weighted average of squared grads.
+            (default: :const:`0.999`)
+        eps (float, optional): Term added to the denominator to improve numerical stability.
+            (default: :const:`1e-8`)
+        eps_root (float, optional): Term added to the denominator inside the square-root to improve
             numerical stability when backpropagating gradients through the rescaling.
-        moment_requires_grad: (default: :data:`False`)
-            If :data:`True`, states will be created with flag `requires_grad = True`.
+            (default: :const:`0.0`)
+        moment_requires_grad (bool, optional): If :data:`True`, states will be created with flag
+            ``requires_grad = True``. (default: :data:`False`)
 
     Returns:
         An (init_fn, update_fn) tuple.
@@ -169,9 +171,9 @@ def _scale_by_adam(
         updates: Updates,
         state: OptState,
         *,
-        params: Optional[Params] = None,  # pylint: disable=unused-argument
+        params: Params | None = None,  # pylint: disable=unused-argument
         inplace: bool = True,
-    ) -> Tuple[Updates, OptState]:
+    ) -> tuple[Updates, OptState]:
         mu = update_moment.impl(  # type: ignore[attr-defined]
             updates, state.mu, b1, order=1, inplace=inplace, already_flattened=already_flattened
         )
@@ -218,17 +220,17 @@ def scale_by_accelerated_adam(
         [Kingma et al, 2014](https://arxiv.org/abs/1412.6980)
 
     Args:
-        b1: (default: :const:`0.9`)
-            Decay rate for the exponentially weighted average of grads.
-        b2: (default: :const:`0.999`)
-            Decay rate for the exponentially weighted average of squared grads.
-        eps: (default: :const:`1e-8`)
-            Term added to the denominator to improve numerical stability.
-        eps_root: (default: :const:`0.0`)
-            Term added to the denominator inside the square-root to improve
+        b1 (float, optional): Decay rate for the exponentially weighted average of grads.
+            (default: :const:`0.9`)
+        b2 (float, optional): Decay rate for the exponentially weighted average of squared grads.
+            (default: :const:`0.999`)
+        eps (float, optional): Term added to the denominator to improve numerical stability.
+            (default: :const:`1e-8`)
+        eps_root (float, optional): Term added to the denominator inside the square-root to improve
             numerical stability when backpropagating gradients through the rescaling.
-        moment_requires_grad: (default: :data:`False`)
-            If :data:`True`, states will be created with flag `requires_grad = True`.
+            (default: :const:`0.0`)
+        moment_requires_grad (bool, optional): If :data:`True`, states will be created with flag
+            ``requires_grad = True``. (default: :data:`False`)
 
     Returns:
         An (init_fn, update_fn) tuple.
@@ -285,9 +287,9 @@ def _scale_by_accelerated_adam(
             updates: Updates,
             state: OptState,
             *,
-            params: Optional[Params] = None,  # pylint: disable=unused-argument
+            params: Params | None = None,  # pylint: disable=unused-argument
             inplace: bool = True,
-        ) -> Tuple[Updates, OptState]:
+        ) -> tuple[Updates, OptState]:
             count_inc = inc_count.impl(updates, state.count, already_flattened=True)  # type: ignore[attr-defined]
 
             op = AdamOp(b1=b1, b2=b2, eps=eps, eps_root=eps_root, inplace=inplace)
@@ -303,9 +305,9 @@ def _scale_by_accelerated_adam(
             updates: Updates,
             state: OptState,
             *,
-            params: Optional[Params] = None,  # pylint: disable=unused-argument
+            params: Params | None = None,  # pylint: disable=unused-argument
             inplace: bool = True,
-        ) -> Tuple[Updates, OptState]:
+        ) -> tuple[Updates, OptState]:
             count_inc = inc_count.impl(updates, state.count, already_flattened=False)  # type: ignore[attr-defined]
 
             treespec = pytree.tree_structure(updates, none_is_leaf=True)

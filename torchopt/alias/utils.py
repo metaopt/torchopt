@@ -13,8 +13,9 @@
 # limitations under the License.
 r"""Utilities for the aliases of preset :class:`GradientTransformation`\s for optimizers."""
 
+from __future__ import annotations
+
 import threading
-from typing import Optional, Tuple
 
 from torchopt import pytree
 from torchopt.base import EmptyState, GradientTransformation, identity
@@ -93,9 +94,9 @@ def _flip_sign_and_add_weight_decay(
             updates: Updates,
             state: OptState,
             *,
-            params: Optional[Params] = None,
+            params: Params | None = None,
             inplace: bool = True,
-        ) -> Tuple[Updates, OptState]:
+        ) -> tuple[Updates, OptState]:
             assert params is not None, (
                 'Parameters are required for weight decay. '
                 'Call `update(updates, state, params=params)` instead.'
@@ -126,9 +127,9 @@ def _flip_sign_and_add_weight_decay(
                 updates: Updates,
                 state: OptState,
                 *,
-                params: Optional[Params] = None,  # pylint: disable=unused-argument
+                params: Params | None = None,  # pylint: disable=unused-argument
                 inplace: bool = True,
-            ) -> Tuple[Updates, OptState]:
+            ) -> tuple[Updates, OptState]:
                 if inplace:
 
                     def f(g):
@@ -151,9 +152,9 @@ def _flip_sign_and_add_weight_decay(
                 updates: Updates,
                 state: OptState,
                 *,
-                params: Optional[Params] = None,
+                params: Params | None = None,
                 inplace: bool = True,
-            ) -> Tuple[Updates, OptState]:
+            ) -> tuple[Updates, OptState]:
                 assert params is not None, (
                     'Parameters are required for weight decay. '
                     'Call `update(updates, state, params=params)` instead.'

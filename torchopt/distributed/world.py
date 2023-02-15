@@ -14,10 +14,12 @@
 # ==============================================================================
 """Utilities for gathering information about the world."""
 
+from __future__ import annotations
+
 import atexit
 import functools
 import os
-from typing import Any, Callable, Iterable, NamedTuple, Optional, TypeVar, Union
+from typing import Any, Callable, Iterable, NamedTuple, TypeVar
 
 import torch.distributed.rpc as rpc
 from torch.distributed.elastic.multiprocessing.errors import record
@@ -127,32 +129,33 @@ get_world_info()
 
 
 # pylint: disable-next=redefined-builtin,invalid-name
-def get_worker_id(id: Optional[Union[str, int]] = None) -> int:
+def get_worker_id(id: str | int | None = None) -> int:
     """Get the worker id from the given id."""
     if isinstance(id, int):
         return id
     return rpc.get_worker_info(worker_name=id).id
 
 
-def barrier(worker_names: Optional[Iterable[str]] = None) -> None:
+def barrier(worker_names: Iterable[str] | None = None) -> None:
     r"""Synchronize local and remote RPC processes.
 
     This will block until all local and remote RPC processes specified under worker_names
     reach this method to wait for all outstanding work to complete.
 
     Args:
-        worker_names: The set of workers to synchronize. If :data:`None`, all workers.
+        worker_names (iterable of str or None, optional): The set of workers to synchronize.
+            If :data:`None`, all workers. (default: :data:`None`)
     """
     worker_names = {} if worker_names is None else set(worker_names)
     rpc.api._barrier(worker_names)  # pylint: disable=protected-access
 
 
 def auto_init_rpc(
-    worker_init_fn: Optional[Callable[[], None]] = None,
+    worker_init_fn: Callable[[], None] | None = None,
     worker_name_format: Callable[..., str] = default_worker_name_format,
     *,
-    backend: Optional['rpc.BackendType'] = None,
-    rpc_backend_options: Optional['rpc.RpcBackendOptions'] = None,
+    backend: rpc.BackendType | None = None,
+    rpc_backend_options: rpc.RpcBackendOptions | None = None,
 ) -> Callable[[F], F]:
     """Return a decorator to automatically initialize RPC on the decorated function."""
     global _WORKER_NAME_FORMAT  # pylint: disable=global-statement

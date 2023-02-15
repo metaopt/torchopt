@@ -14,7 +14,7 @@
 # ==============================================================================
 """Preset transformations that replaces updates with non-finite values to the given numbers."""
 
-from typing import Optional, Tuple
+from __future__ import annotations
 
 from torchopt import pytree
 from torchopt.base import EmptyState, GradientTransformation
@@ -23,8 +23,8 @@ from torchopt.typing import OptState, Params, Updates
 
 def nan_to_num(
     nan: float = 0.0,
-    posinf: Optional[float] = None,
-    neginf: Optional[float] = None,
+    posinf: float | None = None,
+    neginf: float | None = None,
 ) -> GradientTransformation:
     """Replace updates with values ``nan`` / ``+inf`` / ``-inf`` to the given numbers.
 
@@ -39,9 +39,9 @@ def nan_to_num(
         updates: Updates,
         state: OptState,
         *,
-        params: Optional[Params] = None,  # pylint: disable=unused-argument
+        params: Params | None = None,  # pylint: disable=unused-argument
         inplace: bool = True,
-    ) -> Tuple[Updates, OptState]:
+    ) -> tuple[Updates, OptState]:
         if inplace:
 
             def f(g):

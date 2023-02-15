@@ -31,7 +31,7 @@
 # ==============================================================================
 """Utilities to define a chained transformation."""
 
-from typing import Optional, Tuple
+from __future__ import annotations
 
 from torchopt import pytree
 from torchopt.base import ChainedGradientTransformation, GradientTransformation, identity
@@ -49,8 +49,8 @@ def chain(*transformations: GradientTransformation) -> GradientTransformation:
     :func:`update_fn` which chains the update transformations feeding the appropriate state to each.
 
     Args:
-        *transformations:
-            A sequence of chainable ``(init_fn, update_fn)`` tuples.
+        *transformations (iterable of GradientTransformation): A sequence of chainable
+            ``(init_fn, update_fn)`` tuples.
 
     Returns:
         A single ``(init_fn, update_fn)`` tuple.
@@ -66,8 +66,8 @@ def chain_flat(*transformations: GradientTransformation) -> GradientTransformati
     """Wrap around the inner transformations that manipulate the flattened tree structure (:class:``list``).
 
     Args:
-        *transformations:
-            A sequence of chainable ``(init_fn, update_fn)`` tuples.
+        *transformations (iterable of GradientTransformation): A sequence of chainable
+            ``(init_fn, update_fn)`` tuples.
 
     Returns:
         A single ``(init_fn, update_fn)`` tuple.
@@ -86,9 +86,9 @@ def chain_flat(*transformations: GradientTransformation) -> GradientTransformati
         updates: Updates,
         state: OptState,
         *,
-        params: Optional[Params] = None,
+        params: Params | None = None,
         inplace: bool = True,
-    ) -> Tuple[Updates, OptState]:
+    ) -> tuple[Updates, OptState]:
         flat_updates, treespec = pytree.tree_flatten(updates, none_is_leaf=True)
         if params is not None:
             flat_params = pytree.tree_leaves(params, none_is_leaf=True)

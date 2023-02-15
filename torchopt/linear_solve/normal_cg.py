@@ -33,8 +33,10 @@
 
 # pylint: disable=invalid-name
 
+from __future__ import annotations
+
 import functools
-from typing import Callable, Optional
+from typing import Callable
 
 from torchopt import linalg
 from torchopt.linear_solve.utils import make_normal_matvec, make_ridge_matvec, make_rmatvec
@@ -47,8 +49,8 @@ __all__ = ['solve_normal_cg']
 def _solve_normal_cg(
     matvec: Callable[[TensorTree], TensorTree],  # (x) -> A @ x
     b: TensorTree,
-    ridge: Optional[float] = None,
-    init: Optional[TensorTree] = None,
+    ridge: float | None = None,
+    init: TensorTree | None = None,
     **kwargs,
 ) -> TensorTree:
     """Solve the normal equation ``A^T A x = A^T b`` using conjugate gradient.
@@ -57,10 +59,12 @@ def _solve_normal_cg(
     positive definite.
 
     Args:
-        matvec: A function that returns the product between ``A`` and a vector.
-        b: A tree of tensors for the right hand side of the equation.
-        ridge: Optional ridge regularization. Solves the equation for ``(A.T @ A + ridge * I) @ x = A.T @ b``.
-        init: Optional initialization to be used by normal conjugate gradient.
+        matvec (callable): A function that returns the product between ``A`` and a vector.
+        b (Tensor or tree of Tensor): A tree of tensors for the right hand side of the equation.
+        ridge (float or None, optional): Optional ridge regularization. If provided, solves the
+            equation for ``A^T A x + ridge x = A^T b``. (default: :data:`None`)
+        init (Tensor, tree of Tensor, or None, optional): Optional initialization to be used by
+            conjugate gradient. If :data:`None`, uses zero initialization. (default: :data:`None`)
         **kwargs: Additional keyword arguments for the conjugate gradient solver
             :func:`torchopt.linalg.cg`.
 
@@ -93,8 +97,10 @@ def solve_normal_cg(**kwargs):
     positive definite.
 
     Args:
-        ridge: Optional ridge regularization. Solves the equation for ``(A.T @ A + ridge * I) @ x = A.T @ b``.
-        init: Optional initialization to be used by normal conjugate gradient.
+        ridge (float or None, optional): Optional ridge regularization. If provided, solves the
+            equation for ``A^T A x + ridge x = A^T b``. (default: :data:`None`)
+        init (Tensor, tree of Tensor, or None, optional): Optional initialization to be used by
+            conjugate gradient. If :data:`None`, uses zero initialization. (default: :data:`None`)
         **kwargs: Additional keyword arguments for the conjugate gradient solver
             :func:`torchopt.linalg.cg`.
 

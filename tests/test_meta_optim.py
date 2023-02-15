@@ -13,7 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 
-from typing import Tuple
+from __future__ import annotations
 
 import torch
 import torch.nn.functional as F
@@ -40,7 +40,7 @@ def test_maml_meta_adam(
     outer_lr: float,
     inner_lr: float,
     inner_update: int,
-    betas: Tuple[float, float],
+    betas: tuple[float, float],
     eps: float,
     eps_root: float,
     weight_decay: float,

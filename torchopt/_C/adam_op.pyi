@@ -15,7 +15,7 @@
 
 # pylint: disable=all
 
-from typing import Tuple
+from __future__ import annotations
 
 import torch
 
@@ -28,7 +28,7 @@ def forward_(
     eps: float,
     eps_root: float,
     count: int,
-) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]: ...
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]: ...
 def forward_mu(updates: torch.Tensor, mu: torch.Tensor, b1: float) -> torch.Tensor: ...
 def forward_nu(updates: torch.Tensor, nu: torch.Tensor, b2: float) -> torch.Tensor: ...
 def forward_updates(
@@ -42,10 +42,10 @@ def forward_updates(
 ) -> torch.Tensor: ...
 def backward_mu(
     dmu: torch.Tensor, updates: torch.Tensor, mu: torch.Tensor, b1: float
-) -> Tuple[torch.Tensor, torch.Tensor]: ...
+) -> tuple[torch.Tensor, torch.Tensor]: ...
 def backward_nu(
     dnu: torch.Tensor, updates: torch.Tensor, nu: torch.Tensor, b2: float
-) -> Tuple[torch.Tensor, torch.Tensor]: ...
+) -> tuple[torch.Tensor, torch.Tensor]: ...
 def backward_updates(
     dupdates: torch.Tensor,
     updates: torch.Tensor,
@@ -55,4 +55,4 @@ def backward_updates(
     b2: float,
     eps_root: float,
     count: int,
-) -> Tuple[torch.Tensor, torch.Tensor]: ...
+) -> tuple[torch.Tensor, torch.Tensor]: ...

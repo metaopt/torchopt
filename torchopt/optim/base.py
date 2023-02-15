@@ -14,7 +14,9 @@
 # ==============================================================================
 """The base class for optimizers."""
 
-from typing import Callable, Iterable, List, Optional, Sequence, Tuple
+from __future__ import annotations
+
+from typing import Callable, Iterable, Sequence
 
 import torch
 
@@ -37,8 +39,8 @@ class Optimizer:
             params (iterable of torch.Tensor): An iterable of :class:`torch.Tensor`\s. Specifies
                 what tensors should be optimized.
             impl (GradientTransformation): A low level optimizer function, it could be a optimizer
-                function provided by ``alias.py`` or a customized ``chain`` provided by
-                ``combine.py``.
+                function provided in :mod:`torchopt.alias` or a customized :func:`torchopt.chain`\ed
+                transformation.
                 Note that using ``Optimizer(sgd())`` or ``Optimizer(chain(sgd()))`` is equivalent to
                 :class:`torchopt.SGD`.
         """
@@ -46,9 +48,9 @@ class Optimizer:
             raise TypeError(f'{impl} (type: {type(impl).__name__}) is not a GradientTransformation')
 
         self.impl: GradientTransformation = impl
-        self.param_groups: List[TupleOfTensors] = []
-        self.param_treespecs: List[pytree.PyTreeSpec] = []
-        self.state_groups: List[OptState] = []
+        self.param_groups: list[TupleOfTensors] = []
+        self.param_treespecs: list[pytree.PyTreeSpec] = []
+        self.state_groups: list[OptState] = []
 
         if not isinstance(params, (list, tuple)):
             params = tuple(params)
@@ -60,7 +62,8 @@ class Optimizer:
         The behavior is similar to :meth:`torch.optim.Optimizer.zero_grad`.
 
         Args:
-            set_to_none (bool): Instead of setting to zero, set the ``grads`` to :data:`None`.
+            set_to_none (bool, optional): Instead of setting to zero, set the ``grads`` to
+                :data:`None`. (default: :data:`False`)
         """
         if set_to_none:
 
@@ -80,7 +83,7 @@ class Optimizer:
 
         pytree.tree_map_(f, self.param_groups)  # type: ignore[arg-type]
 
-    def state_dict(self) -> Tuple[OptState, ...]:
+    def state_dict(self) -> tuple[OptState, ...]:
         """Return the state of the optimizer."""
         return tuple(self.state_groups)
 
@@ -88,18 +91,19 @@ class Optimizer:
         """Load the optimizer state.
 
         Args:
-            state_dict: Optimizer state. Should be an object returned from a call to
-                :meth:`state_dict`.
+            state_dict (sequence of tree of Tensor): Optimizer state. Should be an object returned
+                from a call to :meth:`state_dict`.
         """
         self.state_groups[:] = list(state_dict)
 
-    def step(self, closure: Optional[Callable[[], torch.Tensor]] = None) -> Optional[torch.Tensor]:
+    def step(self, closure: Callable[[], torch.Tensor] | None = None) -> torch.Tensor | None:
         """Perform a single optimization step.
 
         The behavior is similar to :meth:`torch.optim.Optimizer.step`.
 
         Args:
-            closure (callable, optional): A closure that reevaluates the model and returns the loss.
+            closure (callable or None, optional): A closure that reevaluates the model and returns
+                the loss. Optional for most optimizers. (default: :data:`None`)
         """
         loss = None
         if closure is not None:
@@ -120,7 +124,7 @@ class Optimizer:
         return loss
 
     def add_param_group(self, params: Params) -> None:
-        """Add a param group to the optimizer's :attr:`param_groups`."""
+        """Add a param group to the optimizer's ``param_groups``."""
         flat_params: TupleOfTensors
         flat_params, params_treespec = pytree.tree_flatten_as_tuple(params)
         self.param_groups.append(flat_params)

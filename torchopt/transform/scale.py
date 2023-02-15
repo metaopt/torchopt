@@ -31,7 +31,7 @@
 # ==============================================================================
 """Preset transformation for scaling updates by learning rate."""
 
-from typing import Optional, Tuple
+from __future__ import annotations
 
 from torchopt import pytree
 from torchopt.base import EmptyState, GradientTransformation
@@ -49,7 +49,7 @@ def scale(step_size: float) -> GradientTransformation:
     """Scale updates by some fixed scalar ``step_size``.
 
     Args:
-        step_size: A scalar corresponding to a fixed scaling factor for updates.
+        step_size (float): A scalar corresponding to a fixed scaling factor for updates.
 
     Returns:
         An ``(init_fn, update_fn)`` tuple.
@@ -80,9 +80,9 @@ def _scale(
         updates: Updates,
         state: OptState,
         *,
-        params: Optional[Params] = None,  # pylint: disable=unused-argument
+        params: Params | None = None,  # pylint: disable=unused-argument
         inplace: bool = True,
-    ) -> Tuple[Updates, OptState]:
+    ) -> tuple[Updates, OptState]:
         if inplace:
 
             def f(g):

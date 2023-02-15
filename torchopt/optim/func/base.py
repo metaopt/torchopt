@@ -14,7 +14,7 @@
 # ==============================================================================
 """Functional optimizer wrappers."""
 
-from typing import Optional
+from __future__ import annotations
 
 import torch
 
@@ -41,26 +41,27 @@ class FuncOptimizer:  # pylint: disable=too-few-public-methods
     """
 
     def __init__(self, impl: GradientTransformation, *, inplace: bool = False) -> None:
-        """Initialize the functional optimizer wrapper.
+        r"""Initialize the functional optimizer wrapper.
 
         Args:
             impl (GradientTransformation): A low level optimizer function, it could be a optimizer
-                function provided by `alias.py` or a customized `chain` provided by `combine.py`.
-            inplace (optional): (default: :data:`False`)
-                The default value of ``inplace`` for each optimization update.
+                function provided in :mod:`torchopt.alias` or a customized :func:`torchopt.chain`\ed
+                transformation.
+            inplace (bool, optional): The default value of ``inplace`` for each optimization update.
+                (default: :data:`False`)
         """
         if not isinstance(impl, GradientTransformation):
             raise TypeError(f'{impl} (type: {type(impl).__name__}) is not a GradientTransformation')
 
         self.impl: GradientTransformation = impl
-        self.optim_state: Optional[OptState] = UninitializedState()
+        self.optim_state: OptState | None = UninitializedState()
         self.inplace: bool = bool(inplace)
 
     def step(
         self,
         loss: torch.Tensor,
         params: Params,
-        inplace: Optional[bool] = None,
+        inplace: bool | None = None,
     ) -> Params:
         r"""Compute the gradients of loss to the network parameters and update network parameters.
 
@@ -69,13 +70,12 @@ class FuncOptimizer:  # pylint: disable=too-few-public-methods
         gradients and update the network parameters without modifying tensors in-place.
 
         Args:
-            loss: (torch.Tensor)
-                loss that is used to compute the gradients to network parameters.
-            params: (tree of torch.Tensor)
-                An tree of :class:`torch.Tensor`\s. Specifies what tensors should be optimized.
-            inplace (optional): (default: :data:`None`)
-                Whether to update the parameters in-place. If :data:`None`, use the default value
-                specified in the constructor.
+            loss (Tensor): The loss that is used to compute the gradients to network parameters.
+            params (tree of Tensor): An tree of :class:`torch.Tensor`\s. Specifies what tensors
+                should be optimized.
+            inplace (bool or None, optional): Whether to update the parameters in-place. If
+                :data:`None`, use the default value specified in the constructor.
+                (default: :data:`None`)
         """
         if isinstance(self.optim_state, UninitializedState):
             self.optim_state = self.impl.init(params)

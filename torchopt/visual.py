@@ -17,8 +17,10 @@
 # ==============================================================================
 """Computation graph visualization."""
 
+from __future__ import annotations
+
 from collections import namedtuple
-from typing import Generator, Iterable, Mapping, Optional, Union, cast
+from typing import Generator, Iterable, Mapping, cast
 
 import torch
 from graphviz import Digraph
@@ -71,14 +73,13 @@ def get_fn_name(fn, show_attrs, max_attr_chars):
 # pylint: disable-next=too-many-branches,too-many-statements,too-many-locals
 def make_dot(
     var: TensorOrTensors,
-    params: Optional[
-        Union[
-            Mapping[str, torch.Tensor],
-            ModuleState,
-            Generator,
-            Iterable[Union[Mapping[str, torch.Tensor], ModuleState, Generator]],
-        ]
-    ] = None,
+    params: (
+        Mapping[str, torch.Tensor]
+        | ModuleState
+        | Generator
+        | Iterable[Mapping[str, torch.Tensor] | ModuleState | Generator]
+        | None
+    ) = None,
     show_attrs: bool = False,
     show_saved: bool = False,
     max_attr_chars: int = 50,
@@ -89,7 +90,7 @@ def make_dot(
     and is either blue, orange, or green:
 
         - **Blue**
-            Reachable leaf tensors that requires grad (tensors whose :attr:`grad` fields will be
+            Reachable leaf tensors that requires grad (tensors whose ``grad`` fields will be
             populated during :meth:`backward`).
         - **Orange**
             Saved tensors of custom autograd functions as well as those saved by built-in backward
@@ -100,16 +101,16 @@ def make_dot(
             If any output is a view, we represent its base tensor with a dark green node.
 
     Args:
-        var: Output tensor.
-        params: ([dict of (name, tensor) or state_dict])
-            Parameters to add names to node that requires grad.
-        show_attrs: Whether to display non-tensor attributes of backward nodes
-            (Requires PyTorch version >= 1.9)
-        show_saved: Whether to display saved tensor nodes that are not by custom autograd
-            functions. Saved tensor nodes for custom functions, if present, are always displayed.
-            (Requires PyTorch version >= 1.9)
-        max_attr_chars: If ``show_attrs`` is :data:`True`, sets max number of characters to display
-            for any given attribute.
+        var (Tensor or sequence of Tensor): Output tensor.
+        params: (dict[str, Tensor], ModuleState, iterable of tuple[str, Tensor], or None, optional):
+            Parameters to add names to node that requires grad. (default: :data:`None`)
+        show_attrs (bool, optional): Whether to display non-tensor attributes of backward nodes.
+            (default: :data:`False`)
+        show_saved (bool, optional): Whether to display saved tensor nodes that are not by custom
+            autograd functions. Saved tensor nodes for custom functions, if present, are always
+            displayed. (default: :data:`False`)
+        max_attr_chars (int, optional): If ``show_attrs`` is :data:`True`, sets max number of
+            characters to display for any given attribute. (default: :const:`50`)
     """
     param_map = {}
 

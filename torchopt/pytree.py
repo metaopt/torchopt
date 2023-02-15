@@ -14,9 +14,11 @@
 # ==============================================================================
 """The PyTree utilities."""
 
+from __future__ import annotations
+
 import functools
 import operator
-from typing import Callable, List, Optional, Tuple
+from typing import Callable
 
 import optree
 import optree.typing as typing  # pylint: disable=unused-import
@@ -47,19 +49,20 @@ __all__ = [
 
 def tree_flatten_as_tuple(
     tree: PyTree[T],
-    is_leaf: Optional[Callable[[T], bool]] = None,
+    is_leaf: Callable[[T], bool] | None = None,
     *,
     none_is_leaf: bool = False,
     namespace: str = '',
-) -> Tuple[Tuple[T, ...], PyTreeSpec]:
+) -> tuple[tuple[T, ...], PyTreeSpec]:
     """Flatten a pytree to a tuple of leaves and a PyTreeSpec.
 
     Args:
-        tree: The pytree to flatten.
-        is_leaf: A function that returns :data:`True` if a given node is a leaf.
-        none_is_leaf: If :data:`True`, None is considered a leaf rather than a internal node with no
-            children.
-        namespace: The namespace of custom tree node types.
+        tree (pytree): The pytree to flatten.
+        is_leaf (callable or None, optional): An optionally specified function that returns
+            :data:`True` if a given node is a leaf. (default: :data:`None`)
+        none_is_leaf (bool, optional): If :data:`True`, :data:`None` is considered a leaf rather
+            than a internal node with no children. (default: :data:`False`)
+        namespace (str, optional): The namespace of custom tree node types. (default: :const:`''`)
 
     Returns:
         A tuple of (leaves, treespec).
@@ -99,7 +102,7 @@ def tree_add(*trees: PyTree[T]) -> PyTree[T]:
 
 
 def tree_add_scalar_mul(
-    tree_x: TensorTree, tree_y: TensorTree, alpha: Optional[Scalar] = None
+    tree_x: TensorTree, tree_y: TensorTree, alpha: Scalar | None = None
 ) -> TensorTree:
     """Compute ``tree_x + alpha * tree_y``."""
     if alpha is None:
@@ -113,7 +116,7 @@ def tree_sub(minuend_tree: PyTree[T], subtrahend_tree: PyTree[T]) -> PyTree[T]:
 
 
 def tree_sub_scalar_mul(
-    tree_x: TensorTree, tree_y: TensorTree, alpha: Optional[Scalar] = None
+    tree_x: TensorTree, tree_y: TensorTree, alpha: Scalar | None = None
 ) -> TensorTree:
     """Compute ``tree_x - alpha * tree_y``."""
     if alpha is None:
@@ -190,4 +193,4 @@ if rpc.is_available():  # pragma: no cover
     __all__.extend(['tree_as_rref', 'tree_to_here'])
 
 
-del Callable, List, Optional, Tuple, optree, rpc, Scalar, T, RRef
+del Callable, optree, rpc, Scalar, T, RRef

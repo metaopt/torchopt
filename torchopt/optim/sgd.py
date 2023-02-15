@@ -48,20 +48,21 @@ class SGD(Optimizer):
         r"""Initialize the SGD optimizer.
 
         Args:
-            params: (iterable of torch.Tensor)
-                An iterable of :class:`torch.Tensor`\s. Specifies what tensors should be optimized.
-            lr: This is a fixed global scaling factor.
-            momentum: (default: :const:`0.0`)
-                The decay rate used by the momentum term. The momentum is not used when it is set to
-                :const:`0.0`.
-            weight_decay: (default: :const:`0.0`)
-                Weight decay, add L2 penalty to parameters.
-            dampening: (default: :const:`0.0`)
-                Dampening for momentum.
-            nesterov: (default: :data:`False`)
-                Whether to use Nesterov momentum.
-            maximize: (default: :data:`False`)
-                Maximize the params based on the objective, instead of minimizing.
+            params (iterable of Tensor): An iterable of :class:`torch.Tensor`\s. Specifies what
+                tensors should be optimized.
+            lr (float or callable): This is a fixed global scaling factor or a learning rate
+                scheduler.
+            momentum (float, optional): The decay rate used by the momentum term. The momentum is
+                not used when it is set to :const:`0.0`. (default: :const:`0.0`)
+            weight_decay (float, optional): Weight decay, add L2 penalty to parameters.
+                (default: :const:`0.0`)
+            dampening (float, optional): Dampening for momentum. (default: :const:`0.0`)
+            nesterov (bool, optional): Whether to use Nesterov momentum. (default: :data:`False`)
+            moment_requires_grad (bool, optional): If :data:`True` the momentums will be created
+                with flag ``requires_grad=True``, this flag is often used in Meta-Learning
+                algorithms. (default: :data:`False`)
+            maximize (bool, optional): Maximize the params based on the objective, instead of
+                minimizing. (default: :data:`False`)
         """
         super().__init__(
             params,

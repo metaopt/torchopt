@@ -14,14 +14,15 @@
 # ==============================================================================
 """Distributed Autograd."""
 
+from __future__ import annotations
+
 from threading import Lock
-from typing import Optional, overload
 
 import torch
 import torch.distributed.autograd as autograd
 from torch.distributed.autograd import context
 
-from torchopt.typing import TensorOrTensors, TupleOfOptionalTensors, TupleOfTensors
+from torchopt.typing import TensorOrTensors, TupleOfOptionalTensors
 
 
 __all__ = ['is_available', 'context']
@@ -43,22 +44,23 @@ if is_available():
         autograd_ctx_id: int,
         tensors: TensorOrTensors,
         retain_graph: bool = False,
-        inputs: Optional[TensorOrTensors] = None,
+        inputs: TensorOrTensors | None = None,
     ) -> None:
         """Perform distributed backward pass for local parameters.
 
         Compute the sum of gradients of given tensors with respect to graph leaves.
 
         Args:
-            autograd_ctx_id: The autograd context id.
-            tensors (Sequence[Tensor] or Tensor): Tensors of which the derivative will be computed.
+            autograd_ctx_id (int): The autograd context id.
+            tensors (Tensor or sequence of Tensor): Tensors of which the derivative will be computed.
             retain_graph (bool, optional): If :data:`False`, the graph used to compute the grad will
                 be freed. Note that in nearly all cases setting this option to :data:`True` is not
                 needed and often can be worked around in a much more efficient way.
-            inputs (Sequence[Tensor] or Tensor, optional): Inputs w.r.t. which the gradient be will
-                accumulated into ``.grad``. All other Tensors will be ignored. If not provided, the
-                gradient is accumulated into all the leaf Tensors that were used to compute the
-                attr::tensors.
+                (default: :data:`False`)
+            inputs (Tensor, sequence of Tensor, or None, optional): Inputs w.r.t. which the gradient
+                be will accumulated into ``.grad``. All other Tensors will be ignored. If not
+                provided, the gradient is accumulated into all the leaf Tensors that were used to
+                compute the ``tensors``. (default: :data:`None`)
         """
         if inputs is not None:
             if isinstance(inputs, torch.Tensor):
@@ -85,25 +87,6 @@ if is_available():
                 else:
                     p.grad = g
 
-    @overload
-    def grad(
-        autograd_ctx_id: int,
-        outputs: TensorOrTensors,
-        inputs: TensorOrTensors,
-        retain_graph: bool = False,
-    ) -> TupleOfTensors:
-        ...
-
-    @overload
-    def grad(
-        autograd_ctx_id: int,
-        outputs: TensorOrTensors,
-        inputs: TensorOrTensors,
-        retain_graph: bool = False,
-        allow_unused: bool = False,
-    ) -> TupleOfOptionalTensors:
-        ...
-
     def grad(
         autograd_ctx_id: int,
         outputs: TensorOrTensors,
@@ -114,16 +97,17 @@ if is_available():
         """Compute and return the sum of gradients of outputs with respect to the inputs.
 
         Args:
-            autograd_ctx_id: The autograd context id.
-            outputs (sequence of Tensor): outputs of the differentiated function.
-            inputs (sequence of Tensor): Inputs w.r.t. which the gradient will be returned (and not
-                accumulated into ``.grad``).
+            autograd_ctx_id (int): The autograd context id.
+            outputs (Tensor or sequence of Tensor): Outputs of the differentiated function.
+            inputs (Tensor or sequence of Tensor): Inputs w.r.t. which the gradient will be returned
+                (and not accumulated into ``.grad``).
             retain_graph (bool, optional): If :data:`False`, the graph used to compute the grad will
                 be freed. Note that in nearly all cases setting this option to :data:`True` is not
                 needed and often can be worked around in a much more efficient way.
+                (default: :data:`False`)
             allow_unused (bool, optional): If :data:`False`, specifying inputs that were not used
                 when computing outputs (and therefore their grad is always zero) is an error.
-                Defaults to :data:`False`.
+                (default: :data:`False`)
         """
         outputs = [outputs] if isinstance(outputs, torch.Tensor) else list(outputs)
         inputs = (inputs,) if isinstance(inputs, torch.Tensor) else tuple(inputs)

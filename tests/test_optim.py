@@ -13,7 +13,9 @@
 # limitations under the License.
 # ==============================================================================
 
-from typing import Callable, Tuple
+from __future__ import annotations
+
+from typing import Callable
 
 import functorch
 import pytest
@@ -96,7 +98,7 @@ def test_SGD(
 def test_Adam(
     dtype: torch.dtype,
     lr: float,
-    betas: Tuple[float, float],
+    betas: tuple[float, float],
     eps: float,
     weight_decay: float,
     maximize: bool,
@@ -154,7 +156,7 @@ def test_Adam(
 def test_AdamW(
     dtype: torch.dtype,
     lr: float,
-    betas: Tuple[float, float],
+    betas: tuple[float, float],
     eps: float,
     weight_decay: float,
     maximize: bool,
@@ -216,8 +218,8 @@ def test_AdamW(
 def test_Adam_accelerated_cuda(
     dtype: torch.dtype,
     lr: float,
-    optimizers: Tuple[torchopt.Optimizer, torch.optim.Optimizer],
-    betas: Tuple[float, float],
+    optimizers: tuple[torchopt.Optimizer, torch.optim.Optimizer],
+    betas: tuple[float, float],
     eps: float,
     weight_decay: float,
     maximize: bool,
@@ -339,7 +341,7 @@ def test_RMSProp(
 def test_FuncOptimizer(
     dtype: torch.dtype,
     lr: float,
-    optimizers: Tuple[Callable, torch.optim.Optimizer],
+    optimizers: tuple[Callable, torch.optim.Optimizer],
     inplace: bool,
     weight_decay: float,
 ) -> None:
