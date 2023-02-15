@@ -1,4 +1,4 @@
-// Copyright 2022 MetaOPT Team. All Rights Reserved.
+// Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -104,11 +104,11 @@ TensorArray<2> adamBackwardMu(const torch::Tensor &dmu,
                               const pyfloat_t b1) {
 #if defined(__USE_CUDA__)
   if (dmu.device().is_cuda()) {
-    return adamBackwardMuCUDA(dmu, updates, mu, b1);
+    return adamBackwardMuCUDA(dmu.contiguous(), updates, mu, b1);
   }
 #endif
   if (dmu.device().is_cpu()) {
-    return adamBackwardMuCPU(dmu, updates, mu, b1);
+    return adamBackwardMuCPU(dmu.contiguous(), updates, mu, b1);
   } else {
     throw std::runtime_error("Not implemented");
   }
@@ -120,11 +120,11 @@ TensorArray<2> adamBackwardNu(const torch::Tensor &dnu,
                               const pyfloat_t b2) {
 #if defined(__USE_CUDA__)
   if (dnu.device().is_cuda()) {
-    return adamBackwardNuCUDA(dnu, updates, nu, b2);
+    return adamBackwardNuCUDA(dnu.contiguous(), updates, nu, b2);
   }
 #endif
   if (dnu.device().is_cpu()) {
-    return adamBackwardNuCPU(dnu, updates, nu, b2);
+    return adamBackwardNuCPU(dnu.contiguous(), updates, nu, b2);
   } else {
     throw std::runtime_error("Not implemented");
   }
@@ -136,14 +136,17 @@ TensorArray<2> adamBackwardUpdates(const torch::Tensor &dupdates,
                                    const torch::Tensor &new_nu,
                                    const pyfloat_t b1,
                                    const pyfloat_t b2,
+                                   const pyfloat_t eps_root,
                                    const pyuint_t count) {
 #if defined(__USE_CUDA__)
   if (dupdates.device().is_cuda()) {
-    return adamBackwardUpdatesCUDA(dupdates, updates, new_mu, new_nu, b1, b2, count);
+    return adamBackwardUpdatesCUDA(
+        dupdates.contiguous(), updates, new_mu, new_nu, b1, b2, eps_root, count);
   }
 #endif
   if (dupdates.device().is_cpu()) {
-    return adamBackwardUpdatesCPU(dupdates, updates, new_mu, new_nu, b1, b2, count);
+    return adamBackwardUpdatesCPU(
+        dupdates.contiguous(), updates, new_mu, new_nu, b1, b2, eps_root, count);
   } else {
     throw std::runtime_error("Not implemented");
   }
@@ -207,6 +210,7 @@ void buildSubmodule(py::module &mod) {  // NOLINT[runtime/references]
         py::arg("new_nu"),
         py::arg("b1"),
         py::arg("b2"),
+        py::arg("eps_root"),
         py::arg("count"));
 }
 

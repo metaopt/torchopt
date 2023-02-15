@@ -17,13 +17,14 @@
 from torchopt.diff.implicit.nn.module import ImplicitMetaGradientModule  # circular reference
 from torchopt.diff.zero_order.nn.module import ZeroOrderGradientModule  # circular reference
 from torchopt.nn.module import MetaGradientModule
-from torchopt.nn.stateless import reparameterize, swap_state
+from torchopt.nn.stateless import reparameterize, reparametrize, swap_state
 
 
 __all__ = [
     'MetaGradientModule',
     'ImplicitMetaGradientModule',
     'ZeroOrderGradientModule',
+    'reparametrize',
     'reparameterize',
     'swap_state',
 ]

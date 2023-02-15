@@ -54,7 +54,6 @@ py-format-install:
 
 mypy-install:
 	$(call check_pip_install,mypy)
-	$(call check_pip_install,types-setuptools)
 
 pre-commit-install:
 	$(call check_pip_install,pre-commit)
@@ -110,9 +109,9 @@ addlicense-install: go-install
 # Tests
 
 pytest: test-install
-	cd tests && \
+	cd tests && $(PYTHON) -c 'import $(PROJECT_NAME)' && \
 	$(PYTHON) -m pytest --verbose --color=yes --durations=0 \
-		--cov="$(PROJECT_NAME)" --cov-report=xml --cov-report=term-missing \
+		--cov="$(PROJECT_NAME)" --cov-config=.coveragerc --cov-report=xml --cov-report=term-missing \
 		$(PYTESTOPTS) .
 
 test: pytest

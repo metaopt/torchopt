@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,9 +31,11 @@
 # ==============================================================================
 """Utilities to define a chained transformation."""
 
+from typing import Optional, Tuple
+
 from torchopt import pytree
 from torchopt.base import ChainedGradientTransformation, GradientTransformation, identity
-from torchopt.typing import Updates
+from torchopt.typing import OptState, Params, Updates
 
 
 __all__ = ['chain', 'chain_flat']
@@ -77,10 +79,16 @@ def chain_flat(*transformations: GradientTransformation) -> GradientTransformati
     else:
         inner = chain(*transformations)
 
-    def init_fn(params):
+    def init_fn(params: Params) -> OptState:
         return inner.init(pytree.tree_leaves(params, none_is_leaf=True))
 
-    def update_fn(updates, state, *, params=None, inplace=True):
+    def update_fn(
+        updates: Updates,
+        state: OptState,
+        *,
+        params: Optional[Params] = None,
+        inplace: bool = True,
+    ) -> Tuple[Updates, OptState]:
         flat_updates, treespec = pytree.tree_flatten(updates, none_is_leaf=True)
         if params is not None:
             flat_params = pytree.tree_leaves(params, none_is_leaf=True)

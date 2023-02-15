@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ from typing import TYPE_CHECKING, Callable, NamedTuple, Optional, Tuple
 from typing_extensions import Protocol  # Python 3.8+
 
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from torchopt.typing import OptState, Params, Updates
 
 
@@ -170,12 +170,21 @@ class ChainedGradientTransformation(GradientTransformation):
             )
         )
 
+        if len(transformations) == 0:
+            transformations = (IdentityGradientTransformation(),)
+
         init_fns, update_fns = tuple(zip(*transformations))
 
-        def init_fn(params):
+        def init_fn(params: 'Params') -> 'OptState':
             return tuple(fn(params) for fn in init_fns)
 
-        def update_fn(updates, state, *, params=None, inplace=True):
+        def update_fn(
+            updates: 'Updates',
+            state: 'OptState',
+            *,
+            params: Optional['Params'] = None,
+            inplace: bool = True,
+        ) -> Tuple['Updates', 'OptState']:
             if len(update_fns) != len(state):
                 raise ValueError(
                     'The number of updates and states has to be the same in chain! Make sure you'
@@ -191,13 +200,12 @@ class ChainedGradientTransformation(GradientTransformation):
         instance.transformations = transformations
         return instance
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         """Return a string representation of the chained gradient transformation."""
-        return '{}(\n    {}\n)'.format(
-            self.__class__.__name__, ',\n    '.join(repr(t) for t in self.transformations)
+        return '{}(\n    {},\n)'.format(
+            self.__class__.__name__,
+            ',\n    '.join(repr(t) for t in self.transformations),
         )
-
-    __repr__ = __str__
 
     def __eq__(self, other: object) -> bool:
         """Return whether two chained gradient transformations are equal."""

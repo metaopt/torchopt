@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Update tests and fix corresponding bugs by [@XuehaiPan](https://github.com/XuehaiPan) and [@Benjamin-eecs](https://github.com/Benjamin-eecs) and [@JieRen98](https://github.com/JieRen98) in [#78](https://github.com/metaopt/torchopt/pull/78).
 - Fix memory leak in implicit MAML omniglot few-shot classification example with OOP APIs by [@XuehaiPan](https://github.com/XuehaiPan) in [#113](https://github.com/metaopt/torchopt/pull/113).
 
 ### Removed

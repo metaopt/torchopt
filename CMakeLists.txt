@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ cmake_minimum_required(VERSION 3.11)  # for FetchContent
 project(torchopt LANGUAGES CXX)
 
 include(FetchContent)
-set(PYBIND11_VERSION v2.10.1)
+set(PYBIND11_VERSION v2.10.3)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)

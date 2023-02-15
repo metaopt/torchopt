@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,8 +31,12 @@
 # ==============================================================================
 """Preset :class:`GradientTransformation` for the RMSProp optimizer."""
 
-from torchopt.alias.utils import flip_sign_and_add_weight_decay, scale_by_neg_lr
-from torchopt.combine import chain_flat
+from torchopt.alias.utils import (
+    _get_use_chain_flat,
+    flip_sign_and_add_weight_decay,
+    scale_by_neg_lr,
+)
+from torchopt.combine import chain
 from torchopt.transform import scale_by_rms, scale_by_stddev, trace
 from torchopt.typing import GradientTransformation, ScalarOrSchedule
 
@@ -95,30 +99,41 @@ def rmsprop(
         The functional optimizer wrapper :class:`torchopt.FuncOptimizer`.
     """
     # pylint: disable=unneeded-not
-    if not (callable(lr) or 0.0 <= lr):
+    if not (callable(lr) or 0.0 <= lr):  # pragma: no cover
         raise ValueError(f'Invalid learning rate: {lr}')
-    if not 0.0 <= alpha:
+    if not 0.0 <= alpha:  # pragma: no cover
         raise ValueError(f'Invalid alpha value: {alpha}')
-    if not 0.0 <= eps:
+    if not 0.0 <= eps:  # pragma: no cover
         raise ValueError(f'Invalid epsilon value: {eps}')
-    if not 0.0 <= momentum:
+    if not 0.0 <= momentum:  # pragma: no cover
         raise ValueError(f'Invalid momentum value: {momentum}')
-    if not 0.0 <= weight_decay:
+    if not 0.0 <= weight_decay:  # pragma: no cover
         raise ValueError(f'Invalid weight_decay value: {weight_decay}')
     # pylint: enable=unneeded-not
 
+    chain_fn = chain
+    flip_sign_and_add_weight_decay_fn = flip_sign_and_add_weight_decay
     if centered:
-        rmsprop_scaler = scale_by_stddev.flat  # type: ignore[attr-defined]
+        rmsprop_scaler_fn = scale_by_stddev
     else:
-        rmsprop_scaler = scale_by_rms.flat  # type: ignore[attr-defined]
+        rmsprop_scaler_fn = scale_by_rms
+    trace_fn = trace
+    scale_by_neg_lr_fn = scale_by_neg_lr
 
-    return chain_flat(
-        flip_sign_and_add_weight_decay(weight_decay=weight_decay, maximize=maximize),
-        rmsprop_scaler(
+    if _get_use_chain_flat():  # default behavior
+        chain_fn = chain_fn.flat  # type: ignore[attr-defined]
+        flip_sign_and_add_weight_decay_fn = flip_sign_and_add_weight_decay_fn.flat  # type: ignore[attr-defined]
+        rmsprop_scaler_fn = rmsprop_scaler_fn.flat  # type: ignore[attr-defined]
+        trace_fn = trace_fn.flat  # type: ignore[attr-defined]
+        scale_by_neg_lr_fn = scale_by_neg_lr_fn.flat  # type: ignore[attr-defined]
+
+    return chain_fn(
+        flip_sign_and_add_weight_decay_fn(weight_decay=weight_decay, maximize=maximize),
+        rmsprop_scaler_fn(
             alpha=alpha,
             eps=eps,
             initial_scale=initial_scale,
         ),
-        trace.flat(momentum=momentum, nesterov=nesterov),  # type: ignore[attr-defined]
-        scale_by_neg_lr(lr),
+        trace_fn(momentum=momentum, nesterov=nesterov),
+        scale_by_neg_lr_fn(lr),
     )

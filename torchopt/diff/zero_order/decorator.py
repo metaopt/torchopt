@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 """Zero-Order Gradient Estimation."""
 
 import functools
-from typing import Any, Callable, List, Tuple, Union
+from typing import Any, Callable, List, Sequence, Tuple, Union
 from typing_extensions import Literal  # Python 3.8+
 from typing_extensions import TypeAlias  # Python 3.10+
 
@@ -23,14 +23,7 @@ import torch
 from torch.autograd import Function
 
 from torchopt import pytree
-from torchopt.typing import (
-    ListOfTensors,
-    Numeric,
-    Samplable,
-    SampleFunc,
-    Sequence,
-    TupleOfOptionalTensors,
-)
+from torchopt.typing import ListOfTensors, Numeric, Samplable, SampleFunc, TupleOfOptionalTensors
 
 
 class WrappedSamplable(Samplable):  # pylint: disable=too-few-public-methods

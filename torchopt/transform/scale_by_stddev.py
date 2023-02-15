@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -33,14 +33,14 @@
 
 # pylint: disable=invalid-name
 
-from typing import NamedTuple
+from typing import NamedTuple, Optional, Tuple
 
 import torch
 
 from torchopt import pytree
 from torchopt.base import GradientTransformation
-from torchopt.transform.utils import tree_map_flat, update_moment
-from torchopt.typing import Updates
+from torchopt.transform.utils import tree_map_flat, tree_map_flat_, update_moment
+from torchopt.typing import OptState, Params, Updates
 
 
 __all__ = ['scale_by_stddev']
@@ -54,7 +54,9 @@ class ScaleByRStdDevState(NamedTuple):
 
 
 def scale_by_stddev(
-    alpha: float = 0.9, eps: float = 1e-8, initial_scale: float = 0.0
+    alpha: float = 0.9,
+    eps: float = 1e-8,
+    initial_scale: float = 0.0,
 ) -> GradientTransformation:
     """Rescale updates by the root of the centered exponential moving average of squares.
 
@@ -81,7 +83,9 @@ def scale_by_stddev(
 
 
 def _scale_by_stddev_flat(
-    alpha: float = 0.9, eps: float = 1e-8, initial_scale: float = 0.0
+    alpha: float = 0.9,
+    eps: float = 1e-8,
+    initial_scale: float = 0.0,
 ) -> GradientTransformation:
     return _scale_by_stddev(
         alpha=alpha,
@@ -99,23 +103,31 @@ def _scale_by_stddev(
     already_flattened: bool = False,
 ) -> GradientTransformation:
     # pylint: disable=unneeded-not
-    if not 0.0 <= alpha:
+    if not 0.0 <= alpha:  # pragma: no cover
         raise ValueError(f'Invalid alpha value: {alpha}')
-    if not 0.0 <= eps:
+    if not 0.0 <= eps:  # pragma: no cover
         raise ValueError(f'Invalid epsilon value: {eps}')
     # pylint: enable=unneeded-not
 
     if already_flattened:
         tree_map = tree_map_flat
+        tree_map_ = tree_map_flat_
     else:
         tree_map = pytree.tree_map  # type: ignore[assignment]
+        tree_map_ = pytree.tree_map_  # type: ignore[assignment]
 
-    def init_fn(params):
+    def init_fn(params: Params) -> OptState:
         mu = tree_map(torch.zeros_like, params)  # first moment
         nu = tree_map(lambda n: torch.full_like(n, initial_scale), params)  # second moment
         return ScaleByRStdDevState(mu=mu, nu=nu)
 
-    def update_fn(updates, state, *, params=None, inplace=True):  # pylint: disable=unused-argument
+    def update_fn(
+        updates: Updates,
+        state: OptState,
+        *,
+        params: Optional[Params] = None,  # pylint: disable=unused-argument
+        inplace: bool = True,
+    ) -> Tuple[Updates, OptState]:
         mu = update_moment.impl(  # type: ignore[attr-defined]
             updates, state.mu, alpha, order=1, inplace=inplace, already_flattened=already_flattened
         )
@@ -128,12 +140,15 @@ def _scale_by_stddev(
             def f(g, m, n):
                 return g.div_(n.addcmul(m, m, value=-1.0).sqrt_().add(eps))
 
+            updates = tree_map_(f, updates, mu, nu)
+
         else:
 
             def f(g, m, n):
                 return g.div(n.addcmul(m, m, value=-1.0).sqrt_().add(eps))
 
-        updates = tree_map(f, updates, mu, nu)
+            updates = tree_map(f, updates, mu, nu)
+
         return updates, ScaleByRStdDevState(mu=mu, nu=nu)
 
     return GradientTransformation(init_fn, update_fn)

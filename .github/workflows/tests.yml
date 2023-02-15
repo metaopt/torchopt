@@ -87,6 +87,7 @@ jobs:
           make pytest
 
       - name: Upload coverage to Codecov
+        if: runner.os == 'Linux'
         uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -133,3 +134,13 @@ jobs:
       - name: Test with pytest
         run: |
           make pytest
+
+      - name: Upload coverage to Codecov
+        if: runner.os == 'Linux'
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./tests/coverage.xml
+          flags: unittests
+          name: codecov-umbrella-pure-python
+          fail_ci_if_error: false

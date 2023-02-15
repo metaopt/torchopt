@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@
 
 # pylint: disable=invalid-name
 
-from typing import NamedTuple
+from typing import NamedTuple, Optional, Tuple
 
 import torch
 
@@ -41,13 +41,13 @@ from torchopt import pytree
 from torchopt.accelerated_op import AdamOp
 from torchopt.base import GradientTransformation
 from torchopt.transform.utils import inc_count, tree_map_flat, update_moment
-from torchopt.typing import SequenceOfTensors, Updates
+from torchopt.typing import OptState, Params, Updates
 
 
 __all__ = ['scale_by_adam', 'scale_by_accelerated_adam']
 
 
-TRIPLE_PYTREE_SPEC = pytree.tree_structure((0, 1, 2))  # type: ignore[arg-type]
+TRIPLE_PYTREE_SPEC = pytree.tree_structure((0, 1, 2), none_is_leaf=True)  # type: ignore[arg-type]
 
 
 class ScaleByAdamState(NamedTuple):
@@ -55,14 +55,20 @@ class ScaleByAdamState(NamedTuple):
 
     mu: Updates
     nu: Updates
-    count: SequenceOfTensors  # type: ignore
+    count: OptState
 
 
-def _bias_correction(moment, decay, count, *, already_flattened=False):
+def _bias_correction(
+    moment: Updates,
+    decay: float,
+    count: OptState,
+    *,
+    already_flattened: bool = False,
+) -> Updates:
     """Perform bias correction. This becomes a no-op as count goes to infinity."""
 
     def f(t, c):  # pylint: disable=invalid-name
-        return t.div(1 - decay**c)
+        return t.div(1 - pow(decay, c))
 
     if already_flattened:
         return tree_map_flat(f, moment, count)
@@ -134,11 +140,11 @@ def _scale_by_adam(
     already_flattened: bool = False,
 ) -> GradientTransformation:
     # pylint: disable=unneeded-not
-    if not 0.0 <= eps:
+    if not 0.0 <= eps:  # pragma: no cover
         raise ValueError(f'Invalid epsilon value: {eps}')
-    if not 0.0 <= b1 < 1.0:
+    if not 0.0 <= b1 < 1.0:  # pragma: no cover
         raise ValueError(f'Invalid beta parameter at index 0: {b1}')
-    if not 0.0 <= b2 < 1.0:
+    if not 0.0 <= b2 < 1.0:  # pragma: no cover
         raise ValueError(f'Invalid beta parameter at index 1: {b2}')
     # pylint: enable=unneeded-not
 
@@ -147,7 +153,7 @@ def _scale_by_adam(
     else:
         tree_map = pytree.tree_map  # type: ignore[assignment]
 
-    def init_fn(params):
+    def init_fn(params: Params) -> OptState:
         zero = tree_map(  # count init
             lambda t: torch.zeros(1, dtype=torch.int64, device=t.device).squeeze_(), params
         )
@@ -159,7 +165,13 @@ def _scale_by_adam(
         )
         return ScaleByAdamState(mu=mu, nu=nu, count=zero)
 
-    def update_fn(updates, state, *, params=None, inplace=True):  # pylint: disable=unused-argument
+    def update_fn(
+        updates: Updates,
+        state: OptState,
+        *,
+        params: Optional[Params] = None,  # pylint: disable=unused-argument
+        inplace: bool = True,
+    ) -> Tuple[Updates, OptState]:
         mu = update_moment.impl(  # type: ignore[attr-defined]
             updates, state.mu, b1, order=1, inplace=inplace, already_flattened=already_flattened
         )
@@ -258,19 +270,24 @@ def _scale_by_accelerated_adam(
     already_flattened: bool = False,
 ) -> GradientTransformation:
     # pylint: disable=unneeded-not
-    if not 0.0 <= eps:
+    if not 0.0 <= eps:  # pragma: no cover
         raise ValueError(f'Invalid epsilon value: {eps}')
-    if not 0.0 <= b1 < 1.0:
+    if not 0.0 <= b1 < 1.0:  # pragma: no cover
         raise ValueError(f'Invalid beta parameter at index 0: {b1}')
-    if not 0.0 <= b2 < 1.0:
+    if not 0.0 <= b2 < 1.0:  # pragma: no cover
         raise ValueError(f'Invalid beta parameter at index 1: {b2}')
     # pylint: enable=unneeded-not
 
     if already_flattened:
         tree_map = tree_map_flat
 
-        # pylint: disable-next=unused-argument
-        def update_fn(updates, state, *, params=None, inplace=True):
+        def update_fn(
+            updates: Updates,
+            state: OptState,
+            *,
+            params: Optional[Params] = None,  # pylint: disable=unused-argument
+            inplace: bool = True,
+        ) -> Tuple[Updates, OptState]:
             count_inc = inc_count.impl(updates, state.count, already_flattened=True)  # type: ignore[attr-defined]
 
             op = AdamOp(b1=b1, b2=b2, eps=eps, eps_root=eps_root, inplace=inplace)
@@ -282,11 +299,16 @@ def _scale_by_accelerated_adam(
     else:
         tree_map = pytree.tree_map  # type: ignore[assignment]
 
-        # pylint: disable-next=unused-argument
-        def update_fn(updates, state, *, params=None, inplace=True):
+        def update_fn(
+            updates: Updates,
+            state: OptState,
+            *,
+            params: Optional[Params] = None,  # pylint: disable=unused-argument
+            inplace: bool = True,
+        ) -> Tuple[Updates, OptState]:
             count_inc = inc_count.impl(updates, state.count, already_flattened=False)  # type: ignore[attr-defined]
 
-            treespec = pytree.tree_structure(updates)
+            treespec = pytree.tree_structure(updates, none_is_leaf=True)
 
             op = AdamOp(b1=b1, b2=b2, eps=eps, eps_root=eps_root, inplace=inplace)
             out = pytree.tree_map(op, state.mu, state.nu, updates, count_inc)
@@ -297,7 +319,7 @@ def _scale_by_accelerated_adam(
             new_mu, new_nu, new_updates = pytree.tree_transpose(treespec, TRIPLE_PYTREE_SPEC, out)  # type: ignore[misc]
             return new_updates, ScaleByAdamState(mu=new_mu, nu=new_nu, count=count_inc)
 
-    def init_fn(params):
+    def init_fn(params: Params) -> OptState:
         zero = tree_map(  # count init
             lambda t: torch.zeros(1, dtype=torch.int64, device=t.device).squeeze_(), params
         )

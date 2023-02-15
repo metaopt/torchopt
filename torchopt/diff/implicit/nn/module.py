@@ -26,7 +26,7 @@ import torch
 
 from torchopt.diff.implicit.decorator import custom_root
 from torchopt.nn.module import MetaGradientModule
-from torchopt.nn.stateless import reparameterize, swap_state
+from torchopt.nn.stateless import reparametrize, swap_state
 from torchopt.typing import LinearSolver, TupleOfTensors
 
 
@@ -42,7 +42,7 @@ def _stateless_objective_fn(
     *input,
     **kwargs,
 ) -> torch.Tensor:
-    with reparameterize(
+    with reparametrize(
         self,
         itertools.chain(
             zip(__params_names, __flat_params),
@@ -61,7 +61,7 @@ def _stateless_optimality_fn(
     *input,
     **kwargs,
 ) -> TupleOfTensors:
-    with reparameterize(
+    with reparametrize(
         self,
         itertools.chain(
             zip(__params_names, __flat_params),

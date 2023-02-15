@@ -1,4 +1,4 @@
-// Copyright 2022 MetaOPT Team. All Rights Reserved.
+// Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -68,6 +68,7 @@ TensorArray<2> adamBackwardUpdates(const torch::Tensor &dupdates,
                                    const torch::Tensor &new_nu,
                                    const pyfloat_t b1,
                                    const pyfloat_t b2,
+                                   const pyfloat_t eps_root,
                                    const pyuint_t count);
 
 void buildSubmodule(py::module &mod);  // NOLINT[runtime/references]

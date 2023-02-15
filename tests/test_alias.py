@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 
-from typing import Tuple
+from typing import Callable, Tuple
 
 import functorch
 import pytest
@@ -22,6 +22,7 @@ import torch.nn.functional as F
 
 import helpers
 import torchopt
+from torchopt.alias.utils import _set_use_chain_flat
 
 
 @helpers.parametrize(
@@ -33,6 +34,7 @@ import torchopt
     inplace=[True, False],
     weight_decay=[0.0, 1e-2],
     maximize=[False, True],
+    use_chain_flat=[True, False],
 )
 def test_sgd(
     dtype: torch.dtype,
@@ -43,9 +45,12 @@ def test_sgd(
     inplace: bool,
     weight_decay: float,
     maximize: bool,
+    use_chain_flat: bool,
 ) -> None:
     if nesterov and (momentum <= 0.0 or dampening != 0.0):
         pytest.skip('Nesterov momentum requires a momentum and zero dampening.')
+
+    _set_use_chain_flat(use_chain_flat)
 
     model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
 
@@ -85,6 +90,7 @@ def test_sgd(
         optim_ref.step()
 
     helpers.assert_model_all_close((params, buffers), model_ref, model_base, dtype=dtype)
+    _set_use_chain_flat(True)
 
 
 @helpers.parametrize(
@@ -95,6 +101,8 @@ def test_sgd(
     inplace=[True, False],
     weight_decay=[0.0, 1e-2],
     maximize=[False, True],
+    use_accelerated_op=[False, True],
+    use_chain_flat=[True, False],
 )
 def test_adam(
     dtype: torch.dtype,
@@ -104,7 +112,11 @@ def test_adam(
     inplace: bool,
     weight_decay: float,
     maximize: bool,
+    use_accelerated_op: bool,
+    use_chain_flat: bool,
 ) -> None:
+    _set_use_chain_flat(use_chain_flat)
+
     model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
 
     fmodel, params, buffers = functorch.make_functional_with_buffers(model)
@@ -115,6 +127,7 @@ def test_adam(
         eps_root=0.0,
         weight_decay=weight_decay,
         maximize=maximize,
+        use_accelerated_op=use_accelerated_op,
     )
     optim_state = optim.init(params)
     optim_ref = torch.optim.Adam(
@@ -143,6 +156,97 @@ def test_adam(
         optim_ref.step()
 
     helpers.assert_model_all_close((params, buffers), model_ref, model_base, dtype=dtype)
+    _set_use_chain_flat(True)
+
+
+@helpers.parametrize(
+    dtype=[torch.float64],
+    outer_lr=[1e-2, 1e-3, 1e-4],
+    inner_lr=[1e-2, 1e-3, 1e-4],
+    inner_update=[2, 3, 5],
+    betas=[(0.9, 0.999), (0.95, 0.9995)],
+    eps=[1e-8],
+    inplace=[True, False],
+    weight_decay=[0.0, 1e-2],
+    maximize=[False, True],
+    use_accelerated_op=[False, True],
+    use_chain_flat=[True, False],
+)
+def test_maml_adam(
+    dtype: torch.dtype,
+    outer_lr: float,
+    inner_lr: float,
+    inner_update: int,
+    betas: Tuple[float, float],
+    eps: float,
+    inplace: bool,
+    weight_decay: float,
+    maximize: bool,
+    use_accelerated_op: bool,
+    use_chain_flat: bool,
+) -> None:
+    _set_use_chain_flat(use_chain_flat)
+
+    model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
+
+    fmodel, params, buffers = functorch.make_functional_with_buffers(model)
+    outer_optim = torchopt.adam(
+        outer_lr,
+        betas=betas,
+        eps=eps,
+        eps_root=0.0,
+        weight_decay=weight_decay,
+        maximize=maximize,
+        use_accelerated_op=use_accelerated_op,
+    )
+    outer_optim_state = outer_optim.init(params)
+
+    def maml_inner_solver_torchopt(params, data, use_accelerated_op):
+        # Initial functional optimizer based on TorchOpt
+        x, y, f, b = data
+        inner_optimizer = torchopt.adam(
+            inner_lr,
+            betas=betas,
+            eps=eps,
+            eps_root=0.0,
+            weight_decay=weight_decay,
+            maximize=maximize,
+            use_accelerated_op=use_accelerated_op,
+        )
+        inner_opt_state = inner_optimizer.init(params)
+        with torch.enable_grad():
+            # Temporarily enable gradient computation for conducting the optimization
+            for _ in range(inner_update):
+                pred = f(params, b, x)
+                inner_loss = F.cross_entropy(pred, y)  # compute loss
+                grads = torch.autograd.grad(
+                    inner_loss, params, allow_unused=True
+                )  # compute gradients
+                updates, inner_opt_state = inner_optimizer.update(
+                    grads, inner_opt_state, params=params, inplace=False
+                )  # get updates
+                params = torchopt.apply_updates(params, updates, inplace=False)
+        return (params, b)
+
+    for xs, ys in loader:
+        xs = xs.to(dtype=dtype)
+        data = (xs, ys, fmodel, buffers)
+
+        params_prime, buffers_prime = maml_inner_solver_torchopt(
+            params, data, use_accelerated_op=True
+        )
+        pred = fmodel(params_prime, buffers_prime, xs)
+        outer_loss = F.cross_entropy(pred, ys)
+
+        grads = torch.autograd.grad(outer_loss, params, allow_unused=True)
+        updates, outer_optim_state = outer_optim.update(
+            grads, outer_optim_state, params=params, inplace=inplace
+        )
+        params = torchopt.apply_updates(params, updates, inplace=inplace)
+
+        torchopt.stop_gradient(model)
+
+    _set_use_chain_flat(True)
 
 
 @helpers.parametrize(
@@ -153,6 +257,8 @@ def test_adam(
     inplace=[True, False],
     weight_decay=[0.0, 1e-2],
     maximize=[False, True],
+    use_accelerated_op=[False, True],
+    use_chain_flat=[True, False],
 )
 def test_adamw(
     dtype: torch.dtype,
@@ -162,7 +268,11 @@ def test_adamw(
     inplace: bool,
     weight_decay: float,
     maximize: bool,
+    use_accelerated_op: bool,
+    use_chain_flat: bool,
 ) -> None:
+    _set_use_chain_flat(use_chain_flat)
+
     model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
 
     fmodel, params, buffers = functorch.make_functional_with_buffers(model)
@@ -173,6 +283,7 @@ def test_adamw(
         eps_root=0.0,
         weight_decay=weight_decay,
         maximize=maximize,
+        use_accelerated_op=use_accelerated_op,
     )
     optim_state = optim.init(params)
     optim_ref = torch.optim.AdamW(
@@ -201,91 +312,44 @@ def test_adamw(
         optim_ref.step()
 
     helpers.assert_model_all_close((params, buffers), model_ref, model_base, dtype=dtype)
-
-
-@helpers.parametrize(
-    dtype=[torch.float64],
-    lr=[1e-2, 1e-3, 1e-4],
-    betas=[(0.9, 0.999), (0.95, 0.9995)],
-    eps=[1e-8],
-    inplace=[True, False],
-    weight_decay=[1e-2, 1e-1],
-    maximize=[False, True],
-)
-def test_adam_accelerated_cpu(
-    dtype: torch.dtype,
-    lr: float,
-    betas: Tuple[float, float],
-    eps: float,
-    inplace: bool,
-    weight_decay: float,
-    maximize: bool,
-) -> None:
-    model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
-
-    fmodel, params, buffers = functorch.make_functional_with_buffers(model)
-    optim = torchopt.adam(
-        lr,
-        betas=betas,
-        eps=eps,
-        eps_root=0.0,
-        weight_decay=weight_decay,
-        maximize=maximize,
-        use_accelerated_op=True,
-    )
-    optim_state = optim.init(params)
-    optim_ref = torch.optim.Adam(
-        model_ref.parameters(),
-        lr,
-        betas=betas,
-        eps=eps,
-        amsgrad=False,
-        weight_decay=weight_decay,
-        maximize=maximize,
-    )
-
-    for xs, ys in loader:
-        xs = xs.to(dtype=dtype)
-        pred = fmodel(params, buffers, xs)
-        pred_ref = model_ref(xs)
-        loss = F.cross_entropy(pred, ys)
-        loss_ref = F.cross_entropy(pred_ref, ys)
-
-        grads = torch.autograd.grad(loss, params, allow_unused=True)
-        updates, optim_state = optim.update(grads, optim_state, params=params, inplace=inplace)
-        params = torchopt.apply_updates(params, updates, inplace=inplace)
-
-        optim_ref.zero_grad()
-        loss_ref.backward()
-        optim_ref.step()
-
-    helpers.assert_model_all_close((params, buffers), model_ref, model_base, dtype=dtype)
+    _set_use_chain_flat(True)
 
 
 @pytest.mark.skipif(not torch.cuda.is_available(), reason='No CUDA device available.')
 @helpers.parametrize(
     dtype=[torch.float64],
     lr=[1e-2, 1e-3, 1e-4],
+    optimizers=[
+        (torchopt.adam, torch.optim.Adam),
+        (torchopt.adamw, torch.optim.AdamW),
+    ],
     betas=[(0.9, 0.999), (0.95, 0.9995)],
     eps=[1e-8],
     inplace=[True, False],
     weight_decay=[0.0, 1e-2],
     maximize=[False, True],
+    use_chain_flat=[True, False],
 )
 def test_adam_accelerated_cuda(
     dtype: torch.dtype,
     lr: float,
+    optimizers: Tuple[Callable, torch.optim.Optimizer],
     betas: Tuple[float, float],
     eps: float,
     inplace: bool,
     weight_decay: float,
     maximize: bool,
+    use_chain_flat: bool,
 ) -> None:
+    _set_use_chain_flat(use_chain_flat)
+
     device = 'cuda'
     model, model_ref, model_base, loader = helpers.get_models(device=device, dtype=dtype)
 
+    torchopt_optimizer, torch_optimizer = optimizers
+
     fmodel, params, buffers = functorch.make_functional_with_buffers(model)
-    optim = torchopt.adam(
+    optim = torchopt_optimizer(
         lr,
         betas=betas,
         eps=eps,
@@ -295,7 +359,7 @@ def test_adam_accelerated_cuda(
         use_accelerated_op=True,
     )
     optim_state = optim.init(params)
-    optim_ref = torch.optim.Adam(
+    optim_ref = torch_optimizer(
         model_ref.parameters(),
         lr,
         betas=betas,
@@ -322,6 +386,7 @@ def test_adam_accelerated_cuda(
         optim_ref.step()
 
     helpers.assert_model_all_close((params, buffers), model_ref, model_base, dtype=dtype)
+    _set_use_chain_flat(True)
 
 
 @helpers.parametrize(
@@ -333,6 +398,7 @@ def test_adam_accelerated_cuda(
     centered=[False, True],
     weight_decay=[0.0, 1e-2],
     inplace=[True, False],
+    use_chain_flat=[True, False],
 )
 def test_rmsprop(
     dtype: torch.dtype,
@@ -343,7 +409,10 @@ def test_rmsprop(
     centered: bool,
     weight_decay: float,
     inplace: bool,
+    use_chain_flat: bool,
 ) -> None:
+    _set_use_chain_flat(use_chain_flat)
+
     model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
 
     fmodel, params, buffers = functorch.make_functional_with_buffers(model)
@@ -383,3 +452,4 @@ def test_rmsprop(
         optim_ref.step()
 
     helpers.assert_model_all_close((params, buffers), model_ref, model_base, dtype=dtype)
+    _set_use_chain_flat(True)

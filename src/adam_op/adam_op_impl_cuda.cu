@@ -1,4 +1,4 @@
-// Copyright 2022 MetaOPT Team. All Rights Reserved.
+// Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -51,8 +51,10 @@ __global__ void adamForwardInplaceCUDAKernel(const other_t b1,
 
     const scalar_t mu_out = b1 * mu + (1 - b1) * updates;
     const scalar_t nu_out = b2 * nu + (1 - b2) * updates * updates;
-    const scalar_t updates_out =
-        mu_out * inv_one_minus_pow_b1 / (sqrt(nu_out * inv_one_minus_pow_b2 + eps_root) + eps);
+    const scalar_t mu_hat = mu_out * inv_one_minus_pow_b1;
+    const scalar_t nu_hat = nu_out * inv_one_minus_pow_b2;
+
+    const scalar_t updates_out = mu_hat / (sqrt(nu_hat + eps_root) + eps);
 
     mu_ptr[tid] = mu_out;
     nu_ptr[tid] = nu_out;
@@ -445,10 +447,11 @@ TensorArray<2> adamBackwardUpdatesCUDA(const torch::Tensor &dupdates,
                                        const torch::Tensor &new_nu,
                                        const pyfloat_t b1,
                                        const pyfloat_t b2,
+                                       const pyfloat_t eps_root,
                                        const pyuint_t count) {
   using other_t = pyfloat_t;
   const other_t one_minus_pow_b1 = 1 - std::pow(b1, count);
-  const other_t inv_one_minus_pow_b2 = 1 / (1 - std::pow(b2, count));
+  const other_t inv_one_minus_pow_b2 = 1 / (1 - std::pow(b2, count) + eps_root);
 
   auto dmu_out = torch::empty_like(new_mu);
   auto dnu_out = torch::empty_like(new_nu);

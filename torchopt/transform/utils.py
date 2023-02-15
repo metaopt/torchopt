@@ -32,7 +32,7 @@
 """Utilities for the preset transformations."""
 
 from collections import deque
-from typing import Any, Callable, Iterable, List
+from typing import Any, Callable, Sequence
 
 import torch
 
@@ -46,7 +46,12 @@ __all__ = ['tree_map_flat', 'tree_map_flat_', 'inc_count', 'update_moment']
 INT64_MAX = torch.iinfo(torch.int64).max
 
 
-def tree_map_flat(func: Callable, *flat_args: Any, none_is_leaf: bool = False) -> List[Any]:
+def tree_map_flat(
+    func: Callable,
+    flat_arg: Sequence[Any],
+    *flat_args: Any,
+    none_is_leaf: bool = False,
+) -> Sequence[Any]:
     """Apply a function to each element of a flattened list."""
     if none_is_leaf:
         fn = func
@@ -55,13 +60,16 @@ def tree_map_flat(func: Callable, *flat_args: Any, none_is_leaf: bool = False) -
         def fn(x, *xs):
             return func(x, *xs) if x is not None else None
 
-    return list(map(fn, *flat_args))
+    return flat_arg.__class__(map(fn, flat_arg, *flat_args))  # type: ignore[call-arg]
 
 
 def tree_map_flat_(
-    func: Callable, flat_arg: Iterable[Any], *flat_args: Any, none_is_leaf: bool = False
-) -> Iterable[Any]:
-    """Apply a function to each element of a flattened list."""
+    func: Callable,
+    flat_arg: Sequence[Any],
+    *flat_args: Any,
+    none_is_leaf: bool = False,
+) -> Sequence[Any]:
+    """Apply a function to each element of a flattened list and return the original list."""
     if none_is_leaf:
         fn = func
     else:
@@ -80,42 +88,85 @@ def inc_count(updates: Updates, count: TensorTree) -> TensorTree:
     Returns:
         A counter incremented by one, or :data:`INT64_MAX` if the maximum precision is reached.
     """
-    return _inc_count(updates=updates, count=count, already_flattened=False)
+    return _inc_count(
+        updates=updates,
+        count=count,
+        already_flattened=False,
+    )
 
 
 def _inc_count_flat(updates: Updates, count: TensorTree) -> TensorTree:
-    return _inc_count(updates=updates, count=count, already_flattened=True)
+    return _inc_count(
+        updates=updates,
+        count=count,
+        already_flattened=True,
+    )
 
 
 def _inc_count(
-    updates: Updates, count: TensorTree, *, already_flattened: bool = False
+    updates: Updates,
+    count: TensorTree,
+    *,
+    already_flattened: bool = False,
 ) -> TensorTree:
     def f(c, g):  # pylint: disable=invalid-name
         return c + (c != INT64_MAX).to(torch.int64) if g is not None else c
 
     if already_flattened:
-        return tree_map_flat(f, count, updates)
-    return pytree.tree_map(f, count, updates)
+        return tree_map_flat(f, count, updates, none_is_leaf=True)
+    return pytree.tree_map(f, count, updates, none_is_leaf=True)
 
 
 inc_count.flat = _inc_count_flat  # type: ignore[attr-defined]
 inc_count.impl = _inc_count  # type: ignore[attr-defined]
 
 
-def update_moment(updates, moments, decay, *, order, inplace=True):
+def update_moment(
+    updates: Updates,
+    moments: TensorTree,
+    decay: float,
+    *,
+    order: int,
+    inplace: bool = True,
+) -> TensorTree:
     """Compute the exponential moving average of the ``order``-th moment."""
     return _update_moment(
-        updates, moments, decay, order=order, inplace=inplace, already_flattened=False
+        updates,
+        moments,
+        decay,
+        order=order,
+        inplace=inplace,
+        already_flattened=False,
     )
 
 
-def _update_moment_flat(updates, moments, decay, *order, inplace=True):
+def _update_moment_flat(
+    updates: Updates,
+    moments: TensorTree,
+    decay: float,
+    *,
+    order: int,
+    inplace: bool = True,
+) -> TensorTree:
     return _update_moment(
-        updates, moments, decay, order=order, inplace=inplace, already_flattened=True
+        updates,
+        moments,
+        decay,
+        order=order,
+        inplace=inplace,
+        already_flattened=True,
     )
 
 
-def _update_moment(updates, moments, decay, *, order, inplace=True, already_flattened=False):
+def _update_moment(
+    updates: Updates,
+    moments: TensorTree,
+    decay: float,
+    *,
+    order: int,
+    inplace: bool = True,
+    already_flattened=False,
+) -> TensorTree:
     assert order in (1, 2)
 
     if inplace:
@@ -141,7 +192,7 @@ def _update_moment(updates, moments, decay, *, order, inplace=True, already_flat
                 return t.mul(decay).add_(g, alpha=1 - decay) if g is not None else t
 
     if already_flattened:
-        return tree_map_flat(f, updates, moments)
+        return tree_map_flat(f, updates, moments, none_is_leaf=True)
     return pytree.tree_map(f, updates, moments, none_is_leaf=True)
 
 

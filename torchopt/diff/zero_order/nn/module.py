@@ -24,7 +24,7 @@ import torch
 import torch.nn as nn
 
 from torchopt.diff.zero_order.decorator import Method, Samplable, zero_order
-from torchopt.nn.stateless import reparameterize
+from torchopt.nn.stateless import reparametrize
 from torchopt.typing import Numeric, TupleOfTensors
 
 
@@ -55,7 +55,7 @@ def enable_zero_order_gradients(
             *input,
             **kwargs,
         ) -> torch.Tensor:
-            with reparameterize(self, zip(params_names, __flat_params)):
+            with reparametrize(self, zip(params_names, __flat_params)):
                 return cls_forward(self, *input, **kwargs)
 
         return forward_fn(flat_params, *input, **kwargs)

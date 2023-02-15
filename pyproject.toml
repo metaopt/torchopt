@@ -72,10 +72,9 @@ lint = [
     "black[jupyter] >= 22.6.0",
     "pylint[spelling] >= 2.15.0",
     "mypy >= 0.990",
-    "types-setuptools",
     "flake8",
     "flake8-bugbear",
-    "doc8 < 1.0.0a0",
+    "doc8 < 1.0.0a0",  # unpin this when we drop support for Python 3.7
     "pydocstyle[toml]",
     "pyenchant",
     "cpplint",
@@ -209,3 +208,9 @@ convention = "google"
 
 [tool.doc8]
 max-line-length = 500
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "error",
+    'ignore:Explicitly requested dtype float64 requested in .* is not available, and will be truncated to dtype float32\.:UserWarning',
+]

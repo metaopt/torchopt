@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,13 +15,18 @@
 """TorchOpt: a high-performance optimizer library built upon PyTorch."""
 
 from torchopt import (
+    accelerated_op,
+    alias,
+    base,
     clip,
     combine,
     diff,
     distributed,
     hook,
+    linalg,
     linear_solve,
     nn,
+    optim,
     pytree,
     schedule,
     typing,

@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,12 +14,13 @@
 # ==============================================================================
 """Hook utilities."""
 
-from typing import Callable, Optional
+from typing import Callable, Optional, Tuple
 
 import torch
 
 from torchopt import pytree
 from torchopt.base import EmptyState, GradientTransformation
+from torchopt.typing import OptState, Params, Updates
 
 
 __all__ = ['zero_nan_hook', 'nan_to_num_hook', 'register_hook']
@@ -51,10 +52,16 @@ def register_hook(hook) -> GradientTransformation:
         An ``(init_fn, update_fn)`` tuple.
     """
 
-    def init_fn(params):  # pylint: disable=unused-argument
+    def init_fn(params: Params) -> OptState:  # pylint: disable=unused-argument
         return EmptyState()
 
-    def update_fn(updates, state, *, params=None, inplace=True):  # pylint: disable=unused-argument
+    def update_fn(
+        updates: Updates,
+        state: OptState,
+        *,
+        params: Optional[Params] = None,  # pylint: disable=unused-argument
+        inplace: bool = True,  # pylint: disable=unused-argument
+    ) -> Tuple[Updates, OptState]:
         def f(g):
             return g.register_hook(hook)
 

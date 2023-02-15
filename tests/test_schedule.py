@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import torch.nn.functional as F
 
 import helpers
 import torchopt
+from torchopt.alias.utils import _set_use_chain_flat
 
 
 def test_linear_schedule() -> None:
@@ -55,6 +56,7 @@ def test_linear_schedule() -> None:
     ],
     inplace=[True, False],
     weight_decay=[0.0, 1e-2],
+    use_chain_flat=[True, False],
 )
 def test_lr_linear_schedule(
     dtype: torch.dtype,
@@ -63,7 +65,10 @@ def test_lr_linear_schedule(
     optimizers: Tuple[Callable, torch.optim.Optimizer],
     inplace: bool,
     weight_decay: float,
+    use_chain_flat: bool,
 ) -> None:
+    _set_use_chain_flat(use_chain_flat)
+
     model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
 
     torchopt_optimizer, torch_optimizer = optimizers
@@ -102,3 +107,4 @@ def test_lr_linear_schedule(
         torch_scheduler.step()
 
     helpers.assert_model_all_close((params, buffers), model_ref, model_base, dtype=dtype)
+    _set_use_chain_flat(True)

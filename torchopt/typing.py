@@ -14,6 +14,7 @@
 # ==============================================================================
 """Typing utilities."""
 
+import abc
 from typing import Callable, Dict, List, Optional, Sequence, Tuple, TypeVar, Union
 from typing_extensions import TypeAlias  # Python 3.10+
 from typing_extensions import Protocol, runtime_checkable  # Python 3.8+
@@ -24,7 +25,6 @@ from optree.typing import PyTree, PyTreeTypeVar
 from torch import Tensor
 from torch.distributions import Distribution
 from torch.futures import Future
-from torch.types import Device
 
 from torchopt.base import (
     ChainedGradientTransformation,
@@ -72,6 +72,8 @@ __all__ = [
 
 T = TypeVar('T')
 
+Device: TypeAlias = Union[torch.device, str, int]
+
 Scalar: TypeAlias = Union[float, int, bool]
 Numeric: TypeAlias = Union[Tensor, Scalar]
 
@@ -100,12 +102,13 @@ Params: TypeAlias = TensorTree
 Updates: TypeAlias = Params  # Gradient updates are of the same type as parameters.
 OptState: TypeAlias = TensorTree  # States are arbitrary nests of `torch.Tensor`.
 
-if rpc.is_available():
+if rpc.is_available():  # pragma: no cover
     from torch.distributed.rpc import RRef  # pylint: disable=ungrouped-imports,unused-import
 
     __all__.extend(['RRef'])
-else:
-    RRef = None  # type: ignore[misc,assignment] # pylint: disable=invalid-name
+else:  # pragma: no cover
+    # pylint: disable-next=invalid-name
+    RRef = None  # type: ignore[misc,assignment]
 
 # solver(matvec, b) -> solution
 LinearSolver: TypeAlias = Callable[[Callable[[TensorTree], TensorTree], TensorTree], TensorTree]
@@ -121,12 +124,13 @@ SampleFunc: TypeAlias = Callable[[Size], Union[Tensor, Sequence[Numeric]]]
 class Samplable(Protocol):  # pylint: disable=too-few-public-methods
     """Abstract protocol class that supports sampling."""
 
+    @abc.abstractmethod
     def sample(
         self, sample_shape: Size = Size()  # pylint: disable=unused-argument
     ) -> Union[Tensor, Sequence[Numeric]]:
         # pylint: disable-next=line-too-long
         """Generate a sample_shape shaped sample or sample_shape shaped batch of samples if the distribution parameters are batched."""
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
 
 Samplable.register(Distribution)

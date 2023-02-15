@@ -77,17 +77,17 @@ class cmake_build_ext(build_ext):
             and hasattr(self, 'parallel')
             and self.parallel
         ):
-            build_args.append(f'--parallel={self.parallel}')
+            build_args.extend(['--parallel', str(self.parallel)])
         else:
             build_args.append('--parallel')
 
-        build_args.extend([f'--target={ext.target}', '--'])
+        build_args.extend(['--target', ext.target, '--'])
 
         try:
             os.chdir(build_temp)
-            self.spawn(['cmake', ext.source_dir] + cmake_args)
+            self.spawn([cmake, ext.source_dir] + cmake_args)
             if not self.dry_run:
-                self.spawn(['cmake', '--build', '.'] + build_args)
+                self.spawn([cmake, '--build', '.'] + build_args)
         finally:
             os.chdir(HERE)
 

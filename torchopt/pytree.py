@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -167,7 +167,7 @@ def tree_wait(future_tree: PyTree[Future[T]]) -> PyTree[T]:
     return tree_unflatten(treespec, results)
 
 
-if rpc.is_available():
+if rpc.is_available():  # pragma: no cover
 
     def tree_as_rref(tree: PyTree[T]) -> PyTree[RRef[T]]:
         r"""Convert a tree of local objects to a tree of :class:`RRef`\s."""

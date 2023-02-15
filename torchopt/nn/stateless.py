@@ -21,7 +21,7 @@ import torch
 import torch.nn as nn
 
 
-__all__ = ['swap_state', 'reparameterize']
+__all__ = ['swap_state', 'reparametrize', 'reparameterize']
 
 
 MISSING: torch.Tensor = object()  # type: ignore[assignment]
@@ -82,7 +82,7 @@ def swap_state(
 
 
 @contextlib.contextmanager
-def reparameterize(
+def reparametrize(
     module: nn.Module,
     named_tensors: Union[Dict[str, torch.Tensor], Iterable[Tuple[str, torch.Tensor]]],
     allow_missing: bool = False,
@@ -97,3 +97,6 @@ def reparameterize(
         yield module
     finally:
         swap_state(module, orig_named_tensors, allow_missing=allow_missing)
+
+
+reparameterize = reparametrize

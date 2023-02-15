@@ -17,13 +17,11 @@
 # ==============================================================================
 """Computation graph visualization."""
 
-import warnings
 from collections import namedtuple
 from typing import Generator, Iterable, Mapping, Optional, Union, cast
 
 import torch
 from graphviz import Digraph
-from pkg_resources import parse_version
 
 from torchopt.typing import TensorOrTensors
 from torchopt.utils import ModuleState
@@ -113,13 +111,6 @@ def make_dot(
         max_attr_chars: If ``show_attrs`` is :data:`True`, sets max number of characters to display
             for any given attribute.
     """
-    if parse_version(torch.__version__) < parse_version('1.9') and (show_attrs or show_saved):
-        warnings.warn(
-            'make_dot: showing grad_fn attributes and saved variables '
-            'requires PyTorch version >= 1.9. (This does NOT apply to '
-            'saved tensors saved by custom autograd functions.)'
-        )
-
     param_map = {}
 
     if params is not None:

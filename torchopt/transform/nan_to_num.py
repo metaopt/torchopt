@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,14 +14,17 @@
 # ==============================================================================
 """Preset transformations that replaces updates with non-finite values to the given numbers."""
 
-from typing import Optional
+from typing import Optional, Tuple
 
 from torchopt import pytree
 from torchopt.base import EmptyState, GradientTransformation
+from torchopt.typing import OptState, Params, Updates
 
 
 def nan_to_num(
-    nan: float = 0.0, posinf: Optional[float] = None, neginf: Optional[float] = None
+    nan: float = 0.0,
+    posinf: Optional[float] = None,
+    neginf: Optional[float] = None,
 ) -> GradientTransformation:
     """Replace updates with values ``nan`` / ``+inf`` / ``-inf`` to the given numbers.
 
@@ -29,10 +32,16 @@ def nan_to_num(
         An ``(init_fn, update_fn)`` tuple.
     """
 
-    def init_fn(params):  # pylint: disable=unused-argument
+    def init_fn(params: Params) -> OptState:  # pylint: disable=unused-argument
         return EmptyState()
 
-    def update_fn(updates, state, *, params=None, inplace=True):  # pylint: disable=unused-argument
+    def update_fn(
+        updates: Updates,
+        state: OptState,
+        *,
+        params: Optional[Params] = None,  # pylint: disable=unused-argument
+        inplace: bool = True,
+    ) -> Tuple[Updates, OptState]:
         if inplace:
 
             def f(g):

@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -91,6 +91,7 @@ def test_SGD(
     eps=[1e-8],
     weight_decay=[0.0, 1e-2],
     maximize=[False, True],
+    use_accelerated_op=[False, True],
 )
 def test_Adam(
     dtype: torch.dtype,
@@ -99,6 +100,7 @@ def test_Adam(
     eps: float,
     weight_decay: float,
     maximize: bool,
+    use_accelerated_op: bool,
 ) -> None:
     model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
 
@@ -110,6 +112,7 @@ def test_Adam(
         eps_root=0.0,
         weight_decay=weight_decay,
         maximize=maximize,
+        use_accelerated_op=use_accelerated_op,
     )
     optim_ref = torch.optim.Adam(
         model_ref.parameters(),
@@ -146,6 +149,7 @@ def test_Adam(
     eps=[1e-8],
     weight_decay=[1e-2, 1e-1],
     maximize=[False, True],
+    use_accelerated_op=[False, True],
 )
 def test_AdamW(
     dtype: torch.dtype,
@@ -154,6 +158,7 @@ def test_AdamW(
     eps: float,
     weight_decay: float,
     maximize: bool,
+    use_accelerated_op: bool,
 ) -> None:
     model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
 
@@ -165,64 +170,9 @@ def test_AdamW(
         eps_root=0.0,
         weight_decay=weight_decay,
         maximize=maximize,
+        use_accelerated_op=use_accelerated_op,
     )
     optim_ref = torch.optim.AdamW(
-        model_ref.parameters(),
-        lr,
-        betas=betas,
-        eps=eps,
-        amsgrad=False,
-        weight_decay=weight_decay,
-        maximize=maximize,
-    )
-
-    for xs, ys in loader:
-        xs = xs.to(dtype=dtype)
-        pred = model(xs)
-        pred_ref = model_ref(xs)
-        loss = F.cross_entropy(pred, ys)
-        loss_ref = F.cross_entropy(pred_ref, ys)
-
-        optim.zero_grad()
-        loss.backward()
-        optim.step()
-
-        optim_ref.zero_grad()
-        loss_ref.backward()
-        optim_ref.step()
-
-    helpers.assert_model_all_close(model, model_ref, model_base, dtype=dtype)
-
-
-@helpers.parametrize(
-    dtype=[torch.float64],
-    lr=[1e-2, 1e-3, 1e-4],
-    betas=[(0.9, 0.999), (0.95, 0.9995)],
-    eps=[1e-8],
-    weight_decay=[0.0, 1e-2],
-    maximize=[False, True],
-)
-def test_Adam_accelerated_cpu(
-    dtype: torch.dtype,
-    lr: float,
-    betas: Tuple[float, float],
-    eps: float,
-    weight_decay: float,
-    maximize: bool,
-) -> None:
-    model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
-
-    optim = torchopt.Adam(
-        model.parameters(),
-        lr,
-        betas=betas,
-        eps=eps,
-        eps_root=0.0,
-        weight_decay=weight_decay,
-        maximize=maximize,
-        use_accelerated_op=True,
-    )
-    optim_ref = torch.optim.Adam(
         model_ref.parameters(),
         lr,
         betas=betas,
@@ -254,6 +204,10 @@ def test_Adam_accelerated_cpu(
 @helpers.parametrize(
     dtype=[torch.float64],
     lr=[1e-2, 1e-3, 1e-4],
+    optimizers=[
+        (torchopt.Adam, torch.optim.Adam),
+        (torchopt.AdamW, torch.optim.AdamW),
+    ],
     betas=[(0.9, 0.999), (0.95, 0.9995)],
     eps=[1e-8],
     weight_decay=[0.0, 1e-2],
@@ -262,6 +216,7 @@ def test_Adam_accelerated_cpu(
 def test_Adam_accelerated_cuda(
     dtype: torch.dtype,
     lr: float,
+    optimizers: Tuple[torchopt.Optimizer, torch.optim.Optimizer],
     betas: Tuple[float, float],
     eps: float,
     weight_decay: float,
@@ -270,7 +225,9 @@ def test_Adam_accelerated_cuda(
     device = 'cuda'
     model, model_ref, model_base, loader = helpers.get_models(device=device, dtype=dtype)
 
-    optim = torchopt.Adam(
+    torchopt_optimizer, torch_optimizer = optimizers
+
+    optim = torchopt_optimizer(
         model.parameters(),
         lr,
         betas=betas,
@@ -280,7 +237,7 @@ def test_Adam_accelerated_cuda(
         maximize=maximize,
         use_accelerated_op=True,
     )
-    optim_ref = torch.optim.Adam(
+    optim_ref = torch_optimizer(
         model_ref.parameters(),
         lr,
         betas=betas,

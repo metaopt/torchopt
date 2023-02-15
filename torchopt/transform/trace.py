@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -33,14 +33,14 @@
 
 # pylint: disable=invalid-name
 
-from typing import NamedTuple
+from typing import NamedTuple, Optional, Tuple
 
 import torch
 
 from torchopt import pytree
 from torchopt.base import GradientTransformation, identity
-from torchopt.transform.utils import tree_map_flat
-from torchopt.typing import Params
+from torchopt.transform.utils import tree_map_flat, tree_map_flat_
+from torchopt.typing import OptState, Params, Updates
 
 
 __all__ = ['trace']
@@ -110,9 +110,9 @@ def _trace(
     already_flattened: bool = False,
 ) -> GradientTransformation:
     # pylint: disable=unneeded-not
-    if not 0.0 <= momentum:
+    if not 0.0 <= momentum:  # pragma: no cover
         raise ValueError(f'Invalid momentum value: {momentum}')
-    if nesterov and (momentum <= 0.0 or dampening != 0.0):
+    if nesterov and (momentum <= 0.0 or dampening != 0.0):  # pragma: no cover
         raise ValueError('Nesterov momentum requires a momentum and zero dampening')
     # pylint: enable=unneeded-not
 
@@ -121,10 +121,12 @@ def _trace(
 
     if already_flattened:
         tree_map = tree_map_flat
+        tree_map_ = tree_map_flat_
     else:
         tree_map = pytree.tree_map  # type: ignore[assignment]
+        tree_map_ = pytree.tree_map_  # type: ignore[assignment]
 
-    def init_fn(params):
+    def init_fn(params: Params) -> OptState:
         return TraceState(
             trace=tree_map(
                 lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params
@@ -133,7 +135,13 @@ def _trace(
 
     first_call = True
 
-    def update_fn(updates, state, *, params=None, inplace=True):  # pylint: disable=unused-argument
+    def update_fn(
+        updates: Updates,
+        state: OptState,
+        *,
+        params: Optional[Params] = None,  # pylint: disable=unused-argument
+        inplace: bool = True,
+    ) -> Tuple[Updates, OptState]:
         nonlocal first_call
 
         if nesterov:
@@ -148,7 +156,8 @@ def _trace(
                     return g.add_(t, alpha=momentum)
 
                 new_trace = tree_map(f1, updates, state.trace)
-                updates = tree_map(f2, updates, new_trace)
+                updates = tree_map_(f2, updates, new_trace)
+
             else:
 
                 def f1(g, t):
@@ -161,19 +170,21 @@ def _trace(
 
                 new_trace = tree_map(f1, updates, state.trace)
                 updates = tree_map(f2, updates, new_trace)
+
         else:
             if inplace:
 
                 def f(g, t):
                     if first_call:
-                        return t.add(g)
+                        return t.add_(g)
                     return t.mul_(momentum).add_(g, alpha=1.0 - dampening)
 
                 def copy_(g, t):
                     return g.copy_(t)
 
                 new_trace = tree_map(f, updates, state.trace)
-                updates = tree_map(copy_, updates, new_trace)
+                updates = tree_map_(copy_, updates, new_trace)
+
             else:
 
                 def f(g, t):
