@@ -91,7 +91,6 @@ def _scale_by_rss(
     *,
     already_flattened: bool = False,
 ) -> GradientTransformation:
-
     if already_flattened:
         tree_map = tree_map_flat
     else:
