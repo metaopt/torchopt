@@ -13,6 +13,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+-
+
+### Changed
+
+-
+
+### Fixed
+
+-
+
+### Removed
+
+-
+
+------
+
+## [0.7.0] - 2023-02-16
+
+### Added
+
 - Update Sphinx documentation by [@XuehaiPan](https://github.com/XuehaiPan) and [@Benjamin-eecs](https://github.com/Benjamin-eecs) and [@waterhorse1](https://github.com/waterhorse1) and [@JieRen98](https://github.com/JieRen98) in [#127](https://github.com/metaopt/torchopt/pull/127).
 - Add object-oriented modules support for zero-order differentiation by [@XuehaiPan](https://github.com/XuehaiPan) in [#125](https://github.com/metaopt/torchopt/pull/125).
 
@@ -25,10 +45,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Update tests and fix corresponding bugs by [@XuehaiPan](https://github.com/XuehaiPan) and [@Benjamin-eecs](https://github.com/Benjamin-eecs) and [@JieRen98](https://github.com/JieRen98) in [#78](https://github.com/metaopt/torchopt/pull/78).
 - Fix memory leak in implicit MAML omniglot few-shot classification example with OOP APIs by [@XuehaiPan](https://github.com/XuehaiPan) in [#113](https://github.com/metaopt/torchopt/pull/113).
-
-### Removed
-
-
 
 ------
 
@@ -150,7 +166,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ------
 
-[Unreleased]: https://github.com/metaopt/torchopt/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/metaopt/torchopt/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/metaopt/torchopt/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/metaopt/torchopt/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/metaopt/torchopt/compare/v0.4.3...v0.5.0
 [0.4.3]: https://github.com/metaopt/torchopt/compare/v0.4.2...v0.4.3
