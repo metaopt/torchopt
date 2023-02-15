@@ -15,13 +15,18 @@
 """TorchOpt: a high-performance optimizer library built upon PyTorch."""
 
 from torchopt import (
+    accelerated_op,
+    alias,
+    base,
     clip,
     combine,
     diff,
     distributed,
     hook,
+    linalg,
     linear_solve,
     nn,
+    optim,
     pytree,
     schedule,
     typing,
