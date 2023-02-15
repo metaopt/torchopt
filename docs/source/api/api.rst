@@ -285,6 +285,115 @@ Chain
 .. autofunction:: chain
 
 
+Distributed Utilities
+=====================
+
+.. currentmodule:: torchopt.distributed
+
+Initialization and Synchronization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autosummary::
+
+    auto_init_rpc
+    barrier
+
+.. autofunction:: auto_init_rpc
+.. autofunction:: barrier
+
+Process group information
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autosummary::
+
+    get_world_info
+    get_world_rank
+    get_rank
+    get_world_size
+    get_local_rank
+    get_local_world_size
+    get_worker_id
+
+.. autofunction:: get_world_info
+.. autofunction:: get_world_rank
+.. autofunction:: get_rank
+.. autofunction:: get_world_size
+.. autofunction:: get_local_rank
+.. autofunction:: get_local_world_size
+.. autofunction:: get_worker_id
+
+Worker selection
+~~~~~~~~~~~~~~~~
+
+.. autosummary::
+
+    on_rank
+    not_on_rank
+    rank_zero_only
+    rank_non_zero_only
+
+.. autofunction:: on_rank
+.. autofunction:: not_on_rank
+.. autofunction:: rank_zero_only
+.. autofunction:: rank_non_zero_only
+
+Remote Procedure Call (RPC)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autosummary::
+
+    remote_async_call
+    remote_sync_call
+
+.. autofunction:: remote_async_call
+.. autofunction:: remote_sync_call
+
+Predefined partitioners and reducers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autosummary::
+
+    dim_partitioner
+    batch_partitioner
+    mean_reducer
+    sum_reducer
+
+.. autofunction:: dim_partitioner
+.. autofunction:: batch_partitioner
+.. autofunction:: mean_reducer
+.. autofunction:: sum_reducer
+
+Function parallelization wrappers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autosummary::
+
+    parallelize
+    parallelize_async
+    parallelize_sync
+
+.. autofunction:: parallelize
+.. autofunction:: parallelize_async
+.. autofunction:: parallelize_sync
+
+Distributed Autograd
+~~~~~~~~~~~~~~~~~~~~
+
+.. currentmodule:: torchopt.distributed.autograd
+
+.. autosummary::
+
+    context
+    get_gradients
+    backward
+    grad
+
+.. autofunction:: context
+.. autofunction:: get_gradients
+.. autofunction:: backward
+.. autofunction:: grad
+
+
 General Utilities
 =================
 
