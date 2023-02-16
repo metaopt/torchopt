@@ -17,8 +17,7 @@
 from __future__ import annotations
 
 import functools
-from typing import Any, Callable, Sequence
-from typing_extensions import Literal  # Python 3.8+
+from typing import Any, Callable, Literal, Sequence
 from typing_extensions import TypeAlias  # Python 3.10+
 
 import torch
