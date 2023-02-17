@@ -46,7 +46,11 @@ pylint-install:
 
 flake8-install:
 	$(call check_pip_install,flake8)
-	$(call check_pip_install_extra,flake8-bugbear,flake8-bugbear)
+	$(call check_pip_install,flake8-bugbear)
+	$(call check_pip_install,flake8-comprehensions)
+	$(call check_pip_install,flake8-docstrings)
+	$(call check_pip_install,flake8-pyi)
+	$(call check_pip_install,flake8-simplify)
 
 py-format-install:
 	$(call check_pip_install,isort)
@@ -122,7 +126,7 @@ pylint: pylint-install
 	$(PYTHON) -m pylint $(PROJECT_PATH)
 
 flake8: flake8-install
-	$(PYTHON) -m flake8 $(PYTHON_FILES) --count --select=E9,F63,F7,F82,E225,E251 --show-source --statistics
+	$(PYTHON) -m flake8 --count --show-source --statistics
 
 py-format: py-format-install
 	$(PYTHON) -m isort --project $(PROJECT_NAME) --check $(PYTHON_FILES) && \

@@ -16,6 +16,10 @@ pylint[spelling] >= 2.15.0
 mypy >= 0.990
 flake8
 flake8-bugbear
+flake8-comprehensions
+flake8-docstrings
+flake8-pyi
+flake8-simplify
 # https://github.com/PyCQA/doc8/issues/112
 doc8 < 1.0.0a0
 pydocstyle[toml]

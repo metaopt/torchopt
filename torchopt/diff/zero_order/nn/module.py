@@ -92,7 +92,8 @@ class ZeroOrderGradientModule(nn.Module, Samplable):
 
     @abc.abstractmethod
     def sample(
-        self, sample_shape: torch.Size = torch.Size()  # pylint: disable=unused-argument
+        self,
+        sample_shape: torch.Size = torch.Size(),  # noqa: B008 # pylint: disable=unused-argument
     ) -> torch.Tensor | Sequence[Numeric]:
         # pylint: disable-next=line-too-long
         """Generate a sample_shape shaped sample or sample_shape shaped batch of samples if the distribution parameters are batched."""
