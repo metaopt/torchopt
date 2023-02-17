@@ -35,7 +35,10 @@ class WrappedSamplable(Samplable):  # pylint: disable=too-few-public-methods
         """Wrap a sample function to make it a :class:`Samplable` object."""
         self.sample_fn = sample_fn
 
-    def sample(self, sample_shape: torch.Size = torch.Size()) -> torch.Tensor | Sequence[Numeric]:
+    def sample(
+        self,
+        sample_shape: torch.Size = torch.Size(),  # noqa: B008
+    ) -> torch.Tensor | Sequence[Numeric]:
         # pylint: disable-next=line-too-long
         """Generate a sample_shape shaped sample or sample_shape shaped batch of samples if the distribution parameters are batched."""
         return self.sample_fn(sample_shape)

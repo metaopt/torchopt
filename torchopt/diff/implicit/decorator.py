@@ -91,7 +91,7 @@ def _root_vjp(
     grad_outputs: TupleOfTensors,
     output_is_tensor: bool,
     argnums: tuple[int, ...],
-    solve: Callable[..., TensorOrTensors] = linear_solve.solve_normal_cg(),
+    solve: Callable[..., TensorOrTensors],
 ) -> TupleOfOptionalTensors:
     if output_is_tensor:
 
@@ -414,7 +414,7 @@ def custom_root(
     optimality_fn: Callable[..., TensorOrTensors],
     argnums: int | tuple[int, ...],
     has_aux: bool = False,
-    solve: Callable[..., TensorOrTensors] = linear_solve.solve_normal_cg(),
+    solve: Callable[..., TensorOrTensors] | None = None,
 ) -> Callable[
     [Callable[..., TensorOrTensors | tuple[TensorOrTensors, Any]]],
     Callable[..., TensorOrTensors | tuple[TensorOrTensors, Any]],
@@ -464,6 +464,9 @@ def custom_root(
         argnums = (argnums,)
     else:
         assert 0 not in argnums
+
+    if solve is None:
+        solve = linear_solve.solve_normal_cg()
 
     return functools.partial(
         _custom_root,

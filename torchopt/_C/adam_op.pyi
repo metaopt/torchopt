@@ -15,8 +15,6 @@
 
 # pylint: disable=all
 
-from __future__ import annotations
-
 import torch
 
 def forward_(

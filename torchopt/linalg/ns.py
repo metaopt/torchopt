@@ -117,7 +117,7 @@ def _ns_inv(A: torch.Tensor, maxiter: int, alpha: float | None = None):
     if A.ndim != 2 or A.shape[0] != A.shape[1]:
         raise ValueError(f'`A` must be a square matrix, but has shape: {A.shape}')
 
-    I = torch.eye(*A.shape, out=torch.empty_like(A))
+    I = torch.eye(*A.shape, out=torch.empty_like(A))  # noqa: E741
     inv_A_hat = torch.zeros_like(A)
     if alpha is not None:
         # A^{-1} = a [I - (I - a A)]^{-1} = a [I + (I - a A) + (I - a A)^2 + (I - a A)^3 + ...]

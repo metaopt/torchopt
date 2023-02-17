@@ -38,7 +38,7 @@ def is_available():
 
 if is_available():
     # pylint: disable-next=unused-import,ungrouped-imports
-    from torch.distributed.autograd import DistAutogradContext, get_gradients
+    from torch.distributed.autograd import DistAutogradContext, get_gradients  # noqa: F401
 
     def backward(
         autograd_ctx_id: int,
@@ -69,7 +69,7 @@ if is_available():
                 raise RuntimeError("'inputs' argument to backward() cannot be empty.")
             else:
                 inputs = tuple(inputs)
-            if not all(map(lambda t: t.requires_grad, inputs)):
+            if not all(t.requires_grad for t in inputs):
                 raise RuntimeError('One of the differentiated Tensors does not require grad')
 
         roots = [tensors] if isinstance(tensors, torch.Tensor) else list(tensors)
@@ -111,7 +111,7 @@ if is_available():
         """
         outputs = [outputs] if isinstance(outputs, torch.Tensor) else list(outputs)
         inputs = (inputs,) if isinstance(inputs, torch.Tensor) else tuple(inputs)
-        if not all(map(lambda t: t.requires_grad, inputs)):
+        if not all(t.requires_grad for t in inputs):
             raise RuntimeError('One of the differentiated Tensors does not require grad')
 
         autograd.backward(autograd_ctx_id, roots=outputs, retain_graph=retain_graph)
