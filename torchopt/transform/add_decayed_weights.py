@@ -32,7 +32,9 @@
 # ==============================================================================
 """Preset transformations for adding weight decay to updates."""
 
-from typing import Any, Callable, NamedTuple, Optional, Tuple, Union
+from __future__ import annotations
+
+from typing import Any, Callable, NamedTuple
 
 from torchopt import pytree
 from torchopt.base import EmptyState, GradientTransformation, identity
@@ -59,7 +61,7 @@ class MaskedNode(NamedTuple):
 
 def masked(
     inner: GradientTransformation,
-    mask: Union[Any, Callable[[Params], Any]],
+    mask: OptState | Callable[[Params], OptState] | None = None,
 ) -> GradientTransformation:
     """Mask updates so only some are transformed, the rest are passed through.
 
@@ -75,11 +77,12 @@ def masked(
     of :data:`True`.
 
     Args:
-        inner: Inner transformation to mask.
-        mask: A tree with same structure as (or a prefix of) the params tree, or a Callable that
-        returns such a tree given the params/updates. The leaves should be booleans, :data:`True`
-        for leaves/subtrees you want to apply the transformation to, and :data:`False` for those
-        you want to skip. The mask must be static for the gradient transformation to be jit-compilable.
+        inner (GradientTransformation): Inner transformation to mask.
+        mask (tree of Tensor, callable, or None, optional): A tree with same structure as (or a
+            prefix of) the params tree, or a function that returns such a tree given the
+            params/updates. The leaves should be booleans, :data:`True` for leaves/subtrees you want
+            to apply the transformation to, and :data:`False` for those you want to skip.
+            (default: :data:`None`)
 
     Returns:
         A :class:`GradientTransformation` wrapping ``inner``.
@@ -89,14 +92,14 @@ def masked(
 
 def _masked_flat(
     inner: GradientTransformation,
-    mask: Union[Any, Callable[[Params], Any]],
+    mask: OptState | Callable[[Params], OptState] | None = None,
 ) -> GradientTransformation:
     return _masked(inner, mask, already_flattened=True)
 
 
 def _masked(
     inner: GradientTransformation,
-    mask: Union[Any, Callable[[Params], Any]],
+    mask: OptState | Callable[[Params], OptState] | None = None,
     *,
     already_flattened: bool = False,
 ) -> GradientTransformation:
@@ -117,9 +120,9 @@ def _masked(
         updates: Updates,
         state: OptState,
         *,
-        params: Optional[Params] = None,
+        params: Params | None = None,
         inplace: bool = True,
-    ) -> Tuple[Updates, OptState]:
+    ) -> tuple[Updates, OptState]:
         mask_tree = mask(updates) if callable(mask) else mask
         masked_updates = tree_mask(updates, mask_tree)
         masked_params = None if params is None else tree_mask(params, mask_tree)
@@ -145,16 +148,17 @@ AddDecayedWeightsState = EmptyState
 
 def add_decayed_weights(
     weight_decay: float = 0.0,
-    mask: Optional[Union[Any, Callable[[Params], Any]]] = None,
+    mask: OptState | Callable[[Params], OptState] | None = None,
 ) -> GradientTransformation:
     """Add parameter scaled by `weight_decay`.
 
     Args:
-        weight_decay: a scalar weight decay rate.
-        mask: a tree with same structure as (or a prefix of) the params tree, or a Callable that
-            returns such a pytree given the params/updates. The leaves should be booleans,
-            :data:`True` for leaves/subtrees you want to apply the transformation to, and
-            :data:`False` for those you want to skip.
+        weight_decay (float, optional): A scalar weight decay rate. (default: :const:`0.0`)
+        mask (tree of Tensor, callable, or None, optional): A tree with same structure as (or a
+            prefix of) the params tree, or a function that returns such a tree given the
+            params/updates. The leaves should be booleans, :data:`True` for leaves/subtrees you want
+            to apply the transformation to, and :data:`False` for those you want to skip.
+            (default: :data:`None`)
 
     Returns:
         An (init_fn, update_fn) tuple.
@@ -168,7 +172,7 @@ def add_decayed_weights(
 
 def _add_decayed_weights_flat(
     weight_decay: float = 0.0,
-    mask: Optional[Union[Any, Callable[[Params], Any]]] = None,
+    mask: OptState | Callable[[Params], OptState] | None = None,
 ) -> GradientTransformation:
     return _add_decayed_weights(
         weight_decay=weight_decay,
@@ -179,7 +183,7 @@ def _add_decayed_weights_flat(
 
 def _add_decayed_weights(
     weight_decay: float = 0.0,
-    mask: Optional[Union[Any, Callable[[Params], Any]]] = None,
+    mask: OptState | Callable[[Params], OptState] | None = None,
     *,
     already_flattened: bool = False,
 ) -> GradientTransformation:
@@ -204,9 +208,9 @@ def _add_decayed_weights(
         updates: Updates,
         state: OptState,
         *,
-        params: Optional[Params] = None,
+        params: Params | None = None,
         inplace: bool = True,
-    ) -> Tuple[Updates, OptState]:
+    ) -> tuple[Updates, OptState]:
         assert params is not None, (
             'Parameters are required for weight decay. '
             'Call `update(updates, state, params=params)` instead.'

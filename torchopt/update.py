@@ -48,11 +48,11 @@ def apply_updates(params: Params, updates: Updates, *, inplace: bool = True) -> 
     :func:`tree_map` (e.g. if you want to manipulate updates in custom ways before applying them).
 
     Args:
-        params: A tree of parameters.
-        updates:
-            A tree of updates, the tree structure and the shape of the leaf nodes must match that
-            of ``params``.
-        inplace: If :data:`True`, will update params in a inplace manner.
+        params (tree of Tensor): A tree of parameters.
+        updates (tree of Tensor): A tree of updates, the tree structure and the shape of the leaf
+            nodes must match that of ``params``.
+        inplace (bool, optional): If :data:`True`, will update params in a inplace manner.
+            (default: :data:`True`)
 
     Returns:
         Updated parameters, with same structure, shape and type as ``params``.

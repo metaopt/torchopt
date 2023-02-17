@@ -52,18 +52,17 @@ def polynomial_schedule(
     """Construct a schedule with polynomial transition from init to end value.
 
     Args:
-        init_value: Initial value for the scalar to be annealed.
-        end_value: End value of the scalar to be annealed.
-        power: The power of the polynomial used to transition from ``init`` to ``end``.
-        transition_steps:
-            Number of steps over which annealing takes place, the scalar starts changing at
-            ``transition_begin`` steps and completes the transition by
-            ``transition_begin + transition_steps`` steps.
-            If ``transition_steps <= 0``, then the entire annealing process is disabled and the
-            value is held fixed at ``init_value``.
-        transition_begin:
-            Must be *positive*. After how many steps to start annealing (before this many steps the
-            scalar value is held fixed at ``init_value``).
+        init_value (float or Tensor): Initial value for the scalar to be annealed.
+        end_value (float or Tensor): End value of the scalar to be annealed.
+        power (float or Tensor): The power of the polynomial used to transition from ``init`` to
+            ``end``.
+        transition_steps (int): Number of steps over which annealing takes place, the scalar starts
+            changing at ``transition_begin`` steps and completes the transition by
+            ``transition_begin + transition_steps`` steps. If ``transition_steps <= 0``, then the
+            entire annealing process is disabled and the value is held fixed at ``init_value``.
+        transition_begin (int, optional): Must be *positive*. After how many steps to start
+            annealing (before this many steps the scalar value is held fixed at ``init_value``).
+            (default: :const:`0`)
 
     Returns:
         schedule:

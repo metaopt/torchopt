@@ -33,8 +33,10 @@
 
 # pylint: disable=invalid-name
 
+from __future__ import annotations
+
 import functools
-from typing import Callable, Optional
+from typing import Callable
 
 import torch
 
@@ -49,7 +51,7 @@ __all__ = ['solve_inv']
 def _solve_inv(
     matvec: Callable[[TensorTree], TensorTree],  # (x) -> A @ x
     b: TensorTree,
-    ridge: Optional[float] = None,
+    ridge: float | None = None,
     ns: bool = False,
     **kwargs,
 ) -> TensorTree:
@@ -59,11 +61,13 @@ def _solve_inv(
     in memory.
 
     Args:
-        matvec: A function that returns the product between ``A`` and a vector.
-        b: A tensor for the right hand side of the equation.
-        ridge: Optional ridge regularization. Solves the equation for ``(A + ridge * I) @ x = b``.
-        ns: Whether to use Neumann Series matrix inversion approximation. If :data:`False`,
-            materialize the matrix ``A`` in memory and use :func:`torch.linalg.solve` instead.
+        matvec (callable): A function that returns the product between ``A`` and a vector.
+        b (Tensor or tree of Tensor): A tree of tensors for the right hand side of the equation.
+        ridge (float or None, optional): Optional ridge regularization. If provided, solves the
+            equation for ``A x + ridge x = b``. (default: :data:`None`)
+        ns (bool, optional): Whether to use Neumann Series matrix inversion approximation.
+            If :data:`False`, materialize the matrix ``A`` in memory and use :func:`torch.linalg.solve`
+            instead. (default: :data:`False`)
         **kwargs: Additional keyword arguments for the Neumann Series matrix inversion approximation
             solver :func:`torchopt.linalg.ns`.
 
@@ -94,9 +98,11 @@ def solve_inv(**kwargs):
     in memory.
 
     Args:
-        ridge: Optional ridge regularization. Solves the equation for ``(A + ridge * I) @ x = b``.
-        ns: Whether to use Neumann Series matrix inversion approximation. If :data:`False`,
-            materialize the matrix ``A`` in memory and use :func:`torch.linalg.solve` instead.
+        ridge (float or None, optional): Optional ridge regularization. If provided, solves the
+            equation for ``A x + ridge x = b``. (default: :data:`None`)
+        ns (bool, optional): Whether to use Neumann Series matrix inversion approximation.
+            If :data:`False`, materialize the matrix ``A`` in memory and use :func:`torch.linalg.solve`
+            instead. (default: :data:`False`)
         **kwargs: Additional keyword arguments for the Neumann Series matrix inversion approximation
             solver :func:`torchopt.linalg.ns`.
 

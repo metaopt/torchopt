@@ -16,9 +16,11 @@
 
 # pylint: disable=invalid-name
 
+from __future__ import annotations
+
 import functools
 import inspect
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Type, Union
+from typing import Any, Callable, Dict, Sequence, Tuple
 
 import functorch
 import torch
@@ -47,7 +49,7 @@ class MaskedOptimalityFn:  # pylint: disable=missing-class-docstring,too-few-pub
         optimality_fn: Callable[..., TensorOrTensors],
         solution: TensorOrTensors,
         output_is_tensor: bool,
-        argnums: Tuple[int, ...],
+        argnums: tuple[int, ...],
         *args: Any,
     ) -> None:
         self.optimality_fn = optimality_fn
@@ -88,8 +90,8 @@ def _root_vjp(
     args: Args,
     grad_outputs: TupleOfTensors,
     output_is_tensor: bool,
-    argnums: Tuple[int, ...],
-    solve: Callable[..., TensorOrTensors] = linear_solve.solve_normal_cg(),
+    argnums: tuple[int, ...],
+    solve: Callable[..., TensorOrTensors],
 ) -> TupleOfOptionalTensors:
     if output_is_tensor:
 
@@ -145,14 +147,14 @@ def _root_vjp(
     return tuple(true_output)
 
 
-def _extract_kwargs(kwarg_keys: Sequence[str], flat_args: Tuple[Any, ...]) -> Tuple[Args, KwArgs]:
+def _extract_kwargs(kwarg_keys: Sequence[str], flat_args: tuple[Any, ...]) -> tuple[Args, KwArgs]:
     nargs = len(flat_args) - len(kwarg_keys)
     args, kwarg_vals = flat_args[:nargs], flat_args[nargs:]
     kwargs = dict(zip(kwarg_keys, kwarg_vals))
     return args, kwargs
 
 
-def _signature_bind(signature: inspect.Signature, *args: Any, **kwargs: Any) -> Tuple[Args, KwArgs]:
+def _signature_bind(signature: inspect.Signature, *args: Any, **kwargs: Any) -> tuple[Args, KwArgs]:
     bound = signature.bind(*args, **kwargs)
     bound.apply_defaults()
     return bound.args, bound.kwargs
@@ -160,7 +162,7 @@ def _signature_bind(signature: inspect.Signature, *args: Any, **kwargs: Any) -> 
 
 def _signature_bind_and_match(
     signature: inspect.Signature, *args: Any, **kwargs: Any
-) -> Tuple[Args, KwArgs, Callable[[Args], Tuple[Args, KwArgs]]]:
+) -> tuple[Args, KwArgs, Callable[[Args], tuple[Args, KwArgs]]]:
     # We want to bind *args and **kwargs based on the provided signature, but also to associate the
     # resulting positional arguments back. To achieve this, we lift arguments to a triple:
     #
@@ -193,13 +195,13 @@ def _signature_bind_and_match(
 
 
 def _split_tensor_and_others(
-    mixed_tuple: Tuple[Any, ...],
-) -> Tuple[pytree.PyTreeSpec, Tuple[bool, ...], TupleOfTensors, Tuple[Any, ...]]:
-    flattened: List[Any]
+    mixed_tuple: tuple[Any, ...],
+) -> tuple[pytree.PyTreeSpec, tuple[bool, ...], TupleOfTensors, tuple[Any, ...]]:
+    flattened: list[Any]
     flattened, treespec = pytree.tree_flatten(mixed_tuple, none_is_leaf=True)  # type: ignore[arg-type]
     tensors: ListOfTensors = []
-    non_tensors: List[Any] = []
-    is_tensor_mask: List[bool] = []
+    non_tensors: list[Any] = []
+    is_tensor_mask: list[bool] = []
     for item in flattened:
         is_tensor = isinstance(item, torch.Tensor)
         is_tensor_mask.append(is_tensor)
@@ -212,10 +214,10 @@ def _split_tensor_and_others(
 
 def _merge_tensor_and_others(
     treespec: pytree.PyTreeSpec,
-    is_tensor_mask: Tuple[bool, ...],
+    is_tensor_mask: tuple[bool, ...],
     tensors: TupleOfTensors,
-    non_tensors: Tuple[Any, ...],
-) -> Tuple[Any, ...]:
+    non_tensors: tuple[Any, ...],
+) -> tuple[Any, ...]:
     tensor_counter = 0
     non_tensor_counter = 0
     results = []
@@ -231,13 +233,13 @@ def _merge_tensor_and_others(
 
 # pylint: disable-next=too-many-arguments,too-many-statements
 def _custom_root(
-    solver_fn: Callable[..., Union[TensorOrTensors, Tuple[TensorOrTensors, Any]]],
+    solver_fn: Callable[..., TensorOrTensors | tuple[TensorOrTensors, Any]],
     optimality_fn: Callable[..., TensorOrTensors],
     solve: Callable[..., TensorOrTensors],
-    argnums: Tuple[int, ...],
+    argnums: tuple[int, ...],
     has_aux: bool,
-    reference_signature: Optional[Union[inspect.Signature, Callable]] = None,
-) -> Callable[..., Union[TensorOrTensors, Tuple[TensorOrTensors, Any]]]:
+    reference_signature: inspect.Signature | Callable | None = None,
+) -> Callable[..., TensorOrTensors | tuple[TensorOrTensors, Any]]:
     solver_fn_signature = inspect.signature(solver_fn)
 
     if reference_signature is None:
@@ -249,16 +251,16 @@ def _custom_root(
         reference_signature = inspect.signature(fn)
 
     def make_custom_vjp_solver_fn(
-        solver_fn: Callable[..., Union[TensorOrTensors, Tuple[TensorOrTensors, Any]]],
+        solver_fn: Callable[..., TensorOrTensors | tuple[TensorOrTensors, Any]],
         kwarg_keys: Sequence[str],
-        args_signs: Tuple[Tuple[int, int, Optional[Union[Type[tuple], Type[list]]]], ...],
-    ) -> Type[Function]:
+        args_signs: tuple[tuple[int, int, type[tuple] | type[list] | None], ...],
+    ) -> type[Function]:
         # pylint: disable-next=missing-class-docstring,abstract-method
         class ImplicitMetaGradient(Function):
             @staticmethod
             def forward(  # type: ignore[override] # pylint: disable=arguments-differ
                 ctx: Any, *flat_args: Any
-            ) -> Tuple[Any, ...]:
+            ) -> tuple[Any, ...]:
                 output, aux, output_is_tensor = None, None, False
 
                 args = []
@@ -361,12 +363,12 @@ def _custom_root(
     @functools.wraps(solver_fn)
     def wrapped_solver_fn(
         *args: Any, **kwargs: Any
-    ) -> Union[TensorOrTensors, Tuple[TensorOrTensors, Any]]:
+    ) -> TensorOrTensors | tuple[TensorOrTensors, Any]:
         args, kwargs = _signature_bind(solver_fn_signature, *args, **kwargs)
         keys, vals = list(kwargs.keys()), list(kwargs.values())
 
-        args_signs: List[Tuple[int, int, Optional[Union[Type[tuple], Type[list]]]]] = []
-        flat_args: List[Any] = []
+        args_signs: list[tuple[int, int, type[tuple] | type[list] | None]] = []
+        flat_args: list[Any] = []
         args_offset = 0
         for idx, arg in enumerate(args):
             if idx in argnums:
@@ -410,12 +412,12 @@ def _custom_root(
 
 def custom_root(
     optimality_fn: Callable[..., TensorOrTensors],
-    argnums: Union[int, Tuple[int, ...]],
+    argnums: int | tuple[int, ...],
     has_aux: bool = False,
-    solve: Callable[..., TensorOrTensors] = linear_solve.solve_normal_cg(),
+    solve: Callable[..., TensorOrTensors] | None = None,
 ) -> Callable[
-    [Callable[..., Union[TensorOrTensors, Tuple[TensorOrTensors, Any]]]],
-    Callable[..., Union[TensorOrTensors, Tuple[TensorOrTensors, Any]]],
+    [Callable[..., TensorOrTensors | tuple[TensorOrTensors, Any]]],
+    Callable[..., TensorOrTensors | tuple[TensorOrTensors, Any]],
 ]:
     """Return a decorator for adding implicit differentiation to a root solver.
 
@@ -442,18 +444,17 @@ def custom_root(
     **In best practice, the ``optimality_fn`` should have the same signature as ``solver_fn``.**
 
     Args:
-        optimality_fn: (callable)
-            An equation function, ``optimality_fn(params, *args)``. The invariant is
-            ``optimality_fn(solution, *args) == 0`` at the solution / root of ``solution``.
-        argnums: (int or tuple of ints)
-            Specifies arguments to compute gradients with respect to. The ``argnums`` can be an
-            integer or a tuple of integers, which respect to the zero-based indices of the arguments
-            of the ``solver_fn(params, *args)`` function. The argument ``params`` is included
-            for the counting, while it is indexed as ``argnums=0``.
-        has_aux: (default: :data:`False`)
-            Whether the decorated solver function returns auxiliary data.
-        solve: (callable, optional, default: :func:`linear_solve.solve_normal_cg`)
-            a linear solver of the form ``solve(matvec, b)``.
+        optimality_fn (callable): An equation function, ``optimality_fn(params, *args)``. The
+            invariant is ``optimality_fn(solution, *args) == 0`` at the solution / root of
+            ``solution``.
+        argnums (int or tuple of int): Specifies arguments to compute gradients with respect to. The
+            ``argnums`` can be an integer or a tuple of integers, which respect to the zero-based
+            indices of the arguments of the ``solver_fn(params, *args)`` function. The argument
+            ``params`` is included for the counting, while it is indexed as ``argnums=0``.
+        has_aux (bool, optional): Whether the decorated solver function returns auxiliary data.
+            (default: :data:`False`)
+        solve (callable, optional): A linear solver of the form ``solve(matvec, b)``.
+            (default: :func:`linear_solve.solve_normal_cg`)
 
     Returns:
         A solver function decorator, i.e., ``custom_root(optimality_fn)(solver_fn)``.
@@ -463,6 +464,9 @@ def custom_root(
         argnums = (argnums,)
     else:
         assert 0 not in argnums
+
+    if solve is None:
+        solve = linear_solve.solve_normal_cg()
 
     return functools.partial(
         _custom_root,

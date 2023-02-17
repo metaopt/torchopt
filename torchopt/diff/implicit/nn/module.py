@@ -16,10 +16,12 @@
 
 # pylint: disable=redefined-builtin
 
+from __future__ import annotations
+
 import abc
 import functools
 import itertools
-from typing import Any, Iterable, Optional, Tuple, Type
+from typing import Any, Iterable
 
 import functorch
 import torch
@@ -38,7 +40,7 @@ def _stateless_objective_fn(
     __flat_meta_params: TupleOfTensors,
     __params_names: Iterable[str],
     __meta_params_names: Iterable[str],
-    self: 'ImplicitMetaGradientModule',
+    self: ImplicitMetaGradientModule,
     *input,
     **kwargs,
 ) -> torch.Tensor:
@@ -57,7 +59,7 @@ def _stateless_optimality_fn(
     __flat_meta_params: TupleOfTensors,
     __params_names: Iterable[str],
     __meta_params_names: Iterable[str],
-    self: 'ImplicitMetaGradientModule',
+    self: ImplicitMetaGradientModule,
     *input,
     **kwargs,
 ) -> TupleOfTensors:
@@ -72,8 +74,8 @@ def _stateless_optimality_fn(
 
 
 def make_optimality_from_objective(
-    cls: Type['ImplicitMetaGradientModule'],
-) -> Type['ImplicitMetaGradientModule']:
+    cls: type[ImplicitMetaGradientModule],
+) -> type[ImplicitMetaGradientModule]:
     """Derives the optimality function of the objective function."""
     if (
         getattr(cls, 'objective', ImplicitMetaGradientModule.objective)
@@ -81,7 +83,7 @@ def make_optimality_from_objective(
     ):
         raise TypeError('The objective function is not defined.')
 
-    def optimality(self: 'ImplicitMetaGradientModule', *input, **kwargs) -> TupleOfTensors:
+    def optimality(self: ImplicitMetaGradientModule, *input, **kwargs) -> TupleOfTensors:
         params_names, flat_params = tuple(zip(*self.named_parameters()))
         meta_params_names, flat_meta_params = tuple(zip(*self.named_meta_parameters()))
 
@@ -102,8 +104,8 @@ def make_optimality_from_objective(
 
 
 def enable_implicit_gradients(
-    cls: Type['ImplicitMetaGradientModule'],
-) -> Type['ImplicitMetaGradientModule']:
+    cls: type[ImplicitMetaGradientModule],
+) -> type[ImplicitMetaGradientModule]:
     """Enable implicit gradients for the :func:`solve` method."""
     cls_solve = cls.solve
     if getattr(cls_solve, '__implicit_gradients_enabled__', False):
@@ -122,17 +124,17 @@ def enable_implicit_gradients(
         __params_names: Iterable[str],
         __meta_params_names: Iterable[str],
         # pylint: enable=unused-argument
-        self: 'ImplicitMetaGradientModule',
+        self: ImplicitMetaGradientModule,
         *input,
         **kwargs,
-    ) -> Tuple[TupleOfTensors, Any]:
+    ) -> tuple[TupleOfTensors, Any]:
         """Solve the optimization problem."""
         output = cls_solve(self, *input, **kwargs)
         flat_optimal_params = tuple(p.detach_() for p in self.parameters())
         return flat_optimal_params, output
 
     @functools.wraps(cls_solve)
-    def wrapped(self: 'ImplicitMetaGradientModule', *input, **kwargs) -> Any:
+    def wrapped(self: ImplicitMetaGradientModule, *input, **kwargs) -> Any:
         """Solve the optimization problem."""
         params_names, flat_params = tuple(zip(*self.named_parameters()))
         meta_params_names, flat_meta_params = tuple(zip(*self.named_meta_parameters()))
@@ -159,9 +161,9 @@ class ImplicitMetaGradientModule(MetaGradientModule):
 
     _custom_optimality: bool
     _custom_objective: bool
-    linear_solve: Optional[LinearSolver]
+    linear_solve: LinearSolver | None
 
-    def __init_subclass__(cls, linear_solve: Optional[LinearSolver] = None) -> None:
+    def __init_subclass__(cls, linear_solve: LinearSolver | None = None) -> None:
         """Validate and initialize the subclass."""
         super().__init_subclass__()
         cls.linear_solve = linear_solve

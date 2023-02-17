@@ -126,7 +126,8 @@ class Samplable(Protocol):  # pylint: disable=too-few-public-methods
 
     @abc.abstractmethod
     def sample(
-        self, sample_shape: Size = Size()  # pylint: disable=unused-argument
+        self,
+        sample_shape: Size = Size(),  # noqa: B008 # pylint: disable=unused-argument
     ) -> Union[Tensor, Sequence[Numeric]]:
         # pylint: disable-next=line-too-long
         """Generate a sample_shape shaped sample or sample_shape shaped batch of samples if the distribution parameters are batched."""

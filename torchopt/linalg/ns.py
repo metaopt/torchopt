@@ -16,13 +16,15 @@
 
 # pylint: disable=invalid-name
 
+from __future__ import annotations
+
 import functools
-from typing import Callable, Optional, Union
+from typing import Callable
 
 import torch
 
 from torchopt import pytree
-from torchopt.linalg.utils import cat_shapes, normalize_matvec
+from torchopt.linalg.utils import normalize_matvec
 from torchopt.typing import TensorTree
 
 
@@ -33,7 +35,7 @@ def _ns_solve(
     A: torch.Tensor,
     b: torch.Tensor,
     maxiter: int,
-    alpha: Optional[float] = None,
+    alpha: float | None = None,
 ) -> torch.Tensor:
     """Use Neumann Series Matrix Inversion Approximation to solve ``Ax = b``."""
     if A.ndim != 2 or A.shape[0] != A.shape[1]:
@@ -57,27 +59,26 @@ def _ns_solve(
 
 
 def ns(
-    A: Union[TensorTree, Callable[[TensorTree], TensorTree]],
+    A: TensorTree | Callable[[TensorTree], TensorTree],
     b: TensorTree,
-    maxiter: Optional[int] = None,
+    maxiter: int | None = None,
     *,
-    alpha: Optional[float] = None,
+    alpha: float | None = None,
 ) -> TensorTree:
     """Use Neumann Series Matrix Inversion Approximation to solve ``Ax = b``.
 
     Args:
-        A: (tensor or tree of tensors or function)
-            2D array or function that calculates the linear map (matrix-vector product) ``Ax`` when
-            called like ``A(x)``. ``A`` must represent a hermitian, positive definite matrix, and
-            must return array(s) with the same structure and shape as its argument.
-        b: (tensor or tree of tensors)
-            Right hand side of the linear system representing a single vector. Can be stored as an
-            array or Python container of array(s) with any shape.
-        maxiter: (integer, optional)
-            Maximum number of iterations. Iteration will stop after maxiter steps even if the
-            specified tolerance has not been achieved.
-        alpha: (float, optional)
-            Decay coefficient.
+        A (Tensor or tree of Tensor): 2D array or function that calculates the linear map
+            (matrix-vector product) ``Ax`` when called like ``A(x)``. ``A`` must represent a
+            hermitian, positive definite matrix, and must return tensor(s) with the same structure
+            and shape as its argument.
+        b (Tensor or tree of Tensor): Right hand side of the linear system representing a single
+            vector. Can be stored as a tensor or Python container of tensor(s) with any shape.
+        maxiter (int or None, optional): Maximum number of iterations. Iteration will stop after
+            maxiter steps even if the specified tolerance has not been achieved. If :data:`None`,
+            :const:`10` will be used. (default: :const:`10`)
+        alpha: (float or None, optional): Decay coefficient. If :data:`None`, :const:`1.0` will be
+            used. (default: :const:`1.0`)
 
     Returns:
         The Neumann Series (NS) matrix inversion approximation.
@@ -111,12 +112,12 @@ def ns(
     return inv_A_hat_b
 
 
-def _ns_inv(A: torch.Tensor, maxiter: int, alpha: Optional[float] = None):
+def _ns_inv(A: torch.Tensor, maxiter: int, alpha: float | None = None):
     """Use Neumann Series iteration to solve ``A^{-1}``."""
     if A.ndim != 2 or A.shape[0] != A.shape[1]:
         raise ValueError(f'`A` must be a square matrix, but has shape: {A.shape}')
 
-    I = torch.eye(*A.shape, out=torch.empty_like(A))
+    I = torch.eye(*A.shape, out=torch.empty_like(A))  # noqa: E741
     inv_A_hat = torch.zeros_like(A)
     if alpha is not None:
         # A^{-1} = a [I - (I - a A)]^{-1} = a [I + (I - a A) + (I - a A)^2 + (I - a A)^3 + ...]
@@ -134,28 +135,27 @@ def _ns_inv(A: torch.Tensor, maxiter: int, alpha: Optional[float] = None):
 
 def ns_inv(
     A: TensorTree,
-    maxiter: Optional[int] = None,
+    maxiter: int | None = None,
     *,
-    alpha: Optional[float] = None,
+    alpha: float | None = None,
 ) -> TensorTree:
     """Use Neumann Series iteration to solve ``A^{-1}``.
 
     Args:
-        A: (tensor or tree of tensors or function)
-            2D array or function that calculates the linear map (matrix-vector product) ``Ax`` when
-            called like ``A(x)``. ``A`` must represent a hermitian, positive definite matrix, and
-            must return array(s) with the same structure and shape as its argument.
-        maxiter: (integer, optional)
-            Maximum number of iterations. Iteration will stop after maxiter steps even if the
-            specified tolerance has not been achieved.
-        alpha: (float, optional)
-            Decay coefficient.
+        A (Tensor or tree of Tensor): 2D array or function that calculates the linear map
+            (matrix-vector product) ``Ax`` when called like ``A(x)``. ``A`` must represent a
+            hermitian, positive definite matrix, and must return tensor(s) with the same structure
+            and shape as its argument.
+        maxiter (int or None, optional): Maximum number of iterations. Iteration will stop after
+            maxiter steps even if the specified tolerance has not been achieved. If :data:`None`,
+            :const:`10` will be used. (default: :const:`10`)
+        alpha: (float or None, optional): Decay coefficient. If :data:`None`, :const:`1.0` will be
+            used. (default: :const:`1.0`)
 
     Returns:
         The Neumann Series (NS) matrix inversion approximation.
     """
     if maxiter is None:
-        size = sum(cat_shapes(A))
-        maxiter = 10 * size  # copied from SciPy
+        maxiter = 10
 
     return pytree.tree_map(functools.partial(_ns_inv, maxiter=maxiter, alpha=alpha), A)

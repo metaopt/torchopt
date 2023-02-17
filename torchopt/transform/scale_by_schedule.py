@@ -31,7 +31,9 @@
 # ==============================================================================
 """Preset transformation for scaling updates by learning rate schedules."""
 
-from typing import NamedTuple, Optional, Tuple
+from __future__ import annotations
+
+from typing import NamedTuple
 
 import torch
 
@@ -54,9 +56,8 @@ def scale_by_schedule(step_size_fn: Schedule) -> GradientTransformation:
     """Scale updates using a custom schedule for the ``step_size``.
 
     Args:
-        step_size_fn:
-            A function that takes an update count as input and proposes the ``step_size`` to
-            multiply the updates by.
+        step_size_fn (callable): A function that takes an update count as input and proposes the
+            ``step_size`` to multiply the updates by.
 
     Returns:
         An ``(init_fn, update_fn)`` tuple.
@@ -90,9 +91,9 @@ def _scale_by_schedule(
         updates: Updates,
         state: OptState,
         *,
-        params: Optional[Params] = None,  # pylint: disable=unused-argument
+        params: Params | None = None,  # pylint: disable=unused-argument
         inplace: bool = True,
-    ) -> Tuple[Updates, OptState]:
+    ) -> tuple[Updates, OptState]:
         if inplace:
 
             def f(g, c):  # pylint: disable=invalid-name

@@ -13,13 +13,8 @@
 # limitations under the License.
 # ==============================================================================
 
-from typing import Tuple
-
-import functorch
 import torch
-import torch.nn.functional as F
 
-import helpers
 import torchopt
 
 

@@ -33,8 +33,10 @@
 
 # pylint: disable=invalid-name
 
+from __future__ import annotations
+
 from functools import partial
-from typing import Callable, Optional, Union
+from typing import Callable
 
 import torch
 
@@ -100,14 +102,14 @@ def _cg_solve(
 
 def _isolve(
     _isolve_solve: Callable,
-    A: Union[TensorTree, Callable[[TensorTree], TensorTree]],
+    A: TensorTree | Callable[[TensorTree], TensorTree],
     b: TensorTree,
-    x0: Optional[TensorTree] = None,
+    x0: TensorTree | None = None,
     *,
     rtol: float = 1e-5,
     atol: float = 0.0,
-    maxiter: Optional[int] = None,
-    M: Optional[Union[TensorTree, Callable[[TensorTree], TensorTree]]] = None,
+    maxiter: int | None = None,
+    M: TensorTree | Callable[[TensorTree], TensorTree] | None = None,
 ) -> TensorTree:
     if x0 is None:
         x0 = pytree.tree_map(torch.zeros_like, b)
@@ -133,14 +135,14 @@ def _isolve(
 
 
 def cg(
-    A: Union[TensorTree, Callable[[TensorTree], TensorTree]],
+    A: TensorTree | Callable[[TensorTree], TensorTree],
     b: TensorTree,
-    x0: Optional[TensorTree] = None,
+    x0: TensorTree | None = None,
     *,
     rtol: float = 1e-5,
     atol: float = 0.0,
-    maxiter: Optional[int] = None,
-    M: Optional[Union[TensorTree, Callable[[TensorTree], TensorTree]]] = None,
+    maxiter: int | None = None,
+    M: TensorTree | Callable[[TensorTree], TensorTree] | None = None,
 ) -> TensorTree:
     """Use Conjugate Gradient iteration to solve ``Ax = b``.
 
@@ -153,30 +155,30 @@ def cg(
     solves converge.
 
     Args:
-        A: (tensor or tree of tensors or function)
-            2D array or function that calculates the linear map (matrix-vector product) ``Ax`` when
-            called like ``A(x)``. ``A`` must represent a hermitian, positive definite matrix, and
-            must return array(s) with the same structure and shape as its argument.
-        b: (tensor or tree of tensors)
-            Right hand side of the linear system representing a single vector. Can be stored as an
-            array or Python container of array(s) with any shape.
-        x0: (tensor or tree of tensors, optional)
-            Starting guess for the solution. Must have the same structure as ``b``.
-        rtol: (float, optional, default: :const:`1e-5`)
-            Tolerances for convergence, ``norm(residual) <= max(rtol*norm(b), atol)``. We do not
-            implement SciPy's "legacy" behavior, so TorchOpt's tolerance will differ from SciPy
-            unless you explicitly pass ``atol`` to SciPy's ``cg``.
-        atol: (float, optional, default: :const:`0.0`)
-            Tolerances for convergence, ``norm(residual) <= max(tol*norm(b), atol)``. We do not
-            implement SciPy's "legacy" behavior, so TorchOpt's tolerance will differ from SciPy
-            unless you explicitly pass ``atol`` to SciPy's ``cg``.
-        maxiter: (integer, optional)
-            Maximum number of iterations. Iteration will stop after maxiter steps even if the
-            specified tolerance has not been achieved.
-        M: (tensor or tree of tensors or function)
-            Pre-conditioner for ``A``. The pre-conditioner should approximate the inverse of ``A``.
-            Effective preconditioning dramatically improves the rate of convergence, which implies
-            that fewer iterations are needed to reach a given error tolerance.
+        A (Tensor or tree of Tensor): 2D array or function that calculates the linear map
+            (matrix-vector product) ``Ax`` when called like ``A(x)``. ``A`` must represent a
+            hermitian, positive definite matrix, and must return tensor(s) with the same structure
+            and shape as its argument.
+        b (Tensor or tree of Tensor): Right hand side of the linear system representing a single
+            vector. Can be stored as a tensor or Python container of tensor(s) with any shape.
+        x0 (Tensor, tree of Tensor, or None, optional): Starting guess for the solution. Must have
+            the same structure as ``b``. If :data:`None`, use zero initialization.
+            (default: :data:`None`)
+        rtol (float, optional): Tolerances for convergence, ``norm(residual) <= max(rtol*norm(b), atol)``.
+            We do not implement SciPy's "legacy" behavior, so TorchOpt's tolerance will differ from
+            SciPy unless you explicitly pass ``atol`` to SciPy's ``cg``. (default: :const:`1e-5`)
+        atol (float, optional): Tolerances for convergence, ``norm(residual) <= max(tol*norm(b), atol)``.
+            We do not implement SciPy's "legacy" behavior, so TorchOpt's tolerance will differ from
+            SciPy unless you explicitly pass ``atol`` to SciPy's ``cg``. (default: :const:`0.0`)
+        maxiter (int or None, optional): Maximum number of iterations. Iteration will stop after
+            maxiter steps even if the specified tolerance has not been achieved. If :data:`None`,
+            ``10 * size`` will be used, where ``size`` is the size of the flattened input tensor(s).
+            (default: :data:`None`)
+        M (Tensor, tree of Tensor, function, or None, optional): Pre-conditioner for ``A``. The
+            pre-conditioner should approximate the inverse of ``A``. Effective preconditioning
+            dramatically improves the rate of convergence, which implies that fewer iterations are
+            needed to reach a given error tolerance. If :data:`None`, no pre-conditioner will be
+            used. (default: :data:`None`)
 
     Returns:
         the Conjugate Gradient (CG) linear solver

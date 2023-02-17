@@ -14,7 +14,9 @@
 # ==============================================================================
 """The base class for differentiable meta-optimizers."""
 
-from typing import List, Sequence, Tuple
+from __future__ import annotations
+
+from typing import Sequence
 
 import torch
 import torch.nn as nn
@@ -33,14 +35,13 @@ class MetaOptimizer:
     """The base class for high-level differentiable optimizers."""
 
     def __init__(self, module: nn.Module, impl: GradientTransformation) -> None:
-        """Initialize the meta-optimizer.
+        r"""Initialize the meta-optimizer.
 
         Args:
-            module: (nn.Module)
-                A network whose parameters should be optimized.
-            impl: (GradientTransformation)
-                A low level optimizer function, it could be a optimizer function provided by
-                ``alias.py`` or a customized ``chain`` provided by ``combine.py``.
+            module (nn.Module): A network whose parameters should be optimized.
+            impl (GradientTransformation): A low level optimizer function, it could be a optimizer
+                function provided in :mod:`torchopt.alias` or a customized :func:`torchopt.chain`\ed
+                transformation.
                 Note that using ``MetaOptimizer(sgd(moment_requires_grad=True))`` or
                 ``MetaOptimizer(chain(sgd(moment_requires_grad=True)))`` is equivalent to
                 :class:`torchopt.MetaSGD`.
@@ -49,8 +50,8 @@ class MetaOptimizer:
             raise TypeError(f'{impl} (type: {type(impl).__name__}) is not a GradientTransformation')
 
         self.impl: GradientTransformation = impl
-        self.param_containers_groups: List[ModuleTensorContainers] = []
-        self.state_groups: List[OptState] = []
+        self.param_containers_groups: list[ModuleTensorContainers] = []
+        self.state_groups: list[OptState] = []
 
         self.add_param_group(module)
 
@@ -62,8 +63,8 @@ class MetaOptimizer:
         gradients and update the network parameters without modifying tensors in-place.
 
         Args:
-            loss: (torch.Tensor)
-                The loss that is used to compute the gradients to the network parameters.
+            loss (torch.Tensor): The loss that is used to compute the gradients to the network
+                parameters.
         """
         # Step parameter only
         for i, (param_container, state) in enumerate(
@@ -94,12 +95,12 @@ class MetaOptimizer:
                 container.update(new_param)
 
     def add_param_group(self, module: nn.Module) -> None:
-        """Add a param group to the optimizer's :attr:`state_groups`."""
+        """Add a param group to the optimizer's ``state_groups``."""
         params_container = extract_module_containers(module, with_buffers=False)[0]
         self.param_containers_groups.append(params_container)
         self.state_groups.append(UninitializedState())
 
-    def state_dict(self) -> Tuple[OptState, ...]:
+    def state_dict(self) -> tuple[OptState, ...]:
         """Extract the references of the optimizer states.
 
         Note that the states are references, so any in-place operations will change the states

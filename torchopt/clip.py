@@ -17,7 +17,7 @@
 # ==============================================================================
 """Utilities for gradient clipping."""
 
-from typing import Optional, Tuple, Union
+from __future__ import annotations
 
 import torch
 
@@ -33,18 +33,19 @@ ClipState = EmptyState
 
 
 def clip_grad_norm(
-    max_norm: Union[float, int],
-    norm_type: Union[float, int] = 2.0,
+    max_norm: float | int,
+    norm_type: float | int = 2.0,
     error_if_nonfinite: bool = False,
 ) -> GradientTransformation:
     """Clip gradient norm of an iterable of parameters.
 
     Args:
         max_norm (float or int): The maximum absolute value for each element in the update.
-        norm_type (float or int): type of the used p-norm. Can be ``'inf'`` for
-            infinity norm.
-        error_if_nonfinite (bool): if :data:`True`, an error is thrown if the total norm of the
-            gradients from :attr:`updates` is ``nan``, ``inf``, or ``-inf``.
+        norm_type (float or int, optional): Type of the used p-norm. Can be ``'inf'`` for infinity
+            norm. (default: :const:`2.0`)
+        error_if_nonfinite (bool, optional): If :data:`True`, an error is thrown if the total norm
+            of the gradients from ``updates`` is ``nan``, ``inf``, or ``-inf``.
+            (default: :data:`False`)
 
     Returns:
         An ``(init_fn, update_fn)`` tuple.
@@ -57,9 +58,9 @@ def clip_grad_norm(
         updates: Updates,
         state: OptState,
         *,
-        params: Optional[Params] = None,  # pylint: disable=unused-argument
+        params: Params | None = None,  # pylint: disable=unused-argument
         inplace: bool = True,
-    ) -> Tuple[Updates, OptState]:
+    ) -> tuple[Updates, OptState]:
         available_updates = pytree.tree_leaves(updates)
         if len(available_updates) == 0:
             return updates, state

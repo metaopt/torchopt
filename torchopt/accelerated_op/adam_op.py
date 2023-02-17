@@ -16,8 +16,10 @@
 
 # pylint: disable=c-extension-no-member,invalid-name
 
+from __future__ import annotations
+
 import contextlib
-from typing import Any, Optional, Tuple
+from typing import Any
 
 import torch
 
@@ -132,9 +134,9 @@ class AdamOp:  # pylint: disable=too-few-public-methods
         self,
         mu: torch.Tensor,
         nu: torch.Tensor,
-        updates: Optional[torch.Tensor],
+        updates: torch.Tensor | None,
         count: int,
-    ) -> Tuple[torch.Tensor, torch.Tensor, Optional[torch.Tensor]]:
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor | None]:
         """Apply the Adam operator."""
         if updates is None:
             return mu, nu, None

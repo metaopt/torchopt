@@ -14,7 +14,9 @@
 # ==============================================================================
 """The accelerated Ops."""
 
-from typing import Iterable, Optional, Union
+from __future__ import annotations
+
+from typing import Iterable
 
 import torch
 
@@ -22,7 +24,7 @@ from torchopt.accelerated_op.adam_op import AdamOp
 from torchopt.typing import Device
 
 
-def is_available(devices: Optional[Union[Device, Iterable[Device]]] = None) -> bool:
+def is_available(devices: Device | Iterable[Device] | None = None) -> bool:
     """Check the availability of accelerated optimizer."""
     op = AdamOp()
 

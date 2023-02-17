@@ -32,7 +32,7 @@ authors:
     family-names: Yang
     affiliation: Peking University
     email: yaodong.yang@pku.edu.cn
-version: 0.6.0
-date-released: "2022-12-07"
+version: 0.7.0
+date-released: "2023-02-16"
 license: Apache-2.0
 repository-code: "https://github.com/metaopt/torchopt"

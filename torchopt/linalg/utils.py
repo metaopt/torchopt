@@ -14,8 +14,10 @@
 # ==============================================================================
 """Utilities for linear algebra."""
 
+from __future__ import annotations
+
 import itertools
-from typing import Callable, Tuple, Union
+from typing import Callable
 
 import torch
 
@@ -23,14 +25,14 @@ from torchopt import pytree
 from torchopt.typing import TensorTree
 
 
-def cat_shapes(tree: TensorTree) -> Tuple[int, ...]:
+def cat_shapes(tree: TensorTree) -> tuple[int, ...]:
     """Concatenate the shapes of the leaves of a tree of tensors."""
     leaves = pytree.tree_leaves(tree)
     return tuple(itertools.chain.from_iterable(tuple(leaf.shape) for leaf in leaves))
 
 
 def normalize_matvec(
-    matvec: Union[TensorTree, Callable[[TensorTree], TensorTree]]
+    matvec: TensorTree | Callable[[TensorTree], TensorTree]
 ) -> Callable[[TensorTree], TensorTree]:
     """Normalize an argument for computing matrix-vector product."""
     if callable(matvec):

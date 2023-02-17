@@ -31,7 +31,9 @@
 # ==============================================================================
 """Preset transformations for scaling updates by exponential root mean-squared (RMS)."""
 
-from typing import NamedTuple, Optional, Tuple
+from __future__ import annotations
+
+from typing import NamedTuple
 
 import torch
 
@@ -61,12 +63,11 @@ def scale_by_rms(
         [Hinton](www.cs.toronto.edu/~tijmen/csc321/slides/lecture_slides_lec6.pdf)
 
     Args:
-        alpha: (default: :const:`0.9`)
-            Decay rate for the exponentially weighted average of squared grads.
-        eps: (default: :const:`1e-8`)
-            Term added to the denominator to improve numerical stability.
-        initial_scale: (default: :const:`0.0`)
-            Initial value for second moment
+        alpha (float, optional): Decay rate for the exponentially weighted average of squared grads.
+            (default: :const:`0.9`)
+        eps (float, optional): Term added to the denominator to improve numerical stability.
+            (default: :const:`1e-8`)
+        initial_scale (float, optional): Initial value for second moment. (default: :const:`0.0`)
 
     Returns:
         An (init_fn, update_fn) tuple.
@@ -121,9 +122,9 @@ def _scale_by_rms(
         updates: Updates,
         state: OptState,
         *,
-        params: Optional[Params] = None,  # pylint: disable=unused-argument
+        params: Params | None = None,  # pylint: disable=unused-argument
         inplace: bool = True,
-    ) -> Tuple[Updates, OptState]:
+    ) -> tuple[Updates, OptState]:
         nu = update_moment.impl(  # type: ignore[attr-defined]
             updates, state.nu, alpha, order=2, inplace=inplace, already_flattened=already_flattened
         )

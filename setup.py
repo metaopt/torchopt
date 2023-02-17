@@ -96,16 +96,16 @@ CIBUILDWHEEL = os.getenv('CIBUILDWHEEL', '0') == '1'
 LINUX = platform.system() == 'Linux'
 MACOS = platform.system() == 'Darwin'
 WINDOWS = platform.system() == 'Windows'
-ext_kwargs = dict(
-    cmdclass={'build_ext': cmake_build_ext},
-    ext_modules=[
+ext_kwargs = {
+    'cmdclass': {'build_ext': cmake_build_ext},
+    'ext_modules': [
         CMakeExtension(
             'torchopt._C',
             source_dir=HERE,
             optional=not (LINUX and CIBUILDWHEEL),
         )
     ],
-)
+}
 
 TORCHOPT_NO_EXTENSIONS = (
     bool(os.getenv('TORCHOPT_NO_EXTENSIONS', '')) or WINDOWS or (MACOS and CIBUILDWHEEL)
@@ -123,7 +123,7 @@ try:
             VERSION_FILE.write_text(
                 data=re.sub(
                     r"""__version__\s*=\s*('[^']+'|"[^"]+")""",
-                    f"__version__ = '{version.__version__}'",
+                    f'__version__ = {version.__version__!r}',
                     string=VERSION_CONTENT,
                 ),
                 encoding='UTF-8',

@@ -31,7 +31,9 @@
 # ==============================================================================
 """Utilities for linear algebra solvers."""
 
-from typing import Callable, Tuple
+from __future__ import annotations
+
+from typing import Callable
 
 import functorch
 
@@ -75,7 +77,7 @@ def make_ridge_matvec(
 
 def materialize_matvec(
     matvec: Callable[[TensorTree], TensorTree], x: TensorTree
-) -> Tuple[
+) -> tuple[
     TensorTree,
     Callable[[TensorTree], TensorTree],
     Callable[[TensorTree], TensorTree],
