@@ -101,9 +101,9 @@ def _scale_by_rms(
     already_flattened: bool = False,
 ) -> GradientTransformation:
     # pylint: disable=unneeded-not
-    if not 0.0 <= alpha:  # pragma: no cover
+    if not alpha >= 0.0:  # pragma: no cover
         raise ValueError(f'Invalid alpha value: {alpha}')
-    if not 0.0 <= eps:  # pragma: no cover
+    if not eps >= 0.0:  # pragma: no cover
         raise ValueError(f'Invalid epsilon value: {eps}')
     # pylint: enable=unneeded-not
 
@@ -131,14 +131,14 @@ def _scale_by_rms(
 
         if inplace:
 
-            def f(g, n):  # pylint: disable=invalid-name
+            def f(g: torch.Tensor, n: torch.Tensor) -> torch.Tensor:  # pylint: disable=invalid-name
                 return g.div_(n.sqrt().add_(eps))
 
             updates = tree_map_(f, updates, nu)
 
         else:
 
-            def f(g, n):  # pylint: disable=invalid-name
+            def f(g: torch.Tensor, n: torch.Tensor) -> torch.Tensor:  # pylint: disable=invalid-name
                 return g.div(n.sqrt().add(eps))
 
             updates = tree_map(f, updates, nu)

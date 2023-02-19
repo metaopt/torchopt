@@ -70,12 +70,14 @@ def _cg_solve(
     b2 = tree_vdot_real(b, b)
     atol2 = max(rtol**2 * b2, atol**2)
 
-    def cond_fn(value):
+    def cond_fn(value: tuple[TensorTree, TensorTree, float, TensorTree, int]) -> bool:
         _, r, gamma, _, k = value
         rs = gamma if M is _identity else tree_vdot_real(r, r)
         return rs > atol2 and k < maxiter
 
-    def body_fn(value):
+    def body_fn(
+        value: tuple[TensorTree, TensorTree, float, TensorTree, int]
+    ) -> tuple[TensorTree, TensorTree, float, TensorTree, int]:
         x, r, gamma, p, k = value
         Ap = A(p)
         alpha = gamma / tree_vdot_real(p, Ap)
@@ -129,9 +131,7 @@ def _isolve(
         )
 
     isolve_solve = partial(_isolve_solve, x0=x0, rtol=rtol, atol=atol, maxiter=maxiter, M=M)
-
-    x = isolve_solve(A, b)
-    return x
+    return isolve_solve(A, b)
 
 
 def cg(

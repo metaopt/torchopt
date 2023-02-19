@@ -88,8 +88,7 @@ class FuncOptimizer:  # pylint: disable=too-few-public-methods
         updates, self.optim_state = self.impl.update(
             grads, self.optim_state, params=params, inplace=inplace
         )
-        new_params = apply_updates(params, updates, inplace=inplace)
-        return new_params
+        return apply_updates(params, updates, inplace=inplace)
 
     def state_dict(self) -> OptState:
         """Extract the references of the optimizer states.

@@ -74,10 +74,7 @@ def chain_flat(*transformations: GradientTransformation) -> GradientTransformati
     """
     if len(transformations) == 0:
         return identity()
-    if len(transformations) == 1:
-        inner = transformations[0]
-    else:
-        inner = chain(*transformations)
+    inner = transformations[0] if len(transformations) == 1 else chain(*transformations)
 
     def init_fn(params: Params) -> OptState:
         return inner.init(pytree.tree_leaves(params, none_is_leaf=True))
@@ -90,10 +87,7 @@ def chain_flat(*transformations: GradientTransformation) -> GradientTransformati
         inplace: bool = True,
     ) -> tuple[Updates, OptState]:
         flat_updates, treespec = pytree.tree_flatten(updates, none_is_leaf=True)
-        if params is not None:
-            flat_params = pytree.tree_leaves(params, none_is_leaf=True)
-        else:
-            flat_params = None
+        flat_params = pytree.tree_leaves(params, none_is_leaf=True) if params is not None else None
 
         flat_updates, state = inner.update(flat_updates, state, params=flat_params, inplace=inplace)
         updates: Updates

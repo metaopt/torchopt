@@ -196,7 +196,7 @@ def test(db, model, epoch, log, args):
     qry_losses = []
     qry_accs = []
 
-    for batch_idx in range(n_test_iter):
+    for _ in range(n_test_iter):
         x_spt, y_spt, x_qry, y_qry = db.next('test')
 
         task_num = x_spt.size(0)

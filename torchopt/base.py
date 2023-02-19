@@ -236,7 +236,7 @@ class ChainedGradientTransformation(GradientTransformation):
 class IdentityGradientTransformation(GradientTransformation):
     """A gradient transformation that does nothing."""
 
-    def __new__(cls):
+    def __new__(cls) -> IdentityGradientTransformation:
         """Create a new gradient transformation that does nothing."""
         return super().__new__(cls, init=cls.init_fn, update=cls.update_fn)
 

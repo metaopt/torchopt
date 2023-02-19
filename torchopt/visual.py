@@ -20,12 +20,13 @@
 from __future__ import annotations
 
 from collections import namedtuple
-from typing import Generator, Iterable, Mapping, cast
+from typing import Any, Generator, Iterable, Mapping, cast
 
 import torch
 from graphviz import Digraph
 
-from torchopt.typing import TensorOrTensors
+from torchopt import pytree
+from torchopt.typing import TensorTree
 from torchopt.utils import ModuleState
 
 
@@ -38,7 +39,7 @@ Node = namedtuple('Node', ('name', 'inputs', 'attr', 'op'))
 SAVED_PREFIX = '_saved_'
 
 
-def get_fn_name(fn, show_attrs, max_attr_chars):
+def get_fn_name(fn: Any, show_attrs: bool, max_attr_chars: int) -> str:
     """Return function name."""
     name = str(type(fn).__name__)
     if not show_attrs:
@@ -63,7 +64,7 @@ def get_fn_name(fn, show_attrs, max_attr_chars):
     sep = '-' * max(col1width + col2width + 2, len(name))
     attrstr = '%-' + str(col1width) + 's: %' + str(col2width) + 's'
 
-    def truncate(s):  # pylint: disable=invalid-name
+    def truncate(s: str) -> str:  # pylint: disable=invalid-name
         return s[: col2width - 3] + '...' if len(s) > col2width else s
 
     params = '\n'.join(attrstr % (k, truncate(str(v))) for (k, v) in attrs.items())
@@ -72,7 +73,7 @@ def get_fn_name(fn, show_attrs, max_attr_chars):
 
 # pylint: disable-next=too-many-branches,too-many-statements,too-many-locals
 def make_dot(
-    var: TensorOrTensors,
+    var: TensorTree,
     params: (
         Mapping[str, torch.Tensor]
         | ModuleState
@@ -142,20 +143,20 @@ def make_dot(
     dot = Digraph(node_attr=node_attr, graph_attr={'size': '12,12'})
     seen = set()
 
-    def size_to_str(size):
+    def size_to_str(size: tuple[int, ...]) -> str:
         return '(' + (', ').join(map(str, size)) + ')'
 
-    def get_var_name(var, name=None):
+    def get_var_name(var: torch.Tensor, name: str | None = None) -> str:
         if not name:
             name = param_map[var] if var in param_map else ''
         return f'{name}\n{size_to_str(var.size())}'
 
-    def get_var_name_with_flag(var):
+    def get_var_name_with_flag(var: torch.Tensor) -> str | None:
         if var in param_map:
             return f'{param_map[var][0]}\n{size_to_str(param_map[var][1].size())}'
         return None
 
-    def add_nodes(fn):  # pylint: disable=too-many-branches
+    def add_nodes(fn: Any) -> None:  # pylint: disable=too-many-branches
         assert not isinstance(fn, torch.Tensor)
         if fn in seen:
             return
@@ -210,7 +211,10 @@ def make_dot(
                 dot.edge(str(id(t)), str(id(fn)))
                 dot.node(str(id(t)), get_var_name(t), fillcolor='orange')
 
-    def add_base_tensor(v, color='darkolivegreen1'):  # pylint: disable=invalid-name
+    def add_base_tensor(
+        v: torch.Tensor,  # pylint: disable=invalid-name
+        color: str = 'darkolivegreen1',
+    ) -> None:
         if v in seen:
             return
         seen.add(v)
@@ -220,15 +224,11 @@ def make_dot(
             dot.edge(str(id(v.grad_fn)), str(id(v)))
         # pylint: disable=protected-access
         if v._is_view():
-            add_base_tensor(v._base, color='darkolivegreen3')
+            add_base_tensor(v._base, color='darkolivegreen3')  # type: ignore[arg-type]
             dot.edge(str(id(v._base)), str(id(v)), style='dotted')
 
     # handle multiple outputs
-    if isinstance(var, (tuple, list)):
-        for v in var:  # pylint: disable=invalid-name
-            add_base_tensor(v)
-    else:
-        add_base_tensor(var)
+    pytree.tree_map_(add_base_tensor, var)
 
     resize_graph(dot)
 

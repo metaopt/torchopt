@@ -51,14 +51,13 @@ def run_baseline(args, mnist_train, mnist_test):
     ntest = args.ntest
     epoch = args.epoch
 
-    folder = './result/baseline/'
     writer = SummaryWriter('./result/baseline')
     with open('./result/baseline/config.json', 'w') as f:
         json.dump(args.__dict__, f)
 
     args.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-    train_set, val_set, test_set = get_imbalance_dataset(
+    train_set, _, test_set = get_imbalance_dataset(
         mnist_train,
         mnist_test,
         pos_ratio=pos_ratio,
@@ -67,7 +66,6 @@ def run_baseline(args, mnist_train, mnist_test):
         ntest=ntest,
     )
     train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, num_workers=4)
-    valid_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=True, num_workers=1)
     test_loader = DataLoader(test_set, batch_size=args.batch_size, shuffle=True, num_workers=1)
     model = LeNet5(args).to(args.device)
 
@@ -91,7 +89,7 @@ def run_baseline(args, mnist_train, mnist_test):
 
             if step % 10 == 0 and step > 0:
                 running_train_mean = np.mean(np.array(running_train_loss))
-                print('EPOCH: {}, BATCH: {}, LOSS: {}'.format(_epoch, idx, running_train_mean))
+                print(f'EPOCH: {_epoch}, BATCH: {idx}, LOSS: {running_train_mean}')
                 writer.add_scalar('running_train_loss', running_train_mean, step)
                 running_train_loss = []
 
@@ -106,7 +104,7 @@ def run_baseline(args, mnist_train, mnist_test):
         writer.add_scalar('train_acc', train_acc, _epoch)
         writer.add_scalar('test_acc', test_acc, _epoch)
         test_acc_result.append(test_acc)
-        print('EPOCH: {}, TRAIN_ACC: {}, TEST_ACC: {}'.format(_epoch, train_acc, test_acc))
+        print(f'EPOCH: {_epoch}, TRAIN_ACC: {train_acc}, TEST_ACC: {test_acc}')
     return test_acc_result
 
 
@@ -120,7 +118,6 @@ def run_L2R(args, mnist_train, mnist_test):
     ntest = args.ntest
     epoch = args.epoch
 
-    folder = './result/l2r/'
     writer = SummaryWriter('./result/l2r/log')
     with open('./result/l2r/config.json', 'w') as f:
         json.dump(args.__dict__, f)
@@ -143,7 +140,6 @@ def run_L2R(args, mnist_train, mnist_test):
     real_model_optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
 
     step = 0
-    time_bp = 0
     running_valid_loss = []
     valid = iter(valid_loader)
     running_train_loss = []
@@ -222,7 +218,7 @@ def run_L2R(args, mnist_train, mnist_test):
         writer.add_scalar('train_acc', train_acc, _epoch)
         writer.add_scalar('test_acc', test_acc, _epoch)
         test_acc_result.append(test_acc)
-        print('EPOCH: {}, TRAIN_ACC: {}, TEST_ACC: {}'.format(_epoch, train_acc, test_acc))
+        print(f'EPOCH: {_epoch}, TRAIN_ACC: {train_acc}, TEST_ACC: {test_acc}')
     return test_acc_result
 
 

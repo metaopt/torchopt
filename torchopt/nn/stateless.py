@@ -57,10 +57,7 @@ def swap_state(
         prefix, _, attr = path.rpartition('.')
         mod = get_submodule(prefix)
 
-        if allow_missing:
-            orig = getattr(mod, attr, MISSING)
-        else:
-            orig = getattr(mod, attr)
+        orig = getattr(mod, attr, MISSING) if allow_missing else getattr(mod, attr)
 
         # pylint: disable=protected-access
         if value is MISSING:
@@ -77,10 +74,7 @@ def swap_state(
 
         return orig
 
-    orig_named_tensors = {
-        name: recursive_setattr(name, tensor) for name, tensor in named_tensors.items()
-    }
-    return orig_named_tensors
+    return {name: recursive_setattr(name, tensor) for name, tensor in named_tensors.items()}
 
 
 @contextlib.contextmanager

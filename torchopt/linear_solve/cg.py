@@ -36,11 +36,11 @@
 from __future__ import annotations
 
 import functools
-from typing import Callable
+from typing import Any, Callable
 
 from torchopt import linalg
 from torchopt.linear_solve.utils import make_ridge_matvec
-from torchopt.typing import TensorTree
+from torchopt.typing import LinearSolver, TensorTree
 
 
 __all__ = ['solve_cg']
@@ -51,7 +51,7 @@ def _solve_cg(
     b: TensorTree,
     ridge: float | None = None,
     init: TensorTree | None = None,
-    **kwargs,
+    **kwargs: Any,
 ) -> TensorTree:
     """Solve ``A x = b`` using conjugate gradient.
 
@@ -78,7 +78,7 @@ def _solve_cg(
     return linalg.cg(matvec, b, x0=init, **kwargs)
 
 
-def solve_cg(**kwargs):
+def solve_cg(**kwargs: Any) -> LinearSolver:
     """Return a solver function to solve ``A x = b`` using conjugate gradient.
 
     This assumes that ``A`` is a hermitian, positive definite matrix.

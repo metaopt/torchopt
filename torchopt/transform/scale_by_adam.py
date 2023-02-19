@@ -69,7 +69,7 @@ def _bias_correction(
 ) -> Updates:
     """Perform bias correction. This becomes a no-op as count goes to infinity."""
 
-    def f(t, c):  # pylint: disable=invalid-name
+    def f(t: torch.Tensor, c: torch.Tensor) -> torch.Tensor:  # pylint: disable=invalid-name
         return t.div(1 - pow(decay, c))
 
     if already_flattened:
@@ -142,7 +142,7 @@ def _scale_by_adam(
     already_flattened: bool = False,
 ) -> GradientTransformation:
     # pylint: disable=unneeded-not
-    if not 0.0 <= eps:  # pragma: no cover
+    if not eps >= 0.0:  # pragma: no cover
         raise ValueError(f'Invalid epsilon value: {eps}')
     if not 0.0 <= b1 < 1.0:  # pragma: no cover
         raise ValueError(f'Invalid beta parameter at index 0: {b1}')
@@ -150,7 +150,7 @@ def _scale_by_adam(
         raise ValueError(f'Invalid beta parameter at index 1: {b2}')
     # pylint: enable=unneeded-not
 
-    if already_flattened:
+    if already_flattened:  # noqa: SIM108
         tree_map = tree_map_flat
     else:
         tree_map = pytree.tree_map  # type: ignore[assignment]
@@ -187,12 +187,20 @@ def _scale_by_adam(
 
         if inplace:
 
-            def f(g, m, v):  # pylint: disable=unused-argument
+            def f(
+                g: torch.Tensor,  # pylint: disable=unused-argument
+                m: torch.Tensor,
+                v: torch.Tensor,
+            ) -> torch.Tensor:
                 return m.div_(v.add_(eps_root).sqrt_().add(eps))
 
         else:
 
-            def f(g, m, v):  # pylint: disable=unused-argument
+            def f(
+                g: torch.Tensor,  # pylint: disable=unused-argument
+                m: torch.Tensor,
+                v: torch.Tensor,
+            ) -> torch.Tensor:
                 return m.div(v.add(eps_root).sqrt_().add(eps))
 
         updates = tree_map(f, updates, mu_hat, nu_hat)
@@ -272,7 +280,7 @@ def _scale_by_accelerated_adam(
     already_flattened: bool = False,
 ) -> GradientTransformation:
     # pylint: disable=unneeded-not
-    if not 0.0 <= eps:  # pragma: no cover
+    if not eps >= 0.0:  # pragma: no cover
         raise ValueError(f'Invalid epsilon value: {eps}')
     if not 0.0 <= b1 < 1.0:  # pragma: no cover
         raise ValueError(f'Invalid beta parameter at index 0: {b1}')

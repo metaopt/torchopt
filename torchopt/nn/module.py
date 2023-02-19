@@ -40,7 +40,7 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
     _meta_parameters: TensorContainer
     _meta_modules: dict[str, nn.Module | None]
 
-    def __new__(cls, *args, **kwargs) -> MetaGradientModule:
+    def __new__(cls, *args: Any, **kwargs: Any) -> MetaGradientModule:
         """Create a new module instance."""
         instance = super().__new__(cls)
         flat_args: list[Any]
@@ -56,7 +56,7 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
         instance._meta_modules: dict[str, nn.Module | None] = OrderedDict()  # type: ignore[misc]
         return instance
 
-    def __init__(self, *args, **kwargs) -> None:  # pylint: disable=unused-argument
+    def __init__(self, *args: Any, **kwargs: Any) -> None:  # pylint: disable=unused-argument
         """Initialize a new module instance."""
         super().__init__()
 
@@ -88,7 +88,7 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
     def __setattr__(self, name: str, value: torch.Tensor | nn.Module) -> None:
         """Set an attribute of the module."""
 
-        def remove_from(*dicts_or_sets):
+        def remove_from(*dicts_or_sets: dict[str, Any] | set[str]) -> None:
             for dict_or_set in dicts_or_sets:
                 if name in dict_or_set:
                     if isinstance(dict_or_set, dict):

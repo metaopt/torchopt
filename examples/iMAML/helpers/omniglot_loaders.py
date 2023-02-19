@@ -118,7 +118,7 @@ class Omniglot(data.Dataset):
 
 def find_classes(root_dir):
     retour = []
-    for root, dirs, files in os.walk(root_dir):
+    for root, _, files in os.walk(root_dir):
         for f in files:
             if f.endswith('png'):
                 r = root.split('/')
@@ -171,7 +171,7 @@ class OmniglotNShot:
             # {label: [img1, img2..., img20], label2: [img1, img2, ...], ... 1623 labels in total}
             temp = {}
             for img, label in self.x:
-                if label in temp.keys():
+                if label in temp:
                     temp[label].append(img)
                 else:
                     temp[label] = [img]
@@ -196,11 +196,8 @@ class OmniglotNShot:
             self.x = np.load(os.path.join(root, 'omniglot.npy'))
             print('load from omniglot.npy.')
 
-        # [1623, 20, 84, 84, 1]
-        # TODO: can not shuffle here, we must keep training and test set distinct!
+        # NOTE: do not shuffle here, we must keep training and test set distinct!
         self.x_train, self.x_test = self.x[:1200], self.x[1200:]
-
-        # self.normalization()
 
         self.batchsz = batchsz
         self.n_cls = self.x.shape[0]  # 1623
@@ -230,7 +227,6 @@ class OmniglotNShot:
         self.std = np.std(self.x_train)
         self.max = np.max(self.x_train)
         self.min = np.min(self.x_train)
-        # print("before norm:", "mean", self.mean, "max", self.max, "min", self.min, "std", self.std)
         self.x_train = (self.x_train - self.mean) / self.std
         self.x_test = (self.x_test - self.mean) / self.std
 
@@ -238,8 +234,6 @@ class OmniglotNShot:
         self.std = np.std(self.x_train)
         self.max = np.max(self.x_train)
         self.min = np.min(self.x_train)
-
-    # print("after norm:", "mean", self.mean, "max", self.max, "min", self.min, "std", self.std)
 
     def load_data_cache(self, data_pack):
         """
@@ -253,10 +247,9 @@ class OmniglotNShot:
         querysz = self.k_query * self.n_way
         data_cache = []
 
-        # print('preload next 50 caches of batchsz of batch.')
-        for sample in range(10):  # num of episodes
+        for _sample in range(10):  # num of episodes
             x_spts, y_spts, x_qrys, y_qrys = [], [], [], []
-            for i in range(self.batchsz):  # one batch means one set
+            for _ in range(self.batchsz):  # one batch means one set
                 x_spt, y_spt, x_qry, y_qry = [], [], [], []
                 selected_cls = self.rng.choice(data_pack.shape[0], self.n_way, False)
 
@@ -287,20 +280,20 @@ class OmniglotNShot:
                 x_qrys.append(x_qry)
                 y_qrys.append(y_qry)
 
-            # [b, setsz, 1, 84, 84]
             x_spts = np.array(x_spts, dtype=np.float32).reshape(
                 self.batchsz, setsz, 1, self.resize, self.resize
-            )
-            y_spts = np.array(y_spts, dtype=np.int).reshape(self.batchsz, setsz)
-            # [b, qrysz, 1, 84, 84]
+            )  # [b, setsz, 1, 84, 84]
+            y_spts = np.array(y_spts, dtype=np.int).reshape(
+                self.batchsz, setsz
+            )  # [b, qrysz, 1, 84, 84]
             x_qrys = np.array(x_qrys, dtype=np.float32).reshape(
                 self.batchsz, querysz, 1, self.resize, self.resize
             )
             y_qrys = np.array(y_qrys, dtype=np.int).reshape(self.batchsz, querysz)
 
-            x_spts, y_spts, x_qrys, y_qrys = [
+            x_spts, y_spts, x_qrys, y_qrys = (
                 torch.from_numpy(z).to(self.device) for z in [x_spts, y_spts, x_qrys, y_qrys]
-            ]
+            )
 
             data_cache.append([x_spts, y_spts, x_qrys, y_qrys])
 

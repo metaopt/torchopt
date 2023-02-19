@@ -13,9 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 
-import torch
 import torch.nn as nn
-from torch.distributions import Categorical
 from torchrl.modules import (
     ActorValueOperator,
     OneHotCategorical,

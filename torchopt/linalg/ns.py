@@ -112,7 +112,7 @@ def ns(
     return inv_A_hat_b
 
 
-def _ns_inv(A: torch.Tensor, maxiter: int, alpha: float | None = None):
+def _ns_inv(A: torch.Tensor, maxiter: int, alpha: float | None = None) -> torch.Tensor:
     """Use Neumann Series iteration to solve ``A^{-1}``."""
     if A.ndim != 2 or A.shape[0] != A.shape[1]:
         raise ValueError(f'`A` must be a square matrix, but has shape: {A.shape}')

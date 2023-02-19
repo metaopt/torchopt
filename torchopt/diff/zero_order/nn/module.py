@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import abc
 import functools
-from typing import Sequence
+from typing import Any, Sequence
 
 import torch
 import torch.nn as nn
@@ -37,7 +37,7 @@ def enable_zero_order_gradients(
     cls: type[ZeroOrderGradientModule],
     method: Method = 'naive',
     num_samples: int = 1,
-    sigma: Numeric = 1.0,
+    sigma: float = 1.0,
 ) -> type[ZeroOrderGradientModule]:
     """Enable zero-order gradient estimation for the :func:`forward` method."""
     cls_forward = cls.forward
@@ -47,15 +47,15 @@ def enable_zero_order_gradients(
         )
 
     @functools.wraps(cls_forward)
-    def wrapped(self: ZeroOrderGradientModule, *input, **kwargs) -> torch.Tensor:
+    def wrapped(self: ZeroOrderGradientModule, *input: Any, **kwargs: Any) -> torch.Tensor:
         """Do the forward pass calculation."""
         params_names, flat_params = tuple(zip(*self.named_parameters()))
 
         @zero_order(self.sample, argnums=0, method=method, num_samples=num_samples, sigma=sigma)
         def forward_fn(
             __flat_params: TupleOfTensors,
-            *input,
-            **kwargs,
+            *input: Any,
+            **kwargs: Any,
         ) -> torch.Tensor:
             with reparametrize(self, zip(params_names, __flat_params)):
                 return cls_forward(self, *input, **kwargs)
@@ -74,7 +74,7 @@ class ZeroOrderGradientModule(nn.Module, Samplable):
         cls,
         method: Method = 'naive',
         num_samples: int = 1,
-        sigma: Numeric = 1.0,
+        sigma: float = 1.0,
     ) -> None:
         """Validate and initialize the subclass."""
         super().__init_subclass__()
@@ -86,7 +86,7 @@ class ZeroOrderGradientModule(nn.Module, Samplable):
         )
 
     @abc.abstractmethod
-    def forward(self, *args, **kwargs) -> torch.Tensor:
+    def forward(self, *args: Any, **kwargs: Any) -> torch.Tensor:
         """Do the forward pass of the model."""
         raise NotImplementedError
 

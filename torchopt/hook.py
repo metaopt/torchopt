@@ -45,7 +45,7 @@ def nan_to_num_hook(
     return hook
 
 
-def register_hook(hook) -> GradientTransformation:
+def register_hook(hook: Callable[[torch.Tensor], torch.Tensor | None]) -> GradientTransformation:
     """Stateless identity transformation that leaves input gradients untouched.
 
     This function passes through the *gradient updates* unchanged.
@@ -64,7 +64,7 @@ def register_hook(hook) -> GradientTransformation:
         params: Params | None = None,  # pylint: disable=unused-argument
         inplace: bool = True,  # pylint: disable=unused-argument
     ) -> tuple[Updates, OptState]:
-        def f(g):
+        def f(g: torch.Tensor) -> torch.utils.hooks.RemovableHandle:
             return g.register_hook(hook)
 
         pytree.tree_map_(f, updates)

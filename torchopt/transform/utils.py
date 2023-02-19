@@ -59,7 +59,7 @@ def tree_map_flat(
         fn = func
     else:
 
-        def fn(x, *xs):
+        def fn(x: Any | None, *xs: Any) -> Any | None:
             return func(x, *xs) if x is not None else None
 
     return flat_arg.__class__(map(fn, flat_arg, *flat_args))  # type: ignore[call-arg]
@@ -76,7 +76,7 @@ def tree_map_flat_(
         fn = func
     else:
 
-        def fn(x, *xs):
+        def fn(x: Any | None, *xs: Any) -> Any | None:
             return func(x, *xs) if x is not None else None
 
     flat_results = map(fn, flat_arg, *flat_args)
@@ -111,7 +111,7 @@ def _inc_count(
     *,
     already_flattened: bool = False,
 ) -> TensorTree:
-    def f(c, g):  # pylint: disable=invalid-name
+    def f(c: torch.Tensor, g: torch.Tensor | None) -> torch.Tensor:  # pylint: disable=invalid-name
         return c + (c != INT64_MAX).to(torch.int64) if g is not None else c
 
     if already_flattened:
@@ -167,30 +167,30 @@ def _update_moment(
     *,
     order: int,
     inplace: bool = True,
-    already_flattened=False,
+    already_flattened: bool = False,
 ) -> TensorTree:
     assert order in (1, 2)
 
     if inplace:
         if order == 2:
 
-            def f(g, t):
+            def f(g: torch.Tensor | None, t: torch.Tensor) -> torch.Tensor:
                 return t.mul_(decay).addcmul_(g, g, value=1 - decay) if g is not None else t
 
         else:
 
-            def f(g, t):
+            def f(g: torch.Tensor | None, t: torch.Tensor) -> torch.Tensor:
                 return t.mul_(decay).add_(g, alpha=1 - decay) if g is not None else t
 
     else:
         if order == 2:
 
-            def f(g, t):
+            def f(g: torch.Tensor | None, t: torch.Tensor) -> torch.Tensor:
                 return t.mul(decay).addcmul_(g, g, value=1 - decay) if g is not None else t
 
         else:
 
-            def f(g, t):
+            def f(g: torch.Tensor | None, t: torch.Tensor) -> torch.Tensor:
                 return t.mul(decay).add_(g, alpha=1 - decay) if g is not None else t
 
     if already_flattened:

@@ -27,7 +27,7 @@ def step(ipd, theta1, theta2, values1, values2, args):
     (s1, s2), _ = ipd.reset()
     score1 = 0
     score2 = 0
-    for t in range(args.len_rollout):
+    for _ in range(args.len_rollout):
         a1, lp1, v1 = act(s1, theta1, values1)
         a2, lp2, v2 = act(s2, theta2, values2)
         (s1, s2), (r1, r2), _, _ = ipd.step((a1, a2))
@@ -109,7 +109,7 @@ def sample(ipd, policy, value, args):
     (s1, s2), _ = ipd.reset()
     memory_agent1 = Memory(args)
     memory_agent2 = Memory(args)
-    for t in range(args.len_rollout):
+    for _ in range(args.len_rollout):
         a1, lp1, v1 = act(s1, theta1, value1)
         a2, lp2, v2 = act(s2, theta2, value2)
         (s1, s2), (r1, r2), _, _ = ipd.step((a1, a2))

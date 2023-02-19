@@ -17,11 +17,13 @@ from __future__ import annotations
 
 import threading
 
+import torch
+
 from torchopt import pytree
 from torchopt.base import EmptyState, GradientTransformation, identity
 from torchopt.transform import scale, scale_by_schedule
 from torchopt.transform.utils import tree_map_flat, tree_map_flat_
-from torchopt.typing import OptState, Params, ScalarOrSchedule, Updates
+from torchopt.typing import Numeric, OptState, Params, ScalarOrSchedule, Updates
 
 
 __all__ = ['flip_sign_and_add_weight_decay', 'scale_by_neg_lr']
@@ -43,7 +45,7 @@ def _get_use_chain_flat() -> bool:  # only used for testing purposes
 
 
 def flip_sign_and_add_weight_decay(
-    weight_decay: float = 0.0, maximize=False
+    weight_decay: float = 0.0, maximize: bool = False
 ) -> GradientTransformation:
     """Flip the sign of the updates and adds weight decay."""
     return _flip_sign_and_add_weight_decay(
@@ -54,7 +56,7 @@ def flip_sign_and_add_weight_decay(
 
 
 def _flip_sign_and_add_weight_decay_flat(
-    weight_decay: float = 0.0, maximize=False
+    weight_decay: float = 0.0, maximize: bool = False
 ) -> GradientTransformation:
     """Flip the sign of the updates and adds weight decay."""
     return _flip_sign_and_add_weight_decay(
@@ -66,13 +68,13 @@ def _flip_sign_and_add_weight_decay_flat(
 
 def _flip_sign_and_add_weight_decay(
     weight_decay: float = 0.0,
-    maximize=False,
+    maximize: bool = False,
     *,
     already_flattened: bool = False,
 ) -> GradientTransformation:
     """Flip the sign of the updates and adds weight decay."""
     # pylint: disable-next=unneeded-not
-    if not 0.0 <= weight_decay:  # pragma: no cover
+    if not weight_decay >= 0.0:  # pragma: no cover
         raise ValueError(f'Invalid weight_decay value: {weight_decay}')
 
     if not maximize and weight_decay == 0.0:
@@ -104,7 +106,7 @@ def _flip_sign_and_add_weight_decay(
 
             if inplace:
 
-                def f(g, p):
+                def f(g: torch.Tensor, p: torch.Tensor) -> torch.Tensor:
                     if g.requires_grad:
                         return g.add_(p, alpha=weight_decay)
                     return g.add_(p.data, alpha=weight_decay)
@@ -113,7 +115,7 @@ def _flip_sign_and_add_weight_decay(
 
             else:
 
-                def f(g, p):
+                def f(g: torch.Tensor, p: torch.Tensor) -> torch.Tensor:
                     return g.add(p, alpha=weight_decay)
 
                 updates = tree_map(f, updates, params)
@@ -132,14 +134,14 @@ def _flip_sign_and_add_weight_decay(
             ) -> tuple[Updates, OptState]:
                 if inplace:
 
-                    def f(g):
+                    def f(g: torch.Tensor) -> torch.Tensor:
                         return g.neg_()
 
                     updates = tree_map_(f, updates)
 
                 else:
 
-                    def f(g):
+                    def f(g: torch.Tensor) -> torch.Tensor:
                         return g.neg()
 
                     updates = tree_map(f, updates)
@@ -162,7 +164,7 @@ def _flip_sign_and_add_weight_decay(
 
                 if inplace:
 
-                    def f(g, p):
+                    def f(g: torch.Tensor, p: torch.Tensor) -> torch.Tensor:
                         if g.requires_grad:
                             return g.neg_().add_(p, alpha=weight_decay)
                         return g.neg_().add_(p.data, alpha=weight_decay)
@@ -171,7 +173,7 @@ def _flip_sign_and_add_weight_decay(
 
                 else:
 
-                    def f(g, p):
+                    def f(g: torch.Tensor, p: torch.Tensor) -> torch.Tensor:
                         return g.neg().add_(p, alpha=weight_decay)
 
                     updates = tree_map(f, updates, params)
@@ -194,13 +196,17 @@ def _scale_by_neg_lr_flat(lr: ScalarOrSchedule) -> GradientTransformation:
     return _scale_by_neg_lr(lr=lr, already_flattened=True)
 
 
-def _scale_by_neg_lr(lr: ScalarOrSchedule, *, already_flattened=False) -> GradientTransformation:
-    if not (callable(lr) or 0.0 <= lr):  # pragma: no cover
+def _scale_by_neg_lr(
+    lr: ScalarOrSchedule,
+    *,
+    already_flattened: bool = False,
+) -> GradientTransformation:
+    if not (callable(lr) or lr >= 0.0):  # pragma: no cover
         raise ValueError(f'Invalid learning rate: {lr}')
 
     if callable(lr):
 
-        def schedule_wrapper(count):
+        def schedule_wrapper(count: Numeric) -> Numeric:
             return -lr(count)  # type: ignore[operator]
 
         return scale_by_schedule.impl(  # type: ignore[attr-defined]
