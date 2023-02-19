@@ -20,11 +20,7 @@ from collections import OrderedDict
 from types import FunctionType
 
 import functorch
-import jax
-import jax.numpy as jnp
-import jaxopt
 import numpy as np
-import optax
 import pytest
 import torch
 import torch.nn as nn
@@ -36,6 +32,18 @@ import helpers
 import torchopt
 from torchopt import pytree
 from torchopt.diff.implicit import ImplicitMetaGradientModule
+
+
+try:
+    import jax
+    import jax.numpy as jnp
+    import jaxopt
+    import optax
+
+    HAS_JAX = True
+except ImportError:
+    jax = jnp = jaxopt = optax = None
+    HAS_JAX = False
 
 
 BATCH_SIZE = 8
@@ -108,6 +116,7 @@ def get_rr_dataset_torch() -> data.DataLoader:
     return loader
 
 
+@pytest.mark.skipif(not HAS_JAX, reason='JAX is not installed')
 @helpers.parametrize(
     dtype=[torch.float64, torch.float32],
     lr=[1e-3, 1e-4],
@@ -234,6 +243,7 @@ def test_imaml_solve_normal_cg(
     helpers.assert_pytree_all_close(params, jax_params_as_tensor)
 
 
+@pytest.mark.skipif(not HAS_JAX, reason='JAX is not installed')
 @helpers.parametrize(
     dtype=[torch.float64, torch.float32],
     lr=[1e-3, 1e-4],
@@ -361,6 +371,7 @@ def test_imaml_solve_inv(
     helpers.assert_pytree_all_close(params, jax_params_as_tensor)
 
 
+@pytest.mark.skipif(not HAS_JAX, reason='JAX is not installed')
 @helpers.parametrize(
     dtype=[torch.float64, torch.float32],
     lr=[1e-3, 1e-4],
@@ -472,6 +483,7 @@ def test_imaml_module(dtype: torch.dtype, lr: float, inner_lr: float, inner_upda
     helpers.assert_pytree_all_close(tuple(model.parameters()), jax_params_as_tensor)
 
 
+@pytest.mark.skipif(not HAS_JAX, reason='JAX is not installed')
 @helpers.parametrize(
     dtype=[torch.float64, torch.float32],
     lr=[1e-3, 1e-4],
@@ -574,6 +586,7 @@ def test_rr_solve_cg(
     helpers.assert_all_close(l2reg_torch, l2reg_jax_as_tensor)
 
 
+@pytest.mark.skipif(not HAS_JAX, reason='JAX is not installed')
 @helpers.parametrize(
     dtype=[torch.float64, torch.float32],
     lr=[1e-3, 1e-4],
