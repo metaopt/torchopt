@@ -49,7 +49,7 @@ def _zero_order_naive(  # pylint: disable=too-many-statements
     distribution: Samplable,
     argnums: tuple[int, ...],
     num_samples: int,
-    sigma: Numeric,
+    sigma: float,
 ) -> Callable[..., torch.Tensor]:
     @functools.wraps(fn)
     def apply(*args: Any) -> torch.Tensor:  # pylint: disable=too-many-statements
@@ -112,15 +112,17 @@ def _zero_order_naive(  # pylint: disable=too-many-statements
 
                 args: list[Any] = pytree.tree_unflatten(ctx.args_treespec, flat_args)  # type: ignore[assignment]
 
-                def add_perturbation(tensor, noises):
-                    return tensor.add(noises, alpha=sigma)
+                def add_perturbation(
+                    tensor: torch.Tensor, noise: torch.Tensor | Numeric
+                ) -> torch.Tensor:
+                    return tensor.add(noise, alpha=sigma)
 
                 param_grads: ListOfTensors = [0.0 for _ in range(len(flat_diff_params))]  # type: ignore[misc]
 
                 for _ in range(num_samples):
                     noises = [distribution.sample(sample_shape=p.shape) for p in flat_diff_params]
                     flat_noisy_params = [
-                        add_perturbation(t, n) for t, n in zip(flat_diff_params, noises)
+                        add_perturbation(t, n) for t, n in zip(flat_diff_params, noises)  # type: ignore[arg-type]
                     ]
                     noisy_params: list[Any] = pytree.tree_unflatten(  # type: ignore[assignment]
                         diff_params_treespec, flat_noisy_params
@@ -150,7 +152,7 @@ def _zero_order_forward(  # pylint: disable=too-many-statements
     distribution: Samplable,
     argnums: tuple[int, ...],
     num_samples: int,
-    sigma: Numeric,
+    sigma: float,
 ) -> Callable[..., torch.Tensor]:
     @functools.wraps(fn)
     def apply(*args: Any) -> torch.Tensor:  # pylint: disable=too-many-statements
@@ -214,15 +216,15 @@ def _zero_order_forward(  # pylint: disable=too-many-statements
 
                 args: list[Any] = pytree.tree_unflatten(ctx.args_treespec, flat_args)  # type: ignore[assignment]
 
-                def add_perturbation(tensor, noises):
-                    return tensor.add(noises, alpha=sigma)
+                def add_perturbation(tensor: torch.Tensor, noise: torch.Tensor) -> torch.Tensor:
+                    return tensor.add(noise, alpha=sigma)
 
                 param_grads: ListOfTensors = [0.0 for _ in range(len(flat_diff_params))]  # type: ignore[misc]
 
                 for _ in range(num_samples):
                     noises = [distribution.sample(sample_shape=p.shape) for p in flat_diff_params]
                     flat_noisy_params = [
-                        add_perturbation(t, n) for t, n in zip(flat_diff_params, noises)
+                        add_perturbation(t, n) for t, n in zip(flat_diff_params, noises)  # type: ignore[arg-type]
                     ]
                     noisy_params: list[Any] = pytree.tree_unflatten(  # type: ignore[assignment]
                         diff_params_treespec, flat_noisy_params
@@ -253,7 +255,7 @@ def _zero_order_antithetic(  # pylint: disable=too-many-statements
     distribution: Samplable,
     argnums: tuple[int, ...],
     num_samples: int,
-    sigma: Numeric,
+    sigma: float,
 ) -> Callable[..., torch.Tensor]:
     @functools.wraps(fn)
     def apply(*args: Any) -> torch.Tensor:  # pylint: disable=too-many-statements
@@ -295,7 +297,9 @@ def _zero_order_antithetic(  # pylint: disable=too-many-statements
                 return output
 
             @staticmethod
-            def backward(ctx: Any, *grad_outputs: Any):  # pylint: disable=too-many-locals
+            def backward(  # pylint: disable=too-many-locals
+                ctx: Any, *grad_outputs: Any
+            ) -> TupleOfOptionalTensors:
                 saved_tensors = ctx.saved_tensors
                 flat_diff_params = saved_tensors[: ctx.len_params]
                 tensors = saved_tensors[ctx.len_params :]
@@ -316,7 +320,9 @@ def _zero_order_antithetic(  # pylint: disable=too-many-statements
 
                 param_grads: ListOfTensors = [0.0 for _ in range(len(flat_diff_params))]  # type: ignore[misc]
 
-                def get_output(add_perturbation_fn, noises) -> torch.Tensor:
+                def get_output(
+                    add_perturbation_fn: Callable, noises: Sequence[torch.Tensor | Numeric]
+                ) -> torch.Tensor:
                     flat_noisy_params = [
                         add_perturbation_fn(t, n, alpha=sigma)
                         for t, n in zip(flat_diff_params, noises)
@@ -332,7 +338,7 @@ def _zero_order_antithetic(  # pylint: disable=too-many-statements
 
                 for _ in range(num_samples):
                     noises = [distribution.sample(sample_shape=p.shape) for p in flat_diff_params]
-                    output = get_output(torch.add, noises) - get_output(torch.sub, noises)
+                    output = get_output(torch.add, noises) - get_output(torch.sub, noises)  # type: ignore[arg-type]
                     weighted_grad = grad_outputs[0].mul(output).mul_(0.5 / sigma)
 
                     for i, noise in enumerate(noises):
@@ -356,7 +362,7 @@ def zero_order(
     method: Method = 'naive',
     argnums: int | tuple[int, ...] = (0,),
     num_samples: int = 1,
-    sigma: Numeric = 1.0,
+    sigma: float = 1.0,
 ) -> Callable[[Callable[..., torch.Tensor]], Callable[..., torch.Tensor]]:
     """Return a decorator for applying zero-order differentiation.
 
@@ -372,7 +378,7 @@ def zero_order(
             respect to. (default: :const:`0`)
         num_samples (int, optional): The number of sample to get the averaged estimated gradient.
             (default: :const:`1`)
-        sigma (float or Tensor, optional): The standard deviation of the perturbation.
+        sigma (float, optional): The standard deviation of the perturbation.
             (default: :const:`1.0`)
 
     Returns:

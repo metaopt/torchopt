@@ -40,7 +40,7 @@ import torch
 from torchopt import pytree
 from torchopt.base import GradientTransformation
 from torchopt.transform.utils import inc_count, tree_map_flat, tree_map_flat_
-from torchopt.typing import OptState, Params, Schedule, SequenceOfTensors, Updates
+from torchopt.typing import Numeric, OptState, Params, Schedule, SequenceOfTensors, Updates
 
 
 __all__ = ['scale_by_schedule']
@@ -96,7 +96,7 @@ def _scale_by_schedule(
     ) -> tuple[Updates, OptState]:
         if inplace:
 
-            def f(g, c):  # pylint: disable=invalid-name
+            def f(g: torch.Tensor, c: Numeric) -> torch.Tensor:  # pylint: disable=invalid-name
                 step_size = step_size_fn(c)
                 return g.mul_(step_size)
 
@@ -104,7 +104,7 @@ def _scale_by_schedule(
 
         else:
 
-            def f(g, c):  # pylint: disable=invalid-name
+            def f(g: torch.Tensor, c: Numeric) -> torch.Tensor:  # pylint: disable=invalid-name
                 step_size = step_size_fn(c)
                 return g.mul(step_size)
 

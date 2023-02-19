@@ -96,17 +96,16 @@ def main(args):
         score = step(ipd, agent1.theta, agent2.theta, agent1.values, agent2.values, args)
         joint_scores.append(0.5 * (score[0] + score[1]))
 
-        # print
         if update % 10 == 0:
             p1 = [p.item() for p in torch.sigmoid(agent1.theta)]
             p2 = [p.item() for p in torch.sigmoid(agent2.theta)]
             print(
                 'update',
                 update,
-                'score (%.3f,%.3f)' % (score[0], score[1]),
+                f'score ({score[0]:.3f},{score[1]:.3f})',
                 'policy (agent1) = {%.3f, %.3f, %.3f, %.3f, %.3f}'
                 % (p1[0], p1[1], p1[2], p1[3], p1[4]),
-                ' (agent2) = {%.3f, %.3f, %.3f, %.3f, %.3f}' % (p2[0], p2[1], p2[2], p2[3], p2[4]),
+                f' (agent2) = {{{p2[0]:.3f}, {p2[1]:.3f}, {p2[2]:.3f}, {p2[3]:.3f}, {p2[4]:.3f}}}',
             )
 
     return joint_scores
@@ -114,7 +113,7 @@ def main(args):
 
 if __name__ == '__main__':
     args = parse_args()
-    joint_score = dict()
+    joint_score = {}
     for nla in range(3):
         args.n_lookaheads = nla
         joint_score[nla] = main(args)

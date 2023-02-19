@@ -30,6 +30,7 @@ import os
 import pathlib
 import sys
 
+import sphinx
 import sphinxcontrib.katex as katex
 
 
@@ -39,7 +40,7 @@ PROJECT_ROOT = HERE.parent.parent
 
 def get_version() -> str:
     sys.path.insert(0, str(PROJECT_ROOT / 'torchopt'))
-    import version  # noqa
+    import version
 
     return version.__version__
 
@@ -51,7 +52,7 @@ except ImportError:
 else:
 
     class RecursiveForwardRefFilter(logging.Filter):
-        def filter(self, record):
+        def filter(self, record: logging.LogRecord) -> bool:
             if (
                 "name 'TensorTree' is not defined" in record.getMessage()
                 or "name 'OptionalTensorTree' is not defined" in record.getMessage()
@@ -191,7 +192,7 @@ html_css_files = ['style.css']
 html_logo = '_static/images/logo.png'
 
 
-def setup(app):
+def setup(app: sphinx.application.Sphinx) -> None:
     app.add_js_file('https://cdn.jsdelivr.net/npm/vega@5.20.2')
     app.add_js_file('https://cdn.jsdelivr.net/npm/vega-lite@5.1.0')
     app.add_js_file('https://cdn.jsdelivr.net/npm/vega-embed@6.17.0')

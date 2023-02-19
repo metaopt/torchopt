@@ -89,15 +89,9 @@ def get_imbalance_dataset(
     y_val_subset = np.concatenate([np.zeros([x_val_0.shape[0]]), np.ones([x_val_1.shape[0]])])
     y_test_subset = np.concatenate([np.zeros([x_test_0.shape[0]]), np.ones([x_test_1.shape[0]])])
 
-    y_train_pos_subset = np.ones([x_train_1.shape[0]])
-    y_train_neg_subset = np.zeros([x_train_0.shape[0]])
-
     x_train_subset = np.concatenate([x_train_0, x_train_1], axis=0)[:, None, :, :]
     x_val_subset = np.concatenate([x_val_0, x_val_1], axis=0)[:, None, :, :]
     x_test_subset = np.concatenate([x_test_0, x_test_1], axis=0)[:, None, :, :]
-
-    x_train_pos_subset = x_train_1[:, None, :, :]
-    x_train_neg_subset = x_train_0[:, None, :, :]
 
     # Final shuffle.
     idx = np.arange(x_train_subset.shape[0])
@@ -146,7 +140,7 @@ def set_seed(seed, cudnn=True):
     torch.random.manual_seed(seed)
     torch.cuda.manual_seed(seed)
     # note: the below slows down the code but makes it reproducible
-    # Sets the seed for generating random numbers on all GPUs. It’s safe to
+    # Sets the seed for generating random numbers on all GPUs. It's safe to
     # call this function if CUDA is not available; in that case, it is
     # silently ignored.
     torch.cuda.manual_seed_all(seed)
@@ -157,7 +151,6 @@ def set_seed(seed, cudnn=True):
 
 def plot(baseline, l2r):
     import matplotlib.pyplot as plt
-    import numpy as np
     import seaborn as sns
 
     sns.set(style='darkgrid')

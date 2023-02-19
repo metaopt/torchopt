@@ -222,7 +222,7 @@ def test(db, net, epoch, log, args):
     n_inner_iter = args.inner_steps
     reg_param = args.reg_params
 
-    for batch_idx in range(n_test_iter):
+    for _ in range(n_test_iter):
         x_spt, y_spt, x_qry, y_qry = db.next('test')
 
         task_num = x_spt.size(0)

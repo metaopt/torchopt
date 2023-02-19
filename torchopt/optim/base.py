@@ -67,12 +67,12 @@ class Optimizer:
         """
         if set_to_none:
 
-            def f(p):
+            def f(p: torch.Tensor) -> None:
                 p.grad = None
 
         else:
 
-            def f(p):
+            def f(p: torch.Tensor) -> None:
                 if p.grad is None:
                     return
                 if p.grad.grad_fn is not None:
@@ -110,7 +110,7 @@ class Optimizer:
             with torch.enable_grad():
                 loss = closure()
 
-        def f(p):
+        def f(p: torch.Tensor) -> torch.Tensor | None:
             return p.grad
 
         for i, (params, state) in enumerate(zip(self.param_groups, self.state_groups)):

@@ -43,5 +43,5 @@ def is_available(devices: Device | Iterable[Device] | None = None) -> bool:
             updates = torch.tensor(1.0, device=device)
             op(updates, updates, updates, 1)
         return True
-    except Exception:  # pylint: disable=broad-except
+    except Exception:  # noqa: BLE001 # pylint: disable=broad-except
         return False

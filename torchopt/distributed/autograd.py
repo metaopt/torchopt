@@ -31,7 +31,7 @@ __all__ = ['is_available', 'context']
 LOCK = Lock()
 
 
-def is_available():
+def is_available() -> bool:
     """Check if distributed autograd module is available."""
     return autograd.is_available()
 

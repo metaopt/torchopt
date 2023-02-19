@@ -55,7 +55,7 @@ def test_gamma():
     meta_optimizer = torchopt.SGD([gamma], lr=5e-1)
     net_state = torchopt.extract_state_dict(net)
     for i in range(outer_iters):
-        for j in range(inner_iters):
+        for _ in range(inner_iters):
             trajectory, state = Rollout.get()
             backup = Rollout.rollout(trajectory, torch.sigmoid(gamma))
             pred_value = net(state.float())

@@ -93,7 +93,6 @@ class TabularMDPEnv(gym.Env):
         self._rewards_mean = task['rewards_mean']
 
     def reset(self):
-        # From [1]: "an episode always starts on the first state"
         self._state = 0
         observation = np.zeros(self.num_states, dtype=np.float32)
         observation[self._state] = 1.0
@@ -112,8 +111,5 @@ class TabularMDPEnv(gym.Env):
         observation = np.zeros(self.num_states, dtype=np.float32)
         observation[self._state] = 1.0
         self._elapsed_steps += 1
-        if self._elapsed_steps >= self.max_episode_steps:
-            done = True
-        else:
-            done = False
+        done = self._elapsed_steps >= self.max_episode_steps
         return observation, reward, done, {'task': self._task}

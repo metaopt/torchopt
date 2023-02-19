@@ -33,6 +33,8 @@
 
 from __future__ import annotations
 
+import torch
+
 from torchopt import pytree
 from torchopt.base import EmptyState, GradientTransformation
 from torchopt.transform.utils import tree_map_flat, tree_map_flat_
@@ -85,14 +87,14 @@ def _scale(
     ) -> tuple[Updates, OptState]:
         if inplace:
 
-            def f(g):
+            def f(g: torch.Tensor) -> torch.Tensor:
                 return g.mul_(step_size)
 
             updates = tree_map_(f, updates)
 
         else:
 
-            def f(g):
+            def f(g: torch.Tensor) -> torch.Tensor:
                 return g.mul(step_size)
 
             updates = tree_map(f, updates)

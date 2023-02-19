@@ -96,24 +96,21 @@ def adam(
     """
     b1, b2 = betas  # pylint: disable=invalid-name
     # pylint: disable=unneeded-not
-    if not (callable(lr) or 0.0 <= lr):  # pragma: no cover
+    if not (callable(lr) or lr >= 0.0):  # pragma: no cover
         raise ValueError(f'Invalid learning rate: {lr}')
-    if not 0.0 <= eps:  # pragma: no cover
+    if not eps >= 0.0:  # pragma: no cover
         raise ValueError(f'Invalid epsilon value: {eps}')
     if not 0.0 <= b1 < 1.0:  # pragma: no cover
         raise ValueError(f'Invalid beta parameter at index 0: {b1}')
     if not 0.0 <= b2 < 1.0:  # pragma: no cover
         raise ValueError(f'Invalid beta parameter at index 1: {b2}')
-    if not 0.0 <= weight_decay:  # pragma: no cover
+    if not weight_decay >= 0.0:  # pragma: no cover
         raise ValueError(f'Invalid weight_decay value: {weight_decay}')
     # pylint: enable=unneeded-not
 
     chain_fn = chain
     flip_sign_and_add_weight_decay_fn = flip_sign_and_add_weight_decay
-    if use_accelerated_op:
-        adam_scaler_fn = scale_by_accelerated_adam
-    else:
-        adam_scaler_fn = scale_by_adam
+    adam_scaler_fn = scale_by_accelerated_adam if use_accelerated_op else scale_by_adam
     scale_by_neg_lr_fn = scale_by_neg_lr
 
     if _get_use_chain_flat():  # default behavior

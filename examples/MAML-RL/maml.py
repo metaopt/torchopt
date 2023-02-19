@@ -108,12 +108,10 @@ def evaluate(env, seed, task_num, policy):
     inner_opt = torchopt.MetaSGD(policy, lr=0.1)
     env = gym.make(
         'TabularMDP-v0',
-        **dict(
-            num_states=STATE_DIM,
-            num_actions=ACTION_DIM,
-            max_episode_steps=TRAJ_LEN,
-            seed=args.seed,
-        ),
+        num_states=STATE_DIM,
+        num_actions=ACTION_DIM,
+        max_episode_steps=TRAJ_LEN,
+        seed=args.seed,
     )
     tasks = env.sample_tasks(num_tasks=task_num)
     policy_state_dict = torchopt.extract_state_dict(policy)
@@ -141,12 +139,10 @@ def main(args):
     # Env
     env = gym.make(
         'TabularMDP-v0',
-        **dict(
-            num_states=STATE_DIM,
-            num_actions=ACTION_DIM,
-            max_episode_steps=TRAJ_LEN,
-            seed=args.seed,
-        ),
+        num_states=STATE_DIM,
+        num_actions=ACTION_DIM,
+        max_episode_steps=TRAJ_LEN,
+        seed=args.seed,
     )
     # Policy
     policy = CategoricalMLPPolicy(input_size=STATE_DIM, output_size=ACTION_DIM)
