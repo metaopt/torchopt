@@ -15,9 +15,19 @@
 """Typing utilities."""
 
 import abc
-from typing import Callable, Dict, List, Optional, Sequence, Tuple, TypeVar, Union
+from typing import (
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Protocol,
+    Sequence,
+    Tuple,
+    TypeVar,
+    Union,
+    runtime_checkable,
+)
 from typing_extensions import TypeAlias  # Python 3.10+
-from typing_extensions import Protocol, runtime_checkable  # Python 3.8+
 
 import torch
 import torch.distributed.rpc as rpc
