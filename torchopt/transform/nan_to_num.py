@@ -16,6 +16,8 @@
 
 from __future__ import annotations
 
+import torch
+
 from torchopt import pytree
 from torchopt.base import EmptyState, GradientTransformation
 from torchopt.typing import OptState, Params, Updates
@@ -44,12 +46,12 @@ def nan_to_num(
     ) -> tuple[Updates, OptState]:
         if inplace:
 
-            def f(g):
+            def f(g: torch.Tensor) -> torch.Tensor:
                 return g.nan_to_num_(nan=nan, posinf=posinf, neginf=neginf)
 
         else:
 
-            def f(g):
+            def f(g: torch.Tensor) -> torch.Tensor:
                 return g.nan_to_num(nan=nan, posinf=posinf, neginf=neginf)
 
         new_updates = pytree.tree_map(f, updates)

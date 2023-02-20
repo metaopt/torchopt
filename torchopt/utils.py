@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import copy
 import itertools
-from typing import TYPE_CHECKING, NamedTuple, Sequence, cast, overload
+from typing import TYPE_CHECKING, Any, NamedTuple, Sequence, cast, overload
 from typing_extensions import Literal  # Python 3.8+
 from typing_extensions import TypeAlias  # Python 3.10+
 
@@ -46,8 +46,8 @@ __all__ = [
 class ModuleState(NamedTuple):
     """Container for module state."""
 
-    params: tuple[dict[str, torch.Tensor], ...]
-    buffers: tuple[dict[str, torch.Tensor], ...]
+    params: tuple[TensorContainer, ...]
+    buffers: tuple[TensorContainer, ...]
     visual_contents: dict | None = None
     detach_buffers: bool = False
 
@@ -74,7 +74,7 @@ def stop_gradient(target: ModuleState | nn.Module | MetaOptimizer | TensorTree) 
     # pylint: disable-next=import-outside-toplevel
     from torchopt.optim.meta.base import MetaOptimizer
 
-    def fn_(obj):
+    def fn_(obj: Any) -> None:
         if isinstance(obj, torch.Tensor):
             requires_grad = obj.requires_grad
             obj.detach_().requires_grad_(requires_grad)
@@ -221,11 +221,11 @@ def extract_state_dict(
         else:
             visual_contents = None
 
-        params: list[dict[str, torch.Tensor]] = []
-        buffers: list[dict[str, torch.Tensor]] = []
+        params: list[TensorContainer] = []
+        buffers: list[TensorContainer] = []
         memo: set[nn.Module] = set()
 
-        def update_params(container):
+        def update_params(container: TensorContainer) -> None:
             if len(container) > 0:
                 params.append(
                     type(container)(
@@ -235,7 +235,7 @@ def extract_state_dict(
                     )
                 )
 
-        def update_buffers(container):
+        def update_buffers(container: TensorContainer) -> None:
             if len(container) > 0:
                 fn = clone_detach_ if detach_buffers else replicate
                 buffers.append(
@@ -245,14 +245,14 @@ def extract_state_dict(
                 )
 
         # pylint: disable=protected-access
-        update_params(target._parameters)
+        update_params(target._parameters)  # type: ignore[arg-type]
         if with_buffers:
             update_buffers(target._buffers)
         memo.add(target)
         for submodule in target.modules():
             if submodule in memo:
                 continue
-            update_params(submodule._parameters)
+            update_params(submodule._parameters)  # type: ignore[arg-type]
             if with_buffers:
                 update_buffers(submodule._buffers)
             memo.add(submodule)
@@ -264,10 +264,10 @@ def extract_state_dict(
             detach_buffers=detach_buffers,
         )
 
-    elif isinstance(target, MetaOptimizer):
+    if isinstance(target, MetaOptimizer):
         state = target.state_dict()
 
-        def get_variable(t):
+        def get_variable(t: torch.Tensor | None) -> torch.Tensor | None:
             if isinstance(t, torch.Tensor):
                 return replicate(t)
             return t
@@ -287,19 +287,19 @@ def extract_module_containers(
         buffers: list[TensorContainer] = []
         memo: set[nn.Module] = set()
 
-        def update_container(container, items):
+        def update_container(container: list[TensorContainer], items: TensorContainer) -> None:
             if len(items) > 0:
                 container.append(items)  # we need references to original dictionaries
 
         # pylint: disable=protected-access
-        update_container(params, module._parameters)
+        update_container(params, module._parameters)  # type: ignore[arg-type]
         if with_buffers:
             update_container(buffers, module._buffers)
         memo.add(module)
         for submodule in module.modules():
             if submodule in memo:
                 continue
-            update_container(params, submodule._parameters)
+            update_container(params, submodule._parameters)  # type: ignore[arg-type]
             if with_buffers:
                 update_container(buffers, submodule._buffers)
             memo.add(submodule)

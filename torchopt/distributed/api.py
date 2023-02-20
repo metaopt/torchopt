@@ -54,10 +54,7 @@ __all__ = [
 ]
 
 
-if rpc.is_available():
-    UNSET_RPC_TIMEOUT = rpc.api.UNSET_RPC_TIMEOUT
-else:
-    UNSET_RPC_TIMEOUT = -1.0
+UNSET_RPC_TIMEOUT = rpc.api.UNSET_RPC_TIMEOUT if rpc.is_available() else -1.0
 
 
 T = TypeVar('T')

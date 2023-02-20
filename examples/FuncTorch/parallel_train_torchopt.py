@@ -15,8 +15,6 @@
 
 import argparse
 import math
-from collections import namedtuple
-from typing import Any, NamedTuple
 
 import functorch
 import torch

@@ -85,11 +85,11 @@ def sgd(
         The functional optimizer wrapper :class:`torchopt.FuncOptimizer`.
     """
     # pylint: disable=unneeded-not
-    if not (callable(lr) or 0.0 <= lr):  # pragma: no cover
+    if not (callable(lr) or lr >= 0.0):  # pragma: no cover
         raise ValueError(f'Invalid learning rate: {lr}')
-    if not 0.0 <= momentum:  # pragma: no cover
+    if not momentum >= 0.0:  # pragma: no cover
         raise ValueError(f'Invalid momentum value: {momentum}')
-    if not 0.0 <= weight_decay:  # pragma: no cover
+    if not weight_decay >= 0.0:  # pragma: no cover
         raise ValueError(f'Invalid weight_decay value: {weight_decay}')
     if nesterov and (momentum <= 0.0 or dampening != 0.0):  # pragma: no cover
         raise ValueError('Nesterov momentum requires a momentum and zero dampening')

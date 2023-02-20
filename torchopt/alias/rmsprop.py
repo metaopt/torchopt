@@ -96,24 +96,21 @@ def rmsprop(
         The functional optimizer wrapper :class:`torchopt.FuncOptimizer`.
     """
     # pylint: disable=unneeded-not
-    if not (callable(lr) or 0.0 <= lr):  # pragma: no cover
+    if not (callable(lr) or lr >= 0.0):  # pragma: no cover
         raise ValueError(f'Invalid learning rate: {lr}')
-    if not 0.0 <= alpha:  # pragma: no cover
+    if not alpha >= 0.0:  # pragma: no cover
         raise ValueError(f'Invalid alpha value: {alpha}')
-    if not 0.0 <= eps:  # pragma: no cover
+    if not eps >= 0.0:  # pragma: no cover
         raise ValueError(f'Invalid epsilon value: {eps}')
-    if not 0.0 <= momentum:  # pragma: no cover
+    if not momentum >= 0.0:  # pragma: no cover
         raise ValueError(f'Invalid momentum value: {momentum}')
-    if not 0.0 <= weight_decay:  # pragma: no cover
+    if not weight_decay >= 0.0:  # pragma: no cover
         raise ValueError(f'Invalid weight_decay value: {weight_decay}')
     # pylint: enable=unneeded-not
 
     chain_fn = chain
     flip_sign_and_add_weight_decay_fn = flip_sign_and_add_weight_decay
-    if centered:
-        rmsprop_scaler_fn = scale_by_stddev
-    else:
-        rmsprop_scaler_fn = scale_by_rms
+    rmsprop_scaler_fn = scale_by_stddev if centered else scale_by_rms
     trace_fn = trace
     scale_by_neg_lr_fn = scale_by_neg_lr
 

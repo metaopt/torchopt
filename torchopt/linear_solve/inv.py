@@ -36,13 +36,13 @@
 from __future__ import annotations
 
 import functools
-from typing import Callable
+from typing import Any, Callable
 
 import torch
 
 from torchopt import linalg, pytree
 from torchopt.linear_solve.utils import make_ridge_matvec, materialize_matvec
-from torchopt.typing import TensorTree
+from torchopt.typing import LinearSolver, TensorTree
 
 
 __all__ = ['solve_inv']
@@ -53,7 +53,7 @@ def _solve_inv(
     b: TensorTree,
     ridge: float | None = None,
     ns: bool = False,
-    **kwargs,
+    **kwargs: Any,
 ) -> TensorTree:
     """Solve ``A x = b`` using matrix inversion.
 
@@ -91,7 +91,7 @@ def _solve_inv(
     return tree_unravel(pytree.tree_map(torch.linalg.solve, A, tree_ravel(b)))
 
 
-def solve_inv(**kwargs):
+def solve_inv(**kwargs: Any) -> LinearSolver:
     """Return a solver function to solve ``A x = b`` using matrix inversion.
 
     If ``ns = False``, this assumes the matrix ``A`` is a constant matrix and will materialize it

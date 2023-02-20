@@ -41,8 +41,8 @@ def _stateless_objective_fn(
     __params_names: Iterable[str],
     __meta_params_names: Iterable[str],
     self: ImplicitMetaGradientModule,
-    *input,
-    **kwargs,
+    *input: Any,
+    **kwargs: Any,
 ) -> torch.Tensor:
     with reparametrize(
         self,
@@ -60,8 +60,8 @@ def _stateless_optimality_fn(
     __params_names: Iterable[str],
     __meta_params_names: Iterable[str],
     self: ImplicitMetaGradientModule,
-    *input,
-    **kwargs,
+    *input: Any,
+    **kwargs: Any,
 ) -> TupleOfTensors:
     with reparametrize(
         self,
@@ -83,12 +83,12 @@ def make_optimality_from_objective(
     ):
         raise TypeError('The objective function is not defined.')
 
-    def optimality(self: ImplicitMetaGradientModule, *input, **kwargs) -> TupleOfTensors:
+    def optimality(self: ImplicitMetaGradientModule, *input: Any, **kwargs: Any) -> TupleOfTensors:
         params_names, flat_params = tuple(zip(*self.named_parameters()))
         meta_params_names, flat_meta_params = tuple(zip(*self.named_meta_parameters()))
 
         objective_grad_fn = functorch.grad(_stateless_objective_fn, argnums=0)
-        flat_grads = objective_grad_fn(
+        return objective_grad_fn(
             flat_params,
             flat_meta_params,
             params_names,
@@ -97,7 +97,6 @@ def make_optimality_from_objective(
             *input,
             **kwargs,
         )
-        return flat_grads
 
     cls.optimality = optimality  # type: ignore[assignment]
     return cls
@@ -111,10 +110,7 @@ def enable_implicit_gradients(
     if getattr(cls_solve, '__implicit_gradients_enabled__', False):
         raise TypeError('Implicit gradients are already enabled for the `solve` method.')
 
-    if cls.linear_solve is not None:
-        solve_kwargs = {'solve': cls.linear_solve}
-    else:
-        solve_kwargs = {}
+    solve_kwargs = {'solve': cls.linear_solve} if cls.linear_solve is not None else {}
 
     @custom_root(_stateless_optimality_fn, argnums=1, has_aux=True, **solve_kwargs)
     def stateless_solver_fn(
@@ -125,8 +121,8 @@ def enable_implicit_gradients(
         __meta_params_names: Iterable[str],
         # pylint: enable=unused-argument
         self: ImplicitMetaGradientModule,
-        *input,
-        **kwargs,
+        *input: Any,
+        **kwargs: Any,
     ) -> tuple[TupleOfTensors, Any]:
         """Solve the optimization problem."""
         output = cls_solve(self, *input, **kwargs)
@@ -134,7 +130,7 @@ def enable_implicit_gradients(
         return flat_optimal_params, output
 
     @functools.wraps(cls_solve)
-    def wrapped(self: ImplicitMetaGradientModule, *input, **kwargs) -> Any:
+    def wrapped(self: ImplicitMetaGradientModule, *input: Any, **kwargs: Any) -> Any:
         """Solve the optimization problem."""
         params_names, flat_params = tuple(zip(*self.named_parameters()))
         meta_params_names, flat_meta_params = tuple(zip(*self.named_meta_parameters()))
@@ -197,7 +193,7 @@ class ImplicitMetaGradientModule(MetaGradientModule):
         enable_implicit_gradients(cls)
 
     @abc.abstractmethod
-    def solve(self, *input, **kwargs) -> Any:
+    def solve(self, *input: Any, **kwargs: Any) -> Any:
         """Solve the inner optimization problem.
 
         .. warning::
@@ -224,7 +220,7 @@ class ImplicitMetaGradientModule(MetaGradientModule):
         """
         raise NotImplementedError  # update parameters
 
-    def optimality(self, *input, **kwargs) -> TupleOfTensors:
+    def optimality(self, *input: Any, **kwargs: Any) -> TupleOfTensors:
         r"""Compute the optimality residual.
 
         This method stands for the optimality residual to the optimal parameters after solving the
@@ -267,7 +263,7 @@ class ImplicitMetaGradientModule(MetaGradientModule):
         """  # pylint: disable=line-too-long
         raise NotImplementedError
 
-    def objective(self, *input, **kwargs) -> torch.Tensor:
+    def objective(self, *input: Any, **kwargs: Any) -> torch.Tensor:
         """Compute the objective function value.
 
         This method is used to calculate the :meth:`optimality` if it is not implemented.

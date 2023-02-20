@@ -31,6 +31,10 @@
 # ==============================================================================
 """Helper functions for applying updates."""
 
+from __future__ import annotations
+
+import torch
+
 from torchopt import pytree
 from torchopt.typing import Params, Updates
 
@@ -59,14 +63,14 @@ def apply_updates(params: Params, updates: Updates, *, inplace: bool = True) -> 
     """
     if inplace:
 
-        def f(p, u):
+        def f(p: torch.Tensor, u: torch.Tensor | None) -> torch.Tensor:
             if u is not None:
                 p.data.add_(u)
             return p
 
     else:
 
-        def f(p, u):
+        def f(p: torch.Tensor, u: torch.Tensor | None) -> torch.Tensor:
             return p.add(u) if u is not None else p
 
     return pytree.tree_map(f, params, updates)

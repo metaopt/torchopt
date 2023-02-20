@@ -16,6 +16,9 @@
 
 import sys as _sys
 from types import ModuleType as _ModuleType
+from typing import Any, Callable
+
+import torch
 
 from torchopt.diff.zero_order import nn
 from torchopt.diff.zero_order.decorator import zero_order
@@ -26,7 +29,9 @@ __all__ = ['zero_order', 'ZeroOrderGradientModule']
 
 
 class _CallableModule(_ModuleType):  # pylint: disable=too-few-public-methods
-    def __call__(self, *args, **kwargs):
+    def __call__(
+        self, *args: Any, **kwargs: Any
+    ) -> Callable[[Callable[..., torch.Tensor]], Callable[..., torch.Tensor]]:
         return self.zero_order(*args, **kwargs)
 
 

@@ -131,10 +131,7 @@ def _root_vjp(
     )
 
     output: TupleOfTensors
-    if output_is_tensor:
-        output = optimality_vjp_fn(u[0])
-    else:
-        output = optimality_vjp_fn(u)
+    output = optimality_vjp_fn(u[0]) if output_is_tensor else optimality_vjp_fn(u)
 
     # Prepend None as the vjp for init_params.
     true_output: ListOfOptionalTensors = [None]
@@ -179,7 +176,7 @@ def _signature_bind_and_match(
 
     mapping = [(was_kwarg, ref) for was_kwarg, ref, _ in bound.args]
 
-    def map_args_back(out_args):
+    def map_args_back(out_args: Args) -> tuple[Args, KwArgs]:
         src_args = [None] * len(args)
         src_kwargs = {}
         for (was_kwarg, ref), out_arg in zip(mapping, out_args):
@@ -187,7 +184,7 @@ def _signature_bind_and_match(
                 src_kwargs[ref] = out_arg
             else:
                 src_args[ref] = out_arg
-        return src_args, src_kwargs
+        return tuple(src_args), src_kwargs
 
     out_args = tuple(v for _, _, v in bound.args)
     out_kwargs = {k: v for k, (_, _, v) in bound.kwargs.items()}
@@ -349,7 +346,7 @@ def _custom_root(
                 )
 
                 args_vjps, kwargs_vjps = map_args_back(vjps)
-                ordered_vjps = tuple(args_vjps) + tuple(kwargs_vjps[k] for k in kwargs.keys())
+                ordered_vjps = tuple(args_vjps) + tuple(kwargs_vjps[k] for k in kwargs)
                 true_vjps = []
                 for (_, _, arg_seq_type), vjp in zip(args_signs, ordered_vjps):
                     if arg_seq_type is not None:
@@ -399,10 +396,7 @@ def _custom_root(
 
         result = make_custom_vjp_solver_fn(solver_fn, keys, args_signs).apply(*flat_args, *vals)
         *output, aux, output_is_tensor, output_type = result
-        if output_is_tensor:
-            output = output[0]
-        else:
-            output = output_type(output)
+        output = output[0] if output_is_tensor else output_type(output)
         if has_aux:
             return output, aux
         return output

@@ -110,7 +110,7 @@ def _trace(
     already_flattened: bool = False,
 ) -> GradientTransformation:
     # pylint: disable=unneeded-not
-    if not 0.0 <= momentum:  # pragma: no cover
+    if not momentum >= 0.0:  # pragma: no cover
         raise ValueError(f'Invalid momentum value: {momentum}')
     if nesterov and (momentum <= 0.0 or dampening != 0.0):  # pragma: no cover
         raise ValueError('Nesterov momentum requires a momentum and zero dampening')
@@ -147,12 +147,12 @@ def _trace(
         if nesterov:
             if inplace:
 
-                def f1(g, t):
+                def f1(g: torch.Tensor, t: torch.Tensor) -> torch.Tensor:
                     if first_call:
                         return t.add_(g)
                     return t.mul_(momentum).add_(g)
 
-                def f2(g, t):
+                def f2(g: torch.Tensor, t: torch.Tensor) -> torch.Tensor:
                     return g.add_(t, alpha=momentum)
 
                 new_trace = tree_map(f1, updates, state.trace)
@@ -160,12 +160,12 @@ def _trace(
 
             else:
 
-                def f1(g, t):
+                def f1(g: torch.Tensor, t: torch.Tensor) -> torch.Tensor:
                     if first_call:
                         return t.add(g)
                     return t.mul(momentum).add_(g)
 
-                def f2(g, t):
+                def f2(g: torch.Tensor, t: torch.Tensor) -> torch.Tensor:
                     return g.add(t, alpha=momentum)
 
                 new_trace = tree_map(f1, updates, state.trace)
@@ -174,12 +174,12 @@ def _trace(
         else:
             if inplace:
 
-                def f(g, t):
+                def f(g: torch.Tensor, t: torch.Tensor) -> torch.Tensor:
                     if first_call:
                         return t.add_(g)
                     return t.mul_(momentum).add_(g, alpha=1.0 - dampening)
 
-                def copy_(g, t):
+                def copy_(g: torch.Tensor, t: torch.Tensor) -> torch.Tensor:
                     return g.copy_(t)
 
                 new_trace = tree_map(f, updates, state.trace)
@@ -187,7 +187,7 @@ def _trace(
 
             else:
 
-                def f(g, t):
+                def f(g: torch.Tensor, t: torch.Tensor) -> torch.Tensor:
                     if first_call:
                         return t.add(g)
                     return t.mul(momentum).add_(g, alpha=1.0 - dampening)

@@ -14,9 +14,7 @@
 # ==============================================================================
 
 import argparse
-import time
 
-import numpy as np
 import torch
 import torch.optim as optim
 import tqdm
@@ -60,8 +58,6 @@ def a2c_loss(traj, policy_module, value_module, value_coef):
     next_traj = step_tensordict(traj)
     next_value = value_module(next_traj).get('state_value').detach()
 
-    # tderror = TDEstimate(GAMMA, value_module, gradient_mode=True)
-    # tderror = TDLambdaEstimate(GAMMA, LAMBDA, value_module, gradient_mode=True)
     advantage = td_lambda_advantage_estimate(GAMMA, LAMBDA, value, next_value, reward, done)
     action_loss = -(advantage.detach() * log_probs.view_as(advantage)).mean()
     value_error = advantage
@@ -131,14 +127,17 @@ def main(args):
     # init training
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed_all(args.seed)
+
     # Env
-    lambda_env = lambda: GymEnv(
-        'TabularMDP-v0',
-        num_states=STATE_DIM,
-        num_actions=ACTION_DIM,
-        max_episode_steps=TRAJ_LEN,
-        device=device,
-    )
+    def lambda_env():
+        return GymEnv(
+            'TabularMDP-v0',
+            num_states=STATE_DIM,
+            num_actions=ACTION_DIM,
+            max_episode_steps=TRAJ_LEN,
+            device=device,
+        )
+
     if args.parallel:
         env = ParallelEnv(
             NUM_ENVS,
@@ -171,8 +170,7 @@ def main(args):
     dummy_env.set_seed(args.seed)
 
     pbar = tqdm.tqdm(range(outer_iters))
-    for i in pbar:
-        # print("i: ", i)
+    for _ in pbar:
         tasks = dummy_env.sample_tasks(num_tasks=TASK_NUM)
         train_pre_reward_ls = []
         train_post_reward_ls = []
@@ -184,7 +182,7 @@ def main(args):
             env.reset_task(tasks[idx])
             policy_module = actor_critic_module.get_policy_operator()
             value_module = actor_critic_module.get_value_operator()
-            for k in range(inner_iters):
+            for __ in range(inner_iters):
                 with set_exploration_mode('random'), torch.no_grad():
                     pre_traj_td = (
                         env.rollout(

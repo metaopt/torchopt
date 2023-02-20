@@ -36,11 +36,11 @@
 from __future__ import annotations
 
 import functools
-from typing import Callable
+from typing import Any, Callable
 
 from torchopt import linalg
 from torchopt.linear_solve.utils import make_normal_matvec, make_ridge_matvec, make_rmatvec
-from torchopt.typing import TensorTree
+from torchopt.typing import LinearSolver, TensorTree
 
 
 __all__ = ['solve_normal_cg']
@@ -51,7 +51,7 @@ def _solve_normal_cg(
     b: TensorTree,
     ridge: float | None = None,
     init: TensorTree | None = None,
-    **kwargs,
+    **kwargs: Any,
 ) -> TensorTree:
     """Solve the normal equation ``A^T A x = A^T b`` using conjugate gradient.
 
@@ -71,10 +71,7 @@ def _solve_normal_cg(
     Returns:
         The solution with the same structure as ``b``.
     """
-    if init is None:
-        example_x = b  # This assumes that matvec is a square linear operator.
-    else:
-        example_x = init
+    example_x = b if init is None else init
 
     rmatvec = make_rmatvec(matvec, example_x)  # (x) -> A.T @ x
     normal_matvec = make_normal_matvec(matvec)  # (x) -> A.T @ A @ x
@@ -90,7 +87,7 @@ def _solve_normal_cg(
     return linalg.cg(normal_matvec, rhs, x0=init, **kwargs)
 
 
-def solve_normal_cg(**kwargs):
+def solve_normal_cg(**kwargs: Any) -> LinearSolver:
     """Return a solver function to solve ``A^T A x = A^T b`` using conjugate gradient.
 
     This can be used to solve ``A x = b`` using conjugate gradient when ``A`` is not hermitian,

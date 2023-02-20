@@ -36,6 +36,8 @@ from __future__ import annotations
 
 from typing import Any, Callable, NamedTuple
 
+import torch
+
 from torchopt import pytree
 from torchopt.base import EmptyState, GradientTransformation, identity
 from torchopt.transform.utils import tree_map_flat, tree_map_flat_
@@ -103,12 +105,12 @@ def _masked(
     *,
     already_flattened: bool = False,
 ) -> GradientTransformation:
-    if already_flattened:
+    if already_flattened:  # noqa: SIM108
         tree_map = tree_map_flat
     else:
         tree_map = pytree.tree_map  # type: ignore[assignment]
 
-    def tree_mask(params, mask_tree):
+    def tree_mask(params: Params, mask_tree: OptState) -> Params:
         return tree_map(lambda p, m: p if m else MaskedNode(), params, mask_tree)
 
     def init_fn(params: Params) -> OptState:
@@ -188,7 +190,7 @@ def _add_decayed_weights(
     already_flattened: bool = False,
 ) -> GradientTransformation:
     # pylint: disable-next=unneeded-not
-    if not 0.0 <= weight_decay:  # pragma: no cover
+    if not weight_decay >= 0.0:  # pragma: no cover
         raise ValueError(f'Invalid weight_decay value: {weight_decay}')
 
     if weight_decay == 0.0 and mask is None:
@@ -218,7 +220,7 @@ def _add_decayed_weights(
 
         if inplace:
 
-            def f(g, p):
+            def f(g: torch.Tensor, p: torch.Tensor) -> torch.Tensor:
                 if g.requires_grad:
                     return g.add_(p, alpha=weight_decay)
                 return g.add_(p.data, alpha=weight_decay)
@@ -227,7 +229,7 @@ def _add_decayed_weights(
 
         else:
 
-            def f(g, p):
+            def f(g: torch.Tensor, p: torch.Tensor) -> torch.Tensor:
                 return g.add(p, alpha=weight_decay)
 
             updates = tree_map(f, updates, params)

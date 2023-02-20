@@ -166,7 +166,7 @@ def auto_init_rpc(
 
         @record
         @functools.wraps(func)
-        def wrapped(*args, **kwargs):
+        def wrapped(*args: Any, **kwargs: Any) -> Any:
             rpc.init_rpc(
                 name=world_info.worker_name,
                 rank=world_info.rank,
@@ -193,7 +193,7 @@ def __on_ranks(ranks: Iterable[int], inverse: bool = False) -> Callable[[F], F]:
         world_rank = get_world_info().world_rank
 
         @functools.wraps(func)
-        def wrapped(*args, **kwargs):
+        def wrapped(*args: Any, **kwargs: Any) -> Any:
             if inverse:
                 if world_rank not in ranks:
                     return func(*args, **kwargs)
@@ -211,7 +211,7 @@ def on_rank(*ranks: int) -> Callable[[F], F]:
     return __on_ranks(ranks=ranks, inverse=False)
 
 
-def not_on_rank(*ranks) -> Callable[[F], F]:
+def not_on_rank(*ranks: int) -> Callable[[F], F]:
     """Return a decorator to mark a function to be executed only on non given ranks."""
     return __on_ranks(ranks=ranks, inverse=True)
 

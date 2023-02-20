@@ -88,12 +88,12 @@ def clip_grad_norm(
         clip_coefficient_clamped = min(clip_coefficient, 1.0)
         if inplace:
 
-            def f(g):
+            def f(g: torch.Tensor) -> torch.Tensor:
                 return g.mul_(clip_coefficient_clamped)
 
         else:
 
-            def f(g):
+            def f(g: torch.Tensor) -> torch.Tensor:
                 return g.mul(clip_coefficient_clamped)
 
         new_updates = pytree.tree_map(f, updates)
