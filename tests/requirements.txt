@@ -3,9 +3,9 @@ torch >= 1.13
 
 --requirement ../requirements.txt
 
-jax[cpu] >= 0.3
-jaxopt
-optax
+jax[cpu] >= 0.3; platform_system != 'Windows'
+jaxopt; platform_system != 'Windows'
+optax; platform_system != 'Windows'
 
 pytest
 pytest-cov

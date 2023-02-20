@@ -102,7 +102,7 @@ jobs:
     timeout-minutes: 60
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest] # jaxlib is not available on Windows
+        os: [ubuntu-latest, windows-latest, macos-latest]
       fail-fast: false
     steps:
       - name: Checkout
