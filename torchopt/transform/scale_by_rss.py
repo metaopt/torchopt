@@ -91,10 +91,7 @@ def _scale_by_rss(
     *,
     already_flattened: bool = False,
 ) -> GradientTransformation:
-    if already_flattened:
-        tree_map = tree_map_flat
-    else:
-        tree_map = pytree.tree_map
+    tree_map = tree_map_flat if already_flattened else pytree.tree_map
 
     def init_fn(params):
         sum_of_squares = tree_map(lambda t: torch.full_like(t, initial_accumulator_value), params)

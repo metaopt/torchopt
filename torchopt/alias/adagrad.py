@@ -85,13 +85,13 @@ def adagrad(
         The functional optimizer wrapper :class:`torchopt.FuncOptimizer`.
     """
     # pylint: disable=unneeded-not
-    if not (callable(lr) or 0.0 <= lr):
+    if not (callable(lr) or lr >= 0.0):
         raise ValueError(f'Invalid learning rate: {lr}')
-    if not 0.0 <= eps:
+    if not eps >= 0.0:
         raise ValueError(f'Invalid epsilon value: {eps}')
-    if not 0.0 <= lr_decay:
+    if not lr_decay >= 0.0:
         raise ValueError(f'Invalid lr_decay value: {lr_decay}')
-    if not 0.0 <= weight_decay:
+    if not weight_decay >= 0.0:
         raise ValueError(f'Invalid weight_decay value: {weight_decay}')
     # pylint: enable=unneeded-not
 
