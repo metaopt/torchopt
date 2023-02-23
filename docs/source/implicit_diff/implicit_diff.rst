@@ -137,20 +137,23 @@ Here is an example of the linear solver.
 
 .. code-block:: python
 
+    import torch
     from torchopt import linear_solve
 
-    torch.random.seed(42)
-    A = torch.random.randn(3, 3)
-    b = torch.random.randn(3)
+    torch.manual_seed(42)
+    A = torch.randn(3, 3)
+    b = torch.randn(3)
 
-    def matvec_A(x):
-        return  torch.dot(A, x)
+    def matvec(x):
+        return  torch.matmul(A, x)
 
-    sol = linear_solve.solve_normal_cg(matvec_A, b, tol=1e-5)
-    print(sol)
+    solve_fn = linear_solve.solve_normal_cg(atol=1e-5)
+    solution = solve_fn(matvec, b)
+    print(solution)
 
-    sol = linear_solve.solve_cg(matvec_A, b, tol=1e-5)
-    print(sol)
+    solve_fn = linear_solve.solve_cg(atol=1e-5)
+    solution = solve_fn(matvec, b)
+    print(solution)
 
 Users can also select the corresponding solver in functional and OOP APIs.
 
