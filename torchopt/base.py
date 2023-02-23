@@ -35,8 +35,7 @@ from __future__ import annotations
 
 import itertools
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Callable, NamedTuple
-from typing_extensions import Protocol  # Python 3.8+
+from typing import TYPE_CHECKING, Callable, NamedTuple, Protocol
 
 
 if TYPE_CHECKING:  # pragma: no cover

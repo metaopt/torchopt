@@ -627,7 +627,7 @@ TorchOpt wraps the distributed autograd context and provides a more convenient i
         loss = ...  # e.g. remote calls
 
         # Backward pass
-        grads = todist.autograd.grads(context_id, loss, model.parameters())
+        grads = todist.autograd.grad(context_id, loss, model.parameters())
 
 or
 
