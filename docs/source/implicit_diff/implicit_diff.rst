@@ -10,36 +10,15 @@ Implicit Differentiation
     :width: 80%
     :align: center
 
-Implicit differentiation is the task of differentiating the solution of a minimization problem with respect to its inputs.
+Implicit differentiation is the task of differentiating through the solution of an optimization problem satisfying a mapping function :math:`Opt` capturing the optimality conditions of the problem. The simplest example is to differentiate through the solution of a minimization problem with respect to its inputs.
+
 Namely, given
 
 .. math::
 
     \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi}) \triangleq \underset{\boldsymbol{\theta}}{\mathop{\operatorname{argmin}}} ~ \mathcal{L}^{\text{in}} (\boldsymbol{\phi},\boldsymbol{\theta}).
 
-By treating the solution :math:`\boldsymbol{\theta}^{\prime}` as an implicit function of :math:`\boldsymbol{\phi}`, the idea of implicit differentiation is to directly get analytical best-response derivatives :math:`\nabla_{\boldsymbol{\phi}} \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi})` by the implicit function theorem.
-This is suitable for algorithms when the inner-level optimal solution is achieved :math:`\left. \frac{\partial \mathcal{L}^{\text{in}} (\boldsymbol{\phi}, \boldsymbol{\theta})}{\partial \boldsymbol{\theta}} \right\rvert_{\boldsymbol{\theta} = \boldsymbol{\theta}^{\prime}} = 0` (e.g., the function :math:`F` in the zfigure means the solution is obtained by unrolled gradient steps)
-
-
-Differentiating a root. Let :math:`F: \mathbb{R}^d \times \mathbb{R}^n \rightarrow \mathbb{R}^d` be a user-provided mapping, capturing the optimality conditions of a problem. An optimal solution, denoted :math:`x^{\star}(\theta)`, should be a root of :math:`F` :
-
-.. math::
-    F\left(x^{\star}(\theta), \theta\right)=0 \text {. }
-
-We can see :math:`x^{\star}(\theta)` as an implicitly defined function of :math:`\theta \in \mathbb{R}^n`, i.e., :math:`x^{\star}: \mathbb{R}^n \rightarrow \mathbb{R}^d`. More precisely, from the implicit function theorem [48, 57], we know that for :math:`\left(x_0, \theta_0\right)` satisfying :math:`F\left(x_0, \theta_0\right)=0` with a continuously differentiable :math:`F`, if the Jacobian :math:`\partial_1 F` evaluated at :math:`\left(x_0, \theta_0\right)` is a square invertible matrix, then there exists a function :math:`x^{\star}(\cdot)` defined on a neighborhood of :math:`\theta_0` such that :math:`x^{\star}(\theta_0)=x_0`. Furthermore, for all :math:`\theta` in this neighborhood, we have that :math:`F(x^{\star}(\theta), \theta)=0` and :math:`\partial x^{\star}(\theta)` exists. Using the chain rule, the Jacobian :math:`\partial x^{\star}(\theta)` satisfies
-
-.. math::
-    \partial_1 F(x^{\star}(\theta), \theta) \partial x^{\star}(\theta)+\partial_2 F(x^{\star}(\theta), \theta)=0 .
-
-Computing :math:`\partial x^{\star}(\theta)` therefore boils down to the resolution of the linear system of equations
-
-.. math::
-    \underbrace{-\partial_1 F(x^{\star}(\theta), \theta)}_{A \in \mathbb{R}^{d \times d}} \underbrace{\partial x^{\star}(\theta)}_{J \in \mathbb{R}^{d \times n}}=\underbrace{\partial_2 F(x^{\star}(\theta), \theta)}_{B \in \mathbb{R}^{d \times n}} \text {. }
-
-When (1) is a one-dimensional root finding problem :math:`(d=1)`, (2) becomes particularly simple since we then have :math:`\nabla x^{\star}(\theta)=B^{\top} / A`, where :math:`A` is a scalar value.
-
-
-or reaches some stationary conditions :math:`F (\boldsymbol{\phi}, \boldsymbol{\theta}^{\prime}) = 0`, such as `IMAML <https://arxiv.org/abs/1909.04630>`_ and `DEQ <https://arxiv.org/abs/1909.01377>`_.
+By treating the solution :math:`\boldsymbol{\theta}^{\prime}` as an implicit function of :math:`\boldsymbol{\phi}`, the idea of implicit differentiation is to directly get analytical best-response derivatives :math:`\nabla_{\boldsymbol{\phi}} \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi})` by the implicit function theorem. This is suitable for algorithms such as `IMAML <https://arxiv.org/abs/1909.04630>`_ and `DEQ <https://arxiv.org/abs/1909.01377>`_ when the inner-level optimality conditions :math:`Opt` is defined by :math:`\left. \frac{\partial \mathcal{L}^{\text{in}} (\boldsymbol{\phi}, \boldsymbol{\theta})}{\partial \boldsymbol{\theta}} \right\rvert_{\boldsymbol{\theta} = \boldsymbol{\theta}^{\prime}} = 0` (e.g., the function :math:`F` in the figure means the solution is obtained by unrolled gradient fixed point update) or reaches some stationary point, optimality conditions :math:`Opt` can be sometimes defined by the root of :math:`T` such that  :math:`T (\boldsymbol{\phi}, \boldsymbol{\theta}^{\prime}) = 0`.
 
 Custom Solvers
 --------------
@@ -48,10 +27,25 @@ Custom Solvers
 
     torchopt.diff.implicit.custom_root
 
-TorchOpt provides the :func:`custom_root` decorators, for easily adding implicit differentiation on top of any existing solver (also called forward optimization).
-:func:`custom_root` requires users to define the stationary conditions for the problem solution (e.g., KKT conditions) and will automatically calculate the gradient for backward gradient computation.
+Let :math:`T: \mathbb{R}^n \times \mathbb{R}^d \rightarrow \mathbb{R}^d` be a user-provided mapping, capturing the optimality conditions of a problem. An optimal solution, denoted :math:`\boldsymbol{\theta}^{\prime}(\boldsymbol{\phi})`, should be a root of :math:`T` :
 
-Here is an example of the :func:`custom_root` decorators, which is also the **functional API** for implicit gradient.
+.. math::
+    T(\boldsymbol{\phi}, \boldsymbol{\theta}^{\prime}(\boldsymbol{\phi}))=0 \text {. }
+
+We can see :math:`\boldsymbol{\theta}^{\prime}(\boldsymbol{\phi})` as an implicitly defined function of :math:`\boldsymbol{\phi} \in \mathbb{R}^n`, i.e., :math:`\boldsymbol{\theta}^{\prime}: \mathbb{R}^n \rightarrow \mathbb{R}^d`. More precisely, from the implicit function theorem, we know that for :math:`\left(\boldsymbol{\theta}^{\prime}_0, \boldsymbol{\phi}_0\right)` satisfying :math:`T\left(\boldsymbol{\phi}, \boldsymbol{\theta}^{\prime}(\boldsymbol{\phi})\right)=0` with a continuously differentiable :math:`T`, if the Jacobian :math:`\nabla_1 F` evaluated at :math:`\left(\boldsymbol{\theta}^{\prime}_0, \boldsymbol{\phi}_0\right)` is a square invertible matrix, then there exists a function :math:`\boldsymbol{\theta}^{\prime}(\cdot)` defined on a neighborhood of :math:`\boldsymbol{\phi}_0` such that :math:`\boldsymbol{\theta}^{\prime}(\boldsymbol{\phi}_0)=\boldsymbol{\theta}^{\prime}_0`. Furthermore, for all :math:`\boldsymbol{\phi}` in this neighborhood, we have that :math:`T(\boldsymbol{\theta}^{\prime}_0, \boldsymbol{\phi}_0)=0` and :math:`\nabla x^{\star}(\theta)` exists. Using the chain rule, the Jacobian :math:`\nabla x^{\star}(\theta)` satisfies
+
+.. math::
+    \partial_1 F(x^{\star}(\theta), \theta) \partial x^{\star}(\theta)+\partial_2 F(x^{\star}(\theta), \theta)=0 .
+
+Computing :math:`\nabla \boldsymbol{\theta}^{\prime}(\boldsymbol{\phi})` therefore boils down to the resolution of the linear system of equations
+
+.. math::
+    \underbrace{-\nabla_1 T(\boldsymbol{\phi}, \boldsymbol{\theta}^{\prime}(\boldsymbol{\phi}))}_{A \in \mathbb{R}^{d \times d}} \underbrace{\nabla x^{\star}(\theta)}_{J \in \mathbb{R}^{d \times n}}=\underbrace{\partial_2 F(x^{\star}(\theta), \theta)}_{B \in \mathbb{R}^{d \times n}} \text {. }
+
+When (1) is a one-dimensional root finding problem :math:`(d=1)`, (2) becomes particularly simple since we then have :math:`\nabla x^{\star}(\theta)=B^{\top} / A`, where :math:`A` is a scalar value.
+
+TorchOpt provides the :func:`custom_root` decorators, for easily adding implicit differentiation on top of any existing solver (also called forward optimization).
+:func:`custom_root` requires users to define the stationary conditions for the problem solution (e.g., KKT conditions) and will automatically calculate the gradient for backward gradient computation. Here is an example of the :func:`custom_root` decorators, which is also the **functional API** for implicit gradient.
 
 .. code-block:: python
 
