@@ -690,3 +690,41 @@ def test_rr_solve_inv(
 
     l2reg_jax_as_tensor = torch.tensor(np.asarray(l2reg_jax), dtype=dtype)
     helpers.assert_all_close(l2reg_torch, l2reg_jax_as_tensor)
+
+
+def test_module_empty_parameters() -> None:
+    class EmptyParameters(ImplicitMetaGradientModule):
+        def __init__(self, x):
+            super().__init__()
+            self.x = x
+
+        def optimality(self):
+            return (self.x,)
+
+        def solve(self):
+            pass
+
+    model = EmptyParameters(torch.zeros(8))
+    with pytest.raises(RuntimeError, match='The module has no parameters.'):
+        model.solve()
+
+    model = EmptyParameters(torch.zeros(8))
+    model.register_parameter('y', torch.zeros(8, requires_grad=True))
+    with pytest.raises(RuntimeError, match='The module has no meta-parameters.'):
+        model.solve()
+
+    model = EmptyParameters(torch.zeros(8, requires_grad=True))
+    with pytest.raises(RuntimeError, match='The module has no parameters.'):
+        model.solve()
+
+    model = EmptyParameters(torch.zeros(8, requires_grad=True))
+    model.register_parameter('y', torch.zeros(8, requires_grad=True))
+    model.solve()
+
+    model = EmptyParameters(nn.Linear(8, 8).eval())
+    with pytest.raises(RuntimeError, match='The module has no meta-parameters.'):
+        model.solve()
+
+    model = EmptyParameters(nn.Linear(8, 8))
+    model.register_parameter('y', torch.zeros(8, requires_grad=True))
+    model.solve()
