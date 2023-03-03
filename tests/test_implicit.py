@@ -16,6 +16,7 @@
 from __future__ import annotations
 
 import copy
+import re
 from collections import OrderedDict
 from types import FunctionType
 
@@ -698,8 +699,8 @@ def test_module_empty_parameters() -> None:
             super().__init__()
             self.x = x
 
-        def optimality(self):
-            return (self.x,)
+        def objective(self):
+            return self.x
 
         def solve(self):
             pass
@@ -718,6 +719,10 @@ def test_module_empty_parameters() -> None:
         model.solve()
 
     model = EmptyParameters(torch.zeros(8, requires_grad=True))
+    with pytest.raises(RuntimeError, match='The module has no parameters.'):
+        model.optimality()
+
+    model = EmptyParameters(torch.zeros(8, requires_grad=True))
     model.register_parameter('y', torch.zeros(8, requires_grad=True))
     model.solve()
 
@@ -728,3 +733,124 @@ def test_module_empty_parameters() -> None:
     model = EmptyParameters(nn.Linear(8, 8))
     model.register_parameter('y', torch.zeros(8, requires_grad=True))
     model.solve()
+
+
+def test_module_enable_implicit_gradients_twice() -> None:
+    class MyModule(torchopt.nn.ImplicitMetaGradientModule):
+        def objective(self):
+            return torch.tensor(0.0)
+
+        def solve(self):
+            pass
+
+    from torchopt.diff.implicit.nn.module import enable_implicit_gradients
+
+    with pytest.raises(
+        TypeError,
+        match='Implicit gradients are already enabled for the `solve` method.',
+    ):
+        enable_implicit_gradients(MyModule)
+
+
+def test_module_abstract_methods() -> None:
+    class MyModule1(torchopt.nn.ImplicitMetaGradientModule):
+        def objective(self):
+            return torch.tensor(0.0)
+
+    with pytest.raises(
+        TypeError,
+        match="Can't instantiate abstract class",
+    ):
+        MyModule1()
+
+    with pytest.raises(
+        TypeError,
+        match=re.escape(
+            'ImplicitMetaGradientModule requires either an optimality() method or an objective() method'
+        ),
+    ):
+
+        class MyModule2(torchopt.nn.ImplicitMetaGradientModule):
+            def solve(self):
+                pass
+
+    class MyModule3(torchopt.nn.ImplicitMetaGradientModule):
+        def optimality(self):
+            return ()
+
+        def solve(self):
+            pass
+
+    with pytest.raises(
+        TypeError,
+        match=re.escape('method optimality() must not be a staticmethod.'),
+    ):
+
+        class MyModule4(torchopt.nn.ImplicitMetaGradientModule):
+            @staticmethod
+            def optimality():
+                return ()
+
+            def solve(self):
+                pass
+
+    with pytest.raises(
+        TypeError,
+        match=re.escape('method optimality() must not be a classmethod.'),
+    ):
+
+        class MyModule5(torchopt.nn.ImplicitMetaGradientModule):
+            @classmethod
+            def optimality(self):
+                return ()
+
+            def solve(self):
+                pass
+
+    with pytest.raises(
+        TypeError,
+        match=re.escape('method optimality() must be callable.'),
+    ):
+
+        class MyModule6(torchopt.nn.ImplicitMetaGradientModule):
+            optimality = 0
+
+            def solve(self):
+                pass
+
+    with pytest.raises(
+        TypeError,
+        match=re.escape('method optimality() must not be a staticmethod.'),
+    ):
+
+        class MyModule7(torchopt.nn.ImplicitMetaGradientModule):
+            @staticmethod
+            def optimality():
+                return ()
+
+            def solve(self):
+                pass
+
+    with pytest.raises(
+        TypeError,
+        match=re.escape('method objective() must not be a classmethod.'),
+    ):
+
+        class MyModule8(torchopt.nn.ImplicitMetaGradientModule):
+            @classmethod
+            def objective(self):
+                return ()
+
+            def solve(self):
+                pass
+
+    with pytest.raises(
+        TypeError,
+        match=re.escape('method objective() must be callable.'),
+    ):
+
+        class MyModule9(torchopt.nn.ImplicitMetaGradientModule):
+            objective = 0
+
+            def solve(self):
+                pass

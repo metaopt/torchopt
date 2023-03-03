@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import abc
 import functools
+import inspect
 import itertools
 from typing import Any, Iterable
 
@@ -79,10 +80,9 @@ def make_optimality_from_objective(
     cls: type[ImplicitMetaGradientModule],
 ) -> type[ImplicitMetaGradientModule]:
     """Derives the optimality function of the objective function."""
-    if (
-        getattr(cls, 'objective', ImplicitMetaGradientModule.objective)
-        is ImplicitMetaGradientModule.objective
-    ):
+    static_super_objective = inspect.getattr_static(ImplicitMetaGradientModule, 'objective')
+    static_cls_optimality = inspect.getattr_static(cls, 'optimality', static_super_objective)
+    if static_cls_optimality is static_super_objective:
         raise TypeError('The objective function is not defined.')
 
     def optimality(self: ImplicitMetaGradientModule, *input: Any, **kwargs: Any) -> TupleOfTensors:
@@ -167,7 +167,7 @@ def enable_implicit_gradients(
     return cls
 
 
-class ImplicitMetaGradientModule(MetaGradientModule):
+class ImplicitMetaGradientModule(MetaGradientModule, metaclass=abc.ABCMeta):
     """The base class for differentiable implicit meta-gradient models."""
 
     _custom_optimality: bool
@@ -179,28 +179,30 @@ class ImplicitMetaGradientModule(MetaGradientModule):
         super().__init_subclass__()
         cls.linear_solve = linear_solve
 
-        optimality = getattr(cls, 'optimality', ImplicitMetaGradientModule.optimality)
-        objective = getattr(cls, 'objective', ImplicitMetaGradientModule.objective)
-        cls._custom_optimality = optimality is not ImplicitMetaGradientModule.optimality
-        cls._custom_objective = objective is not ImplicitMetaGradientModule.objective
+        static_super_optimality = inspect.getattr_static(ImplicitMetaGradientModule, 'optimality')
+        static_super_objective = inspect.getattr_static(ImplicitMetaGradientModule, 'objective')
+        static_cls_optimality = inspect.getattr_static(cls, 'optimality')
+        static_cls_objective = inspect.getattr_static(cls, 'objective')
+        cls._custom_optimality = static_cls_optimality is not static_super_optimality
+        cls._custom_objective = static_cls_objective is not static_super_objective
 
         if cls._custom_optimality:
-            if isinstance(optimality, staticmethod):
+            if isinstance(static_cls_optimality, staticmethod):
                 raise TypeError('method optimality() must not be a staticmethod.')
-            if isinstance(optimality, classmethod):
+            if isinstance(static_cls_optimality, classmethod):
                 raise TypeError('method optimality() must not be a classmethod.')
-            if not callable(optimality):
+            if not callable(static_cls_optimality):
                 raise TypeError('method optimality() must be callable.')
         elif not cls._custom_objective:
             raise TypeError(
                 'ImplicitMetaGradientModule requires either an optimality() method or an objective() method'
             )
         else:
-            if isinstance(objective, staticmethod):
+            if isinstance(static_cls_objective, staticmethod):
                 raise TypeError('method objective() must not be a staticmethod.')
-            if isinstance(objective, classmethod):
+            if isinstance(static_cls_objective, classmethod):
                 raise TypeError('method objective() must not be a classmethod.')
-            if not callable(objective):
+            if not callable(static_cls_objective):
                 raise TypeError('method objective() must be callable.')
 
             make_optimality_from_objective(cls)
