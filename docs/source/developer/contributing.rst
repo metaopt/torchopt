@@ -102,9 +102,9 @@ For example, the following command will build a wheel for Python 3.7:
 
 .. code-block:: bash
 
-    CIBW_BUILD="cp37*manylinux*" python3 -m cibuildwheel --platform=linux --output-dir=wheelhouse --config-file=pyproject.toml
+    CIBW_BUILD="cp38*manylinux*" python3 -m cibuildwheel --platform=linux --output-dir=wheelhouse --config-file=pyproject.toml
 
-You can change ``cp37*`` to ``cp310*`` to build for Python 3.10. See https://cibuildwheel.readthedocs.io/en/stable/options for more options.
+You can change ``cp38*`` to ``cp310*`` to build for Python 3.10. See https://cibuildwheel.readthedocs.io/en/stable/options for more options.
 
 .. |cibuildwheel| replace:: ``cibuildwheel``
 .. _cibuildwheel: https://github.com/pypa/cibuildwheel

@@ -8,7 +8,7 @@
 
 <div align="center">
 
-  <a>![Python 3.7+](https://img.shields.io/badge/Python-3.7%2B-brightgreen.svg)</a>
+  <a>![Python 3.8+](https://img.shields.io/badge/Python-3.8%2B-brightgreen.svg)</a>
   <a href="https://pypi.org/project/torchopt">![PyPI](https://img.shields.io/pypi/v/torchopt?logo=pypi)</a>
   <a href="https://github.com/metaopt/torchopt/tree/HEAD/tests">![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/metaopt/torchopt/tests.yml?label=tests&logo=github)</a>
   <a href="https://codecov.io/gh/metaopt/torchopt">![CodeCov](https://img.shields.io/codecov/c/github/metaopt/torchopt/main?logo=codecov)</a>

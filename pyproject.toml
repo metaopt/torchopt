@@ -11,7 +11,7 @@ description = "An efficient library for differentiable optimization for PyTorch.
 readme = "README.md"
 # Change this if wheels for `torch` is available
 # Search "requires-python" and update all corresponding items
-requires-python = ">= 3.7"
+requires-python = ">= 3.8"
 authors = [
     { name = "TorchOpt Contributors" },
     { name = "Jie Ren", email = "jieren9806@gmail.com" },
@@ -34,7 +34,6 @@ classifiers = [
     "License :: OSI Approved :: Apache Software License",
     # Sync with requires-python
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
@@ -79,7 +78,7 @@ lint = [
     "flake8-pyi",
     "flake8-simplify",
     "ruff",
-    "doc8 < 1.0.0a0",  # unpin this when we drop support for Python 3.7
+    "doc8",
     "pydocstyle[toml]",
     "pyenchant",
     "cpplint",
@@ -175,7 +174,7 @@ safe = true
 line-length = 100
 skip-string-normalization = true
 # Sync with requires-python
-target-version = ["py37", "py38", "py39", "py310", "py311"]
+target-version = ["py38", "py39", "py310", "py311"]
 
 [tool.isort]
 atomic = true
@@ -189,7 +188,7 @@ multi_line_output = 3
 
 [tool.mypy]
 # Sync with requires-python
-python_version = 3.7
+python_version = 3.8
 pretty = true
 show_error_codes = true
 show_error_context = true
@@ -216,7 +215,7 @@ max-line-length = 500
 
 [tool.ruff]
 # Sync with requires-python
-target-version = "py37"
+target-version = "py38"
 line-length = 100
 show-source = true
 src = ["torchopt", "tests"]

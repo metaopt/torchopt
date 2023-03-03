@@ -18,8 +18,7 @@ from __future__ import annotations
 
 import copy
 import itertools
-from typing import TYPE_CHECKING, Any, NamedTuple, Sequence, cast, overload
-from typing_extensions import Literal  # Python 3.8+
+from typing import TYPE_CHECKING, Any, Literal, NamedTuple, Sequence, cast, overload
 from typing_extensions import TypeAlias  # Python 3.10+
 
 import torch

@@ -68,11 +68,7 @@ pre-commit-install:
 
 docs-install:
 	$(call check_pip_install_extra,pydocstyle,pydocstyle[toml])
-	$(call check_pip_install_extra,doc8,"doc8<1.0.0a0")
-	if ! $(PYTHON) -c "import sys; exit(sys.version_info < (3, 8))"; then \
-		$(PYTHON) -m pip uninstall --yes importlib-metadata; \
-		$(call check_pip_install_extra,importlib-metadata,"importlib-metadata<5.0.0a0"); \
-	fi
+	$(call check_pip_install,doc8)
 	$(call check_pip_install,sphinx)
 	$(call check_pip_install,sphinx-rtd-theme)
 	$(call check_pip_install,sphinx-autoapi)
@@ -202,6 +198,7 @@ format: py-format-install ruff-install clang-format-install addlicense-install
 clean-py:
 	find . -type f -name  '*.py[co]' -delete
 	find . -depth -type d -name "__pycache__" -exec rm -r "{}" +
+	find . -depth -type d -name ".ruff_cache" -exec rm -r "{}" +
 	find . -depth -type d -name ".mypy_cache" -exec rm -r "{}" +
 	find . -depth -type d -name ".pytest_cache" -exec rm -r "{}" +
 	rm tests/.coverage
