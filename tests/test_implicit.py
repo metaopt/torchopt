@@ -741,20 +741,36 @@ def test_module_empty_parameters() -> None:
 
 
 def test_module_enable_implicit_gradients_twice() -> None:
-    class MyModule(torchopt.nn.ImplicitMetaGradientModule):
+    class MyModule1(torchopt.nn.ImplicitMetaGradientModule):
         def objective(self):
             return torch.tensor(0.0)
 
         def solve(self):
             pass
 
-    from torchopt.diff.implicit.nn.module import enable_implicit_gradients
+    from torchopt.diff.implicit.nn.module import (
+        enable_implicit_gradients,
+        make_optimality_from_objective,
+    )
 
     with pytest.raises(
         TypeError,
         match='Implicit gradients are already enabled for the `solve` method.',
     ):
-        enable_implicit_gradients(MyModule)
+        enable_implicit_gradients(MyModule1)
+
+    class MyModule2(torchopt.nn.ImplicitMetaGradientModule):
+        def optimality(self):
+            return torch.tensor(0.0)
+
+        def solve(self):
+            pass
+
+    with pytest.raises(
+        TypeError,
+        match='The objective function is not defined.',
+    ):
+        make_optimality_from_objective(MyModule2)
 
 
 def test_module_abstract_methods() -> None:
