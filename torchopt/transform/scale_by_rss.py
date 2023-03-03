@@ -31,6 +31,8 @@
 # ==============================================================================
 """Preset transformations for scaling updates by the root of the sum of all squared gradients."""
 
+from __future__ import annotations
+
 from typing import NamedTuple
 
 import torch

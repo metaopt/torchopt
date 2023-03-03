@@ -42,6 +42,7 @@ from torchopt.typing import Numeric, Scalar, Schedule
 __all__ = ['exponential_decay']
 
 
+# pylint: disable-next=too-many-arguments
 def exponential_decay(
     init_value: Scalar,
     decay_rate: Scalar,
@@ -51,10 +52,27 @@ def exponential_decay(
     end_value: Optional[float] = None,
 ) -> Schedule:
     """Constructs a schedule with either continuous or discrete exponential decay.
+
+    This function applies an exponential decay function to a provided initial
+    value. The function returns the decayed value as follows:
+    ```
+    decayed_value = init_value * decay_rate ^ (count / transition_steps)
+    ```
+    If the argument `staircase` is `True`, then `count / transition_steps` is
+    an integer division and the decayed value follows a staircase function.
     Args:
-    value: value to be held constant throughout.
+        init_value: the initial learning rate.
+        decay_rate: must not be zero. The decay rate.
+        transition_begin: must be positive. After how many steps to start annealing
+            (before this many steps the scalar value is held fixed at `init_value`).
+        transition_steps: must be positive. See the decay computation above.
+        staircase: if `True`, decay the values at discrete intervals.
+        end_value: the value at which the exponential decay stops. When
+            `decay_rate` < 1, `end_value` is treated as a lower bound, otherwise as
+            an upper bound. Has no effect when `decay_rate` = 0.
+
     Returns:
-    schedule: A function that maps step counts to values.
+        schedule: A function that maps step counts to values.
     """
     if transition_steps is not None and transition_steps <= 0:
         logging.info(
