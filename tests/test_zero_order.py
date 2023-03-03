@@ -155,18 +155,12 @@ def test_module_abstract_methods() -> None:
         def forward(self):
             return torch.tensor(0.0)
 
-    with pytest.raises(
-        TypeError,
-        match="Can't instantiate abstract class",
-    ):
+    with pytest.raises(TypeError, match="Can't instantiate abstract class"):
         MyModule1()
 
     class MyModule2(torchopt.nn.ZeroOrderGradientModule):
         def sample(self, sample_shape):
             return torch.tensor(0.0)
 
-    with pytest.raises(
-        TypeError,
-        match="Can't instantiate abstract class",
-    ):
+    with pytest.raises(TypeError, match="Can't instantiate abstract class"):
         MyModule2()

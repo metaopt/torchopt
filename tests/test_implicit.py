@@ -700,7 +700,7 @@ def test_module_empty_parameters() -> None:
             self.x = x
 
         def objective(self):
-            return self.x
+            return self.x.mean()
 
         def solve(self):
             pass
@@ -720,6 +720,11 @@ def test_module_empty_parameters() -> None:
 
     model = EmptyParameters(torch.zeros(8, requires_grad=True))
     with pytest.raises(RuntimeError, match='The module has no parameters.'):
+        model.optimality()
+
+    model = EmptyParameters(torch.zeros(8))
+    model.register_parameter('y', torch.zeros(8, requires_grad=True))
+    with pytest.raises(RuntimeError, match='The module has no meta-parameters.'):
         model.optimality()
 
     model = EmptyParameters(torch.zeros(8, requires_grad=True))
@@ -757,10 +762,7 @@ def test_module_abstract_methods() -> None:
         def objective(self):
             return torch.tensor(0.0)
 
-    with pytest.raises(
-        TypeError,
-        match="Can't instantiate abstract class",
-    ):
+    with pytest.raises(TypeError, match="Can't instantiate abstract class"):
         MyModule1()
 
     with pytest.raises(
@@ -820,12 +822,12 @@ def test_module_abstract_methods() -> None:
 
     with pytest.raises(
         TypeError,
-        match=re.escape('method optimality() must not be a staticmethod.'),
+        match=re.escape('method objective(() must not be a staticmethod.'),
     ):
 
         class MyModule7(torchopt.nn.ImplicitMetaGradientModule):
             @staticmethod
-            def optimality():
+            def objective():
                 return ()
 
             def solve(self):

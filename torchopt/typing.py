@@ -141,7 +141,7 @@ class Samplable(Protocol):  # pylint: disable=too-few-public-methods
     ) -> Union[Tensor, Sequence[Numeric]]:
         # pylint: disable-next=line-too-long
         """Generate a sample_shape shaped sample or sample_shape shaped batch of samples if the distribution parameters are batched."""
-        raise NotImplementedError  # pragma: no cover
+        raise NotImplementedError
 
 
 Samplable.register(Distribution)
