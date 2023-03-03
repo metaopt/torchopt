@@ -70,7 +70,7 @@ def adagrad(
             Weight decay, add L2 penalty to parameters.
         initial_accumulator_value: (default: :const:`0.0`)
             Initial value for the accumulator.
-        eps: (default: :const:`1e-8`)
+        eps: (default: :const:`1e-10`)
             A small constant applied to denominator outside of the square root (as in the Adam
             paper) to avoid dividing by zero when rescaling.
         maximize: (default: :data:`False`)

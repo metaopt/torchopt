@@ -53,8 +53,8 @@ class ScaleByRssState(NamedTuple):
 
 
 def scale_by_rss(
-    initial_accumulator_value: float = 0.1,
-    eps: float = 1e-7,
+    initial_accumulator_value: float = 0.0,
+    eps: float = 1e-10,
 ) -> GradientTransformation:
     """Rescale updates by the root of the sum of all squared gradients to date.
 
@@ -77,8 +77,8 @@ def scale_by_rss(
 
 
 def _scale_by_rss_flat(
-    initial_accumulator_value: float = 0.1,
-    eps: float = 1e-7,
+    initial_accumulator_value: float = 0.0,
+    eps: float = 1e-10,
 ) -> GradientTransformation:
     return _scale_by_rss(
         initial_accumulator_value=initial_accumulator_value,
@@ -88,8 +88,8 @@ def _scale_by_rss_flat(
 
 
 def _scale_by_rss(
-    initial_accumulator_value: float = 0.1,
-    eps: float = 1e-7,
+    initial_accumulator_value: float = 0.0,
+    eps: float = 1e-10,
     *,
     already_flattened: bool = False,
 ) -> GradientTransformation:
@@ -113,12 +113,16 @@ def _scale_by_rss(
         if inplace:
 
             def f(t: torch.Tensor) -> torch.Tensor:
-                return torch.where(t > 0.0, t.add_(eps).rsqrt_(), torch.tensor(0.0))
+                return torch.where(
+                    t > 0.0, torch.ones_like(t).div_(t.sqrt_().add(eps)), torch.tensor(0.0)
+                )
 
         else:
 
             def f(t: torch.Tensor) -> torch.Tensor:
-                return torch.where(t > 0.0, t.add(eps).rsqrt(), torch.tensor(0.0))
+                return torch.where(
+                    t > 0.0, torch.ones_like(t).div(t.sqrt_().add(eps)), torch.tensor(0.0)
+                )
 
         inv_sqrt_g_square = tree_map(f, sum_of_squares)
         updates = tree_map(lambda scale, g: scale * g, inv_sqrt_g_square, updates)
