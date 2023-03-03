@@ -106,8 +106,13 @@ def _scale_by_rss(
         inplace: bool = True,
     ) -> tuple[Updates, OptState]:  # pylint: disable=unused-argument
         del params
+        # sum_of_squares = tree_map(
+        #     lambda g, t: t + (g.conj() * g).real , updates, state.sum_of_squares
+        # )
+        # sum_of_squares = torch.addcmul(state.sum_of_squares, updates, updates, value=1)
+
         sum_of_squares = tree_map(
-            lambda g, t: (g.conj() * g).real + t, updates, state.sum_of_squares
+            lambda g, t: t.addcmul(g, g, value=1.0), updates, state.sum_of_squares
         )
 
         if inplace:

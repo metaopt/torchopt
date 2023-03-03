@@ -62,7 +62,7 @@ def adagrad(
         Duchi et al, 2011: https://jmlr.org/papers/v12/duchi11a.html
 
     Args:
-        lr: (default: :const:`1e-3`)
+        lr: (default: :const:`1e-2`)
             This is a fixed global scaling factor.
         lr_decay: (default: :const:`0.0`)
             Learning rate decay.

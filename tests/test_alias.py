@@ -163,7 +163,7 @@ def test_adam(
 
 @helpers.parametrize(
     dtype=[torch.float64],
-    lr=[1e-2],
+    lr=[1e-3],
     lr_decay=[0.0],
     initial_accumulator_value=[0.0],
     eps=[1e-10],
