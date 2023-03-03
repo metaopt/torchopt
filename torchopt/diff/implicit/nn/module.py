@@ -36,38 +36,40 @@ __all__ = ['ImplicitMetaGradientModule']
 
 
 def _stateless_objective_fn(
-    __flat_params: TupleOfTensors,
-    __flat_meta_params: TupleOfTensors,
-    __params_names: Iterable[str],
-    __meta_params_names: Iterable[str],
+    flat_params: TupleOfTensors,
+    flat_meta_params: TupleOfTensors,
+    params_names: Iterable[str],
+    meta_params_names: Iterable[str],
     self: ImplicitMetaGradientModule,
+    /,
     *input: Any,
     **kwargs: Any,
 ) -> torch.Tensor:
     with reparametrize(
         self,
         itertools.chain(
-            zip(__params_names, __flat_params),
-            zip(__meta_params_names, __flat_meta_params),
+            zip(params_names, flat_params),
+            zip(meta_params_names, flat_meta_params),
         ),
     ):
         return self.objective(*input, **kwargs)
 
 
 def _stateless_optimality_fn(
-    __flat_params: TupleOfTensors,
-    __flat_meta_params: TupleOfTensors,
-    __params_names: Iterable[str],
-    __meta_params_names: Iterable[str],
+    flat_params: TupleOfTensors,
+    flat_meta_params: TupleOfTensors,
+    params_names: Iterable[str],
+    meta_params_names: Iterable[str],
     self: ImplicitMetaGradientModule,
+    /,
     *input: Any,
     **kwargs: Any,
 ) -> TupleOfTensors:
     with reparametrize(
         self,
         itertools.chain(
-            zip(__params_names, __flat_params),
-            zip(__meta_params_names, __flat_meta_params),
+            zip(params_names, flat_params),
+            zip(meta_params_names, flat_meta_params),
         ),
     ):
         return self.optimality(*input, **kwargs)
@@ -121,12 +123,13 @@ def enable_implicit_gradients(
     @custom_root(_stateless_optimality_fn, argnums=1, has_aux=True, **solve_kwargs)
     def stateless_solver_fn(
         # pylint: disable=unused-argument
-        __flat_params: TupleOfTensors,
-        __flat_meta_params: TupleOfTensors,
-        __params_names: Iterable[str],
-        __meta_params_names: Iterable[str],
+        flat_params: TupleOfTensors,
+        flat_meta_params: TupleOfTensors,
+        params_names: Iterable[str],
+        meta_params_names: Iterable[str],
         # pylint: enable=unused-argument
         self: ImplicitMetaGradientModule,
+        /,
         *input: Any,
         **kwargs: Any,
     ) -> tuple[TupleOfTensors, Any]:
