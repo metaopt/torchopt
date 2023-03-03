@@ -84,8 +84,14 @@ def make_optimality_from_objective(
         raise TypeError('The objective function is not defined.')
 
     def optimality(self: ImplicitMetaGradientModule, *input: Any, **kwargs: Any) -> TupleOfTensors:
-        params_names, flat_params = tuple(zip(*self.named_parameters()))
-        meta_params_names, flat_meta_params = tuple(zip(*self.named_meta_parameters()))
+        named_params = tuple(self.named_parameters())
+        named_meta_params = tuple(self.named_meta_parameters())
+        if len(named_params) == 0:
+            raise RuntimeError('The module has no parameters.')
+        if len(named_meta_params) == 0:
+            raise RuntimeError('The module has no meta-parameters.')
+        params_names, flat_params = tuple(zip(*named_params))
+        meta_params_names, flat_meta_params = tuple(zip(*named_meta_params))
 
         objective_grad_fn = functorch.grad(_stateless_objective_fn, argnums=0)
         return objective_grad_fn(
@@ -132,8 +138,14 @@ def enable_implicit_gradients(
     @functools.wraps(cls_solve)
     def wrapped(self: ImplicitMetaGradientModule, *input: Any, **kwargs: Any) -> Any:
         """Solve the optimization problem."""
-        params_names, flat_params = tuple(zip(*self.named_parameters()))
-        meta_params_names, flat_meta_params = tuple(zip(*self.named_meta_parameters()))
+        named_params = tuple(self.named_parameters())
+        named_meta_params = tuple(self.named_meta_parameters())
+        if len(named_params) == 0:
+            raise RuntimeError('The module has no parameters.')
+        if len(named_meta_params) == 0:
+            raise RuntimeError('The module has no meta-parameters.')
+        params_names, flat_params = tuple(zip(*named_params))
+        meta_params_names, flat_meta_params = tuple(zip(*named_meta_params))
 
         flat_optimal_params, output = stateless_solver_fn(
             flat_params,

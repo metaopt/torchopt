@@ -49,7 +49,10 @@ def enable_zero_order_gradients(
     @functools.wraps(cls_forward)
     def wrapped(self: ZeroOrderGradientModule, *input: Any, **kwargs: Any) -> torch.Tensor:
         """Do the forward pass calculation."""
-        params_names, flat_params = tuple(zip(*self.named_parameters()))
+        named_params = tuple(self.named_parameters())
+        if len(named_params) == 0:
+            raise RuntimeError('The module has no parameters.')
+        params_names, flat_params = tuple(zip(*named_params))
 
         @zero_order(self.sample, argnums=0, method=method, num_samples=num_samples, sigma=sigma)
         def forward_fn(
