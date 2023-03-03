@@ -93,10 +93,18 @@ def _scale_by_rss(
     *,
     already_flattened: bool = False,
 ) -> GradientTransformation:
-    tree_map = tree_map_flat if already_flattened else pytree.tree_map
+    if already_flattened:  # noqa: SIM108
+        tree_map = tree_map_flat
+    else:
+        tree_map = pytree.tree_map  # type: ignore[assignment]
 
     def init_fn(params: Params) -> OptState:
-        sum_of_squares = tree_map(lambda t: torch.full_like(t, initial_accumulator_value), params)
+        sum_of_squares = tree_map(
+            lambda t: torch.full_like(
+                t, initial_accumulator_value, memory_format=torch.preserve_format
+            ),
+            params,
+        )
         return ScaleByRssState(sum_of_squares=sum_of_squares)
 
     def update_fn(

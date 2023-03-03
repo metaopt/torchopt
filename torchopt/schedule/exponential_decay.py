@@ -101,17 +101,21 @@ def exponential_decay(
 
     def schedule(count: Numeric) -> Numeric:
         decreased_count = count - transition_begin
-        p = decreased_count / transition_steps
+        if transition_steps is not None:
+            p = decreased_count / transition_steps
 
-        if staircase:
-            p = torch.floor(p)
+            if staircase:
+                p = torch.floor(torch.tensor(p))
 
-        decayed_value = torch.where(
-            decreased_count <= 0,
-            torch.tensor(init_value),
-            torch.tensor(init_value) * torch.pow(torch.tensor(decay_rate), p),
-        )
-
+            decayed_value = torch.where(
+                torch.tensor(decreased_count) <= 0,
+                torch.tensor(init_value),
+                torch.tensor(init_value) * torch.pow(torch.tensor(decay_rate), p),
+            )
+        else:
+            decayed_value = torch.tensor(init_value) * torch.pow(
+                torch.tensor(decay_rate), decreased_count
+            )
         if end_value is not None:
             return torch.clamp(decayed_value, max=end_value)
         return decayed_value
