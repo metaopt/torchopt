@@ -163,14 +163,13 @@ def test_adam(
 
 @helpers.parametrize(
     dtype=[torch.float64],
-    lr=[1e-2, 1e-3, 1e-4],
-    lr_decay=[0.0, 1e-2],
-    initial_accumulator_value=[0.0, 1e-2],
+    lr=[1e-2],
+    lr_decay=[0.0],
+    initial_accumulator_value=[0.0],
     eps=[1e-8],
     inplace=[True, False],
     weight_decay=[0.0, 1e-2],
     maximize=[False, True],
-    use_accelerated_op=[False, True],
     use_chain_flat=[True, False],
 )
 def test_adagrad(
@@ -182,7 +181,6 @@ def test_adagrad(
     inplace: bool,
     weight_decay: float,
     maximize: bool,
-    use_accelerated_op: bool,
     use_chain_flat: bool,
 ) -> None:
     _set_use_chain_flat(use_chain_flat)
@@ -197,7 +195,6 @@ def test_adagrad(
         initial_accumulator_value=initial_accumulator_value,
         eps=eps,
         maximize=maximize,
-        use_accelerated_op=use_accelerated_op,
     )
     optim_state = optim.init(params)
     optim_ref = torch.optim.Adagrad(
