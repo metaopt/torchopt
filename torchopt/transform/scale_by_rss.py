@@ -113,12 +113,12 @@ def _scale_by_rss(
         if inplace:
 
             def f(t: torch.Tensor) -> torch.Tensor:
-                return t.add_(eps).rsqrt_() if t > 0.0 else 0.0
+                return torch.where(t > 0.0, t.add_(eps).rsqrt_(), torch.tensor(0.0))
 
         else:
 
             def f(t: torch.Tensor) -> torch.Tensor:
-                return t.add(eps).rsqrt() if t > 0.0 else 0.0
+                return torch.where(t > 0.0, t.add(eps).rsqrt(), torch.tensor(0.0))
 
         inv_sqrt_g_square = tree_map(f, sum_of_squares)
         updates = tree_map(lambda scale, g: scale * g, inv_sqrt_g_square, updates)
