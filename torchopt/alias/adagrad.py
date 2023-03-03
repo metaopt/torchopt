@@ -33,7 +33,6 @@
 
 from torchopt.alias.utils import flip_sign_and_add_weight_decay, scale_by_neg_lr
 from torchopt.combine import chain_flat
-from torchopt.schedule import exponential_decay
 from torchopt.transform import scale_by_rss
 from torchopt.typing import GradientTransformation, Scalar
 
@@ -99,5 +98,6 @@ def adagrad(
     return chain_flat(
         flip_sign_and_add_weight_decay(weight_decay=weight_decay, maximize=maximize),
         scale_by_rss.flat(initial_accumulator_value=initial_accumulator_value, eps=eps),  # type: ignore[attr-defined]
-        scale_by_neg_lr(exponential_decay(init_value=lr, decay_rate=lr_decay)),
+        # scale_by_neg_lr(exponential_decay(init_value=lr, decay_rate=lr_decay)),
+        scale_by_neg_lr(lr),
     )
