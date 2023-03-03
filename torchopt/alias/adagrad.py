@@ -33,8 +33,9 @@
 
 from torchopt.alias.utils import flip_sign_and_add_weight_decay, scale_by_neg_lr
 from torchopt.combine import chain_flat
+from torchopt.schedule import exponential_decay
 from torchopt.transform import scale_by_rss
-from torchopt.typing import GradientTransformation, ScalarOrSchedule
+from torchopt.typing import GradientTransformation, Scalar
 
 
 __all__ = ['adagrad']
@@ -42,7 +43,7 @@ __all__ = ['adagrad']
 
 # pylint: disable-next=too-many-arguments
 def adagrad(
-    lr: ScalarOrSchedule = 1e-2,
+    lr: Scalar = 1e-2,
     lr_decay: float = 0.0,
     weight_decay: float = 0.0,
     initial_accumulator_value: float = 0.0,
@@ -98,5 +99,5 @@ def adagrad(
     return chain_flat(
         flip_sign_and_add_weight_decay(weight_decay=weight_decay, maximize=maximize),
         scale_by_rss.flat(initial_accumulator_value=initial_accumulator_value, eps=eps),  # type: ignore[attr-defined]
-        scale_by_neg_lr(lr),
+        scale_by_neg_lr(exponential_decay(init_value=lr, decay_rate=lr_decay)),
     )

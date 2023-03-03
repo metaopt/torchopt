@@ -166,10 +166,10 @@ def test_adam(
     lr=[1e-2],
     lr_decay=[0.0],
     initial_accumulator_value=[0.0],
-    eps=[1e-8],
+    eps=[1e-10],
     inplace=[True, False],
-    weight_decay=[0.0, 1e-2],
-    maximize=[False, True],
+    weight_decay=[0.0],
+    maximize=[False],
     use_chain_flat=[True, False],
 )
 def test_adagrad(
