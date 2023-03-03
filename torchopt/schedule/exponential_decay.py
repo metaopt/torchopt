@@ -34,6 +34,8 @@
 import logging
 from typing import Optional
 
+import torch
+
 from torchopt.typing import Numeric, Scalar, Schedule
 
 
@@ -45,6 +47,7 @@ def exponential_decay(
     decay_rate: Scalar,
     transition_begin: int = 0,
     transition_steps: Optional[int] = None,
+    staircase: bool = False,
     end_value: Optional[float] = None,
 ) -> Schedule:
     """Constructs a schedule with either continuous or discrete exponential decay.
@@ -76,17 +79,23 @@ def exponential_decay(
         transition_begin = 0
 
     if end_value is not None:
-        clip_fn = max if decay_rate < 1.0 else min
+        pass
 
     def schedule(count: Numeric) -> Numeric:
         decreased_count = count - transition_begin
-        decayed_value = (
-            init_value / (1 + (decreased_count - 1) * decay_rate)
-            if decreased_count > 0
-            else init_value
+        p = decreased_count / transition_steps
+
+        if staircase:
+            p = torch.floor(p)
+
+        decayed_value = torch.where(
+            decreased_count <= 0,
+            torch.tensor(init_value),
+            torch.tensor(init_value) * torch.pow(torch.tensor(decay_rate), p),
         )
+
         if end_value is not None:
-            decayed_value = clip_fn(decayed_value, end_value)
+            return torch.clamp(decayed_value, max=end_value)
         return decayed_value
 
     return schedule

@@ -38,7 +38,7 @@ import torch
 from torchopt import pytree
 from torchopt.base import GradientTransformation
 from torchopt.transform.utils import tree_map_flat
-from torchopt.typing import Updates
+from torchopt.typing import OptState, Params, Updates
 
 
 __all__ = ['scale_by_rss']
@@ -93,23 +93,29 @@ def _scale_by_rss(
 ) -> GradientTransformation:
     tree_map = tree_map_flat if already_flattened else pytree.tree_map
 
-    def init_fn(params):
+    def init_fn(params: Params) -> OptState:
         sum_of_squares = tree_map(lambda t: torch.full_like(t, initial_accumulator_value), params)
         return ScaleByRssState(sum_of_squares=sum_of_squares)
 
-    def update_fn(updates, state, params=None, inplace=True):  # pylint: disable=unused-argument
+    def update_fn(
+        updates: Updates,
+        state: OptState,
+        params: Params | None = None,
+        inplace: bool = True,
+    ) -> tuple[Updates, OptState]:  # pylint: disable=unused-argument
+        del params
         sum_of_squares = tree_map(
             lambda g, t: (g.conj() * g).real + t, updates, state.sum_of_squares
         )
 
         if inplace:
 
-            def f(t):
+            def f(t: torch.Tensor) -> torch.Tensor:
                 return t.add_(eps).rsqrt_() if t > 0.0 else 0.0
 
         else:
 
-            def f(t):
+            def f(t: torch.Tensor) -> torch.Tensor:
                 return t.add(eps).rsqrt() if t > 0.0 else 0.0
 
         inv_sqrt_g_square = tree_map(f, sum_of_squares)
