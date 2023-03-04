@@ -838,7 +838,7 @@ def test_module_abstract_methods() -> None:
 
     with pytest.raises(
         TypeError,
-        match=re.escape('method objective(() must not be a staticmethod.'),
+        match=re.escape('method objective() must not be a staticmethod.'),
     ):
 
         class MyModule7(torchopt.nn.ImplicitMetaGradientModule):

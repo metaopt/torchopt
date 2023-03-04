@@ -81,8 +81,8 @@ def make_optimality_from_objective(
 ) -> type[ImplicitMetaGradientModule]:
     """Derives the optimality function of the objective function."""
     static_super_objective = inspect.getattr_static(ImplicitMetaGradientModule, 'objective')
-    static_cls_optimality = inspect.getattr_static(cls, 'optimality', static_super_objective)
-    if static_cls_optimality is static_super_objective:
+    static_cls_objective = inspect.getattr_static(cls, 'objective', static_super_objective)
+    if static_cls_objective is static_super_objective:
         raise TypeError('The objective function is not defined.')
 
     def optimality(self: ImplicitMetaGradientModule, *input: Any, **kwargs: Any) -> TupleOfTensors:
