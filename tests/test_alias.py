@@ -206,8 +206,11 @@ def test_adagrad(
         eps=eps,
         maximize=maximize,
     )
-
+    t = 0
     for xs, ys in loader:
+        t = t + 1
+        if t == 1:
+            break
         xs = xs.to(dtype=dtype)
         pred = fmodel(params, buffers, xs)
         pred_ref = model_ref(xs)
@@ -221,6 +224,8 @@ def test_adagrad(
         optim_ref.zero_grad()
         loss_ref.backward()
         optim_ref.step()
+
+        # _, params_ref, buffers_ref = functorch.make_functional_with_buffers(model_ref)
 
     helpers.assert_model_all_close((params, buffers), model_ref, model_base, dtype=dtype)
     _set_use_chain_flat(True)

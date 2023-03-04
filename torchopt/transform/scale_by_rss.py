@@ -138,7 +138,7 @@ def _scale_by_rss(
                 )
 
         inv_sqrt_g_square = tree_map(f, sum_of_squares)
-        updates = tree_map(lambda scale, g: scale * g, inv_sqrt_g_square, updates)
+        updates = tree_map(lambda scale, g: g * scale, inv_sqrt_g_square, updates)
         return updates, ScaleByRssState(sum_of_squares=sum_of_squares)
 
     return GradientTransformation(init_fn, update_fn)
