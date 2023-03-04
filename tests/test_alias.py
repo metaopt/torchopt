@@ -209,7 +209,7 @@ def test_adagrad(
     t = 0
     for xs, ys in loader:
         t = t + 1
-        if t == 1:
+        if t == 2:
             break
         xs = xs.to(dtype=dtype)
         pred = fmodel(params, buffers, xs)
