@@ -301,9 +301,40 @@ def _scale_by_accelerated_adam(
             count_inc = inc_count.impl(updates, state.count, already_flattened=True)  # type: ignore[attr-defined]
 
             op = AdamOp(b1=b1, b2=b2, eps=eps, eps_root=eps_root, inplace=inplace)
-            out = tree_map_flat(op, state.mu, state.nu, updates, count_inc)
 
-            new_mu, new_nu, new_updates = tuple(zip(*out))  # transpose
+            def op_fn(
+                mu: torch.Tensor | None,
+                nu: torch.Tensor | None,
+                update: torch.Tensor | None,
+                count: torch.Tensor | None,
+            ) -> tuple[torch.Tensor | None, torch.Tensor | None, torch.Tensor | None]:
+                if mu is None:
+                    return (None, None, None)
+                return op(mu, nu, update, count)  # type: ignore[arg-type]
+
+            out = tree_map_flat(
+                op_fn,
+                state.mu,
+                state.nu,
+                updates,
+                count_inc,
+                none_is_leaf=True,
+            )
+
+            if len(out) == 0:
+                new_mu, new_nu, new_updates = (), (), ()
+            else:
+                new_mu, new_nu, new_updates = tuple(zip(*out))  # transpose
+
+            new_mu, new_nu, new_updates = (
+                new if type(new) is type(old) else type(old)(new)
+                for new, old in (
+                    (new_mu, state.mu),
+                    (new_nu, state.nu),
+                    (new_updates, updates),
+                )
+            )
+
             return new_updates, ScaleByAdamState(mu=new_mu, nu=new_nu, count=count_inc)
 
     else:
@@ -318,15 +349,43 @@ def _scale_by_accelerated_adam(
         ) -> tuple[Updates, OptState]:
             count_inc = inc_count.impl(updates, state.count, already_flattened=False)  # type: ignore[attr-defined]
 
-            treespec = pytree.tree_structure(updates, none_is_leaf=True)
-
-            op = AdamOp(b1=b1, b2=b2, eps=eps, eps_root=eps_root, inplace=inplace)
-            out = pytree.tree_map(op, state.mu, state.nu, updates, count_inc)
-
             new_mu: Updates
             new_nu: Updates
             new_updates: Updates
-            new_mu, new_nu, new_updates = pytree.tree_transpose(treespec, TRIPLE_PYTREE_SPEC, out)  # type: ignore[misc]
+
+            treespec = pytree.tree_structure(updates, none_is_leaf=True)
+            if treespec.num_leaves > 0:
+                op = AdamOp(b1=b1, b2=b2, eps=eps, eps_root=eps_root, inplace=inplace)
+
+                def op_fn(
+                    mu: torch.Tensor | None,
+                    nu: torch.Tensor | None,
+                    update: torch.Tensor | None,
+                    count: torch.Tensor | None,
+                ) -> tuple[torch.Tensor | None, torch.Tensor | None, torch.Tensor | None]:
+                    if mu is None:
+                        return (None, None, None)
+                    return op(mu, nu, update, count)  # type: ignore[arg-type]
+
+                out = pytree.tree_map(
+                    op_fn,
+                    state.mu,
+                    state.nu,
+                    updates,
+                    count_inc,
+                    none_is_leaf=True,
+                )
+
+                new_mu, new_nu, new_updates = pytree.tree_transpose(  # type: ignore[misc]
+                    treespec,
+                    TRIPLE_PYTREE_SPEC,
+                    out,
+                )
+            else:
+                new_mu = pytree.tree_unflatten(treespec, ())
+                new_nu = pytree.tree_unflatten(treespec, ())
+                new_updates = pytree.tree_unflatten(treespec, ())
+
             return new_updates, ScaleByAdamState(mu=new_mu, nu=new_nu, count=count_inc)
 
     def init_fn(params: Params) -> OptState:
