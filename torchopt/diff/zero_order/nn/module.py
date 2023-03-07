@@ -66,7 +66,7 @@ def enable_zero_order_gradients(
         return forward_fn(flat_params, *input, **kwargs)
 
     wrapped.__zero_order_gradients_enabled__ = True  # type: ignore[attr-defined]
-    cls.forward = wrapped  # type: ignore[assignment]
+    cls.forward = wrapped  # type: ignore[method-assign]
     return cls
 
 

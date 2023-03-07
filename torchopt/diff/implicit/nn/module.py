@@ -106,7 +106,7 @@ def make_optimality_from_objective(
             **kwargs,
         )
 
-    cls.optimality = optimality  # type: ignore[assignment]
+    cls.optimality = optimality  # type: ignore[method-assign]
     return cls
 
 
@@ -163,7 +163,7 @@ def enable_implicit_gradients(
         return output
 
     wrapped.__implicit_gradients_enabled__ = True  # type: ignore[attr-defined]
-    cls.solve = wrapped  # type: ignore[assignment]
+    cls.solve = wrapped  # type: ignore[method-assign]
     return cls
 
 
