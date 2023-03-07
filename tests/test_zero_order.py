@@ -14,6 +14,7 @@
 # ==============================================================================
 
 import functorch
+import pytest
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -117,3 +118,49 @@ def test_zero_order_module(lr: float, method: str, sigma: float) -> None:
         optimizer.zero_grad()
         loss.backward()  # compute gradients
         optimizer.step()  # update network parameters
+
+
+def test_module_enable_zero_order_gradients_twice() -> None:
+    class MyModule(torchopt.nn.ZeroOrderGradientModule):
+        def forward(self):
+            return torch.tensor(0.0)
+
+        def sample(self, sample_shape):
+            return torch.tensor(0.0)
+
+    from torchopt.diff.zero_order.nn.module import enable_zero_order_gradients
+
+    with pytest.raises(
+        TypeError,
+        match='Zero-order gradient estimation is already enabled for the `forward` method.',
+    ):
+        enable_zero_order_gradients(MyModule)
+
+
+def test_module_empty_parameters() -> None:
+    class MyModule(torchopt.nn.ZeroOrderGradientModule):
+        def forward(self):
+            return torch.tensor(0.0)
+
+        def sample(self, sample_shape):
+            return torch.tensor(0.0)
+
+    m = MyModule()
+    with pytest.raises(RuntimeError, match='The module has no parameters.'):
+        m()
+
+
+def test_module_abstract_methods() -> None:
+    class MyModule1(torchopt.nn.ZeroOrderGradientModule):
+        def forward(self):
+            return torch.tensor(0.0)
+
+    with pytest.raises(TypeError, match="Can't instantiate abstract class"):
+        MyModule1()
+
+    class MyModule2(torchopt.nn.ZeroOrderGradientModule):
+        def sample(self, sample_shape):
+            return torch.tensor(0.0)
+
+    with pytest.raises(TypeError, match="Can't instantiate abstract class"):
+        MyModule2()
