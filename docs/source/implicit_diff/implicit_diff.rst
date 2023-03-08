@@ -19,20 +19,41 @@ Namely, given
     \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi}) \triangleq \underset{\boldsymbol{\theta}}{\mathop{\operatorname{argmin}}} ~ \mathcal{L}^{\text{in}} (\boldsymbol{\phi},\boldsymbol{\theta}).
 
 By treating the solution :math:`\boldsymbol{\theta}^{\prime}` as an implicit function of :math:`\boldsymbol{\phi}`, the idea of implicit differentiation is to directly get analytical best-response derivatives :math:`\nabla_{\boldsymbol{\phi}} \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi})` by the implicit function theorem.
-This is suitable for algorithms, such as `IMAML <https://arxiv.org/abs/1909.04630>`_ and `DEQ <https://arxiv.org/abs/1909.01377>`_, when the inner-level optimality conditions :math:`T` is defined by :math:`\left. \frac{ \partial \mathcal{L}^{\text{in}} (\boldsymbol{\phi}, \boldsymbol{\theta})}{\partial \boldsymbol{\theta}} \right\rvert_{\boldsymbol{\theta} = \boldsymbol{\theta}^{\prime}} = 0` or reaches some stationary point.
-The optimality conditions sometimes can be defined by the root of :math:`T` such that :math:`T (\boldsymbol{\phi}, \boldsymbol{\theta}^{\prime}) = \boldsymbol{0}`.
 
-For example, the function :math:`F` in the figure means the solution is obtained by unrolled gradient fixed point update:
+This is suitable for algorithms when the inner-level optimality conditions :math:`T` is defined by a root of a function such as
+
+.. math::
+
+    T (\boldsymbol{\phi}, \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi})) = \left. \frac{ \partial \mathcal{L}^{\text{in}} (\boldsymbol{\phi}, \boldsymbol{\theta})}{\partial \boldsymbol{\theta}} \right\rvert_{\boldsymbol{\theta} = \boldsymbol{\theta}^{\prime}} = 0,
+
+In `IMAML <https://arxiv.org/abs/1909.04630>`_, the function :math:`F` in the figure means the inner-level optimal solution is obtained by unrolled gradient update:
 
 .. math::
 
     \boldsymbol{\theta}_{k + 1} = F (\boldsymbol{\phi}, \boldsymbol{\theta}_k) = \boldsymbol{\theta}_k - \alpha \nabla_{\boldsymbol{\theta}_k} \mathcal{L}^{\text{in}} (\boldsymbol{\phi}, \boldsymbol{\theta}_k),
 
-the optimality conditions can be determined by the `KKT conditions <https://en.wikipedia.org/wiki/Karush%E2%80%93Kuhn%E2%80%93Tucker_conditions>`_ of the problem:
+Sometimes the inner-level optimal solution can also be achieved by fixed point where :math:`T` takes the form:
 
 .. math::
 
-    \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi}) = F (\boldsymbol{\phi}, \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi})) \  \Longrightarrow \  T (\boldsymbol{\phi}, \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi})) = \left. \frac{ \partial \mathcal{L}^{\text{in}} (\boldsymbol{\phi}, \boldsymbol{\theta})}{\partial \boldsymbol{\theta}} \right\rvert_{\boldsymbol{\theta} = \boldsymbol{\theta}^{\prime}} = \boldsymbol{0}.
+    \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi}) = T (\boldsymbol{\phi}, \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi}))
+
+In `DEQ <https://arxiv.org/abs/1909.01377>`_, the function :math:`F` in the figure means the inner-level optimal solution is obtained by fixed point update:
+
+
+.. math::
+
+    \boldsymbol{\theta}_{k + 1} = F (\boldsymbol{\phi}, \boldsymbol{\theta}_k) = T (\boldsymbol{\phi}, \boldsymbol{\theta}_k),
+
+This can be seen as a particular case of root of function by defining the mapping function as :math:`F (\boldsymbol{\phi}, \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi}))-\boldsymbol{\theta}^{\prime} (\boldsymbol{\phi})`.
+
+
+
+.. the optimality conditions can be determined by the `KKT conditions <https://en.wikipedia.org/wiki/Karush%E2%80%93Kuhn%E2%80%93Tucker_conditions>`_ of the problem:
+
+.. .. math::
+
+..     \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi}) = F (\boldsymbol{\phi}, \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi})) \  \Longrightarrow \  T (\boldsymbol{\phi}, \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi})) = \left. \frac{ \partial \mathcal{L}^{\text{in}} (\boldsymbol{\phi}, \boldsymbol{\theta})}{\partial \boldsymbol{\theta}} \right\rvert_{\boldsymbol{\theta} = \boldsymbol{\theta}^{\prime}} = \boldsymbol{0}.
 
 Custom Solvers
 --------------
