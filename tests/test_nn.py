@@ -69,7 +69,13 @@ def test_register_tensors() -> None:
 
     assert m._meta_parameters['x'] is x
     assert m._parameters['y'] is y
-    assert hasattr(m, 'z') and m.z is z and 'z' not in m._buffers
+    assert (
+        hasattr(m, 'z')
+        and m.z is z
+        and 'z' not in m._meta_parameters
+        and 'z' not in m._parameters
+        and 'z' not in m._buffers
+    )
 
     del m.x
     object.__setattr__(m, 'x', x)
@@ -81,6 +87,67 @@ def test_register_tensors() -> None:
     assert m.b is None
     m.b = b
     assert m.b is b and 'b' in m._buffers
+
+    m = torchopt.nn.MetaGradientModule(x, b)
+
+    with pytest.raises(
+        TypeError,
+        match=re.escape('parameter name should be a string. Got bytes'),
+    ):
+        m.register_meta_parameter(b'x', x)
+
+    with pytest.raises(
+        KeyError,
+        match=re.escape("parameter name can't contain '.'"),
+    ):
+        m.register_meta_parameter('x.x', x)
+
+    with pytest.raises(
+        KeyError,
+        match=re.escape("parameter name can't be empty string ''"),
+    ):
+        m.register_meta_parameter('', x)
+
+    m.register_buffer('z', None)
+    with pytest.raises(
+        KeyError,
+        match=re.escape("attribute 'z' already exists"),
+    ):
+        m.register_meta_parameter('z', x)
+
+    with pytest.raises(
+        ValueError,
+        match=re.escape(
+            "cannot assign Tensor that is a meta-parameter to parameter 'x'. "
+            'Use self.register_meta_parameter() instead.'
+        ),
+    ):
+        m.register_parameter('x', x)
+
+    m.x = x
+    with pytest.raises(
+        KeyError,
+        match=re.escape("attribute 'x' already exists"),
+    ):
+        m.register_parameter('x', x)
+
+    with pytest.raises(
+        TypeError,
+        match=re.escape('parameter name should be a string. Got bytes'),
+    ):
+        m.register_parameter(b'y', y)
+
+    with pytest.raises(
+        KeyError,
+        match=re.escape("parameter name can't contain '.'"),
+    ):
+        m.register_parameter('y.x', y)
+
+    with pytest.raises(
+        KeyError,
+        match=re.escape("parameter name can't be empty string ''"),
+    ):
+        m.register_parameter('', y)
 
 
 def test_no_super_init() -> None:

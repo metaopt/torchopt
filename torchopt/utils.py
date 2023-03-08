@@ -28,7 +28,7 @@ from torchopt import pytree
 from torchopt.typing import Device, ModuleTensorContainers, OptState, TensorContainer, TensorTree
 
 
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:
     from torchopt.optim.meta.base import MetaOptimizer
 
 
