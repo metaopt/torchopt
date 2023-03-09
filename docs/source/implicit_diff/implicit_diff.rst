@@ -20,14 +20,14 @@ Namely, given
 
 By treating the solution :math:`\boldsymbol{\theta}^{\prime}` as an implicit function of :math:`\boldsymbol{\phi}`, the idea of implicit differentiation is to directly get analytical best-response derivatives :math:`\nabla_{\boldsymbol{\phi}} \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi})` by the implicit function theorem.
 
-Gradient-based Optimization
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Root finding
+~~~~~~~~~~~~
 
-This is suitable for algorithms when the inner-level optimality conditions :math:`T` is defined by a root of a function such as
+This is suitable for algorithms when the inner-level optimality conditions :math:`T` is defined by a root of a function, such as:
 
 .. math::
 
-    T (\boldsymbol{\phi}, \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi})) = \left. \frac{ \partial \mathcal{L}^{\text{in}} (\boldsymbol{\phi}, \boldsymbol{\theta})}{\partial \boldsymbol{\theta}} \right\rvert_{\boldsymbol{\theta} = \boldsymbol{\theta}^{\prime}} = \boldsymbol{0}.
+    T (\boldsymbol{\phi}, \boldsymbol{\theta}) = \frac{ \partial \mathcal{L}^{\text{in}} (\boldsymbol{\phi}, \boldsymbol{\theta})}{\partial \boldsymbol{\theta}}, \qquad T (\boldsymbol{\phi}, \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi})) = \left. \frac{ \partial \mathcal{L}^{\text{in}} (\boldsymbol{\phi}, \boldsymbol{\theta})}{\partial \boldsymbol{\theta}} \right\rvert_{\boldsymbol{\theta} = \boldsymbol{\theta}^{\prime}} = \boldsymbol{0}.
 
 In `IMAML <https://arxiv.org/abs/1909.04630>`_, the function :math:`F` in the figure means the inner-level optimal solution is obtained by unrolled gradient update:
 
@@ -42,7 +42,7 @@ Sometimes the inner-level optimal solution can also be achieved by fixed point w
 
 .. math::
 
-    \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi}) = F (\boldsymbol{\phi}, \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi})) \quad \Longleftrightarrow \quad T (\boldsymbol{\phi}, \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi})) = F (\boldsymbol{\phi}, \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi}))-\boldsymbol{\theta}^{\prime} (\boldsymbol{\phi}) = \boldsymbol{0}.
+    \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi}) = F (\boldsymbol{\phi}, \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi})) \quad \Longleftrightarrow \quad T (\boldsymbol{\phi}, \boldsymbol{\theta}) = F (\boldsymbol{\phi}, \boldsymbol{\theta}) - \boldsymbol{\theta}, \quad T (\boldsymbol{\phi}, \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi})) = \boldsymbol{0}.
 
 In `DEQ <https://arxiv.org/abs/1909.01377>`_, the function :math:`F` in the figure means the inner-level optimal solution is obtained by fixed point update:
 
@@ -50,7 +50,7 @@ In `DEQ <https://arxiv.org/abs/1909.01377>`_, the function :math:`F` in the figu
 
     \boldsymbol{\theta}_{k + 1} = F (\boldsymbol{\phi}, \boldsymbol{\theta}_k).
 
-This can be seen as a particular case of root of function by defining the mapping function as :math:`T (\boldsymbol{\phi}, \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi})) = F (\boldsymbol{\phi}, \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi}))-\boldsymbol{\theta}^{\prime} (\boldsymbol{\phi})`.
+This can be seen as a particular case of root of function by defining the optimality function as :math:`T (\boldsymbol{\phi}, \boldsymbol{\theta}) = F (\boldsymbol{\phi}, \boldsymbol{\theta}) - \boldsymbol{\theta}`.
 This can be implemented with:
 
 .. code-block:: python
