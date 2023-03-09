@@ -47,14 +47,6 @@ In `DEQ <https://arxiv.org/abs/1909.01377>`_, the function :math:`F` in the figu
 
 This can be seen as a particular case of root of function by defining the mapping function as :math:`T (\boldsymbol{\phi}, \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi})) = F (\boldsymbol{\phi}, \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi}))-\boldsymbol{\theta}^{\prime} (\boldsymbol{\phi})`.
 
-
-
-.. the optimality conditions can be determined by the `KKT conditions <https://en.wikipedia.org/wiki/Karush%E2%80%93Kuhn%E2%80%93Tucker_conditions>`_ of the problem:
-
-.. .. math::
-
-..     \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi}) = F (\boldsymbol{\phi}, \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi})) \  \Longrightarrow \  T (\boldsymbol{\phi}, \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi})) = \left. \frac{ \partial \mathcal{L}^{\text{in}} (\boldsymbol{\phi}, \boldsymbol{\theta})}{\partial \boldsymbol{\theta}} \right\rvert_{\boldsymbol{\theta} = \boldsymbol{\theta}^{\prime}} = \boldsymbol{0}.
-
 Custom Solvers
 --------------
 
