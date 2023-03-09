@@ -20,7 +20,7 @@ Namely, given
 
 By treating the solution :math:`\boldsymbol{\theta}^{\prime}` as an implicit function of :math:`\boldsymbol{\phi}`, the idea of implicit differentiation is to directly get analytical best-response derivatives :math:`\nabla_{\boldsymbol{\phi}} \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi})` by the implicit function theorem.
 
-Root finding
+Root Finding
 ~~~~~~~~~~~~
 
 This is suitable for algorithms when the inner-level optimality conditions :math:`T` is defined by a root of a function, such as:
