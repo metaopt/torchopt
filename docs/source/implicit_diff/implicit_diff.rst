@@ -51,7 +51,7 @@ In `DEQ <https://arxiv.org/abs/1909.01377>`_, the function :math:`F` in the figu
     \boldsymbol{\theta}_{k + 1} = F (\boldsymbol{\phi}, \boldsymbol{\theta}_k).
 
 This can be seen as a particular case of root of function by defining the mapping function as :math:`T (\boldsymbol{\phi}, \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi})) = F (\boldsymbol{\phi}, \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi}))-\boldsymbol{\theta}^{\prime} (\boldsymbol{\phi})`.
-This can be achieved with:
+This can be implemented with:
 
 .. code-block:: python
 
