@@ -20,32 +20,49 @@ Namely, given
 
 By treating the solution :math:`\boldsymbol{\theta}^{\prime}` as an implicit function of :math:`\boldsymbol{\phi}`, the idea of implicit differentiation is to directly get analytical best-response derivatives :math:`\nabla_{\boldsymbol{\phi}} \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi})` by the implicit function theorem.
 
+Gradient-based Optimization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 This is suitable for algorithms when the inner-level optimality conditions :math:`T` is defined by a root of a function such as
 
 .. math::
 
-    T (\boldsymbol{\phi}, \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi})) = \left. \frac{ \partial \mathcal{L}^{\text{in}} (\boldsymbol{\phi}, \boldsymbol{\theta})}{\partial \boldsymbol{\theta}} \right\rvert_{\boldsymbol{\theta} = \boldsymbol{\theta}^{\prime}} = 0,
+    T (\boldsymbol{\phi}, \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi})) = \left. \frac{ \partial \mathcal{L}^{\text{in}} (\boldsymbol{\phi}, \boldsymbol{\theta})}{\partial \boldsymbol{\theta}} \right\rvert_{\boldsymbol{\theta} = \boldsymbol{\theta}^{\prime}} = \boldsymbol{0}.
 
 In `IMAML <https://arxiv.org/abs/1909.04630>`_, the function :math:`F` in the figure means the inner-level optimal solution is obtained by unrolled gradient update:
 
 .. math::
 
-    \boldsymbol{\theta}_{k + 1} = F (\boldsymbol{\phi}, \boldsymbol{\theta}_k) = \boldsymbol{\theta}_k - \alpha \nabla_{\boldsymbol{\theta}_k} \mathcal{L}^{\text{in}} (\boldsymbol{\phi}, \boldsymbol{\theta}_k),
+    \boldsymbol{\theta}_{k + 1} = F (\boldsymbol{\phi}, \boldsymbol{\theta}_k) = \boldsymbol{\theta}_k - \alpha \nabla_{\boldsymbol{\theta}_k} \mathcal{L}^{\text{in}} (\boldsymbol{\phi}, \boldsymbol{\theta}_k).
 
-Sometimes the inner-level optimal solution can also be achieved by fixed point where :math:`T` takes the form:
+Fixed-point Iteration
+~~~~~~~~~~~~~~~~~~~~~
+
+Sometimes the inner-level optimal solution can also be achieved by fixed point where the optionality :math:`T` takes the form:
 
 .. math::
 
-    \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi}) = T (\boldsymbol{\phi}, \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi}))
+    \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi}) = F (\boldsymbol{\phi}, \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi})) \quad \Longleftrightarrow \quad T (\boldsymbol{\phi}, \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi})) = F (\boldsymbol{\phi}, \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi}))-\boldsymbol{\theta}^{\prime} (\boldsymbol{\phi}) = \boldsymbol{0}.
 
 In `DEQ <https://arxiv.org/abs/1909.01377>`_, the function :math:`F` in the figure means the inner-level optimal solution is obtained by fixed point update:
 
-
 .. math::
 
-    \boldsymbol{\theta}_{k + 1} = F (\boldsymbol{\phi}, \boldsymbol{\theta}_k),
+    \boldsymbol{\theta}_{k + 1} = F (\boldsymbol{\phi}, \boldsymbol{\theta}_k).
 
 This can be seen as a particular case of root of function by defining the mapping function as :math:`T (\boldsymbol{\phi}, \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi})) = F (\boldsymbol{\phi}, \boldsymbol{\theta}^{\prime} (\boldsymbol{\phi}))-\boldsymbol{\theta}^{\prime} (\boldsymbol{\phi})`.
+This can be achieved with:
+
+.. code-block:: python
+
+    def fixed_point_function(phi: TensorTree, theta: TensorTree) -> TensorTree:
+        ...
+        return new_theta
+
+    # A root function can be derived from the fixed point function
+    def root_function(phi: TensorTree, theta: TensorTree) -> TensorTree:
+        new_theta = fixed_point_function(phi, theta)
+        return torchopt.pytree.tree_sub(new_theta, theta)
 
 Custom Solvers
 --------------
