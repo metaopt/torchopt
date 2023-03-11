@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import abc
 import functools
+import inspect
 import itertools
 from typing import Any, Iterable
 
@@ -36,38 +37,40 @@ __all__ = ['ImplicitMetaGradientModule']
 
 
 def _stateless_objective_fn(
-    __flat_params: TupleOfTensors,
-    __flat_meta_params: TupleOfTensors,
-    __params_names: Iterable[str],
-    __meta_params_names: Iterable[str],
+    flat_params: TupleOfTensors,
+    flat_meta_params: TupleOfTensors,
+    params_names: Iterable[str],
+    meta_params_names: Iterable[str],
     self: ImplicitMetaGradientModule,
+    /,
     *input: Any,
     **kwargs: Any,
 ) -> torch.Tensor:
     with reparametrize(
         self,
         itertools.chain(
-            zip(__params_names, __flat_params),
-            zip(__meta_params_names, __flat_meta_params),
+            zip(params_names, flat_params),
+            zip(meta_params_names, flat_meta_params),
         ),
     ):
         return self.objective(*input, **kwargs)
 
 
 def _stateless_optimality_fn(
-    __flat_params: TupleOfTensors,
-    __flat_meta_params: TupleOfTensors,
-    __params_names: Iterable[str],
-    __meta_params_names: Iterable[str],
+    flat_params: TupleOfTensors,
+    flat_meta_params: TupleOfTensors,
+    params_names: Iterable[str],
+    meta_params_names: Iterable[str],
     self: ImplicitMetaGradientModule,
+    /,
     *input: Any,
     **kwargs: Any,
 ) -> TupleOfTensors:
     with reparametrize(
         self,
         itertools.chain(
-            zip(__params_names, __flat_params),
-            zip(__meta_params_names, __flat_meta_params),
+            zip(params_names, flat_params),
+            zip(meta_params_names, flat_meta_params),
         ),
     ):
         return self.optimality(*input, **kwargs)
@@ -77,15 +80,20 @@ def make_optimality_from_objective(
     cls: type[ImplicitMetaGradientModule],
 ) -> type[ImplicitMetaGradientModule]:
     """Derives the optimality function of the objective function."""
-    if (
-        getattr(cls, 'objective', ImplicitMetaGradientModule.objective)
-        is ImplicitMetaGradientModule.objective
-    ):
+    static_super_objective = inspect.getattr_static(ImplicitMetaGradientModule, 'objective')
+    static_cls_objective = inspect.getattr_static(cls, 'objective', static_super_objective)
+    if static_cls_objective is static_super_objective:
         raise TypeError('The objective function is not defined.')
 
     def optimality(self: ImplicitMetaGradientModule, *input: Any, **kwargs: Any) -> TupleOfTensors:
-        params_names, flat_params = tuple(zip(*self.named_parameters()))
-        meta_params_names, flat_meta_params = tuple(zip(*self.named_meta_parameters()))
+        named_params = tuple(self.named_parameters())
+        named_meta_params = tuple(self.named_meta_parameters())
+        if len(named_params) == 0:
+            raise RuntimeError('The module has no parameters.')
+        if len(named_meta_params) == 0:
+            raise RuntimeError('The module has no meta-parameters.')
+        params_names, flat_params = tuple(zip(*named_params))
+        meta_params_names, flat_meta_params = tuple(zip(*named_meta_params))
 
         objective_grad_fn = functorch.grad(_stateless_objective_fn, argnums=0)
         return objective_grad_fn(
@@ -98,7 +106,7 @@ def make_optimality_from_objective(
             **kwargs,
         )
 
-    cls.optimality = optimality  # type: ignore[assignment]
+    cls.optimality = optimality  # type: ignore[method-assign]
     return cls
 
 
@@ -115,12 +123,13 @@ def enable_implicit_gradients(
     @custom_root(_stateless_optimality_fn, argnums=1, has_aux=True, **solve_kwargs)
     def stateless_solver_fn(
         # pylint: disable=unused-argument
-        __flat_params: TupleOfTensors,
-        __flat_meta_params: TupleOfTensors,
-        __params_names: Iterable[str],
-        __meta_params_names: Iterable[str],
+        flat_params: TupleOfTensors,
+        flat_meta_params: TupleOfTensors,
+        params_names: Iterable[str],
+        meta_params_names: Iterable[str],
         # pylint: enable=unused-argument
         self: ImplicitMetaGradientModule,
+        /,
         *input: Any,
         **kwargs: Any,
     ) -> tuple[TupleOfTensors, Any]:
@@ -132,8 +141,14 @@ def enable_implicit_gradients(
     @functools.wraps(cls_solve)
     def wrapped(self: ImplicitMetaGradientModule, *input: Any, **kwargs: Any) -> Any:
         """Solve the optimization problem."""
-        params_names, flat_params = tuple(zip(*self.named_parameters()))
-        meta_params_names, flat_meta_params = tuple(zip(*self.named_meta_parameters()))
+        named_params = tuple(self.named_parameters())
+        named_meta_params = tuple(self.named_meta_parameters())
+        if len(named_params) == 0:
+            raise RuntimeError('The module has no parameters.')
+        if len(named_meta_params) == 0:
+            raise RuntimeError('The module has no meta-parameters.')
+        params_names, flat_params = tuple(zip(*named_params))
+        meta_params_names, flat_meta_params = tuple(zip(*named_meta_params))
 
         flat_optimal_params, output = stateless_solver_fn(
             flat_params,
@@ -148,11 +163,11 @@ def enable_implicit_gradients(
         return output
 
     wrapped.__implicit_gradients_enabled__ = True  # type: ignore[attr-defined]
-    cls.solve = wrapped  # type: ignore[assignment]
+    cls.solve = wrapped  # type: ignore[method-assign]
     return cls
 
 
-class ImplicitMetaGradientModule(MetaGradientModule):
+class ImplicitMetaGradientModule(MetaGradientModule, metaclass=abc.ABCMeta):
     """The base class for differentiable implicit meta-gradient models."""
 
     _custom_optimality: bool
@@ -164,28 +179,30 @@ class ImplicitMetaGradientModule(MetaGradientModule):
         super().__init_subclass__()
         cls.linear_solve = linear_solve
 
-        optimality = getattr(cls, 'optimality', ImplicitMetaGradientModule.optimality)
-        objective = getattr(cls, 'objective', ImplicitMetaGradientModule.objective)
-        cls._custom_optimality = optimality is not ImplicitMetaGradientModule.optimality
-        cls._custom_objective = objective is not ImplicitMetaGradientModule.objective
+        static_super_optimality = inspect.getattr_static(ImplicitMetaGradientModule, 'optimality')
+        static_super_objective = inspect.getattr_static(ImplicitMetaGradientModule, 'objective')
+        static_cls_optimality = inspect.getattr_static(cls, 'optimality')
+        static_cls_objective = inspect.getattr_static(cls, 'objective')
+        cls._custom_optimality = static_cls_optimality is not static_super_optimality
+        cls._custom_objective = static_cls_objective is not static_super_objective
 
         if cls._custom_optimality:
-            if isinstance(optimality, staticmethod):
+            if isinstance(static_cls_optimality, staticmethod):
                 raise TypeError('method optimality() must not be a staticmethod.')
-            if isinstance(optimality, classmethod):
+            if isinstance(static_cls_optimality, classmethod):
                 raise TypeError('method optimality() must not be a classmethod.')
-            if not callable(optimality):
+            if not callable(static_cls_optimality):
                 raise TypeError('method optimality() must be callable.')
         elif not cls._custom_objective:
             raise TypeError(
                 'ImplicitMetaGradientModule requires either an optimality() method or an objective() method'
             )
         else:
-            if isinstance(objective, staticmethod):
+            if isinstance(static_cls_objective, staticmethod):
                 raise TypeError('method objective() must not be a staticmethod.')
-            if isinstance(objective, classmethod):
+            if isinstance(static_cls_objective, classmethod):
                 raise TypeError('method objective() must not be a classmethod.')
-            if not callable(objective):
+            if not callable(static_cls_objective):
                 raise TypeError('method objective() must be callable.')
 
             make_optimality_from_objective(cls)

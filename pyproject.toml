@@ -233,6 +233,7 @@ select = [
     "ISC",     # flake8-implicit-str-concat
     "PIE",     # flake8-pie
     "PYI",     # flake8-pyi
+    "Q",       # flake8-quotes
     "RSE",     # flake8-raise
     "RET",     # flake8-return
     "SIM",     # flake8-simplify

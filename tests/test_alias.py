@@ -24,7 +24,56 @@ import torch.nn.functional as F
 
 import helpers
 import torchopt
+from torchopt import pytree
 from torchopt.alias.utils import _set_use_chain_flat
+from torchopt.typing import TensorTree
+
+
+@helpers.parametrize(
+    optimizer=[
+        torchopt.sgd,
+        torchopt.adam,
+        torchopt.adamw,
+        torchopt.rmsprop,
+    ],
+    tensortree=[
+        {},
+        (),
+        [],
+        (None,),
+        {'a': (), 'b': {'c': []}, 'd': None},
+    ],
+    maximize=[False, True],
+    inplace=[True, False],
+    use_chain_flat=[True, False],
+)
+def test_empty(
+    optimizer: Callable,
+    tensortree: TensorTree,
+    maximize: bool,
+    inplace: bool,
+    use_chain_flat: bool,
+) -> None:
+    _set_use_chain_flat(use_chain_flat)
+
+    params = pytree.tree_map(lambda x: x, tensortree)
+    grads = pytree.tree_map(lambda x: x, tensortree)
+
+    optim = optimizer(1e-3, maximize=maximize)
+    optim_state = optim.init(params)
+    updates, optim_state = optim.update(grads, optim_state, params=params, inplace=inplace)
+    _ = torchopt.apply_updates(params, updates)
+
+    try:
+        optim = optimizer(1e-3, maximize=maximize, use_accelerated_op=True)
+    except TypeError:
+        pass
+    else:
+        optim_state = optim.init(params)
+        updates, optim_state = optim.update(grads, optim_state, params=params, inplace=inplace)
+        _ = torchopt.apply_updates(params, updates)
+
+    _set_use_chain_flat(True)
 
 
 @helpers.parametrize(
