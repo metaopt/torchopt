@@ -32,7 +32,7 @@
 """Preset :class:`GradientTransformation` for the AdaGrad optimizer."""
 
 from torchopt.alias.utils import flip_sign_and_add_weight_decay, scale_by_neg_lr
-from torchopt.combine import chain_flat
+from torchopt.combine import chain
 from torchopt.transform import scale_by_rss
 from torchopt.typing import GradientTransformation, Scalar
 
@@ -95,9 +95,17 @@ def adagrad(
         raise ValueError(f'Invalid weight_decay value: {weight_decay}')
     # pylint: enable=unneeded-not
 
-    return chain_flat(
-        flip_sign_and_add_weight_decay(weight_decay=weight_decay, maximize=maximize),
-        scale_by_rss.flat(initial_accumulator_value=initial_accumulator_value, eps=eps),  # type: ignore[attr-defined]
+    chain_fn = chain
+    flip_sign_and_add_weight_decay_fn = flip_sign_and_add_weight_decay
+    adagrad_scaler_fn = scale_by_rss
+    scale_by_neg_lr_fn = scale_by_neg_lr
+
+    return chain_fn(
+        flip_sign_and_add_weight_decay_fn(weight_decay=weight_decay, maximize=maximize),
+        adagrad_scaler_fn(
+            initial_accumulator_value=initial_accumulator_value,
+            eps=eps,
+        ),
         # scale_by_neg_lr(exponential_decay(init_value=lr, decay_rate=lr_decay)),
-        scale_by_neg_lr(lr),
+        scale_by_neg_lr_fn(lr),
     )
