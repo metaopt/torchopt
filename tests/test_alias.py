@@ -166,7 +166,7 @@ def test_adam(
     lr=[1e-3],
     lr_decay=[0.0],
     initial_accumulator_value=[0.0],
-    eps=[1e-10],
+    eps=[1e-5],
     inplace=[True, False],
     weight_decay=[0.0],
     maximize=[False],
@@ -209,8 +209,8 @@ def test_adagrad(
     t = 0
     for xs, ys in loader:
         t = t + 1
-        if t == 2:
-            break
+        # if t == 2:
+        #     break
         xs = xs.to(dtype=dtype)
         pred = fmodel(params, buffers, xs)
         pred_ref = model_ref(xs)
@@ -225,7 +225,11 @@ def test_adagrad(
         loss_ref.backward()
         optim_ref.step()
 
-        # _, params_ref, buffers_ref = functorch.make_functional_with_buffers(model_ref)
+        print(t)
+
+        _, params_ref, buffers_ref = functorch.make_functional_with_buffers(model_ref)
+
+        print(t)
 
     helpers.assert_model_all_close((params, buffers), model_ref, model_base, dtype=dtype)
     _set_use_chain_flat(True)

@@ -120,7 +120,7 @@ def _scale_by_rss(
         # sum_of_squares = torch.addcmul(state.sum_of_squares, updates, updates, value=1)
 
         sum_of_squares = tree_map(
-            lambda g, t: t.addcmul(g, g, value=1.0), updates, state.sum_of_squares
+            lambda g, t: t.addcmul_(g, g, value=1.0), updates, state.sum_of_squares
         )
 
         if inplace:
