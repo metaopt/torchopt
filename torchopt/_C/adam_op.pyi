@@ -39,10 +39,16 @@ def forward_updates(
     count: int,
 ) -> torch.Tensor: ...
 def backward_mu(
-    dmu: torch.Tensor, updates: torch.Tensor, mu: torch.Tensor, b1: float
+    dmu: torch.Tensor,
+    updates: torch.Tensor,
+    mu: torch.Tensor,
+    b1: float,
 ) -> tuple[torch.Tensor, torch.Tensor]: ...
 def backward_nu(
-    dnu: torch.Tensor, updates: torch.Tensor, nu: torch.Tensor, b2: float
+    dnu: torch.Tensor,
+    updates: torch.Tensor,
+    nu: torch.Tensor,
+    b2: float,
 ) -> tuple[torch.Tensor, torch.Tensor]: ...
 def backward_updates(
     dupdates: torch.Tensor,

@@ -32,7 +32,7 @@ def cat_shapes(tree: TensorTree) -> tuple[int, ...]:
 
 
 def normalize_matvec(
-    matvec: TensorTree | Callable[[TensorTree], TensorTree]
+    matvec: TensorTree | Callable[[TensorTree], TensorTree],
 ) -> Callable[[TensorTree], TensorTree]:
     """Normalize an argument for computing matrix-vector product."""
     if callable(matvec):
@@ -48,7 +48,7 @@ def normalize_matvec(
         if len(x_flat) != len(mat_flat):
             raise ValueError(
                 f'`x` must have the same number of leaves as `matvec`, '
-                f'but has {len(x_flat)} leaves and `matvec` has {len(mat_flat)} leaves'
+                f'but has {len(x_flat)} leaves and `matvec` has {len(mat_flat)} leaves',
             )
 
         y_flat = map(torch.matmul, mat_flat, x_flat)

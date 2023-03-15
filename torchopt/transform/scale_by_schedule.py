@@ -83,7 +83,8 @@ def _scale_by_schedule(
 
     def init_fn(params: Params) -> OptState:
         zero = tree_map(  # count init
-            lambda t: torch.zeros(1, dtype=torch.int64, device=t.device).squeeze_(), params
+            lambda t: torch.zeros(1, dtype=torch.int64, device=t.device).squeeze_(),
+            params,
         )
         return ScaleByScheduleState(count=zero)
 
@@ -117,7 +118,7 @@ def _scale_by_schedule(
                     updates,
                     state.count,
                     already_flattened=already_flattened,
-                )
+                ),
             ),
         )
 

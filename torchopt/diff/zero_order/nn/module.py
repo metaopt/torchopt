@@ -43,7 +43,7 @@ def enable_zero_order_gradients(
     cls_forward = cls.forward
     if getattr(cls_forward, '__zero_order_gradients_enabled__', False):
         raise TypeError(
-            'Zero-order gradient estimation is already enabled for the `forward` method.'
+            'Zero-order gradient estimation is already enabled for the `forward` method.',
         )
 
     @functools.wraps(cls_forward)

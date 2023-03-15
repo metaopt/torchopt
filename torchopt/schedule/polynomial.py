@@ -71,14 +71,14 @@ def polynomial_schedule(
     if transition_steps <= 0:
         logging.info(
             'A polynomial schedule was set with a non-positive `transition_steps` value; this '
-            'results in a constant schedule with value `init_value`.'
+            'results in a constant schedule with value `init_value`.',
         )
         return lambda count: init_value
 
     if transition_begin < 0:
         logging.info(
             'An exponential schedule was set with a negative `transition_begin` value; this will '
-            'result in `transition_begin` falling back to `0`.'
+            'result in `transition_begin` falling back to `0`.',
         )
         transition_begin = 0
 

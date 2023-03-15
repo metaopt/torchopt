@@ -131,7 +131,7 @@ class TensorDimensionPartitioner:
                 elif batch_size != arg.shape[self.dim]:  # type: ignore[unreachable]
                     raise ValueError(
                         f'Batch size mismatch on dim={self.dim}. '
-                        f'Expected {batch_size}, got {arg.shape[self.dim]} (shape: {arg.shape}).'
+                        f'Expected {batch_size}, got {arg.shape[self.dim]} (shape: {arg.shape}).',
                     )
 
         if batch_size is None:

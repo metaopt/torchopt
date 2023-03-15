@@ -10,7 +10,7 @@ Evolutionary Strategy
     :width: 80%
     :align: center
 
-When the inner-loop process is non-differentiable or one wants to eliminate the heavy computation burdens in the previous two modes (brought by Hessian), one can choose Zeroth-order differentiation。
+When the inner-loop process is non-differentiable or one wants to eliminate the heavy computation burdens in the previous two modes (brought by Hessian), one can choose Zeroth-order differentiation.
 Zero-order differentiation typically gets gradients based on zero-order estimation, such as finite-difference, or `Evolutionary Strategy <https://arxiv.org/abs/1703.03864>`_ (ES).
 `ES-MAML <https://arxiv.org/pdf/1910.01215.pdf>`_ and `NAC <https://arxiv.org/abs/2106.02745>`_ successfully solve the non-differentiable optimization problem based on ES.
 

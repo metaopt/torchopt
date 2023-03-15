@@ -36,8 +36,8 @@ def forward_(
     nu = nu.mul_(b2).addcmul_(updates, updates, value=1.0 - b2)
     updates.copy_(
         mu.div(1.0 - pow(b1, count)).div_(
-            nu.div(1.0 - pow(b2, count)).add_(eps_root).sqrt_().add_(eps)
-        )
+            nu.div(1.0 - pow(b2, count)).add_(eps_root).sqrt_().add_(eps),
+        ),
     )
     return updates, mu, nu
 
@@ -71,7 +71,7 @@ def forward_updates(
 ) -> torch.Tensor:
     """Adam forward updates."""
     return new_mu.div(1.0 - pow(b1, count)).div_(
-        new_nu.div(1.0 - pow(b2, count)).add_(eps_root).sqrt_().add_(eps)
+        new_nu.div(1.0 - pow(b2, count)).add_(eps_root).sqrt_().add_(eps),
     )
 
 

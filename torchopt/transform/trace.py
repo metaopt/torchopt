@@ -129,8 +129,9 @@ def _trace(
     def init_fn(params: Params) -> OptState:
         return TraceState(
             trace=tree_map(
-                lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params
-            )
+                lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad),
+                params,
+            ),
         )
 
     first_call = True

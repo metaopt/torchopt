@@ -123,11 +123,16 @@ def _root_vjp(
     u: TupleOfTensors = solve(matvec, v)  # type: ignore[assignment]
 
     masked_optimality_fn = MaskedOptimalityFn(
-        optimality_fn, solution, output_is_tensor, argnums, *args
+        optimality_fn,
+        solution,
+        output_is_tensor,
+        argnums,
+        *args,
     )
 
     _, optimality_vjp_fn, *_ = functorch.vjp(
-        masked_optimality_fn, *masked_optimality_fn.post_filled
+        masked_optimality_fn,
+        *masked_optimality_fn.post_filled,
     )
 
     output: TupleOfTensors
@@ -158,7 +163,9 @@ def _signature_bind(signature: inspect.Signature, *args: Any, **kwargs: Any) -> 
 
 
 def _signature_bind_and_match(
-    signature: inspect.Signature, *args: Any, **kwargs: Any
+    signature: inspect.Signature,
+    *args: Any,
+    **kwargs: Any,
 ) -> tuple[Args, KwArgs, Callable[[Args], tuple[Args, KwArgs]]]:
     # We want to bind *args and **kwargs based on the provided signature, but also to associate the
     # resulting positional arguments back. To achieve this, we lift arguments to a triple:
@@ -256,7 +263,8 @@ def _custom_root(
         class ImplicitMetaGradient(Function):
             @staticmethod
             def forward(  # type: ignore[override] # pylint: disable=arguments-differ
-                ctx: Any, *flat_args: Any
+                ctx: Any,
+                *flat_args: Any,
             ) -> tuple[Any, ...]:
                 output, aux, output_is_tensor = None, None, False
 
@@ -275,7 +283,7 @@ def _custom_root(
                         raise RuntimeError(
                             f'custom_root(optimality_fn)(solver_fn)(*args): output of function '
                             f'solver_fn should be a tuple: (output, aux) if has_aux is True. '
-                            f'Got {output}'
+                            f'Got {output}',
                         )
                     output, aux = output
                 if isinstance(output, torch.Tensor):
@@ -285,7 +293,7 @@ def _custom_root(
                     raise RuntimeError(
                         f'custom_root(optimality_fn)(solver_fn)(*args): output of function '
                         f'solver_fn should be a torch.Tensor or a tuple of torch.Tensor. '
-                        f'Got {output}'
+                        f'Got {output}',
                     )
                 output = tuple(t.data for t in output)
 
@@ -306,7 +314,8 @@ def _custom_root(
 
             @staticmethod
             def backward(  # pylint: disable=too-many-locals
-                ctx: Any, *grad_outputs: Any
+                ctx: Any,
+                *grad_outputs: Any,
             ) -> TupleOfTensors:
                 grad_outputs: TupleOfTensors = grad_outputs[:-3]
 
@@ -317,13 +326,18 @@ def _custom_root(
                 args_is_tensor_mask = ctx.args_is_tensor_mask
                 args_non_tensors = ctx.args_non_tensors
                 args = _merge_tensor_and_others(
-                    args_treespec, args_is_tensor_mask, args_tensors, args_non_tensors
+                    args_treespec,
+                    args_is_tensor_mask,
+                    args_tensors,
+                    args_non_tensors,
                 )
 
                 args, kwargs = _extract_kwargs(kwarg_keys, args)
 
                 bound_args, bound_kwargs, map_args_back = _signature_bind_and_match(
-                    reference_signature, *args, **kwargs  # type: ignore[arg-type]
+                    reference_signature,  # type: ignore[arg-type]
+                    *args,
+                    **kwargs,
                 )
                 if bound_kwargs:
                     raise TypeError(
@@ -331,7 +345,7 @@ def _custom_root(
                         f'arguments based on the signature {reference_signature}. This can '
                         f'happen under custom_root if optimality_fn takes catch-all **kwargs, or '
                         f'under custom_fixed_point if fixed_point_fn takes catch-all **kwargs, '
-                        f'both of which are currently unsupported.'
+                        f'both of which are currently unsupported.',
                     )
 
                 # Compute VJPs w.r.t. args.
@@ -359,7 +373,8 @@ def _custom_root(
 
     @functools.wraps(solver_fn)
     def wrapped_solver_fn(
-        *args: Any, **kwargs: Any
+        *args: Any,
+        **kwargs: Any,
     ) -> TensorOrTensors | tuple[TensorOrTensors, Any]:
         args, kwargs = _signature_bind(solver_fn_signature, *args, **kwargs)
         keys, vals = list(kwargs.keys()), list(kwargs.values())
@@ -376,7 +391,7 @@ def _custom_root(
                 elif isinstance(arg, (tuple, list)) and all(map(torch.is_tensor, arg)):
                     nargs = len(arg)
                     args_signs.append(
-                        (args_offset, nargs, type(arg))  # start position, sequence type
+                        (args_offset, nargs, type(arg)),  # start position, sequence type
                     )
                     flat_args.extend(arg)
                     args_offset += nargs
@@ -384,7 +399,7 @@ def _custom_root(
                     raise RuntimeError(
                         'custom_root(optimality_fn)(solver_fn)(*args): argument of function '
                         'solver_fn specified with `argnums` should be a torch.Tensor or a tuple of '
-                        'torch.Tensor'
+                        'torch.Tensor',
                     )
             else:
                 args_signs.append((args_offset, 1, None))  # start position, None

@@ -79,7 +79,7 @@ def _stateless_optimality_fn(
 def make_optimality_from_objective(
     cls: type[ImplicitMetaGradientModule],
 ) -> type[ImplicitMetaGradientModule]:
-    """Derives the optimality function of the objective function."""
+    """Derive the optimality function of the objective function."""
     static_super_objective = inspect.getattr_static(ImplicitMetaGradientModule, 'objective')
     static_cls_objective = inspect.getattr_static(cls, 'objective', static_super_objective)
     if static_cls_objective is static_super_objective:
@@ -195,7 +195,7 @@ class ImplicitMetaGradientModule(MetaGradientModule, metaclass=abc.ABCMeta):
                 raise TypeError('method optimality() must be callable.')
         elif not cls._custom_objective:
             raise TypeError(
-                'ImplicitMetaGradientModule requires either an optimality() method or an objective() method'
+                'ImplicitMetaGradientModule requires either an optimality() method or an objective() method',
             )
         else:
             if isinstance(static_cls_objective, staticmethod):

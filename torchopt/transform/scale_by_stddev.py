@@ -130,10 +130,20 @@ def _scale_by_stddev(
         inplace: bool = True,
     ) -> tuple[Updates, OptState]:
         mu = update_moment.impl(  # type: ignore[attr-defined]
-            updates, state.mu, alpha, order=1, inplace=inplace, already_flattened=already_flattened
+            updates,
+            state.mu,
+            alpha,
+            order=1,
+            inplace=inplace,
+            already_flattened=already_flattened,
         )
         nu = update_moment.impl(  # type: ignore[attr-defined]
-            updates, state.nu, alpha, order=2, inplace=inplace, already_flattened=already_flattened
+            updates,
+            state.nu,
+            alpha,
+            order=2,
+            inplace=inplace,
+            already_flattened=already_flattened,
         )
 
         if inplace:

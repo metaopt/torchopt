@@ -91,7 +91,8 @@ def _zero_order_naive(  # pylint: disable=too-many-statements
 
             @staticmethod
             def backward(  # pylint: disable=too-many-locals
-                ctx: Any, *grad_outputs: Any
+                ctx: Any,
+                *grad_outputs: Any,
             ) -> TupleOfOptionalTensors:
                 saved_tensors = ctx.saved_tensors
                 flat_diff_params = saved_tensors[: ctx.len_params]
@@ -112,7 +113,8 @@ def _zero_order_naive(  # pylint: disable=too-many-statements
                 args: list[Any] = pytree.tree_unflatten(ctx.args_treespec, flat_args)  # type: ignore[assignment]
 
                 def add_perturbation(
-                    tensor: torch.Tensor, noise: torch.Tensor | Numeric
+                    tensor: torch.Tensor,
+                    noise: torch.Tensor | Numeric,
                 ) -> torch.Tensor:
                     return tensor.add(noise, alpha=sigma)
 
@@ -124,7 +126,8 @@ def _zero_order_naive(  # pylint: disable=too-many-statements
                         add_perturbation(t, n) for t, n in zip(flat_diff_params, noises)  # type: ignore[arg-type]
                     ]
                     noisy_params: list[Any] = pytree.tree_unflatten(  # type: ignore[assignment]
-                        diff_params_treespec, flat_noisy_params
+                        diff_params_treespec,
+                        flat_noisy_params,
                     )
 
                     for argnum, noisy_param in zip(argnums, noisy_params):
@@ -194,7 +197,8 @@ def _zero_order_forward(  # pylint: disable=too-many-statements
 
             @staticmethod
             def backward(  # pylint: disable=too-many-locals
-                ctx: Any, *grad_outputs: Any
+                ctx: Any,
+                *grad_outputs: Any,
             ) -> TupleOfOptionalTensors:
                 saved_tensors = ctx.saved_tensors
                 flat_diff_params = saved_tensors[: ctx.len_params]
@@ -226,7 +230,8 @@ def _zero_order_forward(  # pylint: disable=too-many-statements
                         add_perturbation(t, n) for t, n in zip(flat_diff_params, noises)  # type: ignore[arg-type]
                     ]
                     noisy_params: list[Any] = pytree.tree_unflatten(  # type: ignore[assignment]
-                        diff_params_treespec, flat_noisy_params
+                        diff_params_treespec,
+                        flat_noisy_params,
                     )
 
                     for argnum, noisy_param in zip(argnums, noisy_params):
@@ -297,7 +302,8 @@ def _zero_order_antithetic(  # pylint: disable=too-many-statements
 
             @staticmethod
             def backward(  # pylint: disable=too-many-locals
-                ctx: Any, *grad_outputs: Any
+                ctx: Any,
+                *grad_outputs: Any,
             ) -> TupleOfOptionalTensors:
                 saved_tensors = ctx.saved_tensors
                 flat_diff_params = saved_tensors[: ctx.len_params]
@@ -320,14 +326,16 @@ def _zero_order_antithetic(  # pylint: disable=too-many-statements
                 param_grads: ListOfTensors = [0.0 for _ in range(len(flat_diff_params))]  # type: ignore[misc]
 
                 def get_output(
-                    add_perturbation_fn: Callable, noises: Sequence[torch.Tensor | Numeric]
+                    add_perturbation_fn: Callable,
+                    noises: Sequence[torch.Tensor | Numeric],
                 ) -> torch.Tensor:
                     flat_noisy_params = [
                         add_perturbation_fn(t, n, alpha=sigma)
                         for t, n in zip(flat_diff_params, noises)
                     ]
                     noisy_params: list[Any] = pytree.tree_unflatten(  # type: ignore[assignment]
-                        diff_params_treespec, flat_noisy_params
+                        diff_params_treespec,
+                        flat_noisy_params,
                     )
 
                     for argnum, noisy_param in zip(argnums, noisy_params):

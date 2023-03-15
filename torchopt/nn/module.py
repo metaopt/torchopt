@@ -103,7 +103,7 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
                 raise AttributeError('cannot assign parameters before Module.__init__() call')
             if meta_params is None:
                 raise AttributeError(
-                    'cannot assign meta-parameters before MetaGradientModule.__init__() call'
+                    'cannot assign meta-parameters before MetaGradientModule.__init__() call',
                 )
             remove_from(
                 self.__dict__,
@@ -121,14 +121,14 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
             if value is not None:
                 raise TypeError(
                     f"cannot assign '{torch.typename(value)}' as parameter '{name}' "
-                    f'(torch.Tensor or None expected)'
+                    f'(torch.Tensor or None expected)',
                 )
             self.register_parameter(name, value)  # type: ignore[unreachable]
         elif meta_params is not None and name in meta_params:
             if value is not None:
                 raise TypeError(
                     f"cannot assign '{torch.typename(value)}' as meta-parameter '{name}' "
-                    f'(torch.Tensor or None expected)'
+                    f'(torch.Tensor or None expected)',
                 )
             self.register_meta_parameter(name, value)  # type: ignore[unreachable]
         else:
@@ -139,7 +139,7 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
                     raise AttributeError('cannot assign module before Module.__init__() call')
                 if meta_modules is None:
                     raise AttributeError(
-                        'cannot assign module before MetaGradientModule.__init__() call'
+                        'cannot assign module before MetaGradientModule.__init__() call',
                     )
                 remove_from(
                     self.__dict__,
@@ -157,7 +157,7 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
                 if value is not None:
                     raise TypeError(
                         f"cannot assign '{torch.typename(value)}' as child module '{name}' "
-                        f'(torch.nn.Module or None expected)'
+                        f'(torch.nn.Module or None expected)',
                     )
                 modules[name] = value  # type: ignore[unreachable]
             else:
@@ -166,7 +166,7 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
                     if value is not None and not isinstance(value, torch.Tensor):
                         raise TypeError(
                             f"cannot assign '{torch.typename(value)}' as buffer '{name}' "
-                            f'(torch.Tensor or None expected)'
+                            f'(torch.Tensor or None expected)',
                         )
                     buffers[name] = value
                 else:
@@ -218,16 +218,16 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
         if not isinstance(param, torch.Tensor):
             raise TypeError(
                 f"cannot assign '{torch.typename(param)}' object to parameter '{name}' "
-                f'(torch.Tensor or None required)'
+                f'(torch.Tensor or None required)',
             )
         if not param.requires_grad:
             raise ValueError(
-                f"cannot assign Tensor that `requires_grad=False` to parameter '{name}'"
+                f"cannot assign Tensor that `requires_grad=False` to parameter '{name}'",
             )
         if param in self._meta_inputs.meta_parameters:
             raise ValueError(
                 f"cannot assign Tensor that is a meta-parameter to parameter '{name}'. "
-                f'Use self.register_meta_parameter() instead.'
+                f'Use self.register_meta_parameter() instead.',
             )
 
         self._parameters[name] = param  # type: ignore
@@ -246,7 +246,7 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
         """
         if '_meta_parameters' not in self.__dict__:
             raise AttributeError(
-                'cannot assign meta-parameter before MetaGradientModule.__init__() call'
+                'cannot assign meta-parameter before MetaGradientModule.__init__() call',
             )
         if not isinstance(name, str):
             raise TypeError(f'meta-parameter name should be a string. Got {torch.typename(name)}')
@@ -264,11 +264,11 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
         if not isinstance(param, torch.Tensor):
             raise TypeError(
                 f"cannot assign '{torch.typename(param)}' object to meta-parameter '{name}' "
-                f'(torch.Tensor or None required)'
+                f'(torch.Tensor or None required)',
             )
         if not param.requires_grad:
             raise ValueError(
-                f"cannot assign Tensor that `requires_grad=False` to meta-parameter '{name}'"
+                f"cannot assign Tensor that `requires_grad=False` to meta-parameter '{name}'",
             )
 
         self._meta_parameters[name] = param
@@ -296,7 +296,7 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
         if module in self._meta_inputs.meta_modules:
             raise ValueError(
                 f"cannot add module that is a meta-module to module '{name}'. "
-                f'Use self.add_meta_module() instead.'
+                f'Use self.add_meta_module() instead.',
             )
 
         self._modules[name] = module
@@ -357,7 +357,9 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
             yield meta_param
 
     def named_meta_parameters(
-        self, prefix: str = '', recurse: bool = True
+        self,
+        prefix: str = '',
+        recurse: bool = True,
     ) -> Iterator[tuple[str, torch.Tensor]]:
         r"""Return an iterator over module meta-parameters, yielding both the name of the meta-parameter as well as the meta-parameter itself.
 
@@ -431,7 +433,10 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
             yield meta_module
 
     def named_meta_modules(
-        self, memo: set[nn.Module] | None = None, prefix: str = '', remove_duplicate: bool = True
+        self,
+        memo: set[nn.Module] | None = None,
+        prefix: str = '',
+        remove_duplicate: bool = True,
     ) -> Iterator[tuple[str, nn.Module]]:
         r"""Return an iterator over all meta-modules in the network, yielding both the name of the meta-module as well as the meta-module itself.
 

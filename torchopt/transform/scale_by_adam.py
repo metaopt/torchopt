@@ -157,13 +157,16 @@ def _scale_by_adam(
 
     def init_fn(params: Params) -> OptState:
         zero = tree_map(  # count init
-            lambda t: torch.zeros(1, dtype=torch.int64, device=t.device).squeeze_(), params
+            lambda t: torch.zeros(1, dtype=torch.int64, device=t.device).squeeze_(),
+            params,
         )
         mu = tree_map(  # first moment
-            lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params
+            lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad),
+            params,
         )
         nu = tree_map(  # second moment
-            lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params
+            lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad),
+            params,
         )
         return ScaleByAdamState(mu=mu, nu=nu, count=zero)
 
@@ -175,10 +178,20 @@ def _scale_by_adam(
         inplace: bool = True,
     ) -> tuple[Updates, OptState]:
         mu = update_moment.impl(  # type: ignore[attr-defined]
-            updates, state.mu, b1, order=1, inplace=inplace, already_flattened=already_flattened
+            updates,
+            state.mu,
+            b1,
+            order=1,
+            inplace=inplace,
+            already_flattened=already_flattened,
         )
         nu = update_moment.impl(  # type: ignore[attr-defined]
-            updates, state.nu, b2, order=2, inplace=inplace, already_flattened=already_flattened
+            updates,
+            state.nu,
+            b2,
+            order=2,
+            inplace=inplace,
+            already_flattened=already_flattened,
         )
         # pylint: disable=line-too-long
         count_inc = inc_count.impl(updates, state.count, already_flattened=already_flattened)  # type: ignore[attr-defined]
@@ -390,13 +403,16 @@ def _scale_by_accelerated_adam(
 
     def init_fn(params: Params) -> OptState:
         zero = tree_map(  # count init
-            lambda t: torch.zeros(1, dtype=torch.int64, device=t.device).squeeze_(), params
+            lambda t: torch.zeros(1, dtype=torch.int64, device=t.device).squeeze_(),
+            params,
         )
         mu = tree_map(  # first moment
-            lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params
+            lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad),
+            params,
         )
         nu = tree_map(  # second moment
-            lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad), params
+            lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad),
+            params,
         )
         return ScaleByAdamState(mu=mu, nu=nu, count=zero)
 

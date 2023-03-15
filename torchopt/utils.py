@@ -184,7 +184,8 @@ def extract_state_dict(
         def clone_detach_(t: torch.Tensor) -> torch.Tensor:
             if isinstance(t, nn.Parameter):
                 return nn.Parameter(
-                    t.clone().to(device=target_device).detach_(), requires_grad=t.requires_grad
+                    t.clone().to(device=target_device).detach_(),
+                    requires_grad=t.requires_grad,
                 )
             return t.clone().to(device=target_device).detach_().requires_grad_(t.requires_grad)
 
@@ -231,7 +232,7 @@ def extract_state_dict(
                         (k, replicate(v))
                         for k, v in container.items()
                         if isinstance(v, torch.Tensor)
-                    )
+                    ),
                 )
 
         def update_buffers(container: TensorContainer) -> None:
@@ -240,7 +241,7 @@ def extract_state_dict(
                 buffers.append(
                     type(container)(
                         (k, fn(v)) for k, v in container.items() if isinstance(v, torch.Tensor)
-                    )
+                    ),
                 )
 
         # pylint: disable=protected-access
@@ -278,7 +279,8 @@ def extract_state_dict(
 
 
 def extract_module_containers(
-    module: nn.Module, with_buffers: bool = True
+    module: nn.Module,
+    with_buffers: bool = True,
 ) -> tuple[ModuleTensorContainers, ModuleTensorContainers]:
     """Extract the references to the containers of parameters and buffers from a module."""
     if isinstance(module, nn.Module):
@@ -452,7 +454,8 @@ def module_clone(
         def clone_detach_(t: torch.Tensor) -> torch.Tensor:
             if isinstance(t, nn.Parameter):
                 return nn.Parameter(
-                    t.clone().to(device=target_device).detach_(), requires_grad=t.requires_grad
+                    t.clone().to(device=target_device).detach_(),
+                    requires_grad=t.requires_grad,
                 )
             return t.clone().to(device=target_device).detach_().requires_grad_(t.requires_grad)
 
