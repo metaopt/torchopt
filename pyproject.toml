@@ -293,4 +293,5 @@ allow-magic-value-types = ["int", "str", "float"]
 filterwarnings = [
     "error",
     'ignore:Explicitly requested dtype float64 requested in .* is not available, and will be truncated to dtype float32\.:UserWarning',
+    'ignore:.*functorch.*deprecate.*:UserWarning',
 ]
