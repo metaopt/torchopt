@@ -217,7 +217,7 @@ def extract_state_dict(
                 if v.grad_fn is not None:
                     visual_contents.update({v.grad_fn: (visual_prefix + k, v)})
                 else:
-                    visual_contents.update({v: visual_prefix + k})  # type: ignore[dict-item]
+                    visual_contents.update({v: visual_prefix + k})  # type: ignore[unreachable]
         else:
             visual_contents = None
 
