@@ -14,6 +14,8 @@
 # ==============================================================================
 """The base class for optimizers."""
 
+# mypy: no-warn-unreachable
+
 from __future__ import annotations
 
 from typing import Callable, Iterable, Sequence
@@ -78,7 +80,7 @@ class Optimizer:
                 if p.grad.grad_fn is not None:
                     p.grad.detach_()
                 else:
-                    p.grad.requires_grad_(False)  # type: ignore[unreachable]
+                    p.grad.requires_grad_(False)
                 p.grad.zero_()
 
         pytree.tree_map_(f, self.param_groups)  # type: ignore[arg-type]
