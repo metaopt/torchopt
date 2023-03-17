@@ -78,21 +78,21 @@ def exponential_decay(
         logging.info(
             'An linear schedule was set with a non-positive `transition_steps`'
             ' value; this will result in a constant schedule with value '
-            '`init_value`.'
+            '`init_value`.',
         )
         return lambda count: init_value
 
     if decay_rate == 0:
         logging.info(
             'An linear schedule was set with a zero `decay_rate` value; '
-            'this will result in a constant schedule with value `init_value`.'
+            'this will result in a constant schedule with value `init_value`.',
         )
         return lambda count: init_value
 
     if transition_begin < 0:
         logging.info(
             'An linear schedule was set with a negative `transition_begin` '
-            'value; this will result in `transition_begin` falling back to `0`.'
+            'value; this will result in `transition_begin` falling back to `0`.',
         )
         transition_begin = 0
 
@@ -114,7 +114,8 @@ def exponential_decay(
             )
         else:
             decayed_value = torch.tensor(init_value) * torch.pow(
-                torch.tensor(decay_rate), decreased_count
+                torch.tensor(decay_rate),
+                decreased_count,
             )
         if end_value is not None:
             return torch.clamp(decayed_value, max=end_value)

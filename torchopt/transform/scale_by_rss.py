@@ -101,7 +101,9 @@ def _scale_by_rss(
     def init_fn(params: Params) -> OptState:
         sum_of_squares = tree_map(
             lambda t: torch.full_like(
-                t, initial_accumulator_value, memory_format=torch.preserve_format
+                t,
+                initial_accumulator_value,
+                memory_format=torch.preserve_format,
             ),
             params,
         )
@@ -120,21 +122,27 @@ def _scale_by_rss(
         # sum_of_squares = torch.addcmul(state.sum_of_squares, updates, updates, value=1)
 
         sum_of_squares = tree_map(
-            lambda g, t: t.addcmul_(g, g, value=1.0), updates, state.sum_of_squares
+            lambda g, t: t.addcmul_(g, g, value=1.0),
+            updates,
+            state.sum_of_squares,
         )
 
         if inplace:
 
             def f(t: torch.Tensor) -> torch.Tensor:
                 return torch.where(
-                    t > 0.0, torch.ones_like(t).div_(t.sqrt_().add(eps)), torch.tensor(0.0)
+                    t > 0.0,
+                    torch.ones_like(t).div_(t.sqrt_().add(eps)),
+                    torch.tensor(0.0),
                 )
 
         else:
 
             def f(t: torch.Tensor) -> torch.Tensor:
                 return torch.where(
-                    t > 0.0, torch.ones_like(t).div(t.sqrt_().add(eps)), torch.tensor(0.0)
+                    t > 0.0,
+                    torch.ones_like(t).div(t.sqrt_().add(eps)),
+                    torch.tensor(0.0),
                 )
 
         inv_sqrt_g_square = tree_map(f, sum_of_squares)
