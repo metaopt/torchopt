@@ -76,7 +76,7 @@ def _cg_solve(
         return rs > atol2 and k < maxiter
 
     def body_fn(
-        value: tuple[TensorTree, TensorTree, float, TensorTree, int]
+        value: tuple[TensorTree, TensorTree, float, TensorTree, int],
     ) -> tuple[TensorTree, TensorTree, float, TensorTree, int]:
         x, r, gamma, p, k = value
         Ap = A(p)
@@ -127,7 +127,7 @@ def _isolve(
 
     if cat_shapes(x0) != cat_shapes(b):
         raise ValueError(
-            f'Tensors in x0 and b must have matching shapes: {cat_shapes(x0)} vs. {cat_shapes(b)}.'
+            f'Tensors in x0 and b must have matching shapes: {cat_shapes(x0)} vs. {cat_shapes(b)}.',
         )
 
     isolve_solve = partial(_isolve_solve, x0=x0, rtol=rtol, atol=atol, maxiter=maxiter, M=M)

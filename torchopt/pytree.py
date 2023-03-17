@@ -102,7 +102,9 @@ def tree_add(*trees: PyTree[T]) -> PyTree[T]:
 
 
 def tree_add_scalar_mul(
-    tree_x: TensorTree, tree_y: TensorTree, alpha: Scalar | None = None
+    tree_x: TensorTree,
+    tree_y: TensorTree,
+    alpha: Scalar | None = None,
 ) -> TensorTree:
     """Compute ``tree_x + alpha * tree_y``."""
     if alpha is None:
@@ -116,7 +118,9 @@ def tree_sub(minuend_tree: PyTree[T], subtrahend_tree: PyTree[T]) -> PyTree[T]:
 
 
 def tree_sub_scalar_mul(
-    tree_x: TensorTree, tree_y: TensorTree, alpha: Scalar | None = None
+    tree_x: TensorTree,
+    tree_y: TensorTree,
+    alpha: Scalar | None = None,
 ) -> TensorTree:
     """Compute ``tree_x - alpha * tree_y``."""
     if alpha is None:

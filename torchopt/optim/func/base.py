@@ -86,7 +86,10 @@ class FuncOptimizer:  # pylint: disable=too-few-public-methods
         # Step parameter only
         grads = torch.autograd.grad(loss, params, create_graph=True, allow_unused=True)
         updates, self.optim_state = self.impl.update(
-            grads, self.optim_state, params=params, inplace=inplace
+            grads,
+            self.optim_state,
+            params=params,
+            inplace=inplace,
         )
         return apply_updates(params, updates, inplace=inplace)
 

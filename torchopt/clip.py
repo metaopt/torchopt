@@ -78,7 +78,7 @@ def clip_grad_norm(
                 raise RuntimeError(
                     f'The total norm of order {norm_type} for gradients from `parameters` is '
                     f'non-finite, so it cannot be clipped. To disable this error and scale the '
-                    f'gradients by the non-finite norm anyway, set `error_if_nonfinite=False`'
+                    f'gradients by the non-finite norm anyway, set `error_if_nonfinite=False`',
                 )
         clip_coefficient = max_norm / (float(total_norm) + 1e-6)
         # Note: multiplying by the clamped coefficient is redundant when the coefficient is

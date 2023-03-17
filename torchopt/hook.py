@@ -34,7 +34,9 @@ def zero_nan_hook(g: torch.Tensor) -> torch.Tensor:
 
 
 def nan_to_num_hook(
-    nan: float = 0.0, posinf: float | None = None, neginf: float | None = None
+    nan: float = 0.0,
+    posinf: float | None = None,
+    neginf: float | None = None,
 ) -> Callable[[torch.Tensor], torch.Tensor]:
     """Return a ``nan`` to num hook to replace ``nan`` / ``+inf`` / ``-inf`` with the given numbers."""
 

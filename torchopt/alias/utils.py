@@ -45,7 +45,8 @@ def _get_use_chain_flat() -> bool:  # only used for testing purposes
 
 
 def flip_sign_and_add_weight_decay(
-    weight_decay: float = 0.0, maximize: bool = False
+    weight_decay: float = 0.0,
+    maximize: bool = False,
 ) -> GradientTransformation:
     """Flip the sign of the updates and adds weight decay."""
     return _flip_sign_and_add_weight_decay(
@@ -56,7 +57,8 @@ def flip_sign_and_add_weight_decay(
 
 
 def _flip_sign_and_add_weight_decay_flat(
-    weight_decay: float = 0.0, maximize: bool = False
+    weight_decay: float = 0.0,
+    maximize: bool = False,
 ) -> GradientTransformation:
     """Flip the sign of the updates and adds weight decay."""
     return _flip_sign_and_add_weight_decay(

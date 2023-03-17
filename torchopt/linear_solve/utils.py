@@ -42,7 +42,8 @@ from torchopt.typing import TensorTree
 
 
 def make_rmatvec(
-    matvec: Callable[[TensorTree], TensorTree], example_x: TensorTree
+    matvec: Callable[[TensorTree], TensorTree],
+    example_x: TensorTree,
 ) -> Callable[[TensorTree], TensorTree]:
     """Return a function that computes ``rmatvec(y) = A.T @ y`` from ``matvec(x) = A @ x``."""
     _, vjp, *_ = functorch.vjp(matvec, example_x)
@@ -51,7 +52,7 @@ def make_rmatvec(
 
 
 def make_normal_matvec(
-    matvec: Callable[[TensorTree], TensorTree]
+    matvec: Callable[[TensorTree], TensorTree],
 ) -> Callable[[TensorTree], TensorTree]:
     """Return a function that computes ``normal_matvec(y) = A.T @ A @ y`` from ``matvec(x) = A @ x``."""
 
@@ -64,7 +65,8 @@ def make_normal_matvec(
 
 
 def make_ridge_matvec(
-    matvec: Callable[[TensorTree], TensorTree], ridge: float = 0.0
+    matvec: Callable[[TensorTree], TensorTree],
+    ridge: float = 0.0,
 ) -> Callable[[TensorTree], TensorTree]:
     """Return a function that computes ``ridge_matvec(y) = A.T @ A @ y + ridge * y`` from ``matvec(x) = A @ x``."""
 
@@ -76,7 +78,8 @@ def make_ridge_matvec(
 
 
 def materialize_matvec(
-    matvec: Callable[[TensorTree], TensorTree], x: TensorTree
+    matvec: Callable[[TensorTree], TensorTree],
+    x: TensorTree,
 ) -> tuple[
     TensorTree,
     Callable[[TensorTree], TensorTree],

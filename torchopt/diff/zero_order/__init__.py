@@ -30,7 +30,9 @@ __all__ = ['zero_order', 'ZeroOrderGradientModule']
 
 class _CallableModule(_ModuleType):  # pylint: disable=too-few-public-methods
     def __call__(
-        self, *args: Any, **kwargs: Any
+        self,
+        *args: Any,
+        **kwargs: Any,
     ) -> Callable[[Callable[..., torch.Tensor]], Callable[..., torch.Tensor]]:
         return self.zero_order(*args, **kwargs)
 

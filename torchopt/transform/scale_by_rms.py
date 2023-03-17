@@ -126,7 +126,12 @@ def _scale_by_rms(
         inplace: bool = True,
     ) -> tuple[Updates, OptState]:
         nu = update_moment.impl(  # type: ignore[attr-defined]
-            updates, state.nu, alpha, order=2, inplace=inplace, already_flattened=already_flattened
+            updates,
+            state.nu,
+            alpha,
+            order=2,
+            inplace=inplace,
+            already_flattened=already_flattened,
         )
 
         if inplace:

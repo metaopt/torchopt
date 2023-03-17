@@ -125,7 +125,7 @@ if is_available():
                 if not allow_unused:
                     raise RuntimeError(
                         'One of the differentiated Tensors appears to not have been used in the '
-                        'graph. Set allow_unused=True if this is the desired behavior.'
+                        'graph. Set allow_unused=True if this is the desired behavior.',
                     ) from ex
                 grads.append(None)  # type: ignore[arg-type]
 

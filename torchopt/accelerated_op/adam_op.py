@@ -109,7 +109,14 @@ class AdamOp:  # pylint: disable=too-few-public-methods
             updates, new_mu, new_nu = ctx.saved_tensors
             b1, b2, _, eps_root, count = ctx.others
             result = adam_op.backward_updates(
-                dupdates, updates, new_mu, new_nu, b1, b2, eps_root, count
+                dupdates,
+                updates,
+                new_mu,
+                new_nu,
+                b1,
+                b2,
+                eps_root,
+                count,
             )
             return result[0], result[1], None
 

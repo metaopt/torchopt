@@ -103,7 +103,7 @@ ext_kwargs = {
             'torchopt._C',
             source_dir=HERE,
             optional=not (LINUX and CIBUILDWHEEL),
-        )
+        ),
     ],
 }
 

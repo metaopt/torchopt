@@ -228,6 +228,7 @@ select = [
     "S",       # flake8-bandit
     "BLE",     # flake8-blind-except
     "B",       # flake8-bugbear
+    "COM",     # flake8-commas
     "C4",      # flake8-comprehensions
     "EXE",     # flake8-executable
     "ISC",     # flake8-implicit-str-concat
@@ -292,4 +293,5 @@ allow-magic-value-types = ["int", "str", "float"]
 filterwarnings = [
     "error",
     'ignore:Explicitly requested dtype float64 requested in .* is not available, and will be truncated to dtype float32\.:UserWarning',
+    'ignore:.*functorch.*deprecate.*:UserWarning',
 ]

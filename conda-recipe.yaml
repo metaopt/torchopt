@@ -38,7 +38,7 @@ dependencies:
       - torchviz
       - sphinxcontrib-katex  # for documentation
   - jax                      # for tutorials
-  - jaxlib >= 0.3=*cuda*     # for tutorials
+  - jaxlib                   # for tutorials
   - optax                    # for tutorials
   - jaxopt                   # for tests
   - tensorboard              # for examples

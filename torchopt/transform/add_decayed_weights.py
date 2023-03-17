@@ -130,11 +130,17 @@ def _masked(
         masked_params = None if params is None else tree_mask(params, mask_tree)
 
         new_masked_updates, new_inner_state = inner.update(
-            masked_updates, state.inner_state, params=masked_params, inplace=inplace
+            masked_updates,
+            state.inner_state,
+            params=masked_params,
+            inplace=inplace,
         )
 
         new_updates = tree_map(
-            lambda old_u, new_u, m: new_u if m else old_u, updates, new_masked_updates, mask_tree
+            lambda old_u, new_u, m: new_u if m else old_u,
+            updates,
+            new_masked_updates,
+            mask_tree,
         )
         return new_updates, MaskedState(inner_state=new_inner_state)
 
