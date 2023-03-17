@@ -19,10 +19,6 @@ build:
 conda:
   environment: docs/conda-recipe.yaml
 
-# If using Sphinx, optionally build your docs in additional formats such as PDF
-formats:
-  - pdf
-
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
   builder: html
