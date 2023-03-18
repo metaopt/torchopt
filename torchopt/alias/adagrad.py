@@ -72,7 +72,7 @@ def adagrad(
         initial_accumulator_value: (default: :const:`0.0`)
             Initial value for the accumulator.
         eps: (default: :const:`1e-10`)
-            A small constant applied to denominator outside of the square root (as in the Adam
+            A small constant applied to denominator outside of the square root (as in the AdaGrad
             paper) to avoid dividing by zero when rescaling.
         maximize: (default: :data:`False`)
             Maximize the params based on the objective, instead of minimizing.
@@ -102,7 +102,7 @@ def adagrad(
     flip_sign_and_add_weight_decay_fn = flip_sign_and_add_weight_decay
     adagrad_scaler_fn = scale_by_rss
     scale_by_neg_lr_fn = scale_by_neg_lr
-    schedule_fn = polynomial_schedule.adagrad
+    schedule_fn = polynomial_schedule.adagrad  # type: ignore[attr-defined]
 
     return chain_fn(
         flip_sign_and_add_weight_decay_fn(weight_decay=weight_decay, maximize=maximize),

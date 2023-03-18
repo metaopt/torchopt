@@ -145,4 +145,4 @@ def linear_schedule(
     )
 
 
-polynomial_schedule.adagrad = _adagrad_lr_decay
+polynomial_schedule.adagrad = _adagrad_lr_decay  # type: ignore[attr-defined]

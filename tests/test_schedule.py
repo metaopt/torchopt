@@ -27,6 +27,36 @@ import torchopt
 from torchopt.alias.utils import _set_use_chain_flat
 
 
+@helpers.parametrize(
+    init_value=[],
+    decay_rate=[],
+    transition_begin=[],
+    transition_steps=[],
+    staircase=[False, True],
+    end_value=[],
+)
+def test_exponential_decay(
+    init_value: float,
+    decay_rate: float,
+    transition_begin: int,
+    transition_steps: int,
+    staircase: bool,
+    end_value: float,
+) -> None:
+    schedule = torchopt.schedule.exponential_decay(
+        init_value=init_value,
+        decay_rate=decay_rate,
+        transition_steps=transition_steps,
+        transition_begin=transition_begin,
+        staircase=staircase,
+        end_value=end_value,
+    )
+    for i in range(transition_begin, transition_steps):
+        lr = schedule(i)
+        lr_gt = init_value * (decay_rate ** ((i - transition_begin) / transition_steps))
+        assert np.allclose(lr, lr_gt)
+
+
 def test_linear_schedule() -> None:
     init_value = 1.0
     end_value = 0.0

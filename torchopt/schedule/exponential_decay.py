@@ -32,9 +32,8 @@
 """Exponential learning rate decay."""
 
 import logging
+import math
 from typing import Optional
-
-import torch
 
 from torchopt.typing import Numeric, Scalar, Schedule
 
@@ -97,26 +96,17 @@ def exponential_decay(
         transition_begin = 0
 
     if end_value is not None:
-        clip_fn = torch.maximum if decay_rate < 1.0 else torch.minimum
+        clip_fn = max if decay_rate < 1.0 else min
 
     def schedule(count: Numeric) -> Numeric:
         decreased_count = count - transition_begin
         if transition_steps is not None:
             p = decreased_count / transition_steps
-
             if staircase:
-                p = torch.floor(torch.tensor(p))
-
-            decayed_value = torch.where(
-                torch.tensor(decreased_count) <= 0,
-                torch.tensor(init_value),
-                torch.tensor(init_value) * torch.pow(torch.tensor(decay_rate), p),
-            )
+                p = math.floor(p)
+            decayed_value = init_value if decreased_count <= 0.0 else init_value * (decay_rate**p)
         else:
-            decayed_value = torch.tensor(init_value) * torch.pow(
-                torch.tensor(decay_rate),
-                decreased_count,
-            )
+            decayed_value = init_value * (decay_rate**decreased_count)
         if end_value is not None:
             return clip_fn(decayed_value, end_value)
         return decayed_value

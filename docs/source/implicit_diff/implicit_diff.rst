@@ -38,7 +38,7 @@ In `IMAML <https://arxiv.org/abs/1909.04630>`_, the function :math:`F` in the fi
 Fixed-point Iteration
 ~~~~~~~~~~~~~~~~~~~~~
 
-Sometimes the inner-level optimal solution can also be achieved by fixed point where the optionality :math:`T` takes the form:
+Sometimes the inner-level optimal solution can also be achieved by fixed point where the optimality :math:`T` takes the form:
 
 .. math::
 

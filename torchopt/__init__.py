@@ -37,9 +37,10 @@ from torchopt.alias import adagrad, adam, adamw, rmsprop, sgd
 from torchopt.clip import clip_grad_norm
 from torchopt.combine import chain
 from torchopt.hook import register_hook
-from torchopt.optim import SGD, Adam, AdamW, Optimizer, RMSProp, RMSprop
+from torchopt.optim import SGD, Adagrad, Adam, AdamW, Optimizer, RMSProp, RMSprop
 from torchopt.optim.func import FuncOptimizer
 from torchopt.optim.meta import (
+    MetaAdagrad,
     MetaAdam,
     MetaAdamW,
     MetaOptimizer,
@@ -61,6 +62,7 @@ from torchopt.version import __version__
 
 __all__ = [
     'accelerated_op_available',
+    'adagrad',
     'adam',
     'adamw',
     'rmsprop',
@@ -73,12 +75,14 @@ __all__ = [
     'SGD',
     'Adam',
     'AdamW',
+    'Adagrad',
     'RMSProp',
     'RMSprop',
     'MetaOptimizer',
     'MetaSGD',
     'MetaAdam',
     'MetaAdamW',
+    'MetaAdagrad',
     'MetaRMSProp',
     'MetaRMSprop',
     'FuncOptimizer',
