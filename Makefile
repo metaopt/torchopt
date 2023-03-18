@@ -4,6 +4,7 @@ COPYRIGHT      = "MetaOPT Team. All Rights Reserved."
 PROJECT_PATH   = $(PROJECT_NAME)
 SHELL          = /bin/bash
 SOURCE_FOLDERS = $(PROJECT_PATH) examples include src tests docs
+RST_FILES      = $(shell find $(SOURCE_FOLDERS) -type f -name "*.rst" -o -name "*.rst")
 PYTHON_FILES   = $(shell find $(SOURCE_FOLDERS) -type f -name "*.py" -o -name "*.pyi")
 CXX_FILES      = $(shell find $(SOURCE_FOLDERS) -type f -name "*.h" -o -name "*.cpp")
 CUDA_FILES     = $(shell find $(SOURCE_FOLDERS) -type f -name "*.cuh" -o -name "*.cu")
@@ -113,7 +114,7 @@ addlicense-install: go-install
 
 pytest: test-install
 	cd tests && $(PYTHON) -c 'import $(PROJECT_NAME)' && \
-	$(PYTHON) -m pytest -k "test_adagrad" --verbose --color=yes --durations=0 \
+	$(PYTHON) -m pytest --verbose --color=yes --durations=0 \
 		--cov="$(PROJECT_NAME)" --cov-config=.coveragerc --cov-report=xml --cov-report=term-missing \
 		$(PYTESTOPTS) .
 
