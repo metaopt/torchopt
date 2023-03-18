@@ -15,6 +15,7 @@
 
 from __future__ import annotations
 
+import math
 from typing import Callable
 
 import functorch
@@ -28,12 +29,12 @@ from torchopt.alias.utils import _set_use_chain_flat
 
 
 @helpers.parametrize(
-    init_value=[],
-    decay_rate=[],
-    transition_begin=[],
-    transition_steps=[],
+    init_value=[1.0],
+    decay_rate=[1e-2],
+    transition_begin=[1],
+    transition_steps=[10],
     staircase=[False, True],
-    end_value=[],
+    end_value=[0.0],
 )
 def test_exponential_decay(
     init_value: float,
@@ -53,7 +54,12 @@ def test_exponential_decay(
     )
     for i in range(transition_begin, transition_steps):
         lr = schedule(i)
-        lr_gt = init_value * (decay_rate ** ((i - transition_begin) / transition_steps))
+        if staircase:
+            lr_gt = init_value * (
+                decay_rate ** math.floor((i - transition_begin) / transition_steps)
+            )
+        else:
+            lr_gt = init_value * (decay_rate ** ((i - transition_begin) / transition_steps))
         assert np.allclose(lr, lr_gt)
 
 
