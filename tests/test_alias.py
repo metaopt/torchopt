@@ -238,7 +238,7 @@ def test_adagrad(
 
     fmodel, params, buffers = functorch.make_functional_with_buffers(model)
     optim = torchopt.adagrad(
-        lr,
+        lr=lr,
         lr_decay=lr_decay,
         weight_decay=weight_decay,
         initial_accumulator_value=initial_accumulator_value,
@@ -248,7 +248,7 @@ def test_adagrad(
     optim_state = optim.init(params)
     optim_ref = torch.optim.Adagrad(
         model_ref.parameters(),
-        lr,
+        lr=lr,
         lr_decay=lr_decay,
         weight_decay=weight_decay,
         initial_accumulator_value=initial_accumulator_value,

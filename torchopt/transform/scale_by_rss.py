@@ -116,13 +116,8 @@ def _scale_by_rss(
         inplace: bool = True,
     ) -> tuple[Updates, OptState]:  # pylint: disable=unused-argument
         del params
-        # sum_of_squares = tree_map(
-        #     lambda g, t: t + (g.conj() * g).real , updates, state.sum_of_squares
-        # )
-        # sum_of_squares = torch.addcmul(state.sum_of_squares, updates, updates, value=1)
-
         sum_of_squares = tree_map(
-            lambda g, t: t.addcmul_(g, g, value=1.0),
+            lambda g, t: t + (g.conj() * g).real,
             updates,
             state.sum_of_squares,
         )
@@ -132,7 +127,7 @@ def _scale_by_rss(
             def f(t: torch.Tensor) -> torch.Tensor:
                 return torch.where(
                     t > 0.0,
-                    torch.ones_like(t).div_(t.sqrt_().add(eps)),
+                    torch.ones_like(t).div_(t.sqrt().add_(eps)),
                     torch.tensor(0.0),
                 )
 
@@ -141,7 +136,7 @@ def _scale_by_rss(
             def f(t: torch.Tensor) -> torch.Tensor:
                 return torch.where(
                     t > 0.0,
-                    torch.ones_like(t).div(t.sqrt_().add(eps)),
+                    torch.ones_like(t).div(t.sqrt().add_(eps)),
                     torch.tensor(0.0),
                 )
 
