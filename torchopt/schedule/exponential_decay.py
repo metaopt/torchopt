@@ -76,7 +76,7 @@ def exponential_decay(
     """
     if transition_steps is not None and transition_steps <= 0:
         logging.info(
-            'An linear schedule was set with a non-positive `transition_steps`'
+            'An exponential schedule was set with a non-positive `transition_steps`'
             ' value; this will result in a constant schedule with value '
             '`init_value`.',
         )
@@ -84,20 +84,20 @@ def exponential_decay(
 
     if decay_rate == 0:
         logging.info(
-            'An linear schedule was set with a zero `decay_rate` value; '
+            'An exponential schedule was set with a zero `decay_rate` value; '
             'this will result in a constant schedule with value `init_value`.',
         )
         return lambda count: init_value
 
     if transition_begin < 0:
         logging.info(
-            'An linear schedule was set with a negative `transition_begin` '
+            'An exponential schedule was set with a negative `transition_begin` '
             'value; this will result in `transition_begin` falling back to `0`.',
         )
         transition_begin = 0
 
     if end_value is not None:
-        pass
+        clip_fn = torch.maximum if decay_rate < 1.0 else torch.minimum
 
     def schedule(count: Numeric) -> Numeric:
         decreased_count = count - transition_begin
@@ -118,7 +118,7 @@ def exponential_decay(
                 decreased_count,
             )
         if end_value is not None:
-            return torch.clamp(decayed_value, max=end_value)
+            return clip_fn(decayed_value, end_value)
         return decayed_value
 
     return schedule

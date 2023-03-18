@@ -136,7 +136,7 @@ def _scale_by_rss(
             def f(t: torch.Tensor) -> torch.Tensor:
                 return torch.where(
                     t > 0.0,
-                    torch.ones_like(t).div(t.sqrt().add_(eps)),
+                    torch.ones_like(t).div(t.sqrt().add(eps)),
                     torch.tensor(0.0),
                 )
 

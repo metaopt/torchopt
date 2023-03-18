@@ -212,13 +212,13 @@ def test_adam(
 
 @helpers.parametrize(
     dtype=[torch.float64],
-    lr=[1e-3],
-    lr_decay=[0.0],
-    initial_accumulator_value=[0.0],
-    eps=[1e-5],
+    lr=[1e-2],
+    lr_decay=[0.0, 1e-2],
+    initial_accumulator_value=[0.0, 1e-1],
+    eps=[1e-10, 1e-7],
     inplace=[True, False],
-    weight_decay=[0.0],
-    maximize=[False],
+    weight_decay=[1e-2],
+    maximize=[False, True],
     use_chain_flat=[True, False],
 )
 def test_adagrad(
@@ -255,11 +255,7 @@ def test_adagrad(
         eps=eps,
         maximize=maximize,
     )
-    t = 0
     for xs, ys in loader:
-        t = t + 1
-        # if t == 2:
-        #     break
         xs = xs.to(dtype=dtype)
         pred = fmodel(params, buffers, xs)
         pred_ref = model_ref(xs)
@@ -273,12 +269,6 @@ def test_adagrad(
         optim_ref.zero_grad()
         loss_ref.backward()
         optim_ref.step()
-
-        print(t)
-
-        _, params_ref, buffers_ref = functorch.make_functional_with_buffers(model_ref)
-
-        print(t)
 
     helpers.assert_model_all_close((params, buffers), model_ref, model_base, dtype=dtype)
     _set_use_chain_flat(True)

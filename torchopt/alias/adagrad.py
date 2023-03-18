@@ -33,6 +33,7 @@
 
 from torchopt.alias.utils import flip_sign_and_add_weight_decay, scale_by_neg_lr
 from torchopt.combine import chain
+from torchopt.schedule import polynomial_schedule
 from torchopt.transform import scale_by_rss
 from torchopt.typing import GradientTransformation, Scalar
 
@@ -93,12 +94,15 @@ def adagrad(
         raise ValueError(f'Invalid lr_decay value: {lr_decay}')
     if not weight_decay >= 0.0:
         raise ValueError(f'Invalid weight_decay value: {weight_decay}')
+    if not initial_accumulator_value >= 0.0:
+        raise ValueError(f'Invalid initial_accumulator_value value: {initial_accumulator_value}')
     # pylint: enable=unneeded-not
 
     chain_fn = chain
     flip_sign_and_add_weight_decay_fn = flip_sign_and_add_weight_decay
     adagrad_scaler_fn = scale_by_rss
     scale_by_neg_lr_fn = scale_by_neg_lr
+    schedule_fn = polynomial_schedule.adagrad
 
     return chain_fn(
         flip_sign_and_add_weight_decay_fn(weight_decay=weight_decay, maximize=maximize),
@@ -106,6 +110,7 @@ def adagrad(
             initial_accumulator_value=initial_accumulator_value,
             eps=eps,
         ),
-        # scale_by_neg_lr(exponential_decay(init_value=lr, decay_rate=lr_decay)),
-        scale_by_neg_lr_fn(lr),
+        scale_by_neg_lr_fn(
+            schedule_fn(init_value=lr, decay_rate=lr_decay, transition_begin=0),
+        ),
     )
