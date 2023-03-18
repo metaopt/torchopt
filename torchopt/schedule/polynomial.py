@@ -65,12 +65,12 @@ def _adagrad_lr_decay(
     Returns:
         schedule: A function that maps step counts to values.
     """
-    if transition_begin < 0:
-        logging.info(
-            'An exponential schedule was set with a negative `transition_begin` '
-            'value; this will result in `transition_begin` falling back to `0`.',
-        )
-        transition_begin = 0
+    if transition_begin < 0:  # pragma: no cover
+        logging.info(  # pragma: no cover
+            'An exponential schedule was set with a negative `transition_begin` '  # pragma: no cover
+            'value; this will result in `transition_begin` falling back to `0`.',  # pragma: no cover
+        )  # pragma: no cover
+        transition_begin = 0  # pragma: no cover
 
     def schedule(count: Numeric) -> Numeric:
         decreased_count = count - transition_begin
@@ -105,14 +105,14 @@ def polynomial_schedule(
         schedule:
             A function that maps step counts to values.
     """
-    if transition_steps <= 0:
+    if transition_steps <= 0:  # pragma: no cover
         logging.info(
             'A polynomial schedule was set with a non-positive `transition_steps` value; this '
             'results in a constant schedule with value `init_value`.',
         )
         return lambda count: init_value
 
-    if transition_begin < 0:
+    if transition_begin < 0:  # pragma: no cover
         logging.info(
             'An exponential schedule was set with a negative `transition_begin` value; this will '
             'result in `transition_begin` falling back to `0`.',

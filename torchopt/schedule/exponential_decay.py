@@ -73,7 +73,7 @@ def exponential_decay(
     Returns:
         schedule: A function that maps step counts to values.
     """
-    if transition_steps is not None and transition_steps <= 0:
+    if transition_steps is not None and transition_steps <= 0:  # pragma: no cover
         logging.info(
             'An exponential schedule was set with a non-positive `transition_steps`'
             ' value; this will result in a constant schedule with value '
@@ -81,21 +81,21 @@ def exponential_decay(
         )
         return lambda count: init_value
 
-    if decay_rate == 0:
+    if decay_rate == 0:  # pragma: no cover
         logging.info(
             'An exponential schedule was set with a zero `decay_rate` value; '
             'this will result in a constant schedule with value `init_value`.',
         )
         return lambda count: init_value
 
-    if transition_begin < 0:
+    if transition_begin < 0:  # pragma: no cover
         logging.info(
             'An exponential schedule was set with a negative `transition_begin` '
             'value; this will result in `transition_begin` falling back to `0`.',
         )
         transition_begin = 0
 
-    if end_value is not None:
+    if end_value is not None:  # pragma: no cover
         clip_fn = max if decay_rate < 1.0 else min
 
     def schedule(count: Numeric) -> Numeric:

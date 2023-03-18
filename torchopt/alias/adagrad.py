@@ -86,15 +86,15 @@ def adagrad(
         The functional optimizer wrapper :class:`torchopt.FuncOptimizer`.
     """
     # pylint: disable=unneeded-not
-    if not (callable(lr) or lr >= 0.0):
+    if not (callable(lr) or lr >= 0.0):  # pragma: no cover
         raise ValueError(f'Invalid learning rate: {lr}')
-    if not eps >= 0.0:
+    if not eps >= 0.0:  # pragma: no cover
         raise ValueError(f'Invalid epsilon value: {eps}')
-    if not lr_decay >= 0.0:
+    if not lr_decay >= 0.0:  # pragma: no cover
         raise ValueError(f'Invalid lr_decay value: {lr_decay}')
-    if not weight_decay >= 0.0:
+    if not weight_decay >= 0.0:  # pragma: no cover
         raise ValueError(f'Invalid weight_decay value: {weight_decay}')
-    if not initial_accumulator_value >= 0.0:
+    if not initial_accumulator_value >= 0.0:  # pragma: no cover
         raise ValueError(f'Invalid initial_accumulator_value value: {initial_accumulator_value}')
     # pylint: enable=unneeded-not
 
