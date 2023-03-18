@@ -46,7 +46,7 @@ def exponential_decay(
     init_value: Scalar,
     decay_rate: Scalar,
     transition_begin: int = 0,
-    transition_steps: Optional[int] = None,
+    transition_steps: int = 1,
     staircase: bool = False,
     end_value: Optional[float] = None,
 ) -> Schedule:
@@ -100,13 +100,10 @@ def exponential_decay(
 
     def schedule(count: Numeric) -> Numeric:
         decreased_count = count - transition_begin
-        if transition_steps is not None:
-            p = decreased_count / transition_steps
-            if staircase:
-                p = math.floor(p)
-            decayed_value = init_value if decreased_count <= 0.0 else init_value * (decay_rate**p)
-        else:
-            decayed_value = init_value * (decay_rate**decreased_count)
+        p = decreased_count / transition_steps
+        if staircase:
+            p = math.floor(p)
+        decayed_value = init_value if decreased_count <= 0.0 else init_value * (decay_rate**p)
         if end_value is not None:
             return clip_fn(decayed_value, end_value)
         return decayed_value

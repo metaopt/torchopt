@@ -16,7 +16,7 @@
 from __future__ import annotations
 
 import math
-from typing import Callable
+from typing import Callable, Optional
 
 import functorch
 import numpy as np
@@ -34,15 +34,15 @@ from torchopt.alias.utils import _set_use_chain_flat
     transition_begin=[1],
     transition_steps=[10],
     staircase=[False, True],
-    end_value=[0.0],
+    end_value=[0.0, None],
 )
 def test_exponential_decay(
     init_value: float,
     decay_rate: float,
     transition_begin: int,
-    transition_steps: int,
+    transition_steps: int | None,
     staircase: bool,
-    end_value: float,
+    end_value: float | None,
 ) -> None:
     schedule = torchopt.schedule.exponential_decay(
         init_value=init_value,
