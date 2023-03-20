@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -60,15 +60,18 @@ def exponential_decay(
     If the argument `staircase` is `True`, then `count / transition_steps` is
     an integer division and the decayed value follows a staircase function.
     Args:
-        init_value: the initial learning rate.
-        decay_rate: must not be zero. The decay rate.
-        transition_begin: must be positive. After how many steps to start annealing
-            (before this many steps the scalar value is held fixed at `init_value`).
-        transition_steps: must be positive. See the decay computation above.
-        staircase: if `True`, decay the values at discrete intervals.
-        end_value: the value at which the exponential decay stops. When
-            `decay_rate` < 1, `end_value` is treated as a lower bound, otherwise as
-            an upper bound. Has no effect when `decay_rate` = 0.
+        init_value (float or Tensor): Initial value for the scalar to be annealed.
+        decay_rate (float or Tensor): The decay rate.
+        transition_begin (int, optional): Must be *positive*. After how many steps to start
+            annealing (before this many steps the scalar value is held fixed at ``init_value``).
+            (default: :const:`0`)
+        transition_steps (int): Number of steps over which annealing takes place, the scalar starts
+            changing at ``transition_begin`` steps and completes the transition by
+            ``transition_begin + transition_steps`` steps. If ``transition_steps <= 0``, then the
+            entire annealing process is disabled and the value is held fixed at ``init_value``.
+            (default: :const:`1`)
+        staircase (bool): If ``True``, decay the scalar at discrete intervals.
+        end_value (float or Tensor): End value of the scalar to be annealed.
 
     Returns:
         schedule: A function that maps step counts to values.

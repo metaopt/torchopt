@@ -29,12 +29,12 @@ from torchopt.alias.utils import _set_use_chain_flat
 
 
 @helpers.parametrize(
-    init_value=[1.0],
-    decay_rate=[1e-2],
-    transition_begin=[1],
-    transition_steps=[10],
+    init_value=[1.0, 1e-1],
+    decay_rate=[1e-2, 1e-3],
+    transition_begin=[1, 5],
+    transition_steps=[10, 100],
     staircase=[False, True],
-    end_value=[0.0, None],
+    end_value=[0.0, None, 8e-1],
 )
 def test_exponential_decay(
     init_value: float,
@@ -52,6 +52,8 @@ def test_exponential_decay(
         staircase=staircase,
         end_value=end_value,
     )
+    if end_value is not None:  # pragma: no cover
+        clip_fn = max if decay_rate < 1.0 else min
     for i in range(transition_begin, transition_steps):
         lr = schedule(i)
         if staircase:
@@ -60,6 +62,8 @@ def test_exponential_decay(
             )
         else:
             lr_gt = init_value * (decay_rate ** ((i - transition_begin) / transition_steps))
+        if end_value is not None:
+            lr_gt = clip_fn(lr_gt, end_value)
         assert np.allclose(lr, lr_gt)
 
 

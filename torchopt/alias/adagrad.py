@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,14 +31,56 @@
 # ==============================================================================
 """Preset :class:`GradientTransformation` for the AdaGrad optimizer."""
 
-from torchopt.alias.utils import flip_sign_and_add_weight_decay, scale_by_neg_lr
+import logging
+
+from torchopt.alias.utils import (
+    _get_use_chain_flat,
+    flip_sign_and_add_weight_decay,
+    scale_by_neg_lr,
+)
 from torchopt.combine import chain
-from torchopt.schedule import polynomial_schedule
 from torchopt.transform import scale_by_rss
-from torchopt.typing import GradientTransformation, Scalar
+from torchopt.typing import GradientTransformation, Numeric, Scalar, Schedule
 
 
 __all__ = ['adagrad']
+
+
+# pylint: disable-next=too-many-arguments
+def _adagrad_lr_decay(
+    init_value: Scalar,
+    decay_rate: Scalar,
+    transition_begin: int = 0,
+) -> Schedule:
+    """Constructs a schedule dedicated to AdaGrad optimizer.
+
+    This function applies an learning rate decay function to a provided initial
+    value. The function returns the decayed value as follows:
+    ```
+    decayed_value = init_value / 1 + count * decay_rate
+    ```
+
+    Args:
+        init_value: the initial learning rate.
+        decay_rate: The decay rate.
+        transition_begin: must be positive. After how many steps to start annealing
+            (before this many steps the scalar value is held fixed at `init_value`).
+
+    Returns:
+        schedule: A function that maps step counts to values.
+    """
+    if transition_begin < 0:  # pragma: no cover
+        logging.info(  # pragma: no cover
+            'The AdaGrad learning rate schedule was set with a negative `transition_begin` '  # pragma: no cover
+            'value; this will result in `transition_begin` falling back to `0`.',  # pragma: no cover
+        )  # pragma: no cover
+        transition_begin = 0  # pragma: no cover
+
+    def schedule(count: Numeric) -> Numeric:
+        decreased_count = count - transition_begin
+        return init_value / (1 + decay_rate * decreased_count)
+
+    return schedule
 
 
 # pylint: disable-next=too-many-arguments
@@ -63,21 +105,19 @@ def adagrad(
         Duchi et al, 2011: https://jmlr.org/papers/v12/duchi11a.html
 
     Args:
-        lr: (default: :const:`1e-2`)
-            This is a fixed global scaling factor.
-        lr_decay: (default: :const:`0.0`)
-            Learning rate decay.
-        weight_decay: (default: :const:`0.0`)
-            Weight decay, add L2 penalty to parameters.
-        initial_accumulator_value: (default: :const:`0.0`)
-            Initial value for the accumulator.
-        eps: (default: :const:`1e-10`)
-            A small constant applied to denominator outside of the square root (as in the AdaGrad
-            paper) to avoid dividing by zero when rescaling.
-        maximize: (default: :data:`False`)
-            Maximize the params based on the objective, instead of minimizing.
-        use_accelerated_op: (default: :data:`False`)
-            If :data:`True` use our implemented fused operator.
+        lr (float or callable, optional): This is a fixed global scaling factor or a learning rate
+            scheduler. (default: :const:`1e-2`)
+        lr_decay (float, optional): Learning rate decay.
+            (default: :const:`0.0`)
+        weight_decay (float, optional): Weight decay, add L2 penalty to parameters.
+            (default: :const:`0.0`)
+        initial_accumulator_value (float, optional): Initial value for the accumulator.
+            (default: :const:`0.0`)
+        eps (float, optional): A small constant applied to denominator outside of the square root
+            (as in the Adam paper) to avoid dividing by zero when rescaling.
+            (default: :const:`1e-10`)
+        maximize (bool, optional): Maximize the params based on the objective, instead of minimizing.
+            (default: :data:`False`)
 
     Returns:
         The corresponding :class:`GradientTransformation` instance.
@@ -102,7 +142,13 @@ def adagrad(
     flip_sign_and_add_weight_decay_fn = flip_sign_and_add_weight_decay
     adagrad_scaler_fn = scale_by_rss
     scale_by_neg_lr_fn = scale_by_neg_lr
-    schedule_fn = polynomial_schedule.adagrad  # type: ignore[attr-defined]
+    schedule_fn = _adagrad_lr_decay
+
+    if _get_use_chain_flat():  # default behavior
+        chain_fn = chain_fn.flat  # type: ignore[attr-defined]
+        flip_sign_and_add_weight_decay_fn = flip_sign_and_add_weight_decay_fn.flat  # type: ignore[attr-defined]
+        adagrad_scaler_fn = adagrad_scaler_fn.flat  # type: ignore[attr-defined]
+        scale_by_neg_lr_fn = scale_by_neg_lr_fn.flat  # type: ignore[attr-defined]
 
     return chain_fn(
         flip_sign_and_add_weight_decay_fn(weight_decay=weight_decay, maximize=maximize),

@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -40,43 +40,6 @@ from torchopt.typing import Numeric, Scalar, Schedule
 
 
 __all__ = ['polynomial_schedule', 'linear_schedule']
-
-
-# pylint: disable-next=too-many-arguments
-def _adagrad_lr_decay(
-    init_value: Scalar,
-    decay_rate: Scalar,
-    transition_begin: int = 0,
-) -> Schedule:
-    """Constructs a schedule dedicated to AdaGrad optimizer.
-
-    This function applies an learning rate decay function to a provided initial
-    value. The function returns the decayed value as follows:
-    ```
-    decayed_value = init_value / 1 + count * decay_rate
-    ```
-
-    Args:
-        init_value: the initial learning rate.
-        decay_rate: The decay rate.
-        transition_begin: must be positive. After how many steps to start annealing
-            (before this many steps the scalar value is held fixed at `init_value`).
-
-    Returns:
-        schedule: A function that maps step counts to values.
-    """
-    if transition_begin < 0:  # pragma: no cover
-        logging.info(  # pragma: no cover
-            'An exponential schedule was set with a negative `transition_begin` '  # pragma: no cover
-            'value; this will result in `transition_begin` falling back to `0`.',  # pragma: no cover
-        )  # pragma: no cover
-        transition_begin = 0  # pragma: no cover
-
-    def schedule(count: Numeric) -> Numeric:
-        decreased_count = count - transition_begin
-        return init_value / (1 + decay_rate * decreased_count)
-
-    return schedule
 
 
 def polynomial_schedule(
@@ -143,6 +106,3 @@ def linear_schedule(
         transition_steps=transition_steps,
         transition_begin=transition_begin,
     )
-
-
-polynomial_schedule.adagrad = _adagrad_lr_decay  # type: ignore[attr-defined]

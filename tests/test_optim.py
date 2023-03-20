@@ -88,7 +88,7 @@ def test_SGD(
 
 @helpers.parametrize(
     dtype=[torch.float64],
-    lr=[1e-2],
+    lr=[1e-2, 1e-3, 1e-4],
     lr_decay=[0.0, 1e-2],
     initial_accumulator_value=[0.0, 1e-1],
     eps=[1e-8],
