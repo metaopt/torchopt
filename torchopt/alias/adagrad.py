@@ -55,9 +55,11 @@ def adagrad(
 
     AdaGrad is an algorithm for gradient based optimization that anneals the learning rate for each
     parameter during the course of training.
-    WARNING: AdaGrad's main limit is the monotonic accumulation of squared gradients in the
-    denominator: since all terms are >0, the sum keeps growing during training and the learning rate
-    eventually becomes very small.
+
+    .. warning::
+        AdaGrad's main limit is the monotonic accumulation of squared gradients in the denominator.
+        Since all terms are ``> 0``, the sum keeps growing during training, and the learning rate
+        eventually becomes very small.
 
     References:
         Duchi et al, 2011: https://jmlr.org/papers/v12/duchi11a.html
