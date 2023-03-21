@@ -71,7 +71,7 @@ def exponential_decay(
             entire annealing process is disabled and the value is held fixed at ``init_value``.
             (default: :const:`1`)
         staircase (bool): If ``True``, decay the scalar at discrete intervals.
-        end_value (float or Tensor): End value of the scalar to be annealed.
+        end_value (float or Tensor, optional): End value of the scalar to be annealed.
 
     Returns:
         schedule: A function that maps step counts to values.
