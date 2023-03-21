@@ -85,7 +85,7 @@ We offer original PyTorch APIs (e.g., ``zero_grad()`` or ``step()``) for traditi
 .. autosummary::
 
     torchopt.Optimizer
-    torchopt.Adagrad
+    torchopt.AdaGrad
     torchopt.Adam
     torchopt.AdamW
     torchopt.RMSProp

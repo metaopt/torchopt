@@ -79,7 +79,7 @@ Classic Optimizers
 
 .. autosummary::
 
-    Adagrad
+    AdaGrad
     Adam
     AdamW
     RMSProp
@@ -88,7 +88,7 @@ Classic Optimizers
 Classic AdaGrad Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: Adagrad
+.. autoclass:: AdaGrad
 
 Classic Adam Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -119,7 +119,7 @@ Differentiable Meta-Optimizers
 
 .. autosummary::
 
-    MetaAdagrad
+    MetaAdaGrad
     MetaAdam
     MetaAdamW
     MetaRMSProp
@@ -128,7 +128,7 @@ Differentiable Meta-Optimizers
 Differentiable Meta-AdaGrad Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: MetaAdagrad
+.. autoclass:: MetaAdaGrad
 
 Differentiable Meta-Adam Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -96,7 +96,7 @@ def test_SGD(
     weight_decay=[0.0, 1e-2],
     maximize=[False, True],
 )
-def test_Adagrad(
+def test_AdaGrad(
     dtype: torch.dtype,
     lr: float,
     lr_decay: float,

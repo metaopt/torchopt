@@ -25,15 +25,15 @@ from torchopt.optim.base import Optimizer
 from torchopt.typing import ScalarOrSchedule
 
 
-__all__ = ['Adagrad']
+__all__ = ['AdaGrad', 'Adagrad']
 
 
-class Adagrad(Optimizer):
+class AdaGrad(Optimizer):
     """The classic AdaGrad optimizer.
 
     See Also:
         - The functional AdaGrad optimizer: :func:`torchopt.adagrad`.
-        - The differentiable meta AdaGrad optimizer: :class:`torchopt.MetaAdagrad`.
+        - The differentiable meta AdaGrad optimizer: :class:`torchopt.MetaAdaGrad`.
     """
 
     # pylint: disable-next=too-many-arguments
@@ -78,3 +78,6 @@ class Adagrad(Optimizer):
                 maximize=maximize,
             ),
         )
+
+
+Adagrad = AdaGrad  # alias for PyTorch compatibility

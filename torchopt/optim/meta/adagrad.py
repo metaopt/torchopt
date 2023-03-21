@@ -23,15 +23,15 @@ from torchopt.optim.meta.base import MetaOptimizer
 from torchopt.typing import Scalar
 
 
-__all__ = ['MetaAdagrad']
+__all__ = ['MetaAdaGrad', 'MetaAdagrad']
 
 
-class MetaAdagrad(MetaOptimizer):
+class MetaAdaGrad(MetaOptimizer):
     """The differentiable AdaGrad optimizer.
 
     See Also:
         - The functional AdaGrad optimizer: :func:`torchopt.adagrad`.m
-        - The classic AdaGrad optimizer: :class:`torchopt.Adagrad`.
+        - The classic AdaGrad optimizer: :class:`torchopt.AdaGrad`.
     """
 
     # pylint: disable-next=too-many-arguments
@@ -75,3 +75,6 @@ class MetaAdagrad(MetaOptimizer):
                 maximize=maximize,
             ),
         )
+
+
+MetaAdagrad = MetaAdaGrad  # alias for PyTorch compatibility
