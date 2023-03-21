@@ -108,7 +108,7 @@ def test_AdaGrad(
 ) -> None:
     model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
 
-    optim = torchopt.Adagrad(
+    optim = torchopt.AdaGrad(
         model.parameters(),
         lr=lr,
         lr_decay=lr_decay,

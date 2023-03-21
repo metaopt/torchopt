@@ -15,7 +15,7 @@
 """object oriented optimizer implementations."""
 
 from torchopt.optim import meta
-from torchopt.optim.adagrad import Adagrad
+from torchopt.optim.adagrad import AdaGrad, Adagrad
 from torchopt.optim.adam import Adam
 from torchopt.optim.adamw import AdamW
 from torchopt.optim.base import Optimizer
