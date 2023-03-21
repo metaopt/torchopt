@@ -50,19 +50,19 @@ class MetaAdagrad(MetaOptimizer):
 
         Args:
             module (nn.Module): A network whose parameters should be optimized.
-            lr: (default: :const:`1e-2`)
-                This is a fixed global scaling factor.
-            lr_decay: (default: :const:`0.0`)
-                Learning rate decay.
-            weight_decay: (default: :const:`0.0`)
-                Weight decay, add L2 penalty to parameters.
-            initial_accumulator_value: (default: :const:`0.0`)
-                Initial value for the accumulator.
-            eps: (default: :const:`1e-10`)
-                A small constant applied to denominator outside of the square root (as in the AdaGrad
-                paper) to avoid dividing by zero when rescaling.
-            maximize: (default: :data:`False`)
-                Maximize the params based on the objective, instead of minimizing.
+            lr (float or callable, optional): This is a fixed global scaling factor or a learning rate
+                scheduler. (default: :const:`1e-2`)
+            lr_decay (float, optional): Learning rate decay.
+                (default: :const:`0.0`)
+            weight_decay (float, optional): Weight decay, add L2 penalty to parameters.
+                (default: :const:`0.0`)
+            initial_accumulator_value (float, optional): Initial value for the accumulator.
+                (default: :const:`0.0`)
+            eps (float, optional): A small constant applied to denominator outside of the square root
+                (as in the Adam paper) to avoid dividing by zero when rescaling.
+                (default: :const:`1e-10`)
+            maximize (bool, optional): Maximize the params based on the objective, instead of minimizing.
+                (default: :data:`False`)
         """
         super().__init__(
             module,

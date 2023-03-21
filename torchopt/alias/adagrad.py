@@ -60,9 +60,8 @@ def _adagrad_lr_schedule(
     ```
 
     Args:
-        decay_rate (float, optional): The decay rate.
+        decay_rate (float): The decay rate.
         transition_begin (int, optional): must be positive. After how many steps to start annealing
-            (before this many steps the scalar value is held fixed at `init_value`).
             (default: :const:`1`)
 
     Returns:
