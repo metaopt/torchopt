@@ -39,7 +39,7 @@ import torch
 
 from torchopt import pytree
 from torchopt.base import GradientTransformation
-from torchopt.transform.utils import tree_map_flat
+from torchopt.transform.utils import tree_map_flat, update_moment
 from torchopt.typing import OptState, Params, Updates
 
 
@@ -117,32 +117,34 @@ def _scale_by_rss(
         params: Params | None = None,  # pylint: disable=unused-argument
         inplace: bool = True,
     ) -> tuple[Updates, OptState]:
-        sum_of_squares = tree_map(
-            lambda g, t: t + (g.conj() * g).real,
+        sum_of_squares = update_moment.impl(  # type: ignore[attr-defined]
             updates,
             state.sum_of_squares,
+            decay=1.0,
+            order=2,
+            inplace=inplace,
+            already_flattened=already_flattened,
         )
 
         if inplace:
 
-            def f(t: torch.Tensor) -> torch.Tensor:
+            def f(g: torch.Tensor, sos: torch.Tensor) -> torch.Tensor:
                 return torch.where(
-                    t > 0.0,
-                    torch.ones_like(t).div_(t.sqrt().add_(eps)),
-                    torch.tensor(0.0),
+                    sos > 0.0,
+                    g.div_(sos.sqrt().add_(eps)),
+                    0.0,
                 )
 
         else:
 
-            def f(t: torch.Tensor) -> torch.Tensor:
+            def f(g: torch.Tensor, sos: torch.Tensor) -> torch.Tensor:
                 return torch.where(
-                    t > 0.0,
-                    torch.ones_like(t).div(t.sqrt().add(eps)),
-                    torch.tensor(0.0),
+                    sos > 0.0,
+                    g.div(sos.sqrt().add(eps)),
+                    0.0,
                 )
 
-        inv_sqrt_g_square = tree_map(f, sum_of_squares)
-        updates = tree_map(lambda scale, g: g * scale, inv_sqrt_g_square, updates)
+        updates = tree_map(f, updates, sum_of_squares)
         return updates, ScaleByRssState(sum_of_squares=sum_of_squares)
 
     return GradientTransformation(init_fn, update_fn)

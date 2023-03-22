@@ -173,25 +173,49 @@ def _update_moment(
 
     if inplace:
         if order == 2:
+            if decay != 1.0:
 
-            def f(g: torch.Tensor | None, t: torch.Tensor) -> torch.Tensor:
-                return t.mul_(decay).addcmul_(g, g, value=1 - decay) if g is not None else t
+                def f(g: torch.Tensor | None, t: torch.Tensor) -> torch.Tensor:
+                    return t.mul_(decay).addcmul_(g, g, value=1 - decay) if g is not None else t
+
+            else:
+
+                def f(g: torch.Tensor | None, t: torch.Tensor) -> torch.Tensor:
+                    return t.addcmul_(g, g) if g is not None else t
 
         else:
+            if decay != 1.0:
 
-            def f(g: torch.Tensor | None, t: torch.Tensor) -> torch.Tensor:
-                return t.mul_(decay).add_(g, alpha=1 - decay) if g is not None else t
+                def f(g: torch.Tensor | None, t: torch.Tensor) -> torch.Tensor:
+                    return t.mul_(decay).add_(g, alpha=1 - decay) if g is not None else t
+
+            else:
+
+                def f(g: torch.Tensor | None, t: torch.Tensor) -> torch.Tensor:
+                    return t.add_(g) if g is not None else t
 
     else:
         if order == 2:
+            if decay != 1.0:
 
-            def f(g: torch.Tensor | None, t: torch.Tensor) -> torch.Tensor:
-                return t.mul(decay).addcmul_(g, g, value=1 - decay) if g is not None else t
+                def f(g: torch.Tensor | None, t: torch.Tensor) -> torch.Tensor:
+                    return t.mul(decay).addcmul_(g, g, value=1 - decay) if g is not None else t
+
+            else:
+
+                def f(g: torch.Tensor | None, t: torch.Tensor) -> torch.Tensor:
+                    return t.addcmul(g, g) if g is not None else t
 
         else:
+            if decay != 1.0:
 
-            def f(g: torch.Tensor | None, t: torch.Tensor) -> torch.Tensor:
-                return t.mul(decay).add_(g, alpha=1 - decay) if g is not None else t
+                def f(g: torch.Tensor | None, t: torch.Tensor) -> torch.Tensor:
+                    return t.mul(decay).add_(g, alpha=1 - decay) if g is not None else t
+
+            else:
+
+                def f(g: torch.Tensor | None, t: torch.Tensor) -> torch.Tensor:
+                    return t.add(g) if g is not None else t
 
     if already_flattened:
         return tree_map_flat(f, updates, moments, none_is_leaf=True)
