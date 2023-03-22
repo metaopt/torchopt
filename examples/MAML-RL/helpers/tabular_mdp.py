@@ -49,7 +49,10 @@ class TabularMDPEnv(gym.Env):
 
         self.action_space = spaces.Discrete(num_actions)
         self.observation_space = spaces.Box(
-            low=0.0, high=1.0, shape=(num_states,), dtype=np.float32
+            low=0.0,
+            high=1.0,
+            shape=(num_states,),
+            dtype=np.float32,
         )
 
         self._task = task
@@ -62,7 +65,8 @@ class TabularMDPEnv(gym.Env):
             ),
         )
         self._rewards_mean = task.get(
-            'rewards_mean', np.zeros((num_states, num_actions), dtype=np.float32)
+            'rewards_mean',
+            np.zeros((num_states, num_actions), dtype=np.float32),
         )
         self._state = 0
         self._elapsed_steps = None
@@ -79,7 +83,9 @@ class TabularMDPEnv(gym.Env):
             size=(num_tasks, self.num_states, self.num_actions),
         )
         rewards_mean = self.np_random.normal(
-            1.0, 1.0, size=(num_tasks, self.num_states, self.num_actions)
+            1.0,
+            1.0,
+            size=(num_tasks, self.num_states, self.num_actions),
         )
         tasks = [
             {'transitions': transition, 'rewards_mean': reward_mean}
@@ -106,7 +112,8 @@ class TabularMDPEnv(gym.Env):
         reward = self.np_random.normal(mean, 1.0)
 
         self._state = self.np_random.choice(
-            self.num_states, p=self._transitions[self._state, action]
+            self.num_states,
+            p=self._transitions[self._state, action],
         )
         observation = np.zeros(self.num_states, dtype=np.float32)
         observation[self._state] = 1.0

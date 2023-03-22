@@ -199,8 +199,11 @@ def run_L2R(args, mnist_train, mnist_test):
                 running_train_mean = np.mean(np.array(running_train_loss))
                 print(
                     'EPOCH: {}, BATCH: {}, WEIGHTED_TRAIN_LOSS: {}, VALID_LOSS: {}'.format(
-                        _epoch, idx, running_train_mean, running_valid_mean
-                    )
+                        _epoch,
+                        idx,
+                        running_train_mean,
+                        running_valid_mean,
+                    ),
                 )
                 running_valid_loss = []
                 running_train_loss = []

@@ -75,14 +75,15 @@ def get_model_jax(dtype: np.dtype = np.float32) -> tuple[FunctionType, OrderedDi
         [
             ('weight', jnp.ones((MODEL_NUM_INPUTS, MODEL_NUM_CLASSES), dtype=dtype)),
             ('bias', jnp.zeros((MODEL_NUM_CLASSES,), dtype=dtype)),
-        ]
+        ],
     )
     return func, params
 
 
 @torch.no_grad()
 def get_model_torch(
-    device: torch.types.Device = None, dtype: torch.dtype = torch.float32
+    device: torch.types.Device | None = None,
+    dtype: torch.dtype = torch.float32,
 ) -> tuple[nn.Module, data.DataLoader]:
     helpers.seed_everything(seed=42)
 
@@ -125,7 +126,10 @@ def get_rr_dataset_torch() -> data.DataLoader:
     inner_update=[20, 50, 100],
 )
 def test_imaml_solve_normal_cg(
-    dtype: torch.dtype, lr: float, inner_lr: float, inner_update: int
+    dtype: torch.dtype,
+    lr: float,
+    inner_lr: float,
+    inner_update: int,
 ) -> None:
     np_dtype = helpers.dtype_torch2numpy(dtype)
 
@@ -214,7 +218,8 @@ def test_imaml_solve_normal_cg(
         xs = xs.to(dtype=dtype)
         data = (xs, ys, fmodel)
         inner_params = pytree.tree_map(
-            lambda t: t.clone().detach_().requires_grad_(requires_grad=t.requires_grad), params
+            lambda t: t.clone().detach_().requires_grad_(requires_grad=t.requires_grad),
+            params,
         )
         optimal_inner_params, aux = inner_solver_torchopt(inner_params, params, data)
         assert aux == (0, {'a': 1, 'b': 2})
@@ -344,7 +349,8 @@ def test_imaml_solve_inv(
         xs = xs.to(dtype=dtype)
         data = (xs, ys, fmodel)
         inner_params = pytree.tree_map(
-            lambda t: t.clone().detach_().requires_grad_(requires_grad=t.requires_grad), params
+            lambda t: t.clone().detach_().requires_grad_(requires_grad=t.requires_grad),
+            params,
         )
         optimal_inner_params = inner_solver_torchopt(inner_params, params, data)
         outer_loss = fmodel(optimal_inner_params, xs).mean()
@@ -784,7 +790,7 @@ def test_module_abstract_methods() -> None:
     with pytest.raises(
         TypeError,
         match=re.escape(
-            'ImplicitMetaGradientModule requires either an optimality() method or an objective() method'
+            'ImplicitMetaGradientModule requires either an optimality() method or an objective() method',
         ),
     ):
 

@@ -49,10 +49,16 @@ def main():
     argparser.add_argument('--k_qry', type=int, help='k shot for query set', default=5)
     argparser.add_argument('--inner_steps', type=int, help='number of inner steps', default=5)
     argparser.add_argument(
-        '--reg_params', type=float, help='regularization parameters', default=2.0
+        '--reg_params',
+        type=float,
+        help='regularization parameters',
+        default=2.0,
     )
     argparser.add_argument(
-        '--task_num', type=int, help='meta batch size, namely task num', default=16
+        '--task_num',
+        type=int,
+        help='meta batch size, namely task num',
+        default=16,
     )
     argparser.add_argument('--seed', type=int, help='random seed', default=1)
     args = argparser.parse_args()
@@ -167,7 +173,7 @@ def train(db, model, meta_opt_and_state, epoch, log, args):
         iter_time = time.time() - start_time
 
         print(
-            f'[Epoch {i:.2f}] Train Loss: {qry_losses:.2f} | Acc: {qry_accs:.2f} | Time: {iter_time:.2f}'
+            f'[Epoch {i:.2f}] Train Loss: {qry_losses:.2f} | Acc: {qry_accs:.2f} | Time: {iter_time:.2f}',
         )
         log.append(
             {
@@ -176,7 +182,7 @@ def train(db, model, meta_opt_and_state, epoch, log, args):
                 'acc': qry_accs,
                 'mode': 'train',
                 'time': time.time(),
-            }
+            },
         )
 
     return (meta_opt, meta_opt_state)
@@ -235,7 +241,7 @@ def test(db, model, epoch, log, args):
             'acc': qry_accs,
             'mode': 'test',
             'time': time.time(),
-        }
+        },
     )
 
 
@@ -274,7 +280,9 @@ def train_imaml_inner_solver(params, meta_params, data, aux):
             final_loss = loss + regularization_loss
             grads = torch.autograd.grad(final_loss, params)  # compute gradients
             updates, inner_opt_state = inner_opt.update(
-                grads, inner_opt_state, inplace=True
+                grads,
+                inner_opt_state,
+                inplace=True,
             )  # get updates
             params = torchopt.apply_updates(params, updates, inplace=True)
     return params
@@ -298,7 +306,9 @@ def test_imaml_inner_solver(params, meta_params, data, aux):
             final_loss = loss + regularization_loss
             grads = torch.autograd.grad(final_loss, params)  # compute gradients
             updates, inner_opt_state = inner_opt.update(
-                grads, inner_opt_state, inplace=True
+                grads,
+                inner_opt_state,
+                inplace=True,
             )  # get updates
             params = torchopt.apply_updates(params, updates, inplace=True)
     return params

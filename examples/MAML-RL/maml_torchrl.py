@@ -234,7 +234,7 @@ def main(args):
             f'train_pre_reward: {train_pre_reward[-1]: 4.4f}, '
             f'train_post_reward: {train_post_reward[-1]: 4.4f}, '
             f'test_pre_reward: {test_pre_reward[-1]: 4.4f}, '
-            f'test_post_reward: {test_post_reward[-1]: 4.4f}, '
+            f'test_post_reward: {test_post_reward[-1]: 4.4f}, ',
         )
 
     env.close()
@@ -242,7 +242,7 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
-        description='Reinforcement learning with Model-Agnostic Meta-Learning (MAML) - Train'
+        description='Reinforcement learning with Model-Agnostic Meta-Learning (MAML) - Train',
     )
     parser.add_argument('--seed', type=int, default=1, help='random seed (default: 1)')
     parser.add_argument('--parallel', action='store_true', help='run envs in parallel')
