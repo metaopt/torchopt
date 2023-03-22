@@ -119,7 +119,7 @@ def test_register_tensors() -> None:
         ValueError,
         match=re.escape(
             "cannot assign Tensor that is a meta-parameter to parameter 'x'. "
-            'Use self.register_meta_parameter() instead.'
+            'Use self.register_meta_parameter() instead.',
         ),
     ):
         m.register_parameter('x', x)
@@ -152,53 +152,58 @@ def test_register_tensors() -> None:
 
 def test_no_super_init() -> None:
     class NoSuper1(torchopt.nn.MetaGradientModule):
-        def __init__(self, x):
+        def __init__(self, x) -> None:
             self.x = x
 
     with pytest.raises(
-        AttributeError, match=re.escape('cannot assign parameters before Module.__init__() call')
+        AttributeError,
+        match=re.escape('cannot assign parameters before Module.__init__() call'),
     ):
         NoSuper1(torch.tensor(1.0, requires_grad=True))
 
     class NoSuper2(torchopt.nn.MetaGradientModule):
-        def __init__(self):
+        def __init__(self) -> None:
             self.x = torch.tensor(1.0, requires_grad=True)
 
     with pytest.raises(
-        AttributeError, match=re.escape('cannot assign parameters before Module.__init__() call')
+        AttributeError,
+        match=re.escape('cannot assign parameters before Module.__init__() call'),
     ):
         NoSuper2()
 
     class NoSuper3(torchopt.nn.MetaGradientModule):
-        def __init__(self):
+        def __init__(self) -> None:
             self.register_buffer('x', torch.tensor(1.0))
 
     with pytest.raises(
-        AttributeError, match=re.escape('cannot assign buffer before Module.__init__() call')
+        AttributeError,
+        match=re.escape('cannot assign buffer before Module.__init__() call'),
     ):
         NoSuper3()
 
     class NoSuper4(torchopt.nn.MetaGradientModule):
-        def __init__(self):
+        def __init__(self) -> None:
             self.x = torch.tensor(1.0, requires_grad=False)
 
     NoSuper4()  # no error
 
     class NoSuper5(torchopt.nn.MetaGradientModule):
-        def __init__(self, x):
+        def __init__(self, x) -> None:
             self.x = x
 
     with pytest.raises(
-        AttributeError, match=re.escape('cannot assign module before Module.__init__() call')
+        AttributeError,
+        match=re.escape('cannot assign module before Module.__init__() call'),
     ):
         NoSuper5(nn.Linear(1, 1))
 
     class NoSuper6(torchopt.nn.MetaGradientModule):
-        def __init__(self):
+        def __init__(self) -> None:
             self.x = nn.Linear(1, 1)
 
     with pytest.raises(
-        AttributeError, match=re.escape('cannot assign module before Module.__init__() call')
+        AttributeError,
+        match=re.escape('cannot assign module before Module.__init__() call'),
     ):
         NoSuper6()
 

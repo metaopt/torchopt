@@ -87,7 +87,12 @@ def seed_everything(seed: int) -> None:
 
 class MyLinear(nn.Module):
     def __init__(
-        self, in_features: int, out_features: int, bias: bool = True, device=None, dtype=None
+        self,
+        in_features: int,
+        out_features: int,
+        bias: bool = True,
+        device=None,
+        dtype=None,
     ) -> None:
         super().__init__()
         self.linear = nn.Linear(
@@ -138,7 +143,8 @@ def get_model():
 
 @torch.no_grad()
 def get_models(
-    device: torch.types.Device = None, dtype: torch.dtype = torch.float32
+    device: torch.types.Device = None,
+    dtype: torch.dtype = torch.float32,
 ) -> tuple[nn.Module, nn.Module, nn.Module, data.DataLoader]:
     seed_everything(seed=42)
 

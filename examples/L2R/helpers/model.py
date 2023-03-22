@@ -51,7 +51,7 @@ class LeNet5(nn.Module):
         )
         self.args = args
         self.meta_weights = torch.zeros(self.args.batch_size, requires_grad=True).to(
-            self.args.device
+            self.args.device,
         )
         self.criterion = nn.BCELoss()
 

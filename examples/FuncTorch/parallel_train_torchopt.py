@@ -135,7 +135,9 @@ class ParallelTrainFunctorchTorchOpt:
         weights, opt_state = parallel_init_fn(torch.ones(num_models, 1))
         for i in range(2000):
             loss, (weights, opt_states) = parallel_train_step_fn(
-                (weights, opt_state), points, labels
+                (weights, opt_state),
+                points,
+                labels,
             )
             if i % 200 == 0:
                 print(loss)
@@ -186,7 +188,9 @@ if __name__ == '__main__':
     optimizer = torchopt.adam(lr=0.2)
     opt_state = optimizer.init(weights)
     functorch_original = ParallelTrainFunctorchTorchOpt(
-        loss_fn=loss_fn, optimizer=optimizer, device=DEVICE
+        loss_fn=loss_fn,
+        optimizer=optimizer,
+        device=DEVICE,
     )
     # Step 4: Let's verify this actually trains.
     # We should see the loss decrease.

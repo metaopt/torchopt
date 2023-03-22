@@ -103,7 +103,10 @@ def test_accelerated_op(
 
         grads = torch.autograd.grad(loss_ref, params_ref, allow_unused=True)
         updates, optim_state_ref = optim_ref.update(
-            grads, optim_state_ref, params=params, inplace=inplace
+            grads,
+            optim_state_ref,
+            params=params,
+            inplace=inplace,
         )
         params_ref = torchopt.apply_updates(params_ref, updates, inplace=inplace)
 
@@ -154,10 +157,14 @@ def test_maml_accelerated_op(
                 pred = f(params, b, x)
                 inner_loss = F.cross_entropy(pred, y)  # compute loss
                 grads = torch.autograd.grad(
-                    inner_loss, params, allow_unused=True
+                    inner_loss,
+                    params,
+                    allow_unused=True,
                 )  # compute gradients
                 updates, inner_opt_state = inner_optimizer.update(
-                    grads, inner_opt_state, inplace=False
+                    grads,
+                    inner_opt_state,
+                    inplace=False,
                 )  # get updates
                 params = torchopt.apply_updates(params, updates, inplace=False)
         return (params, b)
@@ -169,7 +176,9 @@ def test_maml_accelerated_op(
 
         params_prime, buffers_prime = maml_inner_solver(params, data, use_accelerated_op=True)
         params_prime_ref, buffers_prime_ref = maml_inner_solver(
-            params_ref, data_ref, use_accelerated_op=False
+            params_ref,
+            data_ref,
+            use_accelerated_op=False,
         )
 
         pred = fmodel(params_prime, buffers_prime, xs)
@@ -179,13 +188,19 @@ def test_maml_accelerated_op(
 
         grads = torch.autograd.grad(outer_loss, params, allow_unused=True)
         updates, outer_optim_state = outer_optim.update(
-            grads, outer_optim_state, params=params, inplace=inplace
+            grads,
+            outer_optim_state,
+            params=params,
+            inplace=inplace,
         )
         params = torchopt.apply_updates(params, updates, inplace=inplace)
 
         grads = torch.autograd.grad(outer_loss_ref, params_ref, allow_unused=True)
         updates, outer_optim_state_ref = outer_optim_ref.update(
-            grads, outer_optim_state_ref, params=params, inplace=inplace
+            grads,
+            outer_optim_state_ref,
+            params=params,
+            inplace=inplace,
         )
         params_ref = torchopt.apply_updates(params_ref, updates, inplace=inplace)
 

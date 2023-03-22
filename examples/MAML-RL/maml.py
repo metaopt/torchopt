@@ -193,7 +193,7 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
-        description='Reinforcement learning with Model-Agnostic Meta-Learning (MAML) - Train'
+        description='Reinforcement learning with Model-Agnostic Meta-Learning (MAML) - Train',
     )
     parser.add_argument('--seed', type=int, default=1, help='random seed (default: 1)')
     args = parser.parse_args()

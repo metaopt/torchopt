@@ -79,7 +79,10 @@ def main():
     argparser.add_argument('--k_qry', type=int, help='k shot for query set', default=15)
     argparser.add_argument('--device', type=str, help='device', default='cuda')
     argparser.add_argument(
-        '--task_num', type=int, help='meta batch size, namely task num', default=32
+        '--task_num',
+        type=int,
+        help='meta batch size, namely task num',
+        default=32,
     )
     argparser.add_argument('--seed', type=int, help='random seed', default=1)
     args = argparser.parse_args()
@@ -199,7 +202,7 @@ def train(db, net, device, meta_opt, epoch, log):
 
         if batch_idx % 4 == 0:
             print(
-                f'[Epoch {i:.2f}] Train Loss: {qry_losses:.2f} | Acc: {qry_accs:.2f} | Time: {iter_time:.2f}'
+                f'[Epoch {i:.2f}] Train Loss: {qry_losses:.2f} | Acc: {qry_accs:.2f} | Time: {iter_time:.2f}',
             )
         log.append(
             {
@@ -208,7 +211,7 @@ def train(db, net, device, meta_opt, epoch, log):
                 'acc': qry_accs,
                 'mode': 'train',
                 'time': time.time(),
-            }
+            },
         )
 
 
@@ -257,7 +260,7 @@ def test(db, net, device, epoch, log):
             'acc': qry_accs,
             'mode': 'test',
             'time': time.time(),
-        }
+        },
     )
 
 

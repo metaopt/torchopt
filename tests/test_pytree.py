@@ -177,12 +177,14 @@ def test_tree_vdot_real() -> None:
     helpers.assert_pytree_all_close(actual, expected)
 
     tree_a_complex, tree_b_complex = pytree.tree_map(
-        lambda x: torch.randn(x.size(), dtype=torch.cfloat), (tree_a, tree_b)
+        lambda x: torch.randn(x.size(), dtype=torch.cfloat),
+        (tree_a, tree_b),
     )
     expected = (
         torch.vdot(tree_a_complex[0].contiguous().view(-1), tree_b_complex[0].contiguous().view(-1))
         + torch.vdot(
-            tree_a_complex[1].contiguous().view(-1), tree_b_complex[1].contiguous().view(-1)
+            tree_a_complex[1].contiguous().view(-1),
+            tree_b_complex[1].contiguous().view(-1),
         )
     ).real
     actual = torch.tensor(pytree.tree_vdot_real(tree_a_complex, tree_b_complex))
@@ -197,14 +199,15 @@ def test_tree_vdot_real() -> None:
         'tree_b_dict',
         'tensor_a',
         'tensor_b',
-    ]
+    ],
 )
 def test_tree_wait(tree_name: str) -> None:
     tree = globals()[tree_name]
 
     future_tree = pytree.tree_map(lambda x: torch.futures.Future(), tree)
     new_future_tree = pytree.tree_map(
-        lambda fut: fut.then(lambda f: torch.square(f.wait()) + 1.0), future_tree
+        lambda fut: fut.then(lambda f: torch.square(f.wait()) + 1.0),
+        future_tree,
     )
     pytree.tree_map_(lambda fut, x: fut.set_result(x), future_tree, tree)
 
