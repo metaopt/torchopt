@@ -89,65 +89,6 @@ def test_SGD(
 @helpers.parametrize(
     dtype=[torch.float64],
     lr=[1e-2, 1e-3, 1e-4],
-    lr_decay=[0.0, 1e-2],
-    initial_accumulator_value=[0.0, 1e-1],
-    eps=[1e-8],
-    inplace=[True, False],
-    weight_decay=[0.0, 1e-2],
-    maximize=[False, True],
-)
-def test_AdaGrad(
-    dtype: torch.dtype,
-    lr: float,
-    lr_decay: float,
-    initial_accumulator_value: float,
-    eps: float,
-    inplace: bool,
-    weight_decay: float,
-    maximize: bool,
-) -> None:
-    model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
-
-    optim = torchopt.AdaGrad(
-        model.parameters(),
-        lr=lr,
-        lr_decay=lr_decay,
-        weight_decay=weight_decay,
-        initial_accumulator_value=initial_accumulator_value,
-        eps=eps,
-        maximize=maximize,
-    )
-    optim_ref = torch.optim.Adagrad(
-        model_ref.parameters(),
-        lr=lr,
-        lr_decay=lr_decay,
-        weight_decay=weight_decay,
-        initial_accumulator_value=initial_accumulator_value,
-        eps=eps,
-        maximize=maximize,
-    )
-
-    for xs, ys in loader:
-        xs = xs.to(dtype=dtype)
-        pred = model(xs)
-        pred_ref = model_ref(xs)
-        loss = F.cross_entropy(pred, ys)
-        loss_ref = F.cross_entropy(pred_ref, ys)
-
-        optim.zero_grad()
-        loss.backward()
-        optim.step()
-
-        optim_ref.zero_grad()
-        loss_ref.backward()
-        optim_ref.step()
-
-    helpers.assert_model_all_close(model, model_ref, model_base, dtype=dtype)
-
-
-@helpers.parametrize(
-    dtype=[torch.float64],
-    lr=[1e-2, 1e-3, 1e-4],
     betas=[(0.9, 0.999), (0.95, 0.9995)],
     eps=[1e-8],
     weight_decay=[0.0, 1e-2],
@@ -330,6 +271,63 @@ def test_Adam_accelerated_cuda(
 @helpers.parametrize(
     dtype=[torch.float64],
     lr=[1e-2, 1e-3, 1e-4],
+    lr_decay=[0.0, 1e-2],
+    initial_accumulator_value=[0.0, 1e-1],
+    eps=[1e-10],
+    weight_decay=[0.0, 1e-2],
+    maximize=[False, True],
+)
+def test_AdaGrad(
+    dtype: torch.dtype,
+    lr: float,
+    lr_decay: float,
+    initial_accumulator_value: float,
+    eps: float,
+    weight_decay: float,
+    maximize: bool,
+) -> None:
+    model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
+
+    optim = torchopt.AdaGrad(
+        model.parameters(),
+        lr=lr,
+        lr_decay=lr_decay,
+        weight_decay=weight_decay,
+        initial_accumulator_value=initial_accumulator_value,
+        eps=eps,
+        maximize=maximize,
+    )
+    optim_ref = torch.optim.Adagrad(
+        model_ref.parameters(),
+        lr=lr,
+        lr_decay=lr_decay,
+        weight_decay=weight_decay,
+        initial_accumulator_value=initial_accumulator_value,
+        eps=eps,
+        maximize=maximize,
+    )
+
+    for xs, ys in loader:
+        xs = xs.to(dtype=dtype)
+        pred = model(xs)
+        pred_ref = model_ref(xs)
+        loss = F.cross_entropy(pred, ys)
+        loss_ref = F.cross_entropy(pred_ref, ys)
+
+        optim.zero_grad()
+        loss.backward()
+        optim.step()
+
+        optim_ref.zero_grad()
+        loss_ref.backward()
+        optim_ref.step()
+
+    helpers.assert_model_all_close(model, model_ref, model_base, dtype=dtype)
+
+
+@helpers.parametrize(
+    dtype=[torch.float64],
+    lr=[1e-2, 1e-3, 1e-4],
     alpha=[0.9, 0.99],
     eps=[1e-8],
     momentum=[0.0, 0.1],
@@ -392,6 +390,7 @@ def test_RMSProp(
         (torchopt.sgd, torch.optim.SGD),
         (torchopt.adam, torch.optim.Adam),
         (torchopt.adamw, torch.optim.AdamW),
+        (torchopt.adagrad, torch.optim.Adagrad),
         (torchopt.rmsprop, torch.optim.RMSprop),
     ],
     inplace=[True, False],

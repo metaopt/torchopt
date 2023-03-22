@@ -4,7 +4,6 @@ COPYRIGHT      = "MetaOPT Team. All Rights Reserved."
 PROJECT_PATH   = $(PROJECT_NAME)
 SHELL          = /bin/bash
 SOURCE_FOLDERS = $(PROJECT_PATH) examples include src tests docs
-RST_FILES      = $(shell find $(SOURCE_FOLDERS) -type f -name "*.rst" -o -name "*.rst")
 PYTHON_FILES   = $(shell find $(SOURCE_FOLDERS) -type f -name "*.py" -o -name "*.pyi")
 CXX_FILES      = $(shell find $(SOURCE_FOLDERS) -type f -name "*.h" -o -name "*.cpp")
 CUDA_FILES     = $(shell find $(SOURCE_FOLDERS) -type f -name "*.cuh" -o -name "*.cu")

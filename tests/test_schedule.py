@@ -15,8 +15,7 @@
 
 from __future__ import annotations
 
-import math
-from typing import Callable, Optional
+from typing import Callable
 
 import functorch
 import numpy as np
@@ -52,14 +51,12 @@ def test_exponential_decay(
         staircase=staircase,
         end_value=end_value,
     )
-    if end_value is not None:  # pragma: no cover
+    if end_value is not None:
         clip_fn = max if decay_rate < 1.0 else min
     for i in range(transition_begin, transition_steps):
         lr = schedule(i)
         if staircase:
-            lr_gt = init_value * (
-                decay_rate ** math.floor((i - transition_begin) / transition_steps)
-            )
+            lr_gt = init_value * (decay_rate ** np.floor((i - transition_begin) / transition_steps))
         else:
             lr_gt = init_value * (decay_rate ** ((i - transition_begin) / transition_steps))
         if end_value is not None:
@@ -94,6 +91,7 @@ def test_linear_schedule() -> None:
         (torchopt.sgd, torch.optim.SGD),
         (torchopt.adam, torch.optim.Adam),
         (torchopt.adamw, torch.optim.AdamW),
+        (torchopt.adagrad, torch.optim.Adagrad),
         (torchopt.rmsprop, torch.optim.RMSprop),
     ],
     inplace=[True, False],

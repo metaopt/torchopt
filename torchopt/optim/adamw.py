@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ class AdamW(Optimizer):
                 (default: :const:`1e-8`)
             weight_decay (float, optional): Strength of the weight decay regularization. Note that
                 this weight decay is multiplied with the learning rate. This is consistent with
-                other frameworks such as PyTorch, but different from (Loshchilov et al, 2019) where
+                other frameworks such as PyTorch, but different from (Loshchilov et al., 2019) where
                 the weight decay is only multiplied with the "schedule multiplier", but not the base
                 learning rate. (default: :const:`1e-2`)
             eps_root (float, optional): A small constant applied to denominator inside the square

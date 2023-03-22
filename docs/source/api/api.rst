@@ -36,9 +36,6 @@ Functional Optimizers
     rmsprop
     sgd
 
-
-
-
 Wrapper for Function Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

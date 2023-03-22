@@ -69,7 +69,7 @@ def adamw(
     does not behave as intended for adaptive gradient algorithms such as Adam.
 
     References:
-        - Loshchilov et al, 2019: https://arxiv.org/abs/1711.05101
+        - Loshchilov et al., 2019: https://arxiv.org/abs/1711.05101
 
     Args:
         lr (float or callable, optional): This is a fixed global scaling factor or a learning rate
@@ -81,7 +81,7 @@ def adamw(
             (default: :const:`1e-8`)
         weight_decay (float, optional): Strength of the weight decay regularization. Note that this
             weight decay is multiplied with the learning rate. This is consistent with other
-            frameworks such as PyTorch, but different from (Loshchilov et al, 2019) where the weight
+            frameworks such as PyTorch, but different from (Loshchilov et al., 2019) where the weight
             decay is only multiplied with the "schedule multiplier", but not the base learning rate.
             (default: :const:`1e-2`)
         eps_root (float, optional): A small constant applied to denominator inside the square root

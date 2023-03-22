@@ -20,7 +20,7 @@ import torch.nn as nn
 
 from torchopt import alias
 from torchopt.optim.meta.base import MetaOptimizer
-from torchopt.typing import Scalar
+from torchopt.typing import ScalarOrSchedule
 
 
 __all__ = ['MetaAdaGrad', 'MetaAdagrad']
@@ -30,7 +30,7 @@ class MetaAdaGrad(MetaOptimizer):
     """The differentiable AdaGrad optimizer.
 
     See Also:
-        - The functional AdaGrad optimizer: :func:`torchopt.adagrad`.m
+        - The functional AdaGrad optimizer: :func:`torchopt.adagrad`.
         - The classic AdaGrad optimizer: :class:`torchopt.AdaGrad`.
     """
 
@@ -38,7 +38,7 @@ class MetaAdaGrad(MetaOptimizer):
     def __init__(
         self,
         module: nn.Module,
-        lr: Scalar = 1e-2,
+        lr: ScalarOrSchedule = 1e-2,
         lr_decay: float = 0.0,
         weight_decay: float = 0.0,
         initial_accumulator_value: float = 0.0,
@@ -50,19 +50,18 @@ class MetaAdaGrad(MetaOptimizer):
 
         Args:
             module (nn.Module): A network whose parameters should be optimized.
-            lr (float or callable, optional): This is a fixed global scaling factor or a learning rate
-                scheduler. (default: :const:`1e-2`)
-            lr_decay (float, optional): Learning rate decay.
-                (default: :const:`0.0`)
+            lr (float or callable, optional): This is a fixed global scaling factor or a learning
+                rate scheduler. (default: :const:`1e-2`)
+            lr_decay (float, optional): Learning rate decay. (default: :const:`0.0`)
             weight_decay (float, optional): Weight decay, add L2 penalty to parameters.
                 (default: :const:`0.0`)
             initial_accumulator_value (float, optional): Initial value for the accumulator.
                 (default: :const:`0.0`)
-            eps (float, optional): A small constant applied to denominator outside of the square root
-                (as in the Adam paper) to avoid dividing by zero when rescaling.
+            eps (float, optional): A small constant applied to denominator outside of the square
+                root (as in the Adam paper) to avoid dividing by zero when rescaling.
                 (default: :const:`1e-10`)
-            maximize (bool, optional): Maximize the params based on the objective, instead of minimizing.
-                (default: :data:`False`)
+            maximize (bool, optional): Maximize the params based on the objective, instead of
+                minimizing. (default: :data:`False`)
         """
         super().__init__(
             module,

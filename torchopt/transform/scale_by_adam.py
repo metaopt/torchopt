@@ -87,7 +87,7 @@ def scale_by_adam(
     """Rescale updates according to the Adam algorithm.
 
     References:
-        [Kingma et al, 2014](https://arxiv.org/abs/1412.6980)
+        - Kingma et al., 2014: https://arxiv.org/abs/1412.6980
 
     Args:
         b1 (float, optional): Decay rate for the exponentially weighted average of grads.
@@ -238,7 +238,7 @@ def scale_by_accelerated_adam(
     This function is accelerated by using some fused accelerated operators.
 
     References:
-        [Kingma et al, 2014](https://arxiv.org/abs/1412.6980)
+        - Kingma et al., 2014: https://arxiv.org/abs/1412.6980
 
     Args:
         b1 (float, optional): Decay rate for the exponentially weighted average of grads.

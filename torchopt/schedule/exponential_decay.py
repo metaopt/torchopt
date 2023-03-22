@@ -50,28 +50,33 @@ def exponential_decay(
     staircase: bool = False,
     end_value: Optional[float] = None,
 ) -> Schedule:
-    """Constructs a schedule with either continuous or discrete exponential decay.
+    """Construct a schedule with either continuous or discrete exponential decay.
 
-    This function applies an exponential decay function to a provided initial
-    value. The function returns the decayed value as follows:
-    ```
-    decayed_value = init_value * decay_rate ^ (count / transition_steps)
-    ```
-    If the argument `staircase` is `True`, then `count / transition_steps` is
-    an integer division and the decayed value follows a staircase function.
+    This function applies an exponential decay function to a provided initial value. The function
+    returns the decayed value as follows:
+
+    .. code-block:: python
+
+        decayed_value = init_value * decay_rate**(count / transition_steps)
+
+    If the argument ``staircase`` is :data:`True`, then ``count / transition_steps`` is an integer
+    division and the decayed value follows a staircase function.
+
     Args:
         init_value (float or Tensor): Initial value for the scalar to be annealed.
         decay_rate (float or Tensor): The decay rate.
         transition_begin (int, optional): Must be *positive*. After how many steps to start
             annealing (before this many steps the scalar value is held fixed at ``init_value``).
             (default: :const:`0`)
-        transition_steps (int): Number of steps over which annealing takes place, the scalar starts
-            changing at ``transition_begin`` steps and completes the transition by
+        transition_steps (int, optional): Number of steps over which annealing takes place, the
+            scalar starts changing at ``transition_begin`` steps and completes the transition by
             ``transition_begin + transition_steps`` steps. If ``transition_steps <= 0``, then the
             entire annealing process is disabled and the value is held fixed at ``init_value``.
             (default: :const:`1`)
-        staircase (bool): If ``True``, decay the scalar at discrete intervals.
+        staircase (bool, optional): If :data:`True`, decay the scalar at discrete intervals.
+            (default: :data:`False`)
         end_value (float or Tensor, optional): End value of the scalar to be annealed.
+            (default: :data:`None`)
 
     Returns:
         schedule: A function that maps step counts to values.

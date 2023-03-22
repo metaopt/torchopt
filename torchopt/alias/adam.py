@@ -65,7 +65,7 @@ def adam(
     exponential moving averages).
 
     References:
-        - Kingma et al, 2014: https://arxiv.org/abs/1412.6980
+        - Kingma et al., 2014: https://arxiv.org/abs/1412.6980
 
     Args:
         lr (float or callable, optional): This is a fixed global scaling factor or a learning rate

@@ -63,9 +63,9 @@ from torchopt.version import __version__
 
 __all__ = [
     'accelerated_op_available',
-    'adagrad',
     'adam',
     'adamw',
+    'adagrad',
     'rmsprop',
     'sgd',
     'clip_grad_norm',

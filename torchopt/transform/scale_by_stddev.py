@@ -63,7 +63,7 @@ def scale_by_stddev(
     """Rescale updates by the root of the centered exponential moving average of squares.
 
     References:
-        [Hinton](www.cs.toronto.edu/~tijmen/csc321/slides/lecture_slides_lec6.pdf)
+        - Tieleman and Hinton, 2012: http://www.cs.toronto.edu/~hinton/coursera/lecture6/lec6.pdf
 
     Args:
         alpha (float, optional): Decay rate for the exponentially weighted average of squared grads.

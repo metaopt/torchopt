@@ -46,33 +46,33 @@ from torchopt.typing import GradientTransformation, Numeric, Scalar, ScalarOrSch
 __all__ = ['adagrad']
 
 
-# pylint: disable-next=too-many-arguments
 def _adagrad_lr_schedule(
     decay_rate: Scalar,
     transition_begin: int = 0,
 ) -> Schedule:
-    """Constructs a schedule dedicated to AdaGrad optimizer.
+    """Construct a schedule dedicated to AdaGrad optimizer.
 
-    This function applies an learning rate decay function to a provided initial
-    value. The function returns the decayed value as follows:
-    ```
-    decayed_value = init_value / 1 + count * decay_rate
-    ```
+    This function applies an learning rate decay function to a provided initial value. The function
+    returns the decayed value as follows:
+
+    .. code-block:: python
+
+        decayed_value = init_value / (1 + count * decay_rate)
 
     Args:
         decay_rate (float): The decay rate.
-        transition_begin (int, optional): must be positive. After how many steps to start annealing
-            (default: :const:`1`)
+        transition_begin (int, optional): Must be *positive*. After how many steps to start
+            annealing. (default: :const:`0`)
 
     Returns:
         schedule: A function that maps step counts to values.
     """
     if transition_begin < 0:  # pragma: no cover
-        logging.info(  # pragma: no cover
-            'The AdaGrad learning rate schedule was set with a negative `transition_begin` '  # pragma: no cover
-            'value; this will result in `transition_begin` falling back to `0`.',  # pragma: no cover
-        )  # pragma: no cover
-        transition_begin = 0  # pragma: no cover
+        logging.info(
+            'The AdaGrad learning rate schedule was set with a negative `transition_begin` '
+            'value; this will result in `transition_begin` falling back to `0`.',
+        )
+        transition_begin = 0
 
     def schedule(count: Numeric) -> Numeric:
         decreased_count = count - transition_begin
@@ -102,13 +102,12 @@ def adagrad(
         eventually becomes very small.
 
     References:
-        Duchi et al, 2011: https://jmlr.org/papers/v12/duchi11a.html
+        Duchi et al., 2011: https://jmlr.org/papers/v12/duchi11a.html
 
     Args:
         lr (float or callable, optional): This is a fixed global scaling factor or a learning rate
             scheduler. (default: :const:`1e-2`)
-        lr_decay (float, optional): Learning rate decay.
-            (default: :const:`0.0`)
+        lr_decay (float, optional): Learning rate decay. (default: :const:`0.0`)
         weight_decay (float, optional): Weight decay, add L2 penalty to parameters.
             (default: :const:`0.0`)
         initial_accumulator_value (float, optional): Initial value for the accumulator.
@@ -128,21 +127,20 @@ def adagrad(
     # pylint: disable=unneeded-not
     if not (callable(lr) or lr >= 0.0):  # pragma: no cover
         raise ValueError(f'Invalid learning rate: {lr}')
-    if not eps >= 0.0:  # pragma: no cover
-        raise ValueError(f'Invalid epsilon value: {eps}')
     if not lr_decay >= 0.0:  # pragma: no cover
         raise ValueError(f'Invalid lr_decay value: {lr_decay}')
     if not weight_decay >= 0.0:  # pragma: no cover
         raise ValueError(f'Invalid weight_decay value: {weight_decay}')
     if not initial_accumulator_value >= 0.0:  # pragma: no cover
         raise ValueError(f'Invalid initial_accumulator_value value: {initial_accumulator_value}')
+    if not eps >= 0.0:  # pragma: no cover
+        raise ValueError(f'Invalid epsilon value: {eps}')
     # pylint: enable=unneeded-not
 
     chain_fn = chain
     flip_sign_and_add_weight_decay_fn = flip_sign_and_add_weight_decay
     adagrad_scaler_fn = scale_by_rss
     scale_by_neg_lr_fn = scale_by_neg_lr
-    step_size_fn = _adagrad_lr_schedule
     scale_by_schedule_fn = scale_by_schedule
 
     if _get_use_chain_flat():  # default behavior
@@ -158,6 +156,11 @@ def adagrad(
             initial_accumulator_value=initial_accumulator_value,
             eps=eps,
         ),
-        scale_by_schedule_fn(step_size_fn=step_size_fn(decay_rate=lr_decay, transition_begin=0)),
+        scale_by_schedule_fn(
+            step_size_fn=_adagrad_lr_schedule(
+                decay_rate=lr_decay,
+                transition_begin=0,
+            ),
+        ),
         scale_by_neg_lr_fn(lr),
     )

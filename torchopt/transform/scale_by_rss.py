@@ -59,12 +59,14 @@ def scale_by_rss(
     """Rescale updates by the root of the sum of all squared gradients to date.
 
     References:
-        [Duchi et al, 2011](https://jmlr.org/papers/volume12/duchi11a/duchi11a.pdf)
-        [McMahan et al., 2010](https://arxiv.org/abs/1002.4908)
+        - Duchi et al., 2011: https://jmlr.org/papers/volume12/duchi11a/duchi11a.pdf
+        - McMahan et al., 2010: https://arxiv.org/abs/1002.4908
 
     Args:
-        initial_accumulator_value: Starting value for accumulators, must be >= 0.
-        eps: A small floating point value to avoid zero denominator.
+        initial_accumulator_value (float, optional): Starting value for accumulators, must be
+            ``>= 0``. (default: :const:`0.0`)
+        eps (float, optional): A small floating point value to avoid zero denominator.
+            (default: :const:`1e-10`)
 
     Returns:
         An (init_fn, update_fn) tuple.
@@ -112,10 +114,9 @@ def _scale_by_rss(
     def update_fn(
         updates: Updates,
         state: OptState,
-        params: Params | None = None,
+        params: Params | None = None,  # pylint: disable=unused-argument
         inplace: bool = True,
-    ) -> tuple[Updates, OptState]:  # pylint: disable=unused-argument
-        del params
+    ) -> tuple[Updates, OptState]:
         sum_of_squares = tree_map(
             lambda g, t: t + (g.conj() * g).real,
             updates,
