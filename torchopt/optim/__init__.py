@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 """object oriented optimizer implementations."""
 
 from torchopt.optim import meta
+from torchopt.optim.adagrad import AdaGrad, Adagrad
 from torchopt.optim.adam import Adam
 from torchopt.optim.adamw import AdamW
 from torchopt.optim.base import Optimizer

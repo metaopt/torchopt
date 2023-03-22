@@ -453,6 +453,70 @@ def test_adam_accelerated_cuda(
 @helpers.parametrize(
     dtype=[torch.float64],
     lr=[1e-2, 1e-3, 1e-4],
+    lr_decay=[0.0, 1e-2],
+    initial_accumulator_value=[0.0, 1e-1],
+    eps=[1e-8],
+    inplace=[True, False],
+    weight_decay=[0.0, 1e-2],
+    maximize=[False, True],
+    use_chain_flat=[True, False],
+)
+def test_adagrad(
+    dtype: torch.dtype,
+    lr: float,
+    lr_decay: float,
+    initial_accumulator_value: float,
+    eps: float,
+    inplace: bool,
+    weight_decay: float,
+    maximize: bool,
+    use_chain_flat: bool,
+) -> None:
+    _set_use_chain_flat(use_chain_flat)
+
+    model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
+
+    fmodel, params, buffers = functorch.make_functional_with_buffers(model)
+    optim = torchopt.adagrad(
+        lr=lr,
+        lr_decay=lr_decay,
+        weight_decay=weight_decay,
+        initial_accumulator_value=initial_accumulator_value,
+        eps=eps,
+        maximize=maximize,
+    )
+    optim_state = optim.init(params)
+    optim_ref = torch.optim.Adagrad(
+        model_ref.parameters(),
+        lr=lr,
+        lr_decay=lr_decay,
+        weight_decay=weight_decay,
+        initial_accumulator_value=initial_accumulator_value,
+        eps=eps,
+        maximize=maximize,
+    )
+    for xs, ys in loader:
+        xs = xs.to(dtype=dtype)
+        pred = fmodel(params, buffers, xs)
+        pred_ref = model_ref(xs)
+        loss = F.cross_entropy(pred, ys)
+        loss_ref = F.cross_entropy(pred_ref, ys)
+
+        grads = torch.autograd.grad(loss, params, allow_unused=True)
+        updates, optim_state = optim.update(grads, optim_state, params=params, inplace=inplace)
+        params = torchopt.apply_updates(params, updates, inplace=inplace)
+
+        optim_ref.zero_grad()
+        loss_ref.backward()
+        optim_ref.step()
+
+    helpers.assert_model_all_close((params, buffers), model_ref, model_base, dtype=dtype)
+    _set_use_chain_flat(True)
+
+
+@helpers.parametrize(
+    dtype=[torch.float64],
+    lr=[1e-2, 1e-3, 1e-4],
     alpha=[0.9, 0.99],
     eps=[1e-8],
     momentum=[0.0, 0.1],

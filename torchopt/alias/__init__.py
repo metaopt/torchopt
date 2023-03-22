@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,10 +31,11 @@
 # ==============================================================================
 r"""The aliases of preset :class:`GradientTransformation`\s for optimizers."""
 
+from torchopt.alias.adagrad import adagrad
 from torchopt.alias.adam import adam
 from torchopt.alias.adamw import adamw
 from torchopt.alias.rmsprop import rmsprop
 from torchopt.alias.sgd import sgd
 
 
-__all__ = ['adam', 'adamw', 'rmsprop', 'sgd']
+__all__ = ['adagrad', 'adam', 'adamw', 'rmsprop', 'sgd']

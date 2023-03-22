@@ -36,6 +36,7 @@ from torchopt.transform.nan_to_num import nan_to_num
 from torchopt.transform.scale import scale
 from torchopt.transform.scale_by_adam import scale_by_accelerated_adam, scale_by_adam
 from torchopt.transform.scale_by_rms import scale_by_rms
+from torchopt.transform.scale_by_rss import scale_by_rss
 from torchopt.transform.scale_by_schedule import scale_by_schedule
 from torchopt.transform.scale_by_stddev import scale_by_stddev
 from torchopt.transform.trace import trace
@@ -49,6 +50,7 @@ __all__ = [
     'masked',
     'scale_by_adam',
     'scale_by_accelerated_adam',
+    'scale_by_rss',
     'scale_by_rms',
     'scale_by_stddev',
     'nan_to_num',

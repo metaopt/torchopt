@@ -172,3 +172,6 @@ abc
 ABCMeta
 subclasscheck
 ctx
+Duchi
+invertible
+AdaGrad

@@ -61,7 +61,7 @@ def sgd(
     deep neural networks.
 
     References:
-        - Sutskever et al, 2013: http://proceedings.mlr.press/v28/sutskever13.pdf
+        - Sutskever et al., 2013: http://proceedings.mlr.press/v28/sutskever13.pdf
 
     Args:
         lr (float or callable): This is a fixed global scaling factor or a learning rate

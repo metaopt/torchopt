@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
 # ==============================================================================
 """Differentiable Meta-Optimizers."""
 
+from torchopt.optim.meta.adagrad import MetaAdaGrad, MetaAdagrad
 from torchopt.optim.meta.adam import MetaAdam
 from torchopt.optim.meta.adamw import MetaAdamW
 from torchopt.optim.meta.base import MetaOptimizer

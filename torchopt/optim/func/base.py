@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ class FuncOptimizer:  # pylint: disable=too-few-public-methods
     and update the parameters.
 
     See Also:
+        - The functional AdaGrad optimizer: :func:`torchopt.adagrad`.
         - The functional Adam optimizer: :func:`torchopt.adam`.
         - The functional AdamW optimizer: :func:`torchopt.adamw`.
         - The functional RMSprop optimizer: :func:`torchopt.rmsprop`.

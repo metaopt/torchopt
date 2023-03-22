@@ -29,7 +29,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""Preset transformations for scaling updates by exponential root mean-squared (RMS)."""
+"""Preset transformations for scaling updates by the root of the sum of all squared gradients."""
 
 from __future__ import annotations
 
@@ -39,96 +39,88 @@ import torch
 
 from torchopt import pytree
 from torchopt.base import GradientTransformation
-from torchopt.transform.utils import tree_map_flat, tree_map_flat_, update_moment
+from torchopt.transform.utils import tree_map_flat, update_moment
 from torchopt.typing import OptState, Params, Updates
 
 
-__all__ = ['scale_by_rms']
+__all__ = ['scale_by_rss']
 
 
-class ScaleByRmsState(NamedTuple):
-    """State for exponential root mean-squared (RMS)-normalized updates."""
+class ScaleByRssState(NamedTuple):
+    """State holding the sum of gradient squares to date."""
 
-    nu: Updates
+    sum_of_squares: Updates
 
 
-def scale_by_rms(
-    alpha: float = 0.9,
-    eps: float = 1e-8,
-    initial_scale: float = 0.0,
+def scale_by_rss(
+    initial_accumulator_value: float = 0.0,
+    eps: float = 1e-10,
 ) -> GradientTransformation:
-    """Rescale updates by the root of the exp. moving avg of the square.
+    """Rescale updates by the root of the sum of all squared gradients to date.
 
     References:
-        - Tieleman and Hinton, 2012: http://www.cs.toronto.edu/~hinton/coursera/lecture6/lec6.pdf
+        - Duchi et al., 2011: https://jmlr.org/papers/volume12/duchi11a/duchi11a.pdf
+        - McMahan et al., 2010: https://arxiv.org/abs/1002.4908
 
     Args:
-        alpha (float, optional): Decay rate for the exponentially weighted average of squared grads.
-            (default: :const:`0.9`)
-        eps (float, optional): Term added to the denominator to improve numerical stability.
-            (default: :const:`1e-8`)
-        initial_scale (float, optional): Initial value for second moment. (default: :const:`0.0`)
+        initial_accumulator_value (float, optional): Starting value for accumulators, must be
+            ``>= 0``. (default: :const:`0.0`)
+        eps (float, optional): A small floating point value to avoid zero denominator.
+            (default: :const:`1e-10`)
 
     Returns:
         An (init_fn, update_fn) tuple.
     """
-    return _scale_by_rms(
-        alpha=alpha,
+    return _scale_by_rss(
+        initial_accumulator_value=initial_accumulator_value,
         eps=eps,
-        initial_scale=initial_scale,
         already_flattened=False,
     )
 
 
-def _scale_by_rms_flat(
-    alpha: float = 0.9,
-    eps: float = 1e-8,
-    initial_scale: float = 0.0,
+def _scale_by_rss_flat(
+    initial_accumulator_value: float = 0.0,
+    eps: float = 1e-10,
 ) -> GradientTransformation:
-    return _scale_by_rms(
-        alpha=alpha,
+    return _scale_by_rss(
+        initial_accumulator_value=initial_accumulator_value,
         eps=eps,
-        initial_scale=initial_scale,
         already_flattened=True,
     )
 
 
-def _scale_by_rms(
-    alpha: float = 0.9,
-    eps: float = 1e-8,
-    initial_scale: float = 0.0,
+def _scale_by_rss(
+    initial_accumulator_value: float = 0.0,
+    eps: float = 1e-10,
     *,
     already_flattened: bool = False,
 ) -> GradientTransformation:
-    # pylint: disable=unneeded-not
-    if not alpha >= 0.0:  # pragma: no cover
-        raise ValueError(f'Invalid alpha value: {alpha}')
-    if not eps >= 0.0:  # pragma: no cover
-        raise ValueError(f'Invalid epsilon value: {eps}')
-    # pylint: enable=unneeded-not
-
-    if already_flattened:
+    if already_flattened:  # noqa: SIM108
         tree_map = tree_map_flat
-        tree_map_ = tree_map_flat_
     else:
         tree_map = pytree.tree_map  # type: ignore[assignment]
-        tree_map_ = pytree.tree_map_  # type: ignore[assignment]
 
     def init_fn(params: Params) -> OptState:
-        nu = tree_map(lambda n: torch.full_like(n, initial_scale), params)  # second moment
-        return ScaleByRmsState(nu=nu)
+        sum_of_squares = tree_map(
+            lambda t: torch.full_like(
+                t,
+                initial_accumulator_value,
+                memory_format=torch.preserve_format,
+            ),
+            params,
+        )
+        return ScaleByRssState(sum_of_squares=sum_of_squares)
 
     def update_fn(
         updates: Updates,
         state: OptState,
-        *,
         params: Params | None = None,  # pylint: disable=unused-argument
         inplace: bool = True,
     ) -> tuple[Updates, OptState]:
-        nu = update_moment.impl(  # type: ignore[attr-defined]
+        sum_of_squares = update_moment.impl(  # type: ignore[attr-defined]
             updates,
-            state.nu,
-            alpha,
+            state.sum_of_squares,
+            decay=1.0,
             order=2,
             inplace=inplace,
             already_flattened=already_flattened,
@@ -136,22 +128,27 @@ def _scale_by_rms(
 
         if inplace:
 
-            def f(g: torch.Tensor, n: torch.Tensor) -> torch.Tensor:  # pylint: disable=invalid-name
-                return g.div_(n.sqrt().add_(eps))
-
-            updates = tree_map_(f, updates, nu)
+            def f(g: torch.Tensor, sos: torch.Tensor) -> torch.Tensor:
+                return torch.where(
+                    sos > 0.0,
+                    g.div_(sos.sqrt().add_(eps)),
+                    0.0,
+                )
 
         else:
 
-            def f(g: torch.Tensor, n: torch.Tensor) -> torch.Tensor:  # pylint: disable=invalid-name
-                return g.div(n.sqrt().add(eps))
+            def f(g: torch.Tensor, sos: torch.Tensor) -> torch.Tensor:
+                return torch.where(
+                    sos > 0.0,
+                    g.div(sos.sqrt().add(eps)),
+                    0.0,
+                )
 
-            updates = tree_map(f, updates, nu)
-
-        return updates, ScaleByRmsState(nu=nu)
+        updates = tree_map(f, updates, sum_of_squares)
+        return updates, ScaleByRssState(sum_of_squares=sum_of_squares)
 
     return GradientTransformation(init_fn, update_fn)
 
 
-scale_by_rms.flat = _scale_by_rms_flat  # type: ignore[attr-defined]
-scale_by_rms.impl = _scale_by_rms  # type: ignore[attr-defined]
+scale_by_rss.flat = _scale_by_rss_flat  # type: ignore[attr-defined]
+scale_by_rss.impl = _scale_by_rss  # type: ignore[attr-defined]

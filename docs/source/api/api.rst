@@ -30,16 +30,22 @@ Functional Optimizers
 .. autosummary::
 
     FuncOptimizer
+    adagrad
     adam
-    sgd
-    rmsprop
     adamw
+    rmsprop
+    sgd
 
 Wrapper for Function Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: FuncOptimizer
     :members:
+
+Functional AdaGrad Optimizer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: adagrad
 
 Functional Adam Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -51,15 +57,15 @@ Functional AdamW Optimizer
 
 .. autofunction:: adamw
 
-Functional SGD Optimizer
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autofunction:: sgd
-
 Functional RMSProp Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autofunction:: rmsprop
+
+Functional SGD Optimizer
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: sgd
 
 ------
 
@@ -70,10 +76,16 @@ Classic Optimizers
 
 .. autosummary::
 
+    AdaGrad
     Adam
-    SGD
-    RMSProp
     AdamW
+    RMSProp
+    SGD
+
+Classic AdaGrad Optimizer
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: AdaGrad
 
 Classic Adam Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -85,15 +97,15 @@ Classic AdamW Optimizer
 
 .. autoclass:: AdamW
 
-Classic SGD Optimizer
-~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: SGD
-
 Classic RMSProp Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: RMSProp
+
+Classic SGD Optimizer
+~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: SGD
 
 ------
 
@@ -104,10 +116,16 @@ Differentiable Meta-Optimizers
 
 .. autosummary::
 
+    MetaAdaGrad
     MetaAdam
-    MetaSGD
-    MetaRMSProp
     MetaAdamW
+    MetaRMSProp
+    MetaSGD
+
+Differentiable Meta-AdaGrad Optimizer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: MetaAdaGrad
 
 Differentiable Meta-Adam Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -119,15 +137,15 @@ Differentiable Meta-AdamW Optimizer
 
 .. autoclass:: MetaAdamW
 
-Differentiable Meta-SGD Optimizer
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: MetaSGD
-
 Differentiable Meta-RMSProp Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: MetaRMSProp
+
+Differentiable Meta-SGD Optimizer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: MetaSGD
 
 ------
 

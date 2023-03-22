@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,7 +31,8 @@
 # ==============================================================================
 """Learning rate schedules."""
 
+from torchopt.schedule.exponential_decay import exponential_decay
 from torchopt.schedule.polynomial import linear_schedule, polynomial_schedule
 
 
-__all__ = ['polynomial_schedule', 'linear_schedule']
+__all__ = ['exponential_decay', 'polynomial_schedule', 'linear_schedule']

@@ -53,10 +53,11 @@ For PyTorch-like API (e.g., ``step()``), we designed a base class :class:`torcho
 .. autosummary::
 
     torchopt.MetaOptimizer
+    torchopt.MetaAdaGrad
     torchopt.MetaAdam
-    torchopt.MetaSGD
-    torchopt.MetaRMSProp
     torchopt.MetaAdamW
+    torchopt.MetaRMSProp
+    torchopt.MetaSGD
 
 By combining low-level API :class:`torchopt.MetaOptimizer` with the previous functional optimizer, we can achieve high-level API:
 

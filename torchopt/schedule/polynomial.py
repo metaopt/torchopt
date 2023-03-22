@@ -1,4 +1,4 @@
-# Copyright 2022 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -68,14 +68,14 @@ def polynomial_schedule(
         schedule:
             A function that maps step counts to values.
     """
-    if transition_steps <= 0:
+    if transition_steps <= 0:  # pragma: no cover
         logging.info(
             'A polynomial schedule was set with a non-positive `transition_steps` value; this '
             'results in a constant schedule with value `init_value`.',
         )
         return lambda count: init_value
 
-    if transition_begin < 0:
+    if transition_begin < 0:  # pragma: no cover
         logging.info(
             'An exponential schedule was set with a negative `transition_begin` value; this will '
             'result in `transition_begin` falling back to `0`.',
