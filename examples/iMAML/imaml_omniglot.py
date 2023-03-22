@@ -90,10 +90,16 @@ def main():
     argparser.add_argument('--k_qry', type=int, help='k shot for query set', default=5)
     argparser.add_argument('--inner_steps', type=int, help='number of inner steps', default=5)
     argparser.add_argument(
-        '--reg_params', type=float, help='regularization parameters', default=2.0
+        '--reg_params',
+        type=float,
+        help='regularization parameters',
+        default=2.0,
     )
     argparser.add_argument(
-        '--task_num', type=int, help='meta batch size, namely task num', default=16
+        '--task_num',
+        type=int,
+        help='meta batch size, namely task num',
+        default=16,
     )
     argparser.add_argument('--seed', type=int, help='random seed', default=1)
     args = argparser.parse_args()
@@ -193,7 +199,7 @@ def train(db, net, meta_opt, epoch, log, args):
         iter_time = time.time() - start_time
 
         print(
-            f'[Epoch {i:.2f}] Train Loss: {qry_losses:.2f} | Acc: {qry_accs:.2f} | Time: {iter_time:.2f}'
+            f'[Epoch {i:.2f}] Train Loss: {qry_losses:.2f} | Acc: {qry_accs:.2f} | Time: {iter_time:.2f}',
         )
         log.append(
             {
@@ -202,7 +208,7 @@ def train(db, net, meta_opt, epoch, log, args):
                 'acc': qry_accs,
                 'mode': 'train',
                 'time': time.time(),
-            }
+            },
         )
 
 
@@ -254,7 +260,7 @@ def test(db, net, epoch, log, args):
             'acc': qry_accs,
             'mode': 'test',
             'time': time.time(),
-        }
+        },
     )
 
 

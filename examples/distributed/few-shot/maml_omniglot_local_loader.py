@@ -163,7 +163,10 @@ def main():
     argparser.add_argument('--k_spt', type=int, help='k shot for support set', default=5)
     argparser.add_argument('--k_qry', type=int, help='k shot for query set', default=15)
     argparser.add_argument(
-        '--task_num', type=int, help='meta batch size, namely task num', default=32
+        '--task_num',
+        type=int,
+        help='meta batch size, namely task num',
+        default=32,
     )
     argparser.add_argument('--seed', type=int, help='random seed', default=1)
     args = argparser.parse_args()
@@ -274,7 +277,7 @@ def train(net: nn.Module, meta_opt: optim.Adam, epoch: int, log: list):
         iter_time = time.time() - start_time
 
         print(
-            f'[Epoch {i:.2f}] Train Loss: {qry_loss:.2f} | Acc: {qry_acc:.2f} | Time: {iter_time:.2f}'
+            f'[Epoch {i:.2f}] Train Loss: {qry_loss:.2f} | Acc: {qry_acc:.2f} | Time: {iter_time:.2f}',
         )
         log.append(
             {
@@ -283,7 +286,7 @@ def train(net: nn.Module, meta_opt: optim.Adam, epoch: int, log: list):
                 'acc': qry_acc,
                 'mode': 'train',
                 'time': time.time(),
-            }
+            },
         )
 
 
@@ -324,7 +327,7 @@ def test(net, epoch, log):
             'acc': qry_accs,
             'mode': 'test',
             'time': time.time(),
-        }
+        },
     )
 
 

@@ -35,7 +35,8 @@ def test_chain() -> None:
     adam = torchopt.adam()
     assert isinstance(adam, torchopt.base.ChainedGradientTransformation)
     assert isinstance(
-        adam.chain(torchopt.base.identity()), torchopt.base.ChainedGradientTransformation
+        adam.chain(torchopt.base.identity()),
+        torchopt.base.ChainedGradientTransformation,
     )
     assert adam.chain(torchopt.base.identity()) == adam
     assert torchopt.base.identity().chain(adam) == adam
@@ -44,7 +45,8 @@ def test_chain() -> None:
 
     assert isinstance(adam, torchopt.base.GradientTransformation)
     assert isinstance(
-        adam.chain(torchopt.base.identity()), torchopt.base.ChainedGradientTransformation
+        adam.chain(torchopt.base.identity()),
+        torchopt.base.ChainedGradientTransformation,
     )
     assert adam.chain(torchopt.base.identity()) == adam
     assert torchopt.base.identity().chain(adam) == adam

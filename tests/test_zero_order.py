@@ -59,7 +59,11 @@ def test_zero_order(lr: float, method: str, sigma: float) -> None:
     distribution = torch.distributions.Normal(loc=0, scale=1)
 
     @torchopt.diff.zero_order(
-        distribution=distribution, method=method, argnums=0, sigma=sigma, num_samples=num_samples
+        distribution=distribution,
+        method=method,
+        argnums=0,
+        sigma=sigma,
+        num_samples=num_samples,
     )
     def forward_process(params, fn, x, y):
         y_pred = fn(params, x)
@@ -92,7 +96,10 @@ def test_zero_order_module(lr: float, method: str, sigma: float) -> None:
     num_samples = 500
 
     class FcNetWithLoss(
-        torchopt.nn.ZeroOrderGradientModule, method=method, sigma=sigma, num_samples=num_samples
+        torchopt.nn.ZeroOrderGradientModule,
+        method=method,
+        sigma=sigma,
+        num_samples=num_samples,
     ):
         def __init__(self, dim, out):
             super().__init__()

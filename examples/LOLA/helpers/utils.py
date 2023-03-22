@@ -82,7 +82,7 @@ class Memory:
         if use_baseline:
             # variance_reduction:
             baseline_term = torch.mean(
-                torch.sum((1 - magic_box(stochastic_nodes)) * discounted_values, dim=1)
+                torch.sum((1 - magic_box(stochastic_nodes)) * discounted_values, dim=1),
             )
             dice_objective = dice_objective + baseline_term
 

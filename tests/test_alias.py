@@ -335,10 +335,15 @@ def test_maml_adam(
                 pred = f(params, b, x)
                 inner_loss = F.cross_entropy(pred, y)  # compute loss
                 grads = torch.autograd.grad(
-                    inner_loss, params, allow_unused=True
+                    inner_loss,
+                    params,
+                    allow_unused=True,
                 )  # compute gradients
                 updates, inner_opt_state = inner_optimizer.update(
-                    grads, inner_opt_state, params=params, inplace=False
+                    grads,
+                    inner_opt_state,
+                    params=params,
+                    inplace=False,
                 )  # get updates
                 params = torchopt.apply_updates(params, updates, inplace=False)
         return (params, b)
@@ -348,14 +353,19 @@ def test_maml_adam(
         data = (xs, ys, fmodel, buffers)
 
         params_prime, buffers_prime = maml_inner_solver_torchopt(
-            params, data, use_accelerated_op=True
+            params,
+            data,
+            use_accelerated_op=True,
         )
         pred = fmodel(params_prime, buffers_prime, xs)
         outer_loss = F.cross_entropy(pred, ys)
 
         grads = torch.autograd.grad(outer_loss, params, allow_unused=True)
         updates, outer_optim_state = outer_optim.update(
-            grads, outer_optim_state, params=params, inplace=inplace
+            grads,
+            outer_optim_state,
+            params=params,
+            inplace=inplace,
         )
         params = torchopt.apply_updates(params, updates, inplace=inplace)
 

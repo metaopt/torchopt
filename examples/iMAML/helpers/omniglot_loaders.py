@@ -80,7 +80,7 @@ class Omniglot(data.Dataset):
 
     def _check_exists(self):
         return os.path.exists(
-            os.path.join(self.root, self.processed_folder, 'images_evaluation')
+            os.path.join(self.root, self.processed_folder, 'images_evaluation'),
         ) and os.path.exists(os.path.join(self.root, self.processed_folder, 'images_background'))
 
     def download(self):
@@ -164,7 +164,7 @@ class OmniglotNShot:
                         lambda x: np.reshape(x, (imgsz, imgsz, 1)),
                         lambda x: np.transpose(x, [2, 0, 1]),
                         lambda x: x / 255.0,
-                    ]
+                    ],
                 ),
             )
 
@@ -265,12 +265,18 @@ class OmniglotNShot:
                 # shuffle inside a batch
                 perm = self.rng.permutation(self.n_way * self.k_shot)
                 x_spt = np.array(x_spt).reshape(
-                    self.n_way * self.k_shot, 1, self.resize, self.resize
+                    self.n_way * self.k_shot,
+                    1,
+                    self.resize,
+                    self.resize,
                 )[perm]
                 y_spt = np.array(y_spt).reshape(self.n_way * self.k_shot)[perm]
                 perm = self.rng.permutation(self.n_way * self.k_query)
                 x_qry = np.array(x_qry).reshape(
-                    self.n_way * self.k_query, 1, self.resize, self.resize
+                    self.n_way * self.k_query,
+                    1,
+                    self.resize,
+                    self.resize,
                 )[perm]
                 y_qry = np.array(y_qry).reshape(self.n_way * self.k_query)[perm]
 
@@ -281,13 +287,22 @@ class OmniglotNShot:
                 y_qrys.append(y_qry)
 
             x_spts = np.array(x_spts, dtype=np.float32).reshape(
-                self.batchsz, setsz, 1, self.resize, self.resize
+                self.batchsz,
+                setsz,
+                1,
+                self.resize,
+                self.resize,
             )  # [b, setsz, 1, 84, 84]
             y_spts = np.array(y_spts, dtype=np.int).reshape(
-                self.batchsz, setsz
+                self.batchsz,
+                setsz,
             )  # [b, qrysz, 1, 84, 84]
             x_qrys = np.array(x_qrys, dtype=np.float32).reshape(
-                self.batchsz, querysz, 1, self.resize, self.resize
+                self.batchsz,
+                querysz,
+                1,
+                self.resize,
+                self.resize,
             )
             y_qrys = np.array(y_qrys, dtype=np.int).reshape(self.batchsz, querysz)
 
