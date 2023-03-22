@@ -15,7 +15,7 @@
 
 from __future__ import annotations
 
-from typing import Callable
+from typing import Any, Callable
 
 import functorch
 import numpy as np
@@ -88,11 +88,11 @@ def test_linear_schedule() -> None:
     lr=[1e-2, 1e-3],
     total_iters=[helpers.NUM_UPDATES, helpers.NUM_UPDATES * 2],
     optimizers=[
-        (torchopt.sgd, torch.optim.SGD),
-        (torchopt.adam, torch.optim.Adam),
-        (torchopt.adamw, torch.optim.AdamW),
-        (torchopt.adagrad, torch.optim.Adagrad),
-        (torchopt.rmsprop, torch.optim.RMSprop),
+        (torchopt.sgd, torch.optim.SGD, {}),
+        (torchopt.adam, torch.optim.Adam, {}),
+        (torchopt.adamw, torch.optim.AdamW, {}),
+        (torchopt.adagrad, torch.optim.Adagrad, {'eps': 1e-8}),
+        (torchopt.rmsprop, torch.optim.RMSprop, {}),
     ],
     inplace=[True, False],
     weight_decay=[0.0, 1e-2],
@@ -102,7 +102,7 @@ def test_lr_linear_schedule(
     dtype: torch.dtype,
     lr: float,
     total_iters: int,
-    optimizers: tuple[Callable, torch.optim.Optimizer],
+    optimizers: tuple[Callable, torch.optim.Optimizer, dict[str, Any]],
     inplace: bool,
     weight_decay: float,
     use_chain_flat: bool,
@@ -111,7 +111,7 @@ def test_lr_linear_schedule(
 
     model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
 
-    torchopt_optimizer, torch_optimizer = optimizers
+    torchopt_optimizer, torch_optimizer, optimizer_kwargs = optimizers
 
     fmodel, params, buffers = functorch.make_functional_with_buffers(model)
     optim = torchopt_optimizer(
@@ -122,12 +122,14 @@ def test_lr_linear_schedule(
             transition_begin=0,
         ),
         weight_decay=weight_decay,
+        **optimizer_kwargs,
     )
     optim_state = optim.init(params)
     optim_ref = torch_optimizer(
         model_ref.parameters(),
         lr,
         weight_decay=weight_decay,
+        **optimizer_kwargs,
     )
     torch_scheduler = torch.optim.lr_scheduler.LinearLR(
         optim_ref,
