@@ -96,7 +96,7 @@ def test_extract_state_dict():
 
     state_dict = torchopt.extract_state_dict(fc, by='deepcopy', device=torch.device('meta'))
     for param_dict in state_dict.params:
-        for k, v in param_dict.items():
+        for v in param_dict.values():
             assert v.is_meta
             assert v.grad_fn is None
 

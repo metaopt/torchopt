@@ -219,7 +219,7 @@ target-version = "py38"
 line-length = 100
 show-source = true
 src = ["torchopt", "tests"]
-extend-exclude = ["examples", "tests"]
+extend-exclude = ["examples"]
 select = [
     "E", "W",  # pycodestyle
     "F",       # pyflakes
@@ -273,6 +273,15 @@ typing-modules = ["torchopt.typing"]
 ]
 "setup.py" = [
     "ANN",   # flake8-annotations
+]
+"tests/**/*.py" = [
+    "ANN",   # flake8-annotations
+    "S",     # flake8-bandit
+    "BLE",   # flake8-blind-except
+]
+"tests/test_import.py" = [
+    "F401",  # unused-import
+    "F811",  # redefined-while-unused
 ]
 
 [tool.ruff.flake8-annotations]

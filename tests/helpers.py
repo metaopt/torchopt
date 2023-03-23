@@ -15,6 +15,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import copy
 import itertools
 import os
@@ -79,10 +80,8 @@ def seed_everything(seed: int) -> None:
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
-    try:
+    with contextlib.suppress(AttributeError):
         torch.use_deterministic_algorithms(True)
-    except AttributeError:
-        pass
 
 
 class MyLinear(nn.Module):

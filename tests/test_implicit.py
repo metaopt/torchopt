@@ -113,9 +113,7 @@ def get_rr_dataset_torch() -> data.DataLoader:
         torch.randn((BATCH_SIZE * NUM_UPDATES, MODEL_NUM_INPUTS)),
         torch.randn((BATCH_SIZE * NUM_UPDATES,)),
     )
-    loader = data.DataLoader(dataset, BATCH_SIZE, shuffle=False)
-
-    return loader
+    return data.DataLoader(dataset, BATCH_SIZE, shuffle=False)
 
 
 @pytest.mark.skipif(not HAS_JAX, reason='JAX is not installed')
@@ -149,8 +147,7 @@ def test_imaml_solve_normal_cg(
         regularization_loss = 0
         for p1, p2 in zip(params, meta_params):
             regularization_loss += 0.5 * torch.sum(torch.square(p1 - p2))
-        loss = F.cross_entropy(y_pred, y) + regularization_loss
-        return loss
+        return F.cross_entropy(y_pred, y) + regularization_loss
 
     @torchopt.diff.implicit.custom_root(
         functorch.grad(imaml_objective_torchopt, argnums=0),
@@ -205,10 +202,9 @@ def test_imaml_solve_normal_cg(
             regularization_loss = 0
             for p1, p2 in zip(params.values(), meta_params.values()):
                 regularization_loss += 0.5 * jnp.sum(jnp.square(p1 - p2))
-            final_loss = loss + regularization_loss
-            return final_loss
+            return loss + regularization_loss
 
-        for i in range(inner_update):
+        for _ in range(inner_update):
             grads = jax.grad(compute_loss)(params, meta_params, x, y)  # compute gradients
             updates, opt_state = optimizer.update(grads, opt_state)  # get updates
             params = optax.apply_updates(params, updates)
@@ -235,8 +231,7 @@ def test_imaml_solve_normal_cg(
         def outer_level(p, xs, ys):
             optimal_params, aux = inner_solver_jax(copy.deepcopy(p), p, xs, ys)
             assert aux == (0, {'a': 1, 'b': 2})
-            outer_loss = jax_model(optimal_params, xs).mean()
-            return outer_loss
+            return jax_model(optimal_params, xs).mean()
 
         grads_jax = jax.grad(outer_level, argnums=0)(jax_params, xs, ys)
         updates_jax, optim_state_jax = optim_jax.update(grads_jax, optim_state_jax)  # get updates
@@ -282,8 +277,7 @@ def test_imaml_solve_inv(
         regularization_loss = 0
         for p1, p2 in zip(params, meta_params):
             regularization_loss += 0.5 * torch.sum(torch.square(p1 - p2))
-        loss = F.cross_entropy(y_pred, y) + regularization_loss
-        return loss
+        return F.cross_entropy(y_pred, y) + regularization_loss
 
     @torchopt.diff.implicit.custom_root(
         functorch.grad(imaml_objective_torchopt, argnums=0),
@@ -336,10 +330,9 @@ def test_imaml_solve_inv(
             regularization_loss = 0
             for p1, p2 in zip(params.values(), meta_params.values()):
                 regularization_loss += 0.5 * jnp.sum(jnp.square(p1 - p2))
-            final_loss = loss + regularization_loss
-            return final_loss
+            return loss + regularization_loss
 
-        for i in range(inner_update):
+        for _ in range(inner_update):
             grads = jax.grad(compute_loss)(params, meta_params, x, y)  # compute gradients
             updates, opt_state = optimizer.update(grads, opt_state)  # get updates
             params = optax.apply_updates(params, updates)
@@ -364,8 +357,7 @@ def test_imaml_solve_inv(
 
         def outer_level(p, xs, ys):
             optimal_params = inner_solver_jax(copy.deepcopy(p), p, xs, ys)
-            outer_loss = jax_model(optimal_params, xs).mean()
-            return outer_loss
+            return jax_model(optimal_params, xs).mean()
 
         grads_jax = jax.grad(outer_level, argnums=0)(jax_params, xs, ys)
         updates_jax, optim_state_jax = optim_jax.update(grads_jax, optim_state_jax)  # get updates
@@ -450,10 +442,9 @@ def test_imaml_module(dtype: torch.dtype, lr: float, inner_lr: float, inner_upda
             regularization_loss = 0
             for p1, p2 in zip(params.values(), meta_params.values()):
                 regularization_loss += 0.5 * jnp.sum(jnp.square(p1 - p2))
-            final_loss = loss + regularization_loss
-            return final_loss
+            return loss + regularization_loss
 
-        for i in range(inner_update):
+        for _ in range(inner_update):
             grads = jax.grad(compute_loss)(params, meta_params, x, y)  # compute gradients
             updates, opt_state = optimizer.update(grads, opt_state)  # get updates
             params = optax.apply_updates(params, updates)
@@ -476,8 +467,7 @@ def test_imaml_module(dtype: torch.dtype, lr: float, inner_lr: float, inner_upda
         def outer_level(p, xs, ys):
             optimal_params, aux = inner_solver_jax(copy.deepcopy(p), p, xs, ys)
             assert aux == (0, {'a': 1, 'b': 2})
-            outer_loss = jax_model(optimal_params, xs).mean()
-            return outer_loss
+            return jax_model(optimal_params, xs).mean()
 
         grads_jax = jax.grad(outer_level, argnums=0)(jax_params, xs, ys)
         updates_jax, optim_state_jax = optim_jax.update(grads_jax, optim_state_jax)  # get updates
@@ -582,8 +572,7 @@ def test_rr_solve_cg(
         def outer_level(params_jax, l2reg_jax, xs, ys, xq, yq):
             w_fit = ridge_solver_jax_cg(params_jax, l2reg_jax, xs, ys)
             y_pred = xq @ w_fit
-            loss_value = jnp.mean(jnp.square(y_pred - yq))
-            return loss_value
+            return jnp.mean(jnp.square(y_pred - yq))
 
         grads_jax = jax.grad(outer_level, argnums=1)(init_params_jax, l2reg_jax, xs, ys, xq, yq)
         updates_jax, optim_state_jax = optim_jax.update(grads_jax, optim_state_jax)  # get updates
@@ -688,8 +677,7 @@ def test_rr_solve_inv(
         def outer_level(params_jax, l2reg_jax, xs, ys, xq, yq):
             w_fit = ridge_solver_jax_inv(params_jax, l2reg_jax, xs, ys)
             y_pred = xq @ w_fit
-            loss_value = jnp.mean(jnp.square(y_pred - yq))
-            return loss_value
+            return jnp.mean(jnp.square(y_pred - yq))
 
         grads_jax = jax.grad(outer_level, argnums=1)(init_params_jax, l2reg_jax, xs, ys, xq, yq)
         updates_jax, optim_state_jax = optim_jax.update(grads_jax, optim_state_jax)  # get updates

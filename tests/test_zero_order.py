@@ -67,13 +67,12 @@ def test_zero_order(lr: float, method: str, sigma: float) -> None:
     )
     def forward_process(params, fn, x, y):
         y_pred = fn(params, x)
-        loss = F.mse_loss(y_pred, y)
-        return loss
+        return F.mse_loss(y_pred, y)
 
     optimizer = torchopt.adam(lr=lr)
     opt_state = optimizer.init(params)  # init optimizer
 
-    for i in range(num_iterations):
+    for _ in range(num_iterations):
         loss = forward_process(params, fmodel, x, y)  # compute loss
 
         grads = torch.autograd.grad(loss, params)  # compute gradients
@@ -110,7 +109,7 @@ def test_zero_order_module(lr: float, method: str, sigma: float) -> None:
         def forward(self, x, y):
             return self.loss(self.net(x), y)
 
-        def sample(self, sample_shape=torch.Size()):
+        def sample(self, sample_shape=torch.Size()):  # noqa: B008
             return self.distribution.sample(sample_shape)
 
     x = torch.randn(batch_size, input_size) * coef
@@ -119,7 +118,7 @@ def test_zero_order_module(lr: float, method: str, sigma: float) -> None:
 
     optimizer = torchopt.Adam(model_with_loss.parameters(), lr=lr)
 
-    for i in range(num_iterations):
+    for _ in range(num_iterations):
         loss = model_with_loss(x, y)  # compute loss
 
         optimizer.zero_grad()
