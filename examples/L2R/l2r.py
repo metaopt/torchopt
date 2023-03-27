@@ -169,7 +169,7 @@ def run_L2R(args, mnist_train, mnist_test):
                 inner_loss = model.inner_loss(train_x, train_label)
                 model_optimizer.step(inner_loss)
 
-            # caclulate outer_loss, deirve meta-gradient and normalise
+            # calculate outer_loss, derive meta-gradient and normalize
             outer_loss = model.outer_loss(valid_x, valid_label)
             model.meta_weights = -torch.autograd.grad(outer_loss, model.meta_weights)[0]
             model.meta_weights = torch.nn.ReLU()(model.meta_weights)
