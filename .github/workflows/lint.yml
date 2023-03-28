@@ -93,6 +93,12 @@ jobs:
 
       - name: clang-format
         run: |
+          (
+            source /etc/os-release
+            wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc
+            sudo add-apt-repository "deb http://apt.llvm.org/${UBUNTU_CODENAME} llvm-toolchain-${UBUNTU_CODENAME} main"
+          )
+          sudo apt-get update && sudo apt-get install clang-format --yes
           make clang-format
 
       - name: clang-tidy
