@@ -54,7 +54,7 @@ class OneHot(gym.Space):
 class IPD(gym.Env):
     """
     A two-agent vectorized environment.
-    Possible actions for each agent are (C)ooperate and (D)efect.
+    Possible actions for each agent are Cooperate (C) and Defect (D).
     """
 
     # Possible actions
