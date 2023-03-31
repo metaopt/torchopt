@@ -366,7 +366,7 @@ optimizer = torchopt.MetaAdam(model, lr, use_accelerated_op=True)
 ### Distributed Training
 
 `TorchOpt` provides distributed training features based on the PyTorch RPC module for better training speed and multi-node multi-GPU support.
-Different from the MPI-like parallelization paradigm, which uses multiple homogenous workers and requires carefully designed communication hooks, the RPC APIs allow users to build their optimization pipeline more flexibly.
+Different from the MPI-like parallelization paradigm, which uses multiple homogeneous workers and requires carefully designed communication hooks, the RPC APIs allow users to build their optimization pipeline more flexibly.
 Experimental results show that we achieve an approximately linear relationship between the speed-up ratio and the number of workers.
 Check out the [Distributed Training Documentation](https://torchopt.readthedocs.io/en/latest/distributed/distributed.html) and [distributed MAML example](https://github.com/metaopt/torchopt/tree/main/examples/distributed/few-shot) for more specific guidance.
 

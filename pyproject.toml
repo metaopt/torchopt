@@ -213,6 +213,9 @@ convention = "google"
 [tool.doc8]
 max-line-length = 500
 
+[tool.codespell]
+ignore-words = "docs/source/spelling_wordlist.txt"
+
 [tool.ruff]
 # Sync with requires-python
 target-version = "py38"
@@ -302,5 +305,6 @@ allow-magic-value-types = ["int", "str", "float"]
 filterwarnings = [
     "error",
     'ignore:Explicitly requested dtype float64 requested in .* is not available, and will be truncated to dtype float32\.:UserWarning',
+    'ignore:jax\.numpy\.DeviceArray is deprecated\. Use jax\.Array\.:DeprecationWarning',
     'ignore:.*functorch.*deprecate.*:UserWarning',
 ]
