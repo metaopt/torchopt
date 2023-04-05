@@ -283,6 +283,7 @@ typing-modules = ["torchopt.typing"]
     "BLE",   # flake8-blind-except
 ]
 "tests/test_import.py" = [
+    "B018",  # useless-expression
     "F401",  # unused-import
     "F811",  # redefined-while-unused
 ]
