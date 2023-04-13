@@ -343,9 +343,8 @@ def _custom_root(
                     raise TypeError(
                         f'keyword arguments to solver_fn could not be resolved to positional '
                         f'arguments based on the signature {reference_signature}. This can '
-                        f'happen under custom_root if optimality_fn takes catch-all **kwargs, or '
-                        f'under custom_fixed_point if fixed_point_fn takes catch-all **kwargs, '
-                        f'both of which are currently unsupported.',
+                        f'happen under custom_root if optimality_fn takes catch-all **kwargs, '
+                        f'which are currently unsupported.',
                     )
 
                 # Compute VJPs w.r.t. args.
@@ -448,16 +447,16 @@ def root_vjp(
             ``argnums`` can be an integer or a tuple of integers.
         solve (callable, optional): A linear solver of the form ``solve(matvec, b)``.
             (default: :func:`linear_solve.solve_normal_cg`)
+
     Returns:
-        tuple of the same length as ``len(args)`` containing the vjps w.r.t.
+        tuple of the same length as ``len(args)`` containing the vector-Jacobian products w.r.t.
         each argument. Each ``vjps[i]`` has the same pytree structure as
         ``args[i]``.
     """
     if solve is None:
         solve = linear_solve.solve_normal_cg()
 
-    return functools.partial(
-        _root_vjp,
+    return _root_vjp(
         optimality_fn=optimality_fn,
         solution=solution,
         args=args,
