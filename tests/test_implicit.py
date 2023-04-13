@@ -480,6 +480,58 @@ def test_imaml_module(dtype: torch.dtype, lr: float, inner_lr: float, inner_upda
     helpers.assert_pytree_all_close(tuple(model.parameters()), jax_params_as_tensor)
 
 
+def test_rr_root_vjp(
+    dtype=[torch.float64, torch.float32],
+
+):
+    helpers.seed_everything(42)
+    np_dtype = helpers.dtype_torch2numpy(dtype)
+    input_size = 10
+
+    init_params_torch = torch.randn(input_size, dtype=dtype)
+    l2reg_torch = torch.rand(1, dtype=dtype).squeeze_().requires_grad_(True)
+
+    def ridge_objective(params, l2reg, data):
+        """Ridge objective function."""
+        X_tr, y_tr = data
+        residuals = X_tr @ params - y_tr
+        regularization_loss = 0.5 * l2reg * torch.sum(torch.square(params))
+        return 0.5 * torch.mean(torch.square(residuals)) + regularization_loss
+
+    def ridge_solver_cg(params, l2reg, data):
+        """Solve ridge regression by conjugate gradient."""
+        X_tr, y_tr = data
+
+        def matvec(u):
+            return X_tr.T @ (X_tr @ u)
+
+        solve = torchopt.linear_solve.solve_cg(
+            ridge=len(y_tr) * l2reg.item(),
+            init=params,
+            maxiter=20,
+        )
+
+        return solve(matvec=matvec, b=X_tr.T @ y_tr)
+
+    for xs, ys, xq, yq in loader:
+        xs = xs.to(dtype=dtype)
+        ys = ys.to(dtype=dtype)
+        xq = xq.to(dtype=dtype)
+        yq = yq.to(dtype=dtype)
+
+        optimality_fun = grad(ridge_objective, argnums=0, create_graph=True)
+        solution = ridge_solver_cg(init_params_torch, l2reg_torch, (xs, ys))
+
+
+        def vjp(g):
+            return vjp(optimality_fun, solution, (lam, X, y), g)[0]  # vjp w.r.t. lam
+
+        I = torch.eye(len(sol))
+        J = torch.stack([vjp(I[:, i]) for i in range(I.shape[1])]).T
+        J_num = test_util.ridge_solver_jac(X, y, lam, eps=1e-4)
+        helpers.assert_all_close(l2reg_torch, l2reg_jax_as_tensor)
+        # self.assertArraysAllClose(J, J_num, atol=5e-2)
+
 @pytest.mark.skipif(not HAS_JAX, reason='JAX is not installed')
 @helpers.parametrize(
     dtype=[torch.float64, torch.float32],
