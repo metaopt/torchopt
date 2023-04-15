@@ -528,23 +528,24 @@ def test_rr_root_vjp(
         xq = xq.to(dtype=dtype)
         yq = yq.to(dtype=dtype)
 
-        optimality_fn = functorch.grad(ridge_objective, argnums=0)
+        optimality_fn = functorch.grad(ridge_objective)
         solution = ridge_solver_cg(init_params_torch, l2reg_torch, (xs, ys))
 
-        # def vjp(g):
-        #     return vjp(optimality_fun, solution, (lam, X, y), g)[0]  # vjp w.r.t. lam
+        def vjp(g):
+            return torchopt.diff.implicit.root_vjp(
+                optimality_fn=optimality_fn,  # noqa: B023
+                solution=solution.view(1, -1),  # noqa: B023
+                args=(l2reg_torch, (xs, ys)),  # noqa: B023
+                grad_outputs=g,
+                output_is_tensor=True,
+                argnums=(1,),
+                solve=torchopt.linear_solve.solve_cg(),
+            )
 
-        # torch.eye(len(sol))
-        # J = torch.stack([vjp(I[:, i]) for i in range(I.shape[1])]).T
-        J = torchopt.diff.implicit.root_vjp(
-            optimality_fn=optimality_fn,
-            solution=solution,
-            args=(l2reg_torch, (xs, ys)),
-            grad_outputs=1.0,
-            output_is_tensor=True,
-            argnums=1,
-        )
-        J_num = ridge_solver_jac(init_params_torch, l2reg_torch, (xs, ys), eps=1e-4)
+        I = torch.eye(len(solution))  # noqa: E741
+        # J = functorch.vmap(vjp)(I)
+        J = torch.stack([vjp(I[:, i].view(1, -1))[1] for i in range(I.shape[1])])
+        J_num = ridge_solver_jac(init_params_torch, l2reg_torch, (xs, ys), eps=5e-3)
         helpers.assert_all_close(J, J_num)
 
 

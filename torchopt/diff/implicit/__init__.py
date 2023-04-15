@@ -15,8 +15,9 @@
 """Implicit Meta-Gradient."""
 
 from torchopt.diff.implicit import nn
-from torchopt.diff.implicit.decorator import custom_root, root_vjp
+from torchopt.diff.implicit.decorator import custom_root
 from torchopt.diff.implicit.nn import ImplicitMetaGradientModule
+from torchopt.diff.implicit.utils import root_vjp
 
 
 __all__ = ['custom_root', 'ImplicitMetaGradientModule', 'root_vjp']
