@@ -134,8 +134,6 @@ try:
     setup(
         name='torchopt',
         version=version.__version__,
-        package_data={'sharedlib': ['*.so', '*.pyd']},
-        include_package_data=True,
         **ext_kwargs,
     )
 finally:

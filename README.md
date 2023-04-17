@@ -34,7 +34,7 @@ TorchOpt is:
 - **Efficient**: TorchOpt provides (1) CPU/GPU acceleration differentiable optimizer (2) RPC-based distributed training framework (3) Fast Tree Operations, to largely increase the training efficiency for bi-level optimization problems.
 
 Beyond differentiable optimization, TorchOpt can also be regarded as a functional optimizer that enables [JAX-like](https://github.com/google/jax) composable functional optimizer for PyTorch.
-With TorchOpt, users can easily conduct neural network optimization in PyTorch with functional style optimizer, similar to [Optax](https://github.com/deepmind/optax) in JAX.
+With TorchOpt, users can easily conduct neural network optimization in PyTorch with a functional style optimizer, similar to [Optax](https://github.com/deepmind/optax) in JAX.
 
 --------------------------------------------------------------------------------
 
@@ -132,11 +132,11 @@ optimizer.step()                  # step updates
 
 ### Differentiable
 
-On top of the same optimization function as `torch.optim`, an important benefit of functional optimizer is that one can implement differentiable optimization easily.
-This is particularly helpful when the algorithm requires to differentiate through optimization updates (such as meta-learning practices).
+On top of the same optimization function as `torch.optim`, an important benefit of the functional optimizer is that one can implement differentiable optimization easily.
+This is particularly helpful when the algorithm requires differentiation through optimization updates (such as meta-learning practices).
 We take as the inputs the gradients and optimizer states, and use non-in-place operators to compute and output the updates.
 The processes can be automatically implemented, with the only need from users being to pass the argument `inplace=False` to the functions.
-Check out section [Explicit Gradient (EG)](#explicit-gradient-eg) functional API for example.
+Check out the section [Explicit Gradient](#explicit-gradient-eg) (EG)](#explicit-gradient-eg) functional API for example.
 
 --------------------------------------------------------------------------------
 
@@ -155,7 +155,7 @@ From the BR-based perspective, existing gradient methods can be categorized into
 
 ### Explicit Gradient (EG)
 
-The idea of explicit gradient is to treat the gradient step as a differentiable function and try to backpropagate through the unrolled optimization path.
+The idea of the explicit gradient is to treat the gradient step as a differentiable function and try to backpropagate through the unrolled optimization path.
 This differentiation mode is suitable for algorithms when the inner-level optimization solution is obtained by a few gradient steps, such as [MAML](https://arxiv.org/abs/1703.03400) and [MGRL](https://arxiv.org/abs/1805.09801).
 TorchOpt offers both functional and object-oriented API for EG to fit different user applications.
 
@@ -163,7 +163,7 @@ TorchOpt offers both functional and object-oriented API for EG to fit different 
 
 The functional API is to conduct optimization in a functional programming style.
 Note that we pass the argument `inplace=False` to the functions to make the optimization differentiable.
-Refer to the tutorial notebook [Functional Optimizer](tutorials/1_Functional_Optimizer.ipynb) for more guidances.
+Refer to the tutorial notebook [Functional Optimizer](tutorials/1_Functional_Optimizer.ipynb) for more guidance.
 
 ```python
 # Define functional optimizer
@@ -187,8 +187,8 @@ meta_grads = torch.autograd.grad(loss, meta_params)
 
 #### OOP API  <!-- omit in toc -->
 
-TorchOpt also provides OOP API compatible with PyTorch programming style.
-Refer to the example and the tutorial notebook [Meta-Optimizer](tutorials/3_Meta_Optimizer.ipynb), [Stop Gradient](tutorials/4_Stop_Gradient.ipynb) for more guidances.
+TorchOpt also provides OOP API compatible with the PyTorch programming style.
+Refer to the example and the tutorial notebook [Meta-Optimizer](tutorials/3_Meta_Optimizer.ipynb), [Stop Gradient](tutorials/4_Stop_Gradient.ipynb) for more guidance.
 
 ```python
 # Define meta and inner parameters
@@ -215,7 +215,7 @@ Refer to the example [iMAML](https://github.com/waterhorse1/torchopt/tree/readme
 
 #### Functional API  <!-- omit in toc -->
 
-For implicit gradient, users need to define the stationary condition and TorchOpt provides the decorator to wrap the solve function for enabling implicit gradient computation.
+For the implicit gradient, users need to define the stationary condition and TorchOpt provides the decorator to wrap the solve function for enabling implicit gradient computation.
 
 ```python
 # The stationary condition for the inner-loop
@@ -240,7 +240,7 @@ meta_grads = torch.autograd.grad(loss, meta_params)
 
 #### OOP API  <!-- omit in toc -->
 
-TorchOpt also offer an OOP API, users need to inherit from the class `torchopt.nn.ImplicitMetaGradientModule` to construct the inner-loop network.
+TorchOpt also offers an OOP API, which users need to inherit from the class `torchopt.nn.ImplicitMetaGradientModule` to construct the inner-loop network.
 Users need to define the stationary condition/objective function and the inner-loop solve function to enable implicit gradient computation.
 
 ```python
@@ -288,7 +288,7 @@ When the inner-loop process is non-differentiable or one wants to eliminate the 
 ZD typically gets gradients based on zero-order estimation, such as finite-difference, or [Evolutionary Strategy](https://arxiv.org/abs/1703.03864).
 Instead of optimizing the objective $F$, ES optimizes a smoothed objective.
 TorchOpt provides both functional and OOP APIs for the ES method.
-Refer to the tutorial notebook [Zero-order Differentiation](tutorials/6_Zero_Order_Differentiation.ipynb) for more guidances.
+Refer to the tutorial notebook [Zero-order Differentiation](tutorials/6_Zero_Order_Differentiation.ipynb) for more guidance.
 
 #### Functional API  <!-- omit in toc -->
 
@@ -315,7 +315,7 @@ def forward(params, batch, labels):
 
 #### OOP API  <!-- omit in toc -->
 
-TorchOpt also offer an OOP API, users need to inherit from the class `torchopt.nn.ZeroOrderGradientModule` to construct the network as an `nn.Module` following a classical PyTorch style.
+TorchOpt also offers an OOP API, which users need to inherit from the class `torchopt.nn.ZeroOrderGradientModule` to construct the network as an `nn.Module` following a classical PyTorch style.
 Users need to define the forward process zero-order gradient procedures `forward()` and a noise sampling function `sample()`.
 
 ```python
@@ -356,8 +356,8 @@ We take the optimizer as a whole instead of separating it into several basic ope
 Therefore, by manually writing the forward and backward functions, we can perform the symbolic reduction.
 In addition, we can store some intermediate data that can be reused during the backpropagation.
 We write the accelerated functions in C++ OpenMP and CUDA, bind them by [`pybind11`](https://github.com/pybind/pybind11) to allow they can be called by Python, and then define the forward and backward behavior using `torch.autograd.Function`.
-Users can use by simply setting the `use_accelerated_op` flag as `True`.
-Refer to the corresponding sections in tutorials [Functional Optimizer](tutorials/1_Functional_Optimizer.ipynb) and [Meta-Optimizer](tutorials/3_Meta_Optimizer.ipynb)
+Users can use it by simply setting the `use_accelerated_op` flag as `True`.
+Refer to the corresponding sections in the tutorials [Functional Optimizer](tutorials/1_Functional_Optimizer.ipynb)](tutorials/1_Functional_Optimizer.ipynb) and [Meta-Optimizer](tutorials/3_Meta_Optimizer.ipynb)
 
 ```python
 optimizer = torchopt.MetaAdam(model, lr, use_accelerated_op=True)
@@ -381,12 +381,12 @@ For more guidance and comparison results, please refer to our open-source projec
 
 ## Visualization
 
-Complex gradient flow in meta-learning brings in a great challenge for managing the gradient flow and verifying the correctness of it.
+Complex gradient flow in meta-learning brings in a great challenge for managing the gradient flow and verifying its correctness of it.
 TorchOpt provides a visualization tool that draws variable (e.g., network parameters or meta-parameters) names on the gradient graph for better analysis.
 The visualization tool is modified from [`torchviz`](https://github.com/szagoruyko/pytorchviz).
 Refer to the example [visualization code](examples/visualize.py) and the tutorial notebook [Visualization](tutorials/2_Visualization.ipynb) for more details.
 
-The figure below show the visualization result.
+The figure below shows the visualization result.
 Compared with [`torchviz`](https://github.com/szagoruyko/pytorchviz), TorchOpt fuses the operations within the `Adam` together (orange) to reduce the complexity and provide simpler visualization.
 
 <div align="center">
@@ -397,7 +397,7 @@ Compared with [`torchviz`](https://github.com/szagoruyko/pytorchviz), TorchOpt f
 
 ## Examples
 
-In the [`examples`](examples) directory, we offer several examples of functional optimizers and light-weight meta-learning examples with TorchOpt.
+In the [`examples`](examples) directory, we offer several examples of functional optimizers and lightweight meta-learning examples with TorchOpt.
 
 - [Model-Agnostic Meta-Learning (MAML) - Supervised Learning](https://arxiv.org/abs/1703.03400) (ICML 2017)
 - [Learning to Reweight Examples for Robust Deep Learning](https://arxiv.org/abs/1803.09050) (ICML 2018)
@@ -406,7 +406,7 @@ In the [`examples`](examples) directory, we offer several examples of functional
 - [Learning through opponent learning process (LOLA)](https://arxiv.org/abs/1709.04326) (AAMAS 2018)
 - [Meta-Learning with Implicit Gradients](https://arxiv.org/abs/1909.04630) (NeurIPS 2019)
 
-Also check [`examples`](examples) for more distributed/visualization/functorch-compatible examples.
+Also, check [`examples`](examples) for more distributed/visualization/functorch-compatible examples.
 
 --------------------------------------------------------------------------------
 

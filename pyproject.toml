@@ -85,16 +85,22 @@ lint = [
     "pre-commit",
 ]
 test = [
-    'pytest',
-    'pytest-cov',
-    'pytest-xdist',
-    'jax[cpu] >= 0.3; platform_system != "Windows"',
-    'jaxopt; platform_system != "Windows"',
-    'optax; platform_system != "Windows"',
+    "pytest",
+    "pytest-cov",
+    "pytest-xdist",
+    "jax[cpu] >= 0.3; platform_system != 'Windows'",
+    "jaxopt; platform_system != 'Windows'",
+    "optax; platform_system != 'Windows'",
 ]
+
+[tool.setuptools]
+include-package-data = true
 
 [tool.setuptools.packages.find]
 include = ["torchopt", "torchopt.*"]
+
+[tool.setuptools.package-data]
+torchopt = ['*.so', '*.pyd']
 
 # Wheel builder ################################################################
 # Reference: https://cibuildwheel.readthedocs.io
