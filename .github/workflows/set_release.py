@@ -10,7 +10,7 @@ ROOT = pathlib.Path(__file__).absolute().parent.parent.parent
 
 VERSION_FILE = ROOT / 'torchopt' / 'version.py'
 
-VERSION_CONTENT = VERSION_FILE.read_text(encoding='UTF-8')
+VERSION_CONTENT = VERSION_FILE.read_text(encoding='utf-8')
 
 VERSION_FILE.write_text(
     data=re.sub(
@@ -18,5 +18,5 @@ VERSION_FILE.write_text(
         '__release__ = True',
         string=VERSION_CONTENT,
     ),
-    encoding='UTF-8',
+    encoding='utf-8',
 )
