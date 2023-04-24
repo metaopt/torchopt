@@ -108,8 +108,7 @@ def solve_normal_cg(**kwargs: Any) -> LinearSolver:
     See Also:
         Conjugate gradient iteration :func:`torchopt.linalg.cg`.
 
-    Example::
-
+    Examples:
         >>> A = {'a': torch.randn(5, 5), 'b': torch.randn(3, 3)}
         >>> x = {'a': torch.randn(5), 'b': torch.randn(3)}
         >>> def matvec(x: TensorTree) -> TensorTree:
@@ -118,6 +117,5 @@ def solve_normal_cg(**kwargs: Any) -> LinearSolver:
         >>> solver = solve_normal_cg(init={'a': torch.zeros(5), 'b': torch.zeros(3)})
         >>> x_hat = solver(matvec, b)
         >>> assert torch.allclose(x_hat['a'], x['a']) and torch.allclose(x_hat['b'], x['b'])
-
     """
     return functools.partial(_solve_normal_cg, **kwargs)

@@ -345,13 +345,11 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
         Yields:
             Parameter: module meta-parameter
 
-        Example::
-
+        Examples:
             >>> for param in model.meta_parameters():
             >>>     print(type(param), param.size())
             <class 'torch.Tensor'> (20L,)
             <class 'torch.Tensor'> (20L, 1L, 5L, 5L)
-
         """
         for _, meta_param in self.named_meta_parameters(recurse=recurse):
             yield meta_param
@@ -373,12 +371,10 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
         Yields:
             (string, Parameter): Tuple containing the name and parameter
 
-        Example::
-
+        Examples:
             >>> for name, meta_param in self.named_meta_parameters():
             >>>    if name in ['bias']:
             >>>        print(meta_param.size())
-
         """  # pylint: disable=line-too-long
         memo = set()
         for name, param in getattr(self, '_meta_parameters', {}).items():
@@ -407,12 +403,10 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
         Yields:
             (string, Module): Tuple containing a name and child meta-module
 
-        Example::
-
+        Examples:
             >>> for name, meta_module in model.named_meta_children():
             >>>     if name in ['conv4', 'conv5']:
             >>>         print(meta_module)
-
         """  # pylint: disable=line-too-long
         memo = set()
         for name, meta_module in self._meta_modules.items():
