@@ -99,6 +99,7 @@ def extract_state_dict(
     by: CopyMode = 'reference',
     device: Device | None = None,
     with_buffers: bool = True,
+    detach_buffers: bool = False,
     enable_visual: bool = False,
     visual_prefix: str = '',
 ) -> ModuleState:  # pragma: no cover
@@ -111,7 +112,6 @@ def extract_state_dict(
     *,
     by: CopyMode = 'reference',
     device: Device | None = None,
-    with_buffers: bool = True,
     enable_visual: bool = False,
     visual_prefix: str = '',
 ) -> tuple[OptState, ...]:  # pragma: no cover
