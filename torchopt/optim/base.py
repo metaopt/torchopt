@@ -14,8 +14,6 @@
 # ==============================================================================
 """The base class for optimizers."""
 
-# mypy: no-warn-unreachable
-
 from __future__ import annotations
 
 from typing import Callable, Iterable, Sequence
