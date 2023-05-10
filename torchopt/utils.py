@@ -14,8 +14,6 @@
 # ==============================================================================
 """Utilities for TorchOpt."""
 
-# mypy: no-warn-unused-ignores,no-warn-unreachable
-
 from __future__ import annotations
 
 import copy

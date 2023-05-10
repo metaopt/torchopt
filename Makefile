@@ -138,7 +138,7 @@ ruff-fix: ruff-install
 	$(PYTHON) -m ruff check . --fix --exit-non-zero-on-fix
 
 mypy: mypy-install
-	$(PYTHON) -m mypy $(PROJECT_PATH)
+	$(PYTHON) -m mypy $(PROJECT_PATH) --install-types --non-interactive
 
 pre-commit: pre-commit-install
 	$(PYTHON) -m pre_commit run --all-files
@@ -221,6 +221,9 @@ docker-devel:
 	@echo Successfully build docker image with tag $(PROJECT_NAME)-devel:$(COMMIT_HASH)
 
 docker: docker-base docker-devel
+
+docker-run-base: docker-base
+	docker run --network=host --gpus=all -v /:/host -h ubuntu -it $(PROJECT_NAME):$(COMMIT_HASH)
 
 docker-run-devel: docker-devel
 	docker run --network=host --gpus=all -v /:/host -h ubuntu -it $(PROJECT_NAME)-devel:$(COMMIT_HASH)
