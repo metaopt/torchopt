@@ -112,8 +112,6 @@ def extract_state_dict(
     *,
     by: CopyMode = 'reference',
     device: Device | None = None,
-    enable_visual: bool = False,
-    visual_prefix: str = '',
 ) -> tuple[OptState, ...]:  # pragma: no cover
     ...
 
