@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fix overloaded annotations of `extract_state_dict` by [@StefanoWoerner](https://github.com/StefanoWoerner) in [#162](https://github.com/metaopt/torchopt/pull/162).
 - Fix transpose empty iterable with `zip(*nested)` in transformations by [@XuehaiPan](https://github.com/XuehaiPan) in [#145](https://github.com/metaopt/torchopt/pull/145).
 
 ### Removed
