@@ -100,4 +100,5 @@ dependencies:
   - clang-format >= 14
   - clang-tools >= 14  # clang-tidy
   - cpplint
-  - pre-commit
+  - conda-forge::pre-commit
+  - conda-forge::identify

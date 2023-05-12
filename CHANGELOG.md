@@ -13,15 +13,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+-
+
+### Changed
+
+-
+
+### Fixed
+
+-
+
+### Removed
+
+-
+
+------
+
+## [0.7.1] - 2023-05-12
+
+### Added
+
 - Enable CI workflow to build CXX/CUDA extension for Python 3.11 by [@XuehaiPan](https://github.com/XuehaiPan) in [#152](https://github.com/metaopt/torchopt/pull/152).
 - Implement AdaGrad optimizer and exponential learning rate decay schedule by [@Benjamin-eecs](https://github.com/Benjamin-eecs) and [@XuehaiPan](https://github.com/XuehaiPan) in [#80](https://github.com/metaopt/torchopt/pull/80).
 - Enable tests on Windows by [@XuehaiPan](https://github.com/XuehaiPan) in [#140](https://github.com/metaopt/torchopt/pull/140).
 - Add `ruff` and `flake8` plugins integration by [@XuehaiPan](https://github.com/XuehaiPan) in [#138](https://github.com/metaopt/torchopt/pull/138) and [#139](https://github.com/metaopt/torchopt/pull/139).
 - Add more documentation on implicit differentiation by [@Benjamin-eecs](https://github.com/Benjamin-eecs) and [@XuehaiPan](https://github.com/XuehaiPan) in [#143](https://github.com/metaopt/torchopt/pull/143).
-
-### Changed
-
--
 
 ### Fixed
 
@@ -171,7 +187,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ------
 
-[Unreleased]: https://github.com/metaopt/torchopt/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/metaopt/torchopt/compare/v0.7.1...HEAD
+[0.7.1]: https://github.com/metaopt/torchopt/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/metaopt/torchopt/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/metaopt/torchopt/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/metaopt/torchopt/compare/v0.4.3...v0.5.0
