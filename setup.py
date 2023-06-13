@@ -107,9 +107,7 @@ ext_kwargs = {
     ],
 }
 
-TORCHOPT_NO_EXTENSIONS = (
-    bool(os.getenv('TORCHOPT_NO_EXTENSIONS', '')) or WINDOWS or (MACOS and CIBUILDWHEEL)
-)
+TORCHOPT_NO_EXTENSIONS = bool(os.getenv('TORCHOPT_NO_EXTENSIONS', '')) or WINDOWS or MACOS
 if TORCHOPT_NO_EXTENSIONS:
     ext_kwargs.clear()
 
