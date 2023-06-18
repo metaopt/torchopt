@@ -37,12 +37,13 @@ from torchopt.alias import adagrad, adam, adamw, rmsprop, sgd
 from torchopt.clip import clip_grad_norm
 from torchopt.combine import chain
 from torchopt.hook import register_hook
-from torchopt.optim import SGD, AdaGrad, Adagrad, Adam, AdamW, Optimizer, RMSProp, RMSprop
+from torchopt.optim import SGD, AdaGrad, Adagrad, Adam, Adadelta, AdamW, Optimizer, RMSProp, RMSprop
 from torchopt.optim.func import FuncOptimizer
 from torchopt.optim.meta import (
     MetaAdaGrad,
     MetaAdagrad,
     MetaAdam,
+    MetaAdadelta,
     MetaAdamW,
     MetaOptimizer,
     MetaRMSProp,
@@ -75,6 +76,7 @@ __all__ = [
     'Optimizer',
     'SGD',
     'Adam',
+    'Adadelta',
     'AdamW',
     'AdaGrad',
     'Adagrad',
@@ -83,6 +85,7 @@ __all__ = [
     'MetaOptimizer',
     'MetaSGD',
     'MetaAdam',
+    'MetaAdadelta',
     'MetaAdamW',
     'MetaAdaGrad',
     'MetaAdagrad',

@@ -16,6 +16,7 @@
 
 from torchopt.optim.meta.adagrad import MetaAdaGrad, MetaAdagrad
 from torchopt.optim.meta.adam import MetaAdam
+from torchopt.optim.meta.adadelta import MetaAdadelta
 from torchopt.optim.meta.adamw import MetaAdamW
 from torchopt.optim.meta.base import MetaOptimizer
 from torchopt.optim.meta.rmsprop import MetaRMSProp, MetaRMSprop
