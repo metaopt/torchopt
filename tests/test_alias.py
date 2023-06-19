@@ -200,6 +200,7 @@ def test_adadelta(
     helpers.assert_model_all_close((params, buffers), model_ref, model_base, dtype=dtype)
     _set_use_chain_flat(True)
 
+
 @helpers.parametrize(
     dtype=[torch.float64],
     lr=[1e-2, 1e-3, 1e-4],
