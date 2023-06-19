@@ -175,3 +175,5 @@ ctx
 Duchi
 invertible
 AdaGrad
+Adadelta
+Theiler

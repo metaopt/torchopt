@@ -50,10 +50,14 @@ class Adadelta(Optimizer):
         r"""Initialize the Adadelta optimizer.
 
         Args:
+            params (iterable of Tensor): An iterable of :class:`torch.Tensor`\s. Specifies what
+                tensors should be optimized.
             lr (float or callable, optional): This is a fixed global scaling factor or a learning rate
                 scheduler. (default: :const:`1e-3`)
-            rho (float, optional): Coefficients used for computing running averages of  gradient and its square. (default: :const:`0.9`)
-            eps (float, optional): A small constant applied to the square root (as in the Adadelta paper) to avoid dividing by zero when rescaling.
+            rho (float, optional): Coefficients used for computing running averages of  gradient and its square.
+                (default: :const:`0.9`)
+            eps (float, optional): A small constant applied to the square root (as in the Adadelta paper)
+                to avoid dividing by zero when rescaling.
                 (default: :const:`1e-6`)
             weight_decay (float, optional): Weight decay, add L2 penalty to parameters.
                 (default: :const:`0.0`)

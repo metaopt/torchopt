@@ -49,6 +49,7 @@ class MetaAdadelta(MetaOptimizer):
         """Initialize the meta-Adadelta optimizer.
 
         Args:
+            module (nn.Module): A network whose parameters should be optimized.
             lr (float or callable, optional): This is a fixed global scaling factor or a learning rate
                 scheduler. (default: :const:`1e-3`)
             rho (float, optional): Coefficients used for computing running averages of  gradient and its square. (default: :const:`0.9`)
@@ -56,6 +57,9 @@ class MetaAdadelta(MetaOptimizer):
                 (default: :const:`1e-6`)
             weight_decay (float, optional): Weight decay, add L2 penalty to parameters.
                 (default: :const:`0.0`)
+            moment_requires_grad (bool, optional): If :data:`True` the momentums will be created
+                with flag ``requires_grad=True``, this flag is often used in Meta-Learning
+                algorithms. (default: :data:`False`)
             maximize (bool, optional): Maximize the params based on the objective, instead of minimizing.
                 (default: :data:`False`)
         """

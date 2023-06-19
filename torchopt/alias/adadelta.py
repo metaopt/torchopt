@@ -66,7 +66,6 @@ def adadelta(
     See Also:
         The functional optimizer wrapper :class:`torchopt.FuncOptimizer`.
     """
-
     # pylint: disable=unneeded-not
     if not (callable(lr) or lr >= 0.0):  # pragma: no cover
         raise ValueError(f'Invalid learning rate: {lr}')
