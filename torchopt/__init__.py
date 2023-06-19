@@ -33,7 +33,7 @@ from torchopt import (
     visual,
 )
 from torchopt.accelerated_op import is_available as accelerated_op_available
-from torchopt.alias import adagrad, adam, adamw, rmsprop, sgd
+from torchopt.alias import adagrad, adam, adadelta, adamw, rmsprop, sgd
 from torchopt.clip import clip_grad_norm
 from torchopt.combine import chain
 from torchopt.hook import register_hook
@@ -65,6 +65,7 @@ from torchopt.version import __version__
 __all__ = [
     'accelerated_op_available',
     'adam',
+    'adadelta',
     'adamw',
     'adagrad',
     'rmsprop',

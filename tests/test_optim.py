@@ -147,11 +147,9 @@ def test_Adam(
 @helpers.parametrize(
     dtype=[torch.float64],
     lr=[1e-2, 1e-3, 1e-4],
-    betas=[0.9, 0.95],
+    rho=[0.9, 0.95],
     eps=[1e-8],
     weight_decay=[0.0, 1e-2],
-    maximize=[False, True],
-    use_accelerated_op=[False, True],
 )
 def test_Adadelta(
     dtype: torch.dtype,
@@ -159,7 +157,6 @@ def test_Adadelta(
     rho: float,
     eps: float,
     weight_decay: float,
-    maximize: bool,
 ) -> None:
     model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
 
@@ -169,7 +166,6 @@ def test_Adadelta(
         rho=rho,
         eps=eps,
         weight_decay=weight_decay,
-        maximize=maximize,
     )
     optim_ref = torch.optim.Adadelta(
         model_ref.parameters(),

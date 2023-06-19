@@ -37,7 +37,6 @@ def adadelta(
     weight_decay: float = 0.0,
     *,
     moment_requires_grad: bool = False,
-    maximize: bool = False,
 ) -> GradientTransformation:
     """Create a functional version of the Adadelta optimizer.
 
@@ -58,8 +57,6 @@ def adadelta(
             (default: :const:`0.0`)
         moment_requires_grad (bool, optional): If :data:`True` the momentums will be created with
             flag ``requires_grad=True``, this flag is often used in Meta-Learning algorithms.
-            (default: :data:`False`)
-        maximize (bool, optional): Maximize the params based on the objective, instead of minimizing.
             (default: :data:`False`)
 
     Returns:
@@ -91,7 +88,7 @@ def adadelta(
         scale_by_neg_lr_fn = scale_by_neg_lr_fn.flat  # type: ignore[attr-defined]
 
     return chain_fn(
-        flip_sign_and_add_weight_decay_fn(weight_decay=weight_decay, maximize=maximize),
+        flip_sign_and_add_weight_decay_fn(weight_decay=weight_decay, maximize=False),
         adadelta_scaler_fn(
             rho=rho,
             eps=eps,

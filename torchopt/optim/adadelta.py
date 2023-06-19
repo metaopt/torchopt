@@ -44,8 +44,6 @@ class Adadelta(Optimizer):
         rho: float = 0.9,
         eps: float = 1e-8,
         weight_decay: float = 0.0,
-        *,
-        maximize: bool = False,
     ) -> None:
         r"""Initialize the Adadelta optimizer.
 
@@ -61,8 +59,6 @@ class Adadelta(Optimizer):
                 (default: :const:`1e-6`)
             weight_decay (float, optional): Weight decay, add L2 penalty to parameters.
                 (default: :const:`0.0`)
-            maximize (bool, optional): Maximize the params based on the objective, instead of minimizing.
-                (default: :data:`False`)
         """
         super().__init__(
             params,
@@ -72,6 +68,5 @@ class Adadelta(Optimizer):
                 eps=eps,
                 weight_decay=weight_decay,
                 moment_requires_grad=False,
-                maximize=maximize,
             ),
         )

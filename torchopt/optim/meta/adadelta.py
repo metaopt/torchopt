@@ -44,7 +44,6 @@ class MetaAdadelta(MetaOptimizer):
         weight_decay: float = 0.0,
         *,
         moment_requires_grad: bool = True,
-        maximize: bool = False,
     ) -> None:
         """Initialize the meta-Adadelta optimizer.
 
@@ -62,8 +61,6 @@ class MetaAdadelta(MetaOptimizer):
             moment_requires_grad (bool, optional): If :data:`True` the momentums will be created
                 with flag ``requires_grad=True``, this flag is often used in Meta-Learning
                 algorithms. (default: :data:`False`)
-            maximize (bool, optional): Maximize the params based on the objective, instead of minimizing.
-                (default: :data:`False`)
         """
         super().__init__(
             module,
@@ -73,6 +70,5 @@ class MetaAdadelta(MetaOptimizer):
                 eps=eps,
                 weight_decay=weight_decay,
                 moment_requires_grad=moment_requires_grad,
-                maximize=maximize,
             ),
         )
