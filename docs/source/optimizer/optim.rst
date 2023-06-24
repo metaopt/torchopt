@@ -18,6 +18,7 @@ Currently, TorchOpt supports 4 functional optimizers: :func:`sgd`, :func:`adam`,
 .. autosummary::
 
     torchopt.FuncOptimizer
+    torchopt.adadelta
     torchopt.adagrad
     torchopt.adam
     torchopt.adamw
@@ -85,6 +86,7 @@ We offer original PyTorch APIs (e.g., ``zero_grad()`` or ``step()``) for traditi
 .. autosummary::
 
     torchopt.Optimizer
+    torchopt.Adadelta
     torchopt.AdaGrad
     torchopt.Adam
     torchopt.AdamW
