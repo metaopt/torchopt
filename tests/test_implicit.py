@@ -181,8 +181,7 @@ def test_imaml_solve_normal_cg(
         regularization_loss = 0
         for p1, p2 in zip(params.values(), meta_params.values()):
             regularization_loss += 0.5 * jnp.sum(jnp.square(p1 - p2))
-        loss = loss + regularization_loss
-        return loss
+        return loss + regularization_loss
 
     @jaxopt.implicit_diff.custom_root(
         jax.grad(imaml_objective_jax, argnums=0),
@@ -310,8 +309,7 @@ def test_imaml_solve_inv(
         regularization_loss = 0
         for p1, p2 in zip(params.values(), meta_params.values()):
             regularization_loss += 0.5 * jnp.sum(jnp.square(p1 - p2))
-        loss = loss + regularization_loss
-        return loss
+        return loss + regularization_loss
 
     @jaxopt.implicit_diff.custom_root(
         jax.grad(imaml_objective_jax, argnums=0),
@@ -398,8 +396,7 @@ def test_imaml_module(dtype: torch.dtype, lr: float, inner_lr: float, inner_upda
             regularization_loss = 0
             for p1, p2 in zip(self.parameters(), self.meta_parameters()):
                 regularization_loss += 0.5 * torch.sum(torch.square(p1 - p2))
-            loss = loss + regularization_loss
-            return loss
+            return loss + regularization_loss
 
         def solve(self, x, y):
             params = tuple(self.parameters())
@@ -425,8 +422,7 @@ def test_imaml_module(dtype: torch.dtype, lr: float, inner_lr: float, inner_upda
         regularization_loss = 0
         for p1, p2 in zip(params.values(), meta_params.values()):
             regularization_loss += 0.5 * jnp.sum(jnp.square(p1 - p2))
-        loss = loss + regularization_loss
-        return loss
+        return loss + regularization_loss
 
     @jaxopt.implicit_diff.custom_root(jax.grad(imaml_objective_jax, argnums=0), has_aux=True)
     def inner_solver_jax(params, meta_params, x, y):

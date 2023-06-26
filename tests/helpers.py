@@ -142,7 +142,7 @@ def get_model():
 
 @torch.no_grad()
 def get_models(
-    device: torch.types.Device = None,
+    device: torch.types.Device | None = None,
     dtype: torch.dtype = torch.float32,
 ) -> tuple[nn.Module, nn.Module, nn.Module, data.DataLoader]:
     seed_everything(seed=42)
@@ -200,7 +200,7 @@ def assert_model_all_close(
 def assert_all_close(
     actual: torch.Tensor,
     expected: torch.Tensor,
-    base: torch.Tensor = None,
+    base: torch.Tensor | None = None,
     rtol: float | None = None,
     atol: float | None = None,
     equal_nan: bool = False,
