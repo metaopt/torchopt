@@ -148,13 +148,20 @@ def _scale_by_radam(
         )
 
         rho_inf = 2 / (1 - b2) - 1
-        one_minus_b1_pow_t = (1 - b1 ** state.t)
-        one_minus_b2_pow_t = (1 - b2 ** state.t)
-        rho = rho_inf - 2 * state.t * b2 ** state.t / one_minus_b2_pow_t
+        one_minus_b1_pow_t = 1 - b1**state.t
+        one_minus_b2_pow_t = 1 - b2**state.t
+        rho = rho_inf - 2 * state.t * b2**state.t / one_minus_b2_pow_t
 
         if rho > 5:
-            numerator = math.sqrt(one_minus_b2_pow_t * (rho - 4) * (rho - 2) * rho_inf
-                                  / (rho_inf - 4) / (rho_inf - 2) / rho)
+            numerator = math.sqrt(
+                one_minus_b2_pow_t
+                * (rho - 4)
+                * (rho - 2)
+                * rho_inf
+                / (rho_inf - 4)
+                / (rho_inf - 2)
+                / rho
+            )
             if inplace:
 
                 def f(
@@ -164,6 +171,7 @@ def _scale_by_radam(
                     return m.mul(numerator / one_minus_b1_pow_t).div_(v.sqrt().add_(eps))
 
             else:
+
                 def f(
                     m: torch.Tensor,
                     v: torch.Tensor,
@@ -171,7 +179,6 @@ def _scale_by_radam(
                     return m.mul(numerator / one_minus_b1_pow_t).div(v.sqrt().add(eps))
 
         else:
-
             if inplace:
 
                 def f(
@@ -188,7 +195,7 @@ def _scale_by_radam(
 
         updates = tree_map(f, updates, mu, state.nu)
 
-        return updates, ScaleByRAdamState(mu=mu, nu=nu, t=state.t+1)
+        return updates, ScaleByRAdamState(mu=mu, nu=nu, t=state.t + 1)
 
     return GradientTransformation(init_fn, update_fn)
 
