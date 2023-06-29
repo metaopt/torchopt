@@ -32,6 +32,7 @@
 r"""The aliases of preset :class:`GradientTransformation`\s for optimizers."""
 
 from torchopt.alias.adadelta import adadelta
+from torchopt.alias.radam import radam
 from torchopt.alias.adagrad import adagrad
 from torchopt.alias.adam import adam
 from torchopt.alias.adamw import adamw
@@ -39,4 +40,4 @@ from torchopt.alias.rmsprop import rmsprop
 from torchopt.alias.sgd import sgd
 
 
-__all__ = ['adagrad', 'adam', 'adadelta', 'adamw', 'rmsprop', 'sgd']
+__all__ = ['adagrad', 'radam', 'adam', 'adadelta', 'adamw', 'rmsprop', 'sgd']

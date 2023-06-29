@@ -16,6 +16,7 @@
 
 from torchopt.optim import meta
 from torchopt.optim.adadelta import Adadelta
+from torchopt.optim.radam import RAdam
 from torchopt.optim.adagrad import AdaGrad, Adagrad
 from torchopt.optim.adam import Adam
 from torchopt.optim.adamw import AdamW

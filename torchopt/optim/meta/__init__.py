@@ -15,6 +15,7 @@
 """Differentiable Meta-Optimizers."""
 
 from torchopt.optim.meta.adadelta import MetaAdadelta
+from torchopt.optim.meta.radam import MetaRAdam
 from torchopt.optim.meta.adagrad import MetaAdaGrad, MetaAdagrad
 from torchopt.optim.meta.adam import MetaAdam
 from torchopt.optim.meta.adamw import MetaAdamW
