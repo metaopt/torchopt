@@ -197,4 +197,4 @@ if rpc.is_available():  # pragma: no cover
     __all__.extend(['tree_as_rref', 'tree_to_here'])
 
 
-del Callable, optree, rpc, Scalar, T, RRef
+del optree, rpc
