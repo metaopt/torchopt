@@ -270,7 +270,7 @@ def extract_state_dict(
                 return replicate(t)
             return t
 
-        return pytree.tree_map(get_variable, state)  # type: ignore[arg-type,assignment]
+        return pytree.tree_map(get_variable, state)  # type: ignore[arg-type,return-value]
 
     raise RuntimeError(f'Unexpected class of {target}')
 
