@@ -160,7 +160,7 @@ def _scale_by_radam(
                 * rho_inf
                 / (rho_inf - 4)
                 / (rho_inf - 2)
-                / rho
+                / rho,
             )
             if inplace:
 
