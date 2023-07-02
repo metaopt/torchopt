@@ -19,7 +19,6 @@
 
 from __future__ import annotations
 
-import math
 from typing import NamedTuple
 
 import torch
@@ -145,7 +144,7 @@ def _scale_by_adamax(
 
         nu = tree_map(update_nu, updates, state.nu)
 
-        one_minus_b1_pow_t = 1 - b1 ** state.t
+        one_minus_b1_pow_t = 1 - b1**state.t
 
         def f(
             m: torch.Tensor,
