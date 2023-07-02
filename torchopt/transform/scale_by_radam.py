@@ -29,6 +29,7 @@ from torchopt.base import GradientTransformation
 from torchopt.transform.utils import tree_map_flat, update_moment
 from torchopt.typing import OptState, Params, Updates
 
+
 __all__ = ['scale_by_radam']
 
 
@@ -147,9 +148,9 @@ def _scale_by_radam(
         )
 
         rho_inf = 2 / (1 - b2) - 1
-        one_minus_b1_pow_t = 1 - b1 ** state.t
-        one_minus_b2_pow_t = 1 - b2 ** state.t
-        rho = rho_inf - 2 * state.t * b2 ** state.t / one_minus_b2_pow_t
+        one_minus_b1_pow_t = 1 - b1**state.t
+        one_minus_b2_pow_t = 1 - b2**state.t
+        rho = rho_inf - 2 * state.t * b2**state.t / one_minus_b2_pow_t
 
         if rho > 5:
             numerator = math.sqrt(
@@ -157,9 +158,7 @@ def _scale_by_radam(
                 * (rho - 4)
                 * (rho - 2)
                 * rho_inf
-                / ((rho_inf - 4)
-                   * (rho_inf - 2)
-                   * rho),
+                / ((rho_inf - 4) * (rho_inf - 2) * rho),
             )
             if inplace:
 
