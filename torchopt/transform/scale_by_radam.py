@@ -195,7 +195,7 @@ def _scale_by_radam(
                 ) -> torch.Tensor:
                     return m.div(one_minus_b1_pow_t)
 
-        updates = tree_map(f, mu, state.nu)
+        updates = tree_map(f, mu, nu)
 
         return updates, ScaleByRAdamState(mu=mu, nu=nu, t=state.t + 1)
 
