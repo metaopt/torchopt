@@ -36,6 +36,7 @@ from torchopt.transform.nan_to_num import nan_to_num
 from torchopt.transform.scale import scale
 from torchopt.transform.scale_by_adadelta import scale_by_adadelta
 from torchopt.transform.scale_by_adam import scale_by_accelerated_adam, scale_by_adam
+from torchopt.transform.scale_by_adamax import scale_by_adamax
 from torchopt.transform.scale_by_radam import scale_by_radam
 from torchopt.transform.scale_by_rms import scale_by_rms
 from torchopt.transform.scale_by_rss import scale_by_rss
@@ -51,6 +52,7 @@ __all__ = [
     'add_decayed_weights',
     'masked',
     'scale_by_adam',
+    'scale_by_adamax',
     'scale_by_adadelta',
     'scale_by_radam',
     'scale_by_accelerated_adam',
