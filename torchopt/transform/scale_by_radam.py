@@ -120,7 +120,7 @@ def _scale_by_radam(
             lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad),
             params,
         )
-        return ScaleByRAdamState(mu=mu, nu=nu, t=0)
+        return ScaleByRAdamState(mu=mu, nu=nu, t=1)
 
     def update_fn(
         updates: Updates,
@@ -183,6 +183,7 @@ def _scale_by_radam(
 
                 def f(
                     m: torch.Tensor,
+                    v: torch.Tensor,  # pylint: disable=unused-argument
                 ) -> torch.Tensor:
                     return m.div_(one_minus_b1_pow_t)
 
@@ -190,10 +191,11 @@ def _scale_by_radam(
 
                 def f(
                     m: torch.Tensor,
+                    v: torch.Tensor,  # pylint: disable=unused-argument
                 ) -> torch.Tensor:
                     return m.div(one_minus_b1_pow_t)
 
-        updates = tree_map(f, updates, mu, state.nu)
+        updates = tree_map(f, mu, state.nu)
 
         return updates, ScaleByRAdamState(mu=mu, nu=nu, t=state.t + 1)
 
