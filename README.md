@@ -215,7 +215,7 @@ Refer to the example [iMAML](https://github.com/waterhorse1/torchopt/tree/readme
 
 #### Functional API  <!-- omit in toc -->
 
-For the implicit gradient, users need to define the stationary condition and TorchOpt provides the decorator to wrap the solve function for enabling implicit gradient computation.
+For the implicit gradient, similar to [JAXopt](https://jaxopt.github.io/stable/implicit_diff.html), users need to define the stationary condition and TorchOpt provides the decorator to wrap the solve function for enabling implicit gradient computation.
 
 ```python
 # The stationary condition for the inner-loop
