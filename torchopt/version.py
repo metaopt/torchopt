@@ -14,7 +14,7 @@
 # ==============================================================================
 """TorchOpt: a high-performance optimizer library built upon PyTorch."""
 
-__version__ = '0.7.0'
+__version__ = '0.7.1'
 __license__ = 'Apache License, Version 2.0'
 __author__ = 'TorchOpt Contributors'
 __release__ = False
@@ -26,7 +26,7 @@ if not __release__:
     try:
         prefix, sep, suffix = (
             subprocess.check_output(
-                ['git', 'describe', '--abbrev=7'],
+                ['git', 'describe', '--abbrev=7'],  # noqa: S603,S607
                 cwd=os.path.dirname(os.path.abspath(__file__)),
                 stderr=subprocess.DEVNULL,
                 text=True,

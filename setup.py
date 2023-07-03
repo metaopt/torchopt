@@ -107,9 +107,7 @@ ext_kwargs = {
     ],
 }
 
-TORCHOPT_NO_EXTENSIONS = (
-    bool(os.getenv('TORCHOPT_NO_EXTENSIONS', '')) or WINDOWS or (MACOS and CIBUILDWHEEL)
-)
+TORCHOPT_NO_EXTENSIONS = bool(os.getenv('TORCHOPT_NO_EXTENSIONS', '')) or WINDOWS or MACOS
 if TORCHOPT_NO_EXTENSIONS:
     ext_kwargs.clear()
 
@@ -119,14 +117,14 @@ VERSION_CONTENT = None
 try:
     if not version.__release__:
         try:
-            VERSION_CONTENT = VERSION_FILE.read_text(encoding='UTF-8')
+            VERSION_CONTENT = VERSION_FILE.read_text(encoding='utf-8')
             VERSION_FILE.write_text(
                 data=re.sub(
                     r"""__version__\s*=\s*('[^']+'|"[^"]+")""",
                     f'__version__ = {version.__version__!r}',
                     string=VERSION_CONTENT,
                 ),
-                encoding='UTF-8',
+                encoding='utf-8',
             )
         except OSError:
             VERSION_CONTENT = None
@@ -134,11 +132,9 @@ try:
     setup(
         name='torchopt',
         version=version.__version__,
-        package_data={'sharedlib': ['*.so', '*.pyd']},
-        include_package_data=True,
         **ext_kwargs,
     )
 finally:
     if VERSION_CONTENT is not None:
-        with VERSION_FILE.open(mode='wt', encoding='UTF-8', newline='') as file:
+        with VERSION_FILE.open(mode='wt', encoding='utf-8', newline='') as file:
             file.write(VERSION_CONTENT)

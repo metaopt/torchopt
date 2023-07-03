@@ -220,20 +220,21 @@ class ImplicitMetaGradientModule(MetaGradientModule, metaclass=abc.ABCMeta):
             (including the meta-parameters) that were used to compute the objective output.
             Alternatively, please use :func:`torch.autograd.grad` instead.
 
-        Example::
+        Examples:
+            .. code-block:: python
 
-            def solve(self, batch, labels):
-                parameters = tuple(self.parameters())
-                optimizer = torch.optim.Adam(parameters, lr=1e-3)
-                with torch.enable_grad():
-                    for _ in range(100):
-                        loss = self.objective(batch, labels)
-                        optimizer.zero_grad()
-                        # Only update the `.grad` attribute for parameters
-                        # and leave the meta-parameters unchanged
-                        loss.backward(inputs=parameters)
-                        optimizer.step()
-                return self
+                def solve(self, batch, labels):
+                    parameters = tuple(self.parameters())
+                    optimizer = torch.optim.Adam(parameters, lr=1e-3)
+                    with torch.enable_grad():
+                        for _ in range(100):
+                            loss = self.objective(batch, labels)
+                            optimizer.zero_grad()
+                            # Only update the `.grad` attribute for parameters
+                            # and leave the meta-parameters unchanged
+                            loss.backward(inputs=parameters)
+                            optimizer.step()
+                    return self
         """
         raise NotImplementedError  # update parameters
 

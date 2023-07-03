@@ -14,8 +14,6 @@
 # ==============================================================================
 """Utilities for TorchOpt."""
 
-# mypy: no-warn-unused-ignores,no-warn-unreachable
-
 from __future__ import annotations
 
 import copy
@@ -99,6 +97,7 @@ def extract_state_dict(
     by: CopyMode = 'reference',
     device: Device | None = None,
     with_buffers: bool = True,
+    detach_buffers: bool = False,
     enable_visual: bool = False,
     visual_prefix: str = '',
 ) -> ModuleState:  # pragma: no cover
@@ -111,9 +110,6 @@ def extract_state_dict(
     *,
     by: CopyMode = 'reference',
     device: Device | None = None,
-    with_buffers: bool = True,
-    enable_visual: bool = False,
-    visual_prefix: str = '',
 ) -> tuple[OptState, ...]:  # pragma: no cover
     ...
 
@@ -274,8 +270,7 @@ def extract_state_dict(
                 return replicate(t)
             return t
 
-        state = pytree.tree_map(get_variable, state)  # type: ignore[arg-type,assignment]
-        return state
+        return pytree.tree_map(get_variable, state)  # type: ignore[arg-type,return-value]
 
     raise RuntimeError(f'Unexpected class of {target}')
 

@@ -113,8 +113,7 @@ def solve_inv(**kwargs: Any) -> LinearSolver:
     See Also:
         Neumann Series matrix inversion approximation :func:`torchopt.linalg.ns`.
 
-    Example::
-
+    Examples:
         >>> A = {'a': torch.eye(5, 5), 'b': torch.eye(3, 3)}
         >>> x = {'a': torch.randn(5), 'b': torch.randn(3)}
         >>> def matvec(x: TensorTree) -> TensorTree:
@@ -123,6 +122,5 @@ def solve_inv(**kwargs: Any) -> LinearSolver:
         >>> solver = solve_inv(ns=True, maxiter=10)
         >>> x_hat = solver(matvec, b)
         >>> assert torch.allclose(x_hat['a'], x['a']) and torch.allclose(x_hat['b'], x['b'])
-
     """
     return functools.partial(_solve_inv, **kwargs)

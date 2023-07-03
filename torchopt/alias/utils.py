@@ -209,7 +209,7 @@ def _scale_by_neg_lr(
     if callable(lr):
 
         def schedule_wrapper(count: Numeric) -> Numeric:
-            return -lr(count)  # type: ignore[operator]
+            return -lr(count)
 
         return scale_by_schedule.impl(  # type: ignore[attr-defined]
             schedule_wrapper,
