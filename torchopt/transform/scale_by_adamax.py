@@ -37,6 +37,7 @@ class ScaleByAdamaxState(NamedTuple):
 
     mu: Updates
     nu: Updates
+    t: int
 
 
 def scale_by_adamax(
@@ -118,7 +119,7 @@ def _scale_by_adamax(
             lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad),
             params,
         )
-        return ScaleByAdamaxState(mu=mu, nu=nu)
+        return ScaleByAdamaxState(mu=mu, nu=nu, t=1)
 
     def update_fn(
         updates: Updates,
@@ -154,7 +155,7 @@ def _scale_by_adamax(
 
         updates = tree_map(f, mu, nu)
 
-        return updates, ScaleByAdamaxState(mu=mu, nu=nu)
+        return updates, ScaleByAdamaxState(mu=mu, nu=nu, t=state.t + 1)
 
     return GradientTransformation(init_fn, update_fn)
 
