@@ -140,7 +140,7 @@ def _scale_by_adamax(
         def update_nu(
             g: torch.Tensor,
             n: torch.Tensor,
-        ):
+        ) -> torch.Tensor:
             return torch.max(n.mul(b2), g.abs().add_(eps))
 
         nu = tree_map(update_nu, updates, state.nu)
@@ -150,8 +150,8 @@ def _scale_by_adamax(
         def f(
             m: torch.Tensor,
             n: torch.Tensor,
-        ):
-            m.div(n).div_(one_minus_b1_pow_t)
+        ) -> torch.Tensor:
+            return m.div(n).div_(one_minus_b1_pow_t)
 
         updates = tree_map(f, mu, nu)
 
