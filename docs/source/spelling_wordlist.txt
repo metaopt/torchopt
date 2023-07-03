@@ -178,3 +178,4 @@ AdaGrad
 Adadelta
 Zeiler
 radam
+adamax
