@@ -148,12 +148,12 @@ def _scale_by_adamax(
         one_minus_b1_pow_t = 1 - b1**state.t
 
         def f(
-            m: torch.Tensor,
             n: torch.Tensor,
+            m: torch.Tensor,
         ) -> torch.Tensor:
             return m.div(n).div_(one_minus_b1_pow_t)
 
-        updates = tree_map(f, mu, nu)
+        updates = tree_map(f, nu, mu)
 
         return updates, ScaleByAdamaxState(mu=mu, nu=nu, t=state.t + 1)
 
