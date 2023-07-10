@@ -136,7 +136,7 @@ On top of the same optimization function as `torch.optim`, an important benefit 
 This is particularly helpful when the algorithm requires differentiation through optimization updates (such as meta-learning practices).
 We take as the inputs the gradients and optimizer states, and use non-in-place operators to compute and output the updates.
 The processes can be automatically implemented, with the only need from users being to pass the argument `inplace=False` to the functions.
-Check out the section [Explicit Gradient](#explicit-gradient-eg) (EG)](#explicit-gradient-eg) functional API for example.
+Check out the section [Explicit Gradient (EG)](#explicit-gradient-eg) functional API for example.
 
 --------------------------------------------------------------------------------
 
