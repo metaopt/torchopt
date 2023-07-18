@@ -476,6 +476,75 @@ def test_imaml_module(dtype: torch.dtype, lr: float, inner_lr: float, inner_upda
     helpers.assert_pytree_all_close(tuple(model.parameters()), jax_params_as_tensor)
 
 
+@helpers.parametrize(
+    dtype=[torch.float64, torch.float32],
+)
+def test_rr_root_vjp(
+    dtype: torch.dtype,
+):
+    helpers.seed_everything(42)
+    helpers.dtype_torch2numpy(dtype)
+    input_size = 10
+
+    init_params_torch = torch.randn(input_size, dtype=dtype)
+    l2reg_torch = torch.rand(1, dtype=dtype).squeeze_().requires_grad_(True)
+
+    loader = get_rr_dataset_torch()
+
+    def ridge_objective(params, l2reg, data):
+        """Ridge objective function."""
+        X_tr, y_tr = data
+        residuals = X_tr @ params - y_tr
+        regularization_loss = 0.5 * l2reg * torch.sum(torch.square(params))
+        return 0.5 * torch.mean(torch.square(residuals)) + regularization_loss
+
+    def ridge_solver_cg(params, l2reg, data):
+        """Solve ridge regression by conjugate gradient."""
+        X_tr, y_tr = data
+
+        def matvec(u):
+            return X_tr.T @ (X_tr @ u)
+
+        solve = torchopt.linear_solve.solve_cg(
+            ridge=len(y_tr) * l2reg.item(),
+            init=params,
+            maxiter=20,
+        )
+
+        return solve(matvec=matvec, b=X_tr.T @ y_tr)
+
+    def ridge_solver_jac(params, l2reg, data, eps=1e-8):
+        return (
+            ridge_solver_cg(params, l2reg + eps, data) - ridge_solver_cg(params, l2reg - eps, data)
+        ) / (2 * eps)
+
+    for xs, ys, xq, yq in loader:
+        xs = xs.to(dtype=dtype)
+        ys = ys.to(dtype=dtype)
+        xq = xq.to(dtype=dtype)
+        yq = yq.to(dtype=dtype)
+
+        optimality_fn = functorch.grad(ridge_objective)
+        solution = ridge_solver_cg(init_params_torch, l2reg_torch, (xs, ys))
+
+        def vjp(g):
+            return torchopt.diff.implicit.root_vjp(
+                optimality_fn=optimality_fn,  # noqa: B023
+                solution=solution.view(1, -1),  # noqa: B023
+                args=(l2reg_torch, (xs, ys)),  # noqa: B023
+                grad_outputs=g,
+                output_is_tensor=True,
+                argnums=(1,),
+                solve=torchopt.linear_solve.solve_cg(),
+            )
+
+        I = torch.eye(len(solution))  # noqa: E741
+        # J = functorch.vmap(vjp)(I)
+        J = torch.stack([vjp(I[:, i].view(1, -1))[1] for i in range(I.shape[1])])
+        J_num = ridge_solver_jac(init_params_torch, l2reg_torch, (xs, ys), eps=5e-3)
+        helpers.assert_all_close(J, J_num)
+
+
 @pytest.mark.skipif(not HAS_JAX, reason='JAX is not installed')
 @helpers.parametrize(
     dtype=[torch.float64, torch.float32],

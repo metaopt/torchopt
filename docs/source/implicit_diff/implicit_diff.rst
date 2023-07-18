@@ -64,6 +64,15 @@ This can be implemented with:
         new_theta = fixed_point_function(phi, theta)
         return torchopt.pytree.tree_sub(new_theta, theta)
 
+VJPs of Root
+------------
+
+.. autosummary::
+
+    torchopt.diff.implicit.root_vjp
+
+We also provide lower-level routines for computing the VJPs of roots of functions. The VJPs of roots are useful for computing the VJPs of the inner-level optimal solutions in the context of implicit differentiation.
+
 Custom Solvers
 --------------
 

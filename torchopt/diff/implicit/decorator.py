@@ -360,9 +360,8 @@ def _custom_root(
                     raise TypeError(
                         f'keyword arguments to solver_fn could not be resolved to positional '
                         f'arguments based on the signature {reference_signature}. This can '
-                        f'happen under custom_root if optimality_fn takes catch-all **kwargs, or '
-                        f'under custom_fixed_point if fixed_point_fn takes catch-all **kwargs, '
-                        f'both of which are currently unsupported.',
+                        f'happen under custom_root if optimality_fn takes catch-all **kwargs, '
+                        f'which are currently unsupported.',
                     )
 
                 # Compute VJPs w.r.t. args.

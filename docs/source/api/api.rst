@@ -158,12 +158,17 @@ Implicit Differentiation
 
     custom_root
     nn.ImplicitMetaGradientModule
+    root_vjp
 
 Custom Solvers
 ~~~~~~~~~~~~~~
 
 .. autofunction:: custom_root
 
+VJPs of Root
+~~~~~~~~~~~~
+
+.. autofunction:: root_vjp
 
 Implicit Meta-Gradient Module
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
