@@ -33,7 +33,7 @@ class AdaDelta(Optimizer):
 
     See Also:
         - The functional AdaDelta optimizer: :func:`torchopt.adadelta`.
-        - The differentiable meta AdaDelta optimizer: :class:`torchopt.MetaAdaDetla`.
+        - The differentiable meta-AdaDelta optimizer: :class:`torchopt.MetaAdaDetla`.
     """
 
     # pylint: disable-next=too-many-arguments

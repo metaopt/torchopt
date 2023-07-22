@@ -33,7 +33,7 @@ class RAdam(Optimizer):
 
     See Also:
         - The functional Adam optimizer: :func:`torchopt.radam`.
-        - The differentiable meta-Adam optimizer: :class:`torchopt.MetaRAdam`.
+        - The differentiable meta-RAdam optimizer: :class:`torchopt.MetaRAdam`.
     """
 
     # pylint: disable-next=too-many-arguments
