@@ -94,10 +94,13 @@ Classic Optimizers
 
 .. autosummary::
 
+    AdaDelta
     Adadelta
+    AdaGrad
     Adagrad
     Adam
     AdamW
+    AdaMax
     Adamax
     RAdam
     RMSProp
@@ -106,12 +109,12 @@ Classic Optimizers
 Classic AdaDelta Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: Adadelta
+.. autoclass:: AdaDelta
 
 Classic AdaGrad Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: Adagrad
+.. autoclass:: AdaGrad
 
 Classic Adam Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -126,7 +129,7 @@ Classic AdamW Optimizer
 Classic AdaMax Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: Adamax
+.. autoclass:: AdaMax
 
 Classic RAdam Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -152,10 +155,13 @@ Differentiable Meta-Optimizers
 
 .. autosummary::
 
+    MetaAdaDelta
     MetaAdadelta
     MetaAdaGrad
+    MetaAdagrad
     MetaAdam
     MetaAdamW
+    MetaAdaMax
     MetaAdamax
     MetaRAdam
     MetaRMSProp
@@ -164,12 +170,12 @@ Differentiable Meta-Optimizers
 Differentiable Meta-AdaDelta Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: MetaAdadelta
+.. autoclass:: MetaAdaDelta
 
 Differentiable Meta-AdaGrad Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: MetaAdagrad
+.. autoclass:: MetaAdaGrad
 
 Differentiable Meta-Adam Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -184,7 +190,7 @@ Differentiable Meta-AdamW Optimizer
 Differentiable Meta-AdaMax Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: MetaAdamax
+.. autoclass:: MetaAdaMax
 
 Differentiable Meta-RAdam Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
