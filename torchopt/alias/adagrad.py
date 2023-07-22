@@ -91,7 +91,7 @@ def adagrad(
     *,
     maximize: bool = False,
 ) -> GradientTransformation:
-    """The functional AdaGrad optimizer.
+    """Create a functional version of the AdaGrad optimizer.
 
     AdaGrad is an algorithm for gradient based optimization that anneals the learning rate for each
     parameter during the course of training.

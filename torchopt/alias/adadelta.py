@@ -38,7 +38,7 @@ def adadelta(
     *,
     moment_requires_grad: bool = False,
 ) -> GradientTransformation:
-    """Create a functional version of the Adadelta optimizer.
+    """Create a functional version of the AdaDelta optimizer.
 
     Adadelta is a per-dimension learning rate method for gradient descent.
 

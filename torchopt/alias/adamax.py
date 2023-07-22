@@ -38,7 +38,7 @@ def adamax(
     *,
     moment_requires_grad: bool = False,
 ) -> GradientTransformation:
-    """Create a functional version of the Adamax optimizer.
+    """Create a functional version of the AdaMax optimizer.
 
     References:
         - Kingma et al., 2014: https://arxiv.org/abs/1412.6980
