@@ -180,3 +180,5 @@ Zeiler
 radam
 adamax
 RAdam
+AdaDelta
+AdaMax
