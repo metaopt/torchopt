@@ -33,7 +33,7 @@ class Adan(Optimizer):
 
     See Also:
         - The functional Adan optimizer: :func:`torchopt.adan`.
-        - The differentiable meta Adan optimizer: :class:`torchopt.MetaAdan`.
+        - The differentiable meta-Adan optimizer: :class:`torchopt.MetaAdan`.
     """
 
     # pylint: disable-next=too-many-arguments
