@@ -31,7 +31,7 @@ class MetaAdaGrad(MetaOptimizer):
 
     See Also:
         - The functional AdaGrad optimizer: :func:`torchopt.adagrad`.
-        - The classic AdaGrad optimizer: :class:`torchopt.AdaGrad`.
+        - The classic AdaGrad optimizer: :class:`torchopt.Adagrad`.
     """
 
     # pylint: disable-next=too-many-arguments

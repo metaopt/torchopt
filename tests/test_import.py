@@ -25,17 +25,24 @@ def test_accelerated_op_import() -> None:
 
 
 def test_alias_import() -> None:
+    torchopt.adadelta
     torchopt.adagrad
     torchopt.adam
     torchopt.adamw
+    torchopt.adamax
+    torchopt.radam
     torchopt.rmsprop
     torchopt.sgd
+    torchopt.alias.adadelta
+    torchopt.alias.adagrad
     torchopt.alias.adam
     torchopt.alias.adamw
+    torchopt.alias.adamax
+    torchopt.alias.radam
     torchopt.alias.rmsprop
     torchopt.alias.sgd
-    from torchopt import adagrad, adam, adamw, rmsprop, sgd
-    from torchopt.alias import adagrad, adam, adamw, rmsprop, sgd
+    from torchopt import adadelta, adagrad, adam, adamax, adamw, radam, rmsprop, sgd
+    from torchopt.alias import adadelta, adagrad, adam, adamax, adamw, radam, rmsprop, sgd
 
 
 def test_diff_import() -> None:
@@ -108,25 +115,38 @@ def test_nn_import() -> None:
 
 def test_optim_import() -> None:
     torchopt.FuncOptimizer
+    torchopt.MetaAdaDelta
+    torchopt.MetaAdadelta
     torchopt.MetaAdaGrad
     torchopt.MetaAdagrad
     torchopt.MetaAdam
     torchopt.MetaAdamW
+    torchopt.MetaAdaMax
+    torchopt.MetaAdamax
+    torchopt.MetaRAdam
     torchopt.MetaRMSProp
     torchopt.MetaRMSprop
     torchopt.MetaSGD
+    torchopt.AdaDelta
+    torchopt.Adadelta
     torchopt.AdaGrad
     torchopt.Adagrad
     torchopt.Adam
     torchopt.AdamW
+    torchopt.AdaMax
+    torchopt.Adamax
     torchopt.Optimizer
     torchopt.RMSProp
     torchopt.RMSprop
     torchopt.SGD
+    torchopt.optim.meta.MetaAdaDelta
+    torchopt.optim.meta.MetaAdadelta
     torchopt.optim.meta.MetaAdaGrad
     torchopt.optim.meta.MetaAdagrad
     torchopt.optim.meta.MetaAdam
     torchopt.optim.meta.MetaAdamW
+    torchopt.optim.meta.MetaAdaMax
+    torchopt.optim.meta.MetaAdamax
     torchopt.optim.meta.MetaRMSProp
     torchopt.optim.meta.MetaRMSprop
     torchopt.optim.meta.MetaSGD
@@ -139,14 +159,22 @@ def test_optim_import() -> None:
     torchopt.optim.func.FuncOptimizer
     from torchopt import (
         SGD,
+        AdaDelta,
+        Adadelta,
         AdaGrad,
         Adagrad,
         Adam,
+        AdaMax,
+        Adamax,
         AdamW,
         FuncOptimizer,
+        MetaAdaDelta,
+        MetaAdadelta,
         MetaAdaGrad,
         MetaAdagrad,
         MetaAdam,
+        MetaAdaMax,
+        MetaAdamax,
         MetaAdamW,
         MetaOptimizer,
         MetaRMSprop,
@@ -158,11 +186,16 @@ def test_optim_import() -> None:
     from torchopt.optim import SGD, Adam, AdamW, FuncOptimizer, Optimizer, RMSProp
     from torchopt.optim.func import FuncOptimizer
     from torchopt.optim.meta import (
+        MetaAdaDelta,
+        MetaAdadelta,
         MetaAdaGrad,
         MetaAdagrad,
         MetaAdam,
+        MetaAdaMax,
+        MetaAdamax,
         MetaAdamW,
         MetaOptimizer,
+        MetaRAdam,
         MetaRMSProp,
         MetaRMSprop,
         MetaSGD,

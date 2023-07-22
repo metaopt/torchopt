@@ -34,9 +34,12 @@ class FuncOptimizer:  # pylint: disable=too-few-public-methods
     and update the parameters.
 
     See Also:
+        - The functional AdaDelta optimizer: :func:`torchopt.adadelta`.
         - The functional AdaGrad optimizer: :func:`torchopt.adagrad`.
         - The functional Adam optimizer: :func:`torchopt.adam`.
         - The functional AdamW optimizer: :func:`torchopt.adamw`.
+        - The functional AdaMax optimizer: :func:`torchopt.adamax`.
+        - The functional RAdam optimizer: :func:`torchopt.radam`.
         - The functional RMSprop optimizer: :func:`torchopt.rmsprop`.
         - The functional SGD optimizer: :func:`torchopt.sgd`.
     """
