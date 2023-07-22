@@ -71,4 +71,5 @@ class AdaDelta(Optimizer):
             ),
         )
 
+
 Adadelta = AdaDelta  # alias for PyTorch compatibility

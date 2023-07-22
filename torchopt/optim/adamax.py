@@ -71,4 +71,5 @@ class AdaMax(Optimizer):
             ),
         )
 
+
 Adamax = AdaMax  # alias for PyTorch compatibility
