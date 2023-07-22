@@ -125,15 +125,15 @@ def _scale_by_adan(
         tree_map = pytree.tree_map  # type: ignore[assignment]
 
     def init_fn(params: Params) -> OptState:
-        zero = tree_map(  # count init
+        tree_map(  # count init
             lambda t: torch.zeros(1, dtype=torch.int64, device=t.device).squeeze_(),
             params,
         )
-        mu = tree_map( # first moment
+        mu = tree_map(  # first moment
             lambda t: torch.zeros_like(t, requires_grad=moment_requires_grad),
             params,
         )
-        nu = tree_map( # second moment
+        nu = tree_map(  # second moment
             torch.zeros_like,
             params,
         )
