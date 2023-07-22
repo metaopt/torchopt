@@ -41,8 +41,8 @@ def test_alias_import() -> None:
     torchopt.alias.radam
     torchopt.alias.rmsprop
     torchopt.alias.sgd
-    from torchopt import adadelta, adagrad, adam, adamw, adamax, radam, rmsprop, sgd
-    from torchopt.alias import adadelta, adagrad, adam, adamw, adamax, radam, rmsprop, sgd
+    from torchopt import adadelta, adagrad, adam, adamax, adamw, radam, rmsprop, sgd
+    from torchopt.alias import adadelta, adagrad, adam, adamax, adamw, radam, rmsprop, sgd
 
 
 def test_diff_import() -> None:
@@ -164,18 +164,18 @@ def test_optim_import() -> None:
         AdaGrad,
         Adagrad,
         Adam,
-        AdamW,
         AdaMax,
         Adamax,
+        AdamW,
         FuncOptimizer,
         MetaAdaDelta,
         MetaAdadelta,
         MetaAdaGrad,
         MetaAdagrad,
         MetaAdam,
-        MetaAdamW,
         MetaAdaMax,
         MetaAdamax,
+        MetaAdamW,
         MetaOptimizer,
         MetaRMSprop,
         MetaRMSProp,
@@ -191,11 +191,11 @@ def test_optim_import() -> None:
         MetaAdaGrad,
         MetaAdagrad,
         MetaAdam,
-        MetaAdamW,
         MetaAdaMax,
         MetaAdamax,
-        MetaRAdam,
+        MetaAdamW,
         MetaOptimizer,
+        MetaRAdam,
         MetaRMSProp,
         MetaRMSprop,
         MetaSGD,
