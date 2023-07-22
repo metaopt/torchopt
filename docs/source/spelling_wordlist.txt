@@ -175,3 +175,10 @@ ctx
 Duchi
 invertible
 AdaGrad
+Adadelta
+Zeiler
+radam
+adamax
+RAdam
+AdaDelta
+AdaMax
