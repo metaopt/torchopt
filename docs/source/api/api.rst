@@ -30,9 +30,12 @@ Functional Optimizers
 .. autosummary::
 
     FuncOptimizer
+    adadelta
     adagrad
     adam
     adamw
+    adamax
+    radam
     rmsprop
     sgd
 
@@ -41,6 +44,11 @@ Wrapper for Function Optimizer
 
 .. autoclass:: FuncOptimizer
     :members:
+
+Functional Adadelta Optimizer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: adadelta
 
 Functional AdaGrad Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -56,6 +64,16 @@ Functional AdamW Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autofunction:: adamw
+
+Functional Adamax Optimizer
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: adamax
+
+Functional RAdam Optimizer
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: radam
 
 Functional RMSProp Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -76,11 +94,19 @@ Classic Optimizers
 
 .. autosummary::
 
+    Adadelta
     AdaGrad
     Adam
     AdamW
+    Adamax
+    RAdam
     RMSProp
     SGD
+
+Classic Adadelta Optimizer
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: Adadelta
 
 Classic AdaGrad Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -96,6 +122,16 @@ Classic AdamW Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: AdamW
+
+Classic Adamax Optimizer
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: Adamax
+
+Classic RAdam Optimizer
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: RAdam
 
 Classic RMSProp Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -116,11 +152,19 @@ Differentiable Meta-Optimizers
 
 .. autosummary::
 
+    MetaAdadelta
     MetaAdaGrad
     MetaAdam
     MetaAdamW
+    MetaAdamax
+    MetaRAdam
     MetaRMSProp
     MetaSGD
+
+Differentiable Meta-Adadelta Optimizer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: MetaAdadelta
 
 Differentiable Meta-AdaGrad Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -136,6 +180,16 @@ Differentiable Meta-AdamW Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: MetaAdamW
+
+Differentiable Meta-Adamax Optimizer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: MetaAdamax
+
+Differentiable Meta-RAdam Optimizer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: MetaRAdam
 
 Differentiable Meta-RMSProp Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
