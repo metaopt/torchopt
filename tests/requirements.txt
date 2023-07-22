@@ -3,6 +3,8 @@ torch >= 1.13
 
 --requirement ../requirements.txt
 
+git+https://github.com/sail-sg/Adan.git
+
 jax[cpu] >= 0.3; platform_system != 'Windows'
 jaxopt; platform_system != 'Windows'
 optax; platform_system != 'Windows'
