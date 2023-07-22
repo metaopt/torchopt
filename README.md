@@ -136,7 +136,7 @@ On top of the same optimization function as `torch.optim`, an important benefit 
 This is particularly helpful when the algorithm requires differentiation through optimization updates (such as meta-learning practices).
 We take as the inputs the gradients and optimizer states, and use non-in-place operators to compute and output the updates.
 The processes can be automatically implemented, with the only need from users being to pass the argument `inplace=False` to the functions.
-Check out the section [Explicit Gradient](#explicit-gradient-eg) (EG)](#explicit-gradient-eg) functional API for example.
+Check out the section [Explicit Gradient (EG)](#explicit-gradient-eg) functional API for example.
 
 --------------------------------------------------------------------------------
 
@@ -215,7 +215,7 @@ Refer to the example [iMAML](https://github.com/waterhorse1/torchopt/tree/readme
 
 #### Functional API  <!-- omit in toc -->
 
-For the implicit gradient, users need to define the stationary condition and TorchOpt provides the decorator to wrap the solve function for enabling implicit gradient computation.
+For the implicit gradient, similar to [JAXopt](https://jaxopt.github.io/stable/implicit_diff.html), users need to define the stationary condition and TorchOpt provides the decorator to wrap the solve function for enabling implicit gradient computation.
 
 ```python
 # The stationary condition for the inner-loop
