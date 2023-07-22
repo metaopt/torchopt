@@ -33,7 +33,7 @@ class AdaGrad(Optimizer):
 
     See Also:
         - The functional AdaGrad optimizer: :func:`torchopt.adagrad`.
-        - The differentiable meta AdaGrad optimizer: :class:`torchopt.MetaAdaGrad`.
+        - The differentiable meta AdaGrad optimizer: :class:`torchopt.MetaAdagrad`.
     """
 
     # pylint: disable-next=too-many-arguments

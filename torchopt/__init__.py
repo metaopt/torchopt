@@ -39,12 +39,14 @@ from torchopt.combine import chain
 from torchopt.hook import register_hook
 from torchopt.optim import (
     SGD,
+    AdaDelta,
     Adadelta,
     AdaGrad,
     Adagrad,
     Adam,
-    Adamax,
     AdamW,
+    AdaMax,
+    Adamax,
     Optimizer,
     RAdam,
     RMSProp,
@@ -52,10 +54,12 @@ from torchopt.optim import (
 )
 from torchopt.optim.func import FuncOptimizer
 from torchopt.optim.meta import (
+    MetaAdaDelta,
     MetaAdadelta,
     MetaAdaGrad,
     MetaAdagrad,
     MetaAdam,
+    MetaAdaMax,
     MetaAdamax,
     MetaAdamW,
     MetaOptimizer,
@@ -93,7 +97,9 @@ __all__ = [
     'Optimizer',
     'SGD',
     'Adam',
+    'AdaMax',
     'Adamax',
+    'AdaDelta',
     'Adadelta',
     'RAdam',
     'AdamW',
@@ -104,7 +110,9 @@ __all__ = [
     'MetaOptimizer',
     'MetaSGD',
     'MetaAdam',
+    'MetaAdaMax',
     'MetaAdamax',
+    'MetaAdaDelta',
     'MetaAdadelta',
     'MetaRAdam',
     'MetaAdamW',

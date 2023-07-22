@@ -23,29 +23,29 @@ from torchopt.optim.meta.base import MetaOptimizer
 from torchopt.typing import ScalarOrSchedule
 
 
-__all__ = ['MetaAdadelta']
+__all__ = ['MetaAdaDelta', 'MetaAdadelta']
 
 
-class MetaAdadelta(MetaOptimizer):
-    """The differentiable Adadelta optimizer.
+class MetaAdaDelta(MetaOptimizer):
+    """The differentiable AdaDelta optimizer.
 
     See Also:
-        - The functional Adadelta optimizer: :func:`torchopt.adadetla`.
-        - The classic Adadelta optimizer: :class:`torchopt.Adadelta`.
+        - The functional AdaDelta optimizer: :func:`torchopt.adadetla`.
+        - The classic AdaDelta optimizer: :class:`torchopt.Adadelta`.
     """
 
     # pylint: disable-next=too-many-arguments
     def __init__(
         self,
         module: nn.Module,
-        lr: ScalarOrSchedule = 1e-3,
+        lr: ScalarOrSchedule = 1.0,
         rho: float = 0.9,
         eps: float = 1e-6,
         weight_decay: float = 0.0,
         *,
         moment_requires_grad: bool = True,
     ) -> None:
-        """Initialize the meta-Adadelta optimizer.
+        """Initialize the meta AdaDelta optimizer.
 
         Args:
             module (nn.Module): A network whose parameters should be optimized.
@@ -53,7 +53,7 @@ class MetaAdadelta(MetaOptimizer):
                 scheduler. (default: :const:`1e-3`)
             rho (float, optional): Coefficients used for computing running averages of  gradient and its square.
                 (default: :const:`0.9`)
-            eps (float, optional): A small constant applied to the square root (as in the Adadelta paper)
+            eps (float, optional): A small constant applied to the square root (as in the AdaDelta paper)
                 to avoid dividing by zero when rescaling.
                 (default: :const:`1e-6`)
             weight_decay (float, optional): Weight decay, add L2 penalty to parameters.
@@ -72,3 +72,6 @@ class MetaAdadelta(MetaOptimizer):
                 moment_requires_grad=moment_requires_grad,
             ),
         )
+
+
+MetaAdadelta = MetaAdaDelta  # alias for PyTorch compatibility

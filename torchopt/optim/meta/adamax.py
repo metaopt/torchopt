@@ -23,29 +23,29 @@ from torchopt.optim.meta.base import MetaOptimizer
 from torchopt.typing import ScalarOrSchedule
 
 
-__all__ = ['MetaAdamax']
+__all__ = ['MetaAdaMax', 'MetaAdamax']
 
 
-class MetaAdamax(MetaOptimizer):
-    """The differentiable Adamax optimizer.
+class MetaAdaMax(MetaOptimizer):
+    """The differentiable AdaMax optimizer.
 
     See Also:
-        - The functional Adamax optimizer: :func:`torchopt.radan`.
-        - The classic Adamax optimizer: :class:`torchopt.Adamax`.
+        - The functional AdaMax optimizer: :func:`torchopt.adamax`.
+        - The classic AdaMax optimizer: :class:`torchopt.Adamax`.
     """
 
     # pylint: disable-next=too-many-arguments
     def __init__(
         self,
         module: nn.Module,
-        lr: ScalarOrSchedule = 1e-3,
+        lr: ScalarOrSchedule = 2e-3,
         betas: tuple[float, float] = (0.9, 0.999),
-        eps: float = 1e-6,
+        eps: float = 1e-8,
         weight_decay: float = 0.0,
         *,
         moment_requires_grad: bool = True,
     ) -> None:
-        """Initialize the meta-Adamax optimizer.
+        """Initialize the meta AdaMax optimizer.
 
         Args:
             module (nn.Module): A network whose parameters should be optimized.
@@ -53,7 +53,7 @@ class MetaAdamax(MetaOptimizer):
                 scheduler. (default: :const:`1e-3`)
             betas (tuple of float, optional): Coefficients used for computing running averages of
                 gradient and its square. (default: :const:`(0.9, 0.999)`)
-            eps (float, optional): A small constant applied to the square root (as in the Adamax paper)
+            eps (float, optional): A small constant applied to the square root (as in the AdaMax paper)
                 to avoid dividing by zero when rescaling.
                 (default: :const:`1e-6`)
             weight_decay (float, optional): Weight decay, add L2 penalty to parameters.
@@ -72,3 +72,6 @@ class MetaAdamax(MetaOptimizer):
                 moment_requires_grad=moment_requires_grad,
             ),
         )
+
+
+MetaAdamax = MetaAdaMax  # alias for PyTorch compatibility

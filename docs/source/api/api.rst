@@ -45,7 +45,7 @@ Wrapper for Function Optimizer
 .. autoclass:: FuncOptimizer
     :members:
 
-Functional Adadelta Optimizer
+Functional AdaDelta Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autofunction:: adadelta
@@ -65,7 +65,7 @@ Functional AdamW Optimizer
 
 .. autofunction:: adamw
 
-Functional Adamax Optimizer
+Functional AdaMax Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autofunction:: adamax
@@ -95,7 +95,7 @@ Classic Optimizers
 .. autosummary::
 
     Adadelta
-    AdaGrad
+    Adagrad
     Adam
     AdamW
     Adamax
@@ -103,7 +103,7 @@ Classic Optimizers
     RMSProp
     SGD
 
-Classic Adadelta Optimizer
+Classic AdaDelta Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: Adadelta
@@ -111,7 +111,7 @@ Classic Adadelta Optimizer
 Classic AdaGrad Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: AdaGrad
+.. autoclass:: Adagrad
 
 Classic Adam Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -123,7 +123,7 @@ Classic AdamW Optimizer
 
 .. autoclass:: AdamW
 
-Classic Adamax Optimizer
+Classic AdaMax Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: Adamax
@@ -161,7 +161,7 @@ Differentiable Meta-Optimizers
     MetaRMSProp
     MetaSGD
 
-Differentiable Meta-Adadelta Optimizer
+Differentiable Meta-AdaDelta Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: MetaAdadelta
@@ -169,7 +169,7 @@ Differentiable Meta-Adadelta Optimizer
 Differentiable Meta-AdaGrad Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: MetaAdaGrad
+.. autoclass:: MetaAdagrad
 
 Differentiable Meta-Adam Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -181,7 +181,7 @@ Differentiable Meta-AdamW Optimizer
 
 .. autoclass:: MetaAdamW
 
-Differentiable Meta-Adamax Optimizer
+Differentiable Meta-AdaMax Optimizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: MetaAdamax

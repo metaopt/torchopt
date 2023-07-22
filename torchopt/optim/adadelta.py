@@ -25,27 +25,27 @@ from torchopt.optim.base import Optimizer
 from torchopt.typing import ScalarOrSchedule
 
 
-__all__ = ['Adadelta']
+__all__ = ['AdaDelta', 'Adadelta']
 
 
-class Adadelta(Optimizer):
-    """The classic Adadelta optimizer.
+class AdaDelta(Optimizer):
+    """The classic AdaDelta optimizer.
 
     See Also:
-        - The functional Adadelta optimizer: :func:`torchopt.adadelta`.
-        - The differentiable meta-Adadelta optimizer: :class:`torchopt.MetaAdadetla`.
+        - The functional AdaDelta optimizer: :func:`torchopt.adadelta`.
+        - The differentiable meta AdaDelta optimizer: :class:`torchopt.MetaAdadetla`.
     """
 
     # pylint: disable-next=too-many-arguments
     def __init__(
         self,
         params: Iterable[torch.Tensor],
-        lr: ScalarOrSchedule = 1e-3,
+        lr: ScalarOrSchedule = 1.0,
         rho: float = 0.9,
-        eps: float = 1e-8,
+        eps: float = 1e-6,
         weight_decay: float = 0.0,
     ) -> None:
-        r"""Initialize the Adadelta optimizer.
+        r"""Initialize the AdaDelta optimizer.
 
         Args:
             params (iterable of Tensor): An iterable of :class:`torch.Tensor`\s. Specifies what
@@ -54,7 +54,7 @@ class Adadelta(Optimizer):
                 scheduler. (default: :const:`1e-3`)
             rho (float, optional): Coefficients used for computing running averages of  gradient and its square.
                 (default: :const:`0.9`)
-            eps (float, optional): A small constant applied to the square root (as in the Adadelta paper)
+            eps (float, optional): A small constant applied to the square root (as in the AdaDelta paper)
                 to avoid dividing by zero when rescaling.
                 (default: :const:`1e-6`)
             weight_decay (float, optional): Weight decay, add L2 penalty to parameters.
@@ -70,3 +70,5 @@ class Adadelta(Optimizer):
                 moment_requires_grad=False,
             ),
         )
+
+Adadelta = AdaDelta  # alias for PyTorch compatibility
