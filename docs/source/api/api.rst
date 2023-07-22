@@ -46,7 +46,7 @@ Wrapper for Function Optimizer
     :members:
 
 Functional Adadelta Optimizer
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autofunction:: adadelta
 
@@ -66,7 +66,7 @@ Functional AdamW Optimizer
 .. autofunction:: adamw
 
 Functional Adamax Optimizer
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autofunction:: adamax
 
@@ -104,7 +104,7 @@ Classic Optimizers
     SGD
 
 Classic Adadelta Optimizer
-~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: Adadelta
 
@@ -162,7 +162,7 @@ Differentiable Meta-Optimizers
     MetaSGD
 
 Differentiable Meta-Adadelta Optimizer
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: MetaAdadelta
 
