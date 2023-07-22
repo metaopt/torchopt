@@ -40,7 +40,7 @@ class MetaRAdam(MetaOptimizer):
         module: nn.Module,
         lr: ScalarOrSchedule = 1e-3,
         betas: tuple[float, float] = (0.9, 0.999),
-        eps: float = 1e-6,
+        eps: float = 1e-8,
         weight_decay: float = 0.0,
         *,
         moment_requires_grad: bool = True,

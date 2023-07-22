@@ -33,7 +33,7 @@ class AdaMax(Optimizer):
 
     See Also:
         - The functional AdaMax optimizer: :func:`torchopt.adamax`.
-        - The differentiable meta AdaMax optimizer: :class:`torchopt.MetaAdamax`.
+        - The differentiable meta AdaMax optimizer: :class:`torchopt.MetaAdaMax`.
     """
 
     # pylint: disable-next=too-many-arguments
