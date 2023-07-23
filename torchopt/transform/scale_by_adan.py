@@ -239,7 +239,11 @@ def _scale_by_adan(
         updates = pytree.tree_map(f, mu_hat, delta_hat, nu_hat)
 
         return updates, ScaleByAdanState(
-            count=count_inc, mu=mu, nu=nu, delta=delta, grad_tm1=updates,
+            count=count_inc,
+            mu=mu,
+            nu=nu,
+            delta=delta,
+            grad_tm1=updates,
         )
 
     return GradientTransformation(init_fn, update_fn)
