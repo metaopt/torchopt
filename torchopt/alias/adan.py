@@ -83,7 +83,7 @@ def adan(
     """
     b1, b2, b3 = betas  # pylint: disable=invalid-name
     # pylint: disable=unneeded-not
-    if not 0.0 <= max_grad_norm:
+    if not max_grad_norm >= 0.0:
         raise ValueError(f'Invalid Max grad norm: {max_grad_norm}')
     if not (callable(lr) or lr >= 0.0):  # pragma: no cover
         raise ValueError(f'Invalid learning rate: {lr}')
