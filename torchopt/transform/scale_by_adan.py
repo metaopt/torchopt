@@ -149,7 +149,7 @@ def _scale_by_adan(
         tree_map = pytree.tree_map  # type: ignore[assignment]
 
     def init_fn(params: Params) -> OptState:
-        tree_map(  # count init
+        zero = tree_map(  # count init
             lambda t: torch.zeros(1, dtype=torch.int64, device=t.device).squeeze_(),
             params,
         )
@@ -186,13 +186,10 @@ def _scale_by_adan(
         params: Params | None = None,  # pylint: disable=unused-argument
         inplace: bool = True,
     ) -> tuple[Updates, OptState]:
-        diff = pytree.lax.cond(
-            state.count != 0,
-            lambda X, Y: tree_map(lambda x, y: x - y, X, Y),
-            lambda X, _: tree_map(torch.zeros_like, X),
-            updates,
-            state.grad_tm1,
-        )
+        if state.count != 0:
+            diff = tree_map(lambda x, y: x - y, updates, state.grad_tm1)
+        else:
+            diff = tree_map(torch.zeros_like, updates)
 
         grad_prime = tree_map(lambda g, d: g + b2 * d, updates, diff)
 
@@ -204,14 +201,13 @@ def _scale_by_adan(
             inplace=inplace,
             already_flattened=already_flattened,
         )
+        nu = update_moment_per_elem_norm(grad_prime, state.nu, b3, 2)
         delta = update_moment.impl(
             diff,
             state.delta,
             b2,
             1,
         )
-        nu = update_moment_per_elem_norm(grad_prime, state.nu, b3, 2)
-
         count_inc = inc_count.impl(updates, state.count, already_flattened=already_flattened)  # type: ignore[attr-defined]
         mu_hat = _adan_bias_correction(mu, b1, count_inc, already_flattened=already_flattened)
         delta_hat = _adan_bias_correction(delta, b2, count_inc, already_flattened=already_flattened)
@@ -239,7 +235,11 @@ def _scale_by_adan(
         updates = pytree.tree_map(f, mu_hat, delta_hat, nu_hat)
 
         return updates, ScaleByAdanState(
-            count=count_inc, mu=mu, nu=nu, delta=delta, grad_tm1=updates,
+            count=count_inc,
+            mu=mu,
+            nu=nu,
+            delta=delta,
+            grad_tm1=updates,
         )
 
     return GradientTransformation(init_fn, update_fn)
