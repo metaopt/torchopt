@@ -21,6 +21,7 @@ import functorch
 import pytest
 import torch
 import torch.nn.functional as F
+from adan import Adan
 
 import helpers
 import torchopt
@@ -204,10 +205,12 @@ def test_adadelta(
 @helpers.parametrize(
     dtype=[torch.float64],
     lr=[1e-2, 1e-3, 1e-4],
-    betas=[(0.9, 0.999), (0.95, 0.9995)],
+    betas=[(0.9, 0.999, 0.998), (0.95, 0.9995, 0.9985)],
     eps=[1e-8],
     inplace=[True, False],
     weight_decay=[0.0, 1e-2],
+    max_grad_norm=[0.0, 1.0],
+    no_prox=[False, True],
     maximize=[False, True],
     use_accelerated_op=[False, True],
     use_chain_flat=[True, False],
@@ -215,10 +218,12 @@ def test_adadelta(
 def test_adan(
     dtype: torch.dtype,
     lr: float,
-    betas: tuple[float, float],
+    betas: tuple[float, float, float],
     eps: float,
     inplace: bool,
     weight_decay: float,
+    max_grad_norm: float,
+    no_prox: bool,
     maximize: bool,
     use_accelerated_op: bool,
     use_chain_flat: bool,
@@ -234,18 +239,21 @@ def test_adan(
         eps=eps,
         eps_root=0.0,
         weight_decay=weight_decay,
+        max_grad_norm=max_grad_norm,
+        no_prox=no_prox,
         maximize=maximize,
         use_accelerated_op=use_accelerated_op,
     )
     optim_state = optim.init(params)
-    optim_ref = torch.optim.adan(
+    optim_ref = Adan(
         model_ref.parameters(),
         lr,
         betas=betas,
         eps=eps,
-        amsgrad=False,
+        eps_root=0.0,
         weight_decay=weight_decay,
-        maximize=maximize,
+        max_grad_norm=max_grad_norm,
+        no_prox=no_prox,
     )
 
     for xs, ys in loader:
