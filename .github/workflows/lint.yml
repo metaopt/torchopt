@@ -91,6 +91,11 @@ jobs:
         run: |
           make cpplint
 
+      - name: clang-tidy
+        run: |
+          sudo apt-get update && sudo apt-get install libomp-dev --yes
+          make clang-tidy
+
       - name: clang-format
         run: |
           (
@@ -100,11 +105,6 @@ jobs:
           )
           sudo apt-get update && sudo apt-get install clang-format --yes
           make clang-format
-
-      - name: clang-tidy
-        run: |
-          sudo apt-get update && sudo apt-get install libomp-dev --yes
-          make clang-tidy
 
       - name: addlicense
         run: |
