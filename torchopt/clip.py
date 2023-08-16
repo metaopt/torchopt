@@ -33,16 +33,16 @@ ClipState = EmptyState
 
 
 def clip_grad_norm(
-    max_norm: float | int,
-    norm_type: float | int = 2.0,
+    max_norm: float,
+    norm_type: float = 2.0,
     error_if_nonfinite: bool = False,
 ) -> GradientTransformation:
     """Clip gradient norm of an iterable of parameters.
 
     Args:
-        max_norm (float or int): The maximum absolute value for each element in the update.
-        norm_type (float or int, optional): Type of the used p-norm. Can be ``'inf'`` for infinity
-            norm. (default: :const:`2.0`)
+        max_norm (float): The maximum absolute value for each element in the update.
+        norm_type (float, optional): Type of the used p-norm. Can be ``'inf'`` for infinity norm.
+            (default: :const:`2.0`)
         error_if_nonfinite (bool, optional): If :data:`True`, an error is thrown if the total norm
             of the gradients from ``updates`` is ``nan``, ``inf``, or ``-inf``.
             (default: :data:`False`)

@@ -18,6 +18,7 @@ from __future__ import annotations
 
 from collections import OrderedDict
 from typing import Any, Iterator, NamedTuple
+from typing_extensions import Self  # Python 3.11+
 
 import torch
 import torch.nn as nn
@@ -40,7 +41,7 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
     _meta_parameters: TensorContainer
     _meta_modules: dict[str, nn.Module | None]
 
-    def __new__(cls, *args: Any, **kwargs: Any) -> MetaGradientModule:
+    def __new__(cls, *args: Any, **kwargs: Any) -> Self:
         """Create a new module instance."""
         instance = super().__new__(cls)
         flat_args: list[Any]

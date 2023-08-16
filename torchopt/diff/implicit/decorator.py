@@ -274,7 +274,7 @@ def _custom_root(
     def make_custom_vjp_solver_fn(
         solver_fn: Callable[..., TensorOrTensors | tuple[TensorOrTensors, Any]],
         kwarg_keys: Sequence[str],
-        args_signs: tuple[tuple[int, int, type[tuple] | type[list] | None], ...],
+        args_signs: tuple[tuple[int, int, type[tuple | list] | None], ...],
     ) -> type[Function]:
         # pylint: disable-next=missing-class-docstring,abstract-method
         class ImplicitMetaGradient(Function):
@@ -396,7 +396,7 @@ def _custom_root(
         args, kwargs = _signature_bind(solver_fn_signature, *args, **kwargs)
         keys, vals = list(kwargs.keys()), list(kwargs.values())
 
-        args_signs: list[tuple[int, int, type[tuple] | type[list] | None]] = []
+        args_signs: list[tuple[int, int, type[tuple | list] | None]] = []
         flat_args: list[Any] = []
         args_offset = 0
         for idx, arg in enumerate(args):

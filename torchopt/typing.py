@@ -115,7 +115,7 @@ OptState: TypeAlias = TensorTree  # States are arbitrary nests of `torch.Tensor`
 if rpc.is_available():  # pragma: no cover
     from torch.distributed.rpc import RRef  # pylint: disable=ungrouped-imports,unused-import
 
-    __all__.extend(['RRef'])
+    __all__ += ['RRef']
 else:  # pragma: no cover
     # pylint: disable-next=invalid-name
     RRef = None  # type: ignore[misc,assignment]
