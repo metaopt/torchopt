@@ -38,7 +38,7 @@ def is_available() -> bool:
 
 if is_available():
     # pylint: disable-next=unused-import,ungrouped-imports
-    from torch.distributed.autograd import DistAutogradContext, get_gradients  # noqa: F401
+    from torch.distributed.autograd import DistAutogradContext, get_gradients
 
     def backward(
         autograd_ctx_id: int,
@@ -131,4 +131,4 @@ if is_available():
 
         return tuple(grads)
 
-    __all__.extend(['DistAutogradContext', 'get_gradients', 'backward', 'grad'])
+    __all__ += ['DistAutogradContext', 'get_gradients', 'backward', 'grad']

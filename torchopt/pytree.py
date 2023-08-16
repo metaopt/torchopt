@@ -194,7 +194,7 @@ if rpc.is_available():  # pragma: no cover
         r"""Return the local value of a tree of :class:`RRef`\s."""
         return tree_map(lambda x: x.local_value(), rref_tree)
 
-    __all__.extend(['tree_as_rref', 'tree_to_here'])
+    __all__ += ['tree_as_rref', 'tree_to_here']
 
 
 del optree, rpc

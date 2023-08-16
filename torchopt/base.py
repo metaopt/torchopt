@@ -36,6 +36,7 @@ from __future__ import annotations
 import itertools
 from abc import abstractmethod
 from typing import TYPE_CHECKING, Callable, NamedTuple, Protocol
+from typing_extensions import Self  # Python 3.11+
 
 
 if TYPE_CHECKING:
@@ -159,7 +160,7 @@ class ChainedGradientTransformation(GradientTransformation):
 
     transformations: tuple[GradientTransformation, ...]
 
-    def __new__(cls, *transformations: GradientTransformation) -> ChainedGradientTransformation:
+    def __new__(cls, *transformations: GradientTransformation) -> Self:
         """Create a new chained gradient transformation."""
         transformations = tuple(
             itertools.chain.from_iterable(
@@ -235,7 +236,7 @@ class ChainedGradientTransformation(GradientTransformation):
 class IdentityGradientTransformation(GradientTransformation):
     """A gradient transformation that does nothing."""
 
-    def __new__(cls) -> IdentityGradientTransformation:
+    def __new__(cls) -> Self:
         """Create a new gradient transformation that does nothing."""
         return super().__new__(cls, init=cls.init_fn, update=cls.update_fn)
 
