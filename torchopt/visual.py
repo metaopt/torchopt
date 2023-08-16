@@ -19,7 +19,6 @@
 
 from __future__ import annotations
 
-from collections import namedtuple
 from typing import Any, Generator, Iterable, Mapping, cast
 
 import torch
@@ -32,8 +31,6 @@ from torchopt.utils import ModuleState
 
 __all__ = ['make_dot', 'resize_graph']
 
-
-Node = namedtuple('Node', ('name', 'inputs', 'attr', 'op'))
 
 # Saved attrs for grad_fn (incl. saved variables) begin with `._saved_*`
 SAVED_PREFIX = '_saved_'
