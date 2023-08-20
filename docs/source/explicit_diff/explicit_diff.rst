@@ -59,7 +59,7 @@ For PyTorch-like API (e.g., ``step()``), we designed a base class :class:`torcho
     torchopt.MetaAdagrad
     torchopt.MetaAdam
     torchopt.MetaAdamW
-    torchopt.AdaMax
+    torchopt.MetaAdaMax
     torchopt.MetaAdamax
     torchopt.MetaRAdam
     torchopt.MetaRMSProp
