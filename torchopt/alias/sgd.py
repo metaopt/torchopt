@@ -44,6 +44,7 @@ from torchopt.typing import GradientTransformation, ScalarOrSchedule
 __all__ = ['sgd']
 
 
+# pylint: disable-next=too-many-arguments
 def sgd(
     lr: ScalarOrSchedule,
     momentum: float = 0.0,
