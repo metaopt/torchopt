@@ -132,6 +132,7 @@ def _scale_by_adam_flat(
     )
 
 
+# pylint: disable-next=too-many-arguments
 def _scale_by_adam(
     b1: float = 0.9,
     b2: float = 0.999,
@@ -275,6 +276,7 @@ def _scale_by_accelerated_adam_flat(
     )
 
 
+# pylint: disable-next=too-many-arguments
 def _scale_by_accelerated_adam(
     b1: float = 0.9,
     b2: float = 0.999,

@@ -271,6 +271,7 @@ def sum_reducer(results: Iterable[torch.Tensor]) -> torch.Tensor:
     return torch.sum(torch.stack(tuple(results), dim=0), dim=0)
 
 
+# pylint: disable-next=too-many-arguments
 def remote_async_call(
     func: Callable[..., T],
     *,
@@ -328,6 +329,7 @@ def remote_async_call(
     return future
 
 
+# pylint: disable-next=too-many-arguments
 def remote_sync_call(
     func: Callable[..., T],
     *,
