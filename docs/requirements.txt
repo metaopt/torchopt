@@ -16,6 +16,5 @@ sphinx-rtd-theme
 sphinxcontrib-katex
 IPython
 ipykernel
-pandoc
 docutils
 matplotlib

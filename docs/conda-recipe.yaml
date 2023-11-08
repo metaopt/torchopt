@@ -67,5 +67,4 @@ dependencies:
   - hunspell-en
   - myst-nb
   - ipykernel
-  - pandoc
   - docutils
