@@ -137,23 +137,17 @@ def _scale_by_adamax(
             already_flattened=already_flattened,
         )
 
-        def update_nu(
-            g: torch.Tensor,
-            n: torch.Tensor,
-        ) -> torch.Tensor:
-            return torch.max(n.mul(b2), g.abs().add_(eps))
+        def update_nu(n: torch.Tensor, g: torch.Tensor | None) -> torch.Tensor | None:
+            return torch.max(n.mul(b2), g.abs().add_(eps)) if g is not None else g
 
-        nu = tree_map(update_nu, updates, state.nu)
+        nu = tree_map(update_nu, state.nu, updates)
 
         one_minus_b1_pow_t = 1 - b1**state.t
 
-        def f(
-            n: torch.Tensor,
-            m: torch.Tensor,
-        ) -> torch.Tensor:
-            return m.div(n).div_(one_minus_b1_pow_t)
+        def f(m: torch.Tensor, n: torch.Tensor | None) -> torch.Tensor:
+            return m.div(n).div_(one_minus_b1_pow_t) if n is not None else m
 
-        updates = tree_map(f, nu, mu)
+        updates = tree_map(f, mu, nu)
 
         return updates, ScaleByAdamaxState(mu=mu, nu=nu, t=state.t + 1)
 

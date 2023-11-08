@@ -148,17 +148,17 @@ def _scale_by_stddev(
 
         if inplace:
 
-            def f(g: torch.Tensor, m: torch.Tensor, n: torch.Tensor) -> torch.Tensor:
-                return g.div_(n.addcmul(m, m, value=-1.0).sqrt_().add(eps))
+            def f(m: torch.Tensor, n: torch.Tensor, g: torch.Tensor | None) -> torch.Tensor | None:
+                return g.div_(n.addcmul(m, m, value=-1.0).sqrt_().add(eps)) if g is not None else g
 
-            updates = tree_map_(f, updates, mu, nu)
+            tree_map_(f, mu, nu, updates)
 
         else:
 
-            def f(g: torch.Tensor, m: torch.Tensor, n: torch.Tensor) -> torch.Tensor:
-                return g.div(n.addcmul(m, m, value=-1.0).sqrt_().add(eps))
+            def f(m: torch.Tensor, n: torch.Tensor, g: torch.Tensor | None) -> torch.Tensor | None:
+                return g.div(n.addcmul(m, m, value=-1.0).sqrt_().add(eps)) if g is not None else g
 
-            updates = tree_map(f, updates, mu, nu)
+            updates = tree_map(f, mu, nu, updates)
 
         return updates, ScaleByRStdDevState(mu=mu, nu=nu)
 

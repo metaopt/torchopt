@@ -108,19 +108,21 @@ def _flip_sign_and_add_weight_decay(
 
             if inplace:
 
-                def f(g: torch.Tensor, p: torch.Tensor) -> torch.Tensor:
+                def f(p: torch.Tensor, g: torch.Tensor | None) -> torch.Tensor | None:
+                    if g is None:
+                        return g
                     if g.requires_grad:
                         return g.add_(p, alpha=weight_decay)
                     return g.add_(p.data, alpha=weight_decay)
 
-                updates = tree_map_(f, updates, params)
+                tree_map_(f, params, updates)
 
             else:
 
-                def f(g: torch.Tensor, p: torch.Tensor) -> torch.Tensor:
-                    return g.add(p, alpha=weight_decay)
+                def f(p: torch.Tensor, g: torch.Tensor | None) -> torch.Tensor | None:
+                    return g.add(p, alpha=weight_decay) if g is not None else g
 
-                updates = tree_map(f, updates, params)
+                updates = tree_map(f, params, updates)
 
             return updates, state
 
@@ -139,7 +141,7 @@ def _flip_sign_and_add_weight_decay(
                     def f(g: torch.Tensor) -> torch.Tensor:
                         return g.neg_()
 
-                    updates = tree_map_(f, updates)
+                    tree_map_(f, updates)
 
                 else:
 
@@ -166,19 +168,21 @@ def _flip_sign_and_add_weight_decay(
 
                 if inplace:
 
-                    def f(g: torch.Tensor, p: torch.Tensor) -> torch.Tensor:
+                    def f(p: torch.Tensor, g: torch.Tensor | None) -> torch.Tensor | None:
+                        if g is None:
+                            return g
                         if g.requires_grad:
                             return g.neg_().add_(p, alpha=weight_decay)
                         return g.neg_().add_(p.data, alpha=weight_decay)
 
-                    updates = tree_map_(f, updates, params)
+                    tree_map_(f, params, updates)
 
                 else:
 
-                    def f(g: torch.Tensor, p: torch.Tensor) -> torch.Tensor:
-                        return g.neg().add_(p, alpha=weight_decay)
+                    def f(p: torch.Tensor, g: torch.Tensor | None) -> torch.Tensor | None:
+                        return g.neg().add_(p, alpha=weight_decay) if g is not None else g
 
-                    updates = tree_map(f, updates, params)
+                    updates = tree_map(f, params, updates)
 
                 return updates, state
 

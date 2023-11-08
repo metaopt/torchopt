@@ -96,20 +96,24 @@ def _scale_by_schedule(
         inplace: bool = True,
     ) -> tuple[Updates, OptState]:
         if inplace:
-
-            def f(g: torch.Tensor, c: Numeric) -> torch.Tensor:  # pylint: disable=invalid-name
+            # pylint: disable-next=invalid-name
+            def f(c: Numeric, g: torch.Tensor | None) -> torch.Tensor | None:
+                if g is None:
+                    return g
                 step_size = step_size_fn(c)
                 return g.mul_(step_size)
 
-            updates = tree_map_(f, updates, state.count)
+            tree_map_(f, state.count, updates)
 
         else:
-
-            def f(g: torch.Tensor, c: Numeric) -> torch.Tensor:  # pylint: disable=invalid-name
+            # pylint: disable-next=invalid-name
+            def f(c: Numeric, g: torch.Tensor | None) -> torch.Tensor | None:
+                if g is None:
+                    return g
                 step_size = step_size_fn(c)
                 return g.mul(step_size)
 
-            updates = tree_map(f, updates, state.count)
+            updates = tree_map(f, state.count, updates)
 
         return (
             updates,
