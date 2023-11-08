@@ -136,17 +136,17 @@ def _scale_by_rms(
 
         if inplace:
 
-            def f(g: torch.Tensor, n: torch.Tensor) -> torch.Tensor:  # pylint: disable=invalid-name
-                return g.div_(n.sqrt().add_(eps))
+            def f(n: torch.Tensor, g: torch.Tensor | None) -> torch.Tensor | None:
+                return g.div_(n.sqrt().add_(eps)) if g is not None else g
 
-            updates = tree_map_(f, updates, nu)
+            tree_map_(f, nu, updates)
 
         else:
 
-            def f(g: torch.Tensor, n: torch.Tensor) -> torch.Tensor:  # pylint: disable=invalid-name
-                return g.div(n.sqrt().add(eps))
+            def f(n: torch.Tensor, g: torch.Tensor | None) -> torch.Tensor | None:
+                return g.div(n.sqrt().add(eps)) if g is not None else g
 
-            updates = tree_map(f, updates, nu)
+            updates = tree_map(f, nu, updates)
 
         return updates, ScaleByRmsState(nu=nu)
 

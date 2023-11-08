@@ -201,23 +201,15 @@ def _scale_by_adam(
 
         if inplace:
 
-            def f(
-                g: torch.Tensor,  # pylint: disable=unused-argument
-                m: torch.Tensor,
-                v: torch.Tensor,
-            ) -> torch.Tensor:
-                return m.div_(v.add_(eps_root).sqrt_().add(eps))
+            def f(m: torch.Tensor, v: torch.Tensor, g: torch.Tensor | None) -> torch.Tensor | None:
+                return m.div_(v.add_(eps_root).sqrt_().add(eps)) if g is not None else g
 
         else:
 
-            def f(
-                g: torch.Tensor,  # pylint: disable=unused-argument
-                m: torch.Tensor,
-                v: torch.Tensor,
-            ) -> torch.Tensor:
-                return m.div(v.add(eps_root).sqrt_().add(eps))
+            def f(m: torch.Tensor, v: torch.Tensor, g: torch.Tensor | None) -> torch.Tensor | None:
+                return m.div(v.add(eps_root).sqrt_().add(eps)) if g is not None else g
 
-        updates = tree_map(f, updates, mu_hat, nu_hat)
+        updates = tree_map(f, mu_hat, nu_hat, updates)
         return updates, ScaleByAdamState(mu=mu, nu=nu, count=count_inc)
 
     return GradientTransformation(init_fn, update_fn)
