@@ -10,11 +10,11 @@ sphinx-autobuild
 sphinx-copybutton
 sphinx-rtd-theme
 sphinxcontrib-katex
-sphinxcontrib-bibtex
-sphinx-autodoc-typehints >= 1.19.2
+sphinxcontrib-bibtex >= 2.4
+sphinx-autodoc-typehints >= 1.24
 IPython
 ipykernel
 pandoc
-myst-nb
+myst-nb >= 0.15
 docutils
 matplotlib
