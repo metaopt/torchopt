@@ -148,52 +148,60 @@ def _trace(
         if nesterov:
             if inplace:
 
-                def f1(g: torch.Tensor, t: torch.Tensor) -> torch.Tensor:
+                def f1(t: torch.Tensor, g: torch.Tensor | None) -> torch.Tensor | None:
+                    if g is None:
+                        return g
                     if first_call:
                         return t.add_(g)
                     return t.mul_(momentum).add_(g)
 
-                def f2(g: torch.Tensor, t: torch.Tensor) -> torch.Tensor:
-                    return g.add_(t, alpha=momentum)
+                def f2(t: torch.Tensor, g: torch.Tensor | None) -> torch.Tensor | None:
+                    return g.add_(t, alpha=momentum) if g is not None else g
 
-                new_trace = tree_map(f1, updates, state.trace)
-                updates = tree_map_(f2, updates, new_trace)
+                new_trace = tree_map(f1, state.trace, updates)
+                tree_map_(f2, new_trace, updates)
 
             else:
 
-                def f1(g: torch.Tensor, t: torch.Tensor) -> torch.Tensor:
+                def f1(t: torch.Tensor, g: torch.Tensor | None) -> torch.Tensor | None:
+                    if g is None:
+                        return g
                     if first_call:
                         return t.add(g)
                     return t.mul(momentum).add_(g)
 
-                def f2(g: torch.Tensor, t: torch.Tensor) -> torch.Tensor:
-                    return g.add(t, alpha=momentum)
+                def f2(t: torch.Tensor, g: torch.Tensor | None) -> torch.Tensor | None:
+                    return g.add(t, alpha=momentum) if g is not None else g
 
-                new_trace = tree_map(f1, updates, state.trace)
-                updates = tree_map(f2, updates, new_trace)
+                new_trace = tree_map(f1, state.trace, updates)
+                updates = tree_map(f2, new_trace, updates)
 
         else:
             if inplace:
 
-                def f(g: torch.Tensor, t: torch.Tensor) -> torch.Tensor:
+                def f(t: torch.Tensor, g: torch.Tensor | None) -> torch.Tensor | None:
+                    if g is None:
+                        return g
                     if first_call:
                         return t.add_(g)
                     return t.mul_(momentum).add_(g, alpha=1.0 - dampening)
 
-                def copy_(g: torch.Tensor, t: torch.Tensor) -> torch.Tensor:
-                    return g.copy_(t)
+                def copy_to_(t: torch.Tensor, g: torch.Tensor | None) -> torch.Tensor | None:
+                    return g.copy_(t) if g is not None else g
 
-                new_trace = tree_map(f, updates, state.trace)
-                updates = tree_map_(copy_, updates, new_trace)
+                new_trace = tree_map(f, state.trace, updates)
+                tree_map_(copy_to_, new_trace, updates)
 
             else:
 
-                def f(g: torch.Tensor, t: torch.Tensor) -> torch.Tensor:
+                def f(t: torch.Tensor, g: torch.Tensor | None) -> torch.Tensor | None:
+                    if g is None:
+                        return g
                     if first_call:
                         return t.add(g)
                     return t.mul(momentum).add_(g, alpha=1.0 - dampening)
 
-                new_trace = tree_map(f, updates, state.trace)
+                new_trace = tree_map(f, state.trace, updates)
                 updates = tree_map(torch.clone, new_trace)
 
         first_call = False

@@ -128,23 +128,21 @@ def _scale_by_rss(
 
         if inplace:
 
-            def f(g: torch.Tensor, sos: torch.Tensor) -> torch.Tensor:
-                return torch.where(
-                    sos > 0.0,
-                    g.div_(sos.sqrt().add_(eps)),
-                    0.0,
+            def f(sos: torch.Tensor, g: torch.Tensor | None) -> torch.Tensor | None:
+                return (
+                    torch.where(sos > 0.0, g.div_(sos.sqrt().add_(eps)), 0.0)
+                    if g is not None
+                    else g
                 )
 
         else:
 
-            def f(g: torch.Tensor, sos: torch.Tensor) -> torch.Tensor:
-                return torch.where(
-                    sos > 0.0,
-                    g.div(sos.sqrt().add(eps)),
-                    0.0,
+            def f(sos: torch.Tensor, g: torch.Tensor | None) -> torch.Tensor | None:
+                return (
+                    torch.where(sos > 0.0, g.div(sos.sqrt().add(eps)), 0.0) if g is not None else g
                 )
 
-        updates = tree_map(f, updates, sum_of_squares)
+        updates = tree_map(f, sum_of_squares, updates)
         return updates, ScaleByRssState(sum_of_squares=sum_of_squares)
 
     return GradientTransformation(init_fn, update_fn)

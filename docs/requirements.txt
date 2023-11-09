@@ -4,17 +4,17 @@ torch >= 1.13
 
 --requirement ../requirements.txt
 
-sphinx >= 5.2.1
+sphinx >= 5.2.1, < 7.0.0a0
+sphinxcontrib-bibtex >= 2.4
+sphinx-autodoc-typehints >= 1.20
+myst-nb >= 0.15
+
 sphinx-autoapi
 sphinx-autobuild
 sphinx-copybutton
 sphinx-rtd-theme
 sphinxcontrib-katex
-sphinxcontrib-bibtex
-sphinx-autodoc-typehints >= 1.19.2
 IPython
 ipykernel
-pandoc
-myst-nb
 docutils
 matplotlib

@@ -123,12 +123,14 @@ def _ns_inv(A: torch.Tensor, maxiter: int, alpha: float | None = None) -> torch.
         # A^{-1} = a [I - (I - a A)]^{-1} = a [I + (I - a A) + (I - a A)^2 + (I - a A)^3 + ...]
         M = I - alpha * A
         for rank in range(maxiter):
+            # pylint: disable-next=not-callable
             inv_A_hat = inv_A_hat + torch.linalg.matrix_power(M, rank)
         inv_A_hat = alpha * inv_A_hat
     else:
         # A^{-1} = [I - (I - A)]^{-1} = I + (I - A) + (I - A)^2 + (I - A)^3 + ...
         M = I - A
         for rank in range(maxiter):
+            # pylint: disable-next=not-callable
             inv_A_hat = inv_A_hat + torch.linalg.matrix_power(M, rank)
     return inv_A_hat
 

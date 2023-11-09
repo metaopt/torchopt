@@ -129,23 +129,15 @@ def _scale_by_adadelta(
 
         if inplace:
 
-            def f(
-                g: torch.Tensor,  # pylint: disable=unused-argument
-                m: torch.Tensor,
-                v: torch.Tensor,
-            ) -> torch.Tensor:
-                return g.mul_(v.add(eps).div_(m.add(eps)).sqrt_())
+            def f(m: torch.Tensor, v: torch.Tensor, g: torch.Tensor | None) -> torch.Tensor | None:
+                return g.mul_(v.add(eps).div_(m.add(eps)).sqrt_()) if g is not None else g
 
         else:
 
-            def f(
-                g: torch.Tensor,  # pylint: disable=unused-argument
-                m: torch.Tensor,
-                v: torch.Tensor,
-            ) -> torch.Tensor:
-                return g.mul(v.add(eps).div_(m.add(eps)).sqrt_())
+            def f(m: torch.Tensor, v: torch.Tensor, g: torch.Tensor | None) -> torch.Tensor | None:
+                return g.mul(v.add(eps).div_(m.add(eps)).sqrt_()) if g is not None else g
 
-        updates = tree_map(f, updates, mu, state.nu)
+        updates = tree_map(f, mu, state.nu, updates)
 
         nu = update_moment.impl(  # type: ignore[attr-defined]
             updates,

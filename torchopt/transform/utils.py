@@ -160,6 +160,7 @@ def _update_moment_flat(
     )
 
 
+# pylint: disable-next=too-many-arguments
 def _update_moment(
     updates: Updates,
     moments: TensorTree,

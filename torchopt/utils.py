@@ -91,7 +91,7 @@ def stop_gradient(target: ModuleState | nn.Module | MetaOptimizer | TensorTree) 
 
 
 @overload
-def extract_state_dict(
+def extract_state_dict(  # pylint: disable=too-many-arguments
     target: nn.Module,
     *,
     by: CopyMode = 'reference',
@@ -114,7 +114,7 @@ def extract_state_dict(
     ...
 
 
-# pylint: disable-next=too-many-branches,too-many-locals
+# pylint: disable-next=too-many-arguments,too-many-branches,too-many-locals
 def extract_state_dict(
     target: nn.Module | MetaOptimizer,
     *,

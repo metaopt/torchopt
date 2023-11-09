@@ -53,7 +53,7 @@ def _identity(x: TensorTree) -> TensorTree:
     return x
 
 
-# pylint: disable-next=too-many-locals
+# pylint: disable-next=too-many-arguments,too-many-locals
 def _cg_solve(
     A: Callable[[TensorTree], TensorTree],
     b: TensorTree,
@@ -102,6 +102,7 @@ def _cg_solve(
     return x_final
 
 
+# pylint: disable-next=too-many-arguments
 def _isolve(
     _isolve_solve: Callable,
     A: TensorTree | Callable[[TensorTree], TensorTree],
@@ -134,6 +135,7 @@ def _isolve(
     return isolve_solve(A, b)
 
 
+# pylint: disable-next=too-many-arguments
 def cg(
     A: TensorTree | Callable[[TensorTree], TensorTree],
     b: TensorTree,
