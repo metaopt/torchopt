@@ -314,4 +314,5 @@ filterwarnings = [
     'ignore:Explicitly requested dtype float64 requested in .* is not available, and will be truncated to dtype float32\.:UserWarning',
     'ignore:jax\.numpy\.DeviceArray is deprecated\. Use jax\.Array\.:DeprecationWarning',
     'ignore:.*functorch.*deprecate.*:UserWarning',
+    'ignore:.*Apple Paravirtual device.*:UserWarning',
 ]
