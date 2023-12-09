@@ -324,7 +324,7 @@ def remote_async_call(
     if reducer is not None:
         return cast(
             Future[U],
-            future.then(lambda fut: cast(Callable[[Iterable[T]], U], reducer)(fut.wait())),
+            future.then(lambda fut: reducer(fut.wait())),
         )
     return future
 
