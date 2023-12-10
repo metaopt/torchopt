@@ -279,7 +279,7 @@ def _custom_root(
         # pylint: disable-next=missing-class-docstring,abstract-method
         class ImplicitMetaGradient(Function):
             @staticmethod
-            def forward(  # type: ignore[override] # pylint: disable=arguments-differ
+            def forward(  # pylint: disable=arguments-differ
                 ctx: Any,
                 *flat_args: Any,
             ) -> tuple[Any, ...]:
