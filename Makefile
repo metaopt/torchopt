@@ -10,7 +10,6 @@ CUDA_FILES     = $(shell find $(SOURCE_FOLDERS) -type f -name "*.cuh" -o -name "
 COMMIT_HASH    = $(shell git log -1 --format=%h)
 PATH           := $(HOME)/go/bin:$(PATH)
 PYTHON         ?= $(shell command -v python3 || command -v python)
-CLANG_FORMAT   ?= $(shell command -v clang-format-17 || command -v clang-format)
 PYTESTOPTS     ?=
 
 .PHONY: default
@@ -96,12 +95,10 @@ cpplint-install:
 	$(call check_pip_install,cpplint)
 
 clang-format-install:
-	command -v clang-format-17 || command -v clang-format || \
-	sudo apt-get install -y clang-format-17 || \
-	sudo apt-get install -y clang-format
+	$(call check_pip_install,clang-format)
 
 clang-tidy-install:
-	command -v clang-tidy || sudo apt-get install -y clang-tidy
+	$(call check_pip_install,clang-tidy)
 
 go-install:
 	# requires go >= 1.16
@@ -172,8 +169,8 @@ cpplint: cpplint-install
 	$(PYTHON) -m cpplint $(CXX_FILES) $(CUDA_FILES)
 
 clang-format: clang-format-install
-	$(CLANG_FORMAT) --version
-	$(CLANG_FORMAT) --style=file -i $(CXX_FILES) $(CUDA_FILES) -n --Werror
+	clang-format --version
+	clang-format --style=file -i $(CXX_FILES) $(CUDA_FILES) -n --Werror
 
 clang-tidy: clang-tidy-install cmake-configure
 	clang-tidy --version

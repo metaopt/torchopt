@@ -91,20 +91,14 @@ jobs:
         run: |
           make cpplint
 
+      - name: clang-format
+        run: |
+          make clang-format
+
       - name: clang-tidy
         run: |
           sudo apt-get update && sudo apt-get install libomp-dev --yes
           make clang-tidy
-
-      - name: clang-format
-        run: |
-          (
-            source /etc/os-release
-            wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc
-            sudo add-apt-repository "deb http://apt.llvm.org/${UBUNTU_CODENAME} llvm-toolchain-${UBUNTU_CODENAME} main" --yes
-          )
-          sudo apt-get update && sudo apt-get install clang-format --yes
-          make clang-format
 
       - name: addlicense
         run: |
