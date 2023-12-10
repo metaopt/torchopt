@@ -1,4 +1,4 @@
-print-%  : ; @echo $* = $($*)
+print-%: ; @echo $* = $($*)
 PROJECT_NAME   = torchopt
 COPYRIGHT      = "MetaOPT Team. All Rights Reserved."
 PROJECT_PATH   = $(PROJECT_NAME)
@@ -10,7 +10,6 @@ CUDA_FILES     = $(shell find $(SOURCE_FOLDERS) -type f -name "*.cuh" -o -name "
 COMMIT_HASH    = $(shell git log -1 --format=%h)
 PATH           := $(HOME)/go/bin:$(PATH)
 PYTHON         ?= $(shell command -v python3 || command -v python)
-CLANG_FORMAT   ?= $(shell command -v clang-format-17 || command -v clang-format)
 PYTESTOPTS     ?=
 
 .PHONY: default
@@ -22,7 +21,7 @@ install:
 install-editable:
 	$(PYTHON) -m pip install --upgrade pip
 	$(PYTHON) -m pip install --upgrade setuptools wheel
-	$(PYTHON) -m pip install torch numpy pybind11
+	$(PYTHON) -m pip install torch numpy pybind11 cmake
 	USE_FP16=ON TORCH_CUDA_ARCH_LIST=Auto $(PYTHON) -m pip install -vvv --no-build-isolation --editable .
 
 install-e: install-editable  # alias
@@ -95,12 +94,10 @@ cpplint-install:
 	$(call check_pip_install,cpplint)
 
 clang-format-install:
-	command -v clang-format-17 || command -v clang-format || \
-	sudo apt-get install -y clang-format-17 || \
-	sudo apt-get install -y clang-format
+	$(call check_pip_install,clang-format)
 
 clang-tidy-install:
-	command -v clang-tidy || sudo apt-get install -y clang-tidy
+	$(call check_pip_install,clang-tidy)
 
 go-install:
 	# requires go >= 1.16
@@ -112,6 +109,7 @@ addlicense-install: go-install
 # Tests
 
 pytest: test-install
+	$(PYTHON) -m pytest --version
 	cd tests && $(PYTHON) -c 'import $(PROJECT_PATH)' && \
 	$(PYTHON) -m pytest --verbose --color=yes --durations=0 \
 		--cov="$(PROJECT_PATH)" --cov-config=.coveragerc --cov-report=xml --cov-report=term-missing \
@@ -122,30 +120,39 @@ test: pytest
 # Python linters
 
 pylint: pylint-install
+	$(PYTHON) -m pylint --version
 	$(PYTHON) -m pylint $(PROJECT_PATH)
 
 flake8: flake8-install
+	$(PYTHON) -m flake8 --version
 	$(PYTHON) -m flake8 --count --show-source --statistics
 
 py-format: py-format-install
+	$(PYTHON) -m isort --version
+	$(PYTHON) -m black --version
 	$(PYTHON) -m isort --project $(PROJECT_PATH) --check $(PYTHON_FILES) && \
 	$(PYTHON) -m black --check $(PYTHON_FILES) tutorials
 
 ruff: ruff-install
+	$(PYTHON) -m ruff --version
 	$(PYTHON) -m ruff check .
 
 ruff-fix: ruff-install
+	$(PYTHON) -m ruff --version
 	$(PYTHON) -m ruff check . --fix --exit-non-zero-on-fix
 
 mypy: mypy-install
+	$(PYTHON) -m mypy --version
 	$(PYTHON) -m mypy $(PROJECT_PATH) --install-types --non-interactive
 
 pre-commit: pre-commit-install
+	$(PYTHON) -m pre_commit --version
 	$(PYTHON) -m pre_commit run --all-files
 
 # C++ linters
 
 cmake-configure: cmake-install
+	cmake --version
 	cmake -S . -B cmake-build-debug \
 		-DCMAKE_BUILD_TYPE=Debug \
 		-DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
@@ -157,12 +164,15 @@ cmake-build: cmake-configure
 cmake: cmake-build
 
 cpplint: cpplint-install
+	$(PYTHON) -m cpplint --version
 	$(PYTHON) -m cpplint $(CXX_FILES) $(CUDA_FILES)
 
 clang-format: clang-format-install
-	$(CLANG_FORMAT) --style=file -i $(CXX_FILES) $(CUDA_FILES) -n --Werror
+	clang-format --version
+	clang-format --style=file -i $(CXX_FILES) $(CUDA_FILES) -n --Werror
 
 clang-tidy: clang-tidy-install cmake-configure
+	clang-tidy --version
 	clang-tidy -p=cmake-build-debug $(CXX_FILES)
 
 # Documentation
