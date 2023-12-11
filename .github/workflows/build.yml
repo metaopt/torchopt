@@ -54,7 +54,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.8 - 3.11" # sync with requires-python in pyproject.toml
           update-environment: true
@@ -114,7 +114,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           update-environment: true
@@ -164,7 +164,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           update-environment: true
@@ -212,7 +212,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         if: startsWith(github.ref, 'refs/tags/')
         with:
           python-version: "3.8 - 3.11" # sync with requires-python in pyproject.toml
