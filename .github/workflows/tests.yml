@@ -42,7 +42,7 @@ jobs:
           fetch-depth: 1
 
       - name: Set up Python 3.8
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.8" # the lowest version we support (sync with requires-python in pyproject.toml)
           update-environment: true
@@ -112,7 +112,7 @@ jobs:
           fetch-depth: 1
 
       - name: Set up Python 3.8
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.8" # the lowest version we support (sync with requires-python in pyproject.toml)
           update-environment: true
