@@ -97,12 +97,13 @@ jobs:
           make pytest
 
   build-wheels-py38:
-    name: Build wheels for Python ${{ matrix.python-version }} on ubuntu-latest
-    runs-on: ubuntu-latest
+    name: Build wheels for Python ${{ matrix.python-version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     needs: [build]
     if: github.repository == 'metaopt/torchopt' && (github.event_name != 'push' || startsWith(github.ref, 'refs/tags/'))
     strategy:
       matrix:
+        os: [ubuntu-latest]
         python-version: ["3.8"] # sync with requires-python in pyproject.toml
       fail-fast: false
     timeout-minutes: 60
@@ -142,17 +143,18 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: wheels-py38
+          name: wheels-${{ matrix.python-version }}-${{ matrix.os }}
           path: wheelhouse/*.whl
           if-no-files-found: error
 
   build-wheels:
-    name: Build wheels for Python ${{ matrix.python-version }} on ubuntu-latest
-    runs-on: ubuntu-latest
+    name: Build wheels for Python ${{ matrix.python-version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     needs: [build, build-wheels-py38]
     if: github.repository == 'metaopt/torchopt' && (github.event_name != 'push' || startsWith(github.ref, 'refs/tags/'))
     strategy:
       matrix:
+        os: [ubuntu-latest]
         python-version: ["3.9", "3.10", "3.11"] # sync with requires-python in pyproject.toml
       fail-fast: false
     timeout-minutes: 60
@@ -192,7 +194,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: wheels
+          name: wheels-${{ matrix.python-version }}-${{ matrix.os }}
           path: wheelhouse/*.whl
           if-no-files-found: error
 
@@ -249,15 +251,7 @@ jobs:
         with:
           # unpacks default artifact into dist/
           # if `name: artifact` is omitted, the action will create extra parent dir
-          name: wheels-py38
-          path: dist
-
-      - name: Download built wheels
-        uses: actions/download-artifact@v3
-        with:
-          # unpacks default artifact into dist/
-          # if `name: artifact` is omitted, the action will create extra parent dir
-          name: wheels
+          name: wheels-*
           path: dist
 
       - name: List distributions
@@ -269,10 +263,10 @@ jobs:
         with:
           user: __token__
           password: ${{ secrets.TESTPYPI_UPLOAD_TOKEN }}
-          repository_url: https://test.pypi.org/legacy/
+          repository-url: https://test.pypi.org/legacy/
           verbose: true
-          print_hash: true
-          skip_existing: true
+          print-hash: true
+          skip-existing: true
 
       - name: Publish to PyPI
         if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
@@ -281,5 +275,5 @@ jobs:
           user: __token__
           password: ${{ secrets.PYPI_UPLOAD_TOKEN }}
           verbose: true
-          print_hash: true
-          skip_existing: true
+          print-hash: true
+          skip-existing: true
