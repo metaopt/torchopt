@@ -173,7 +173,7 @@ clang-format: clang-format-install
 
 clang-tidy: clang-tidy-install cmake-configure
 	clang-tidy --version
-	clang-tidy -p=cmake-build-debug $(CXX_FILES)
+	clang-tidy --extra-arg="-v" -p=cmake-build-debug $(CXX_FILES)
 
 # Documentation
 
