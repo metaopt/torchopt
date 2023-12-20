@@ -118,11 +118,15 @@ If you find TorchOpt useful, please cite it in your publications.
 
 .. code-block:: bibtex
 
-    @article{torchopt,
-      title   = {TorchOpt: An Efficient Library for Differentiable Optimization},
-      author  = {Ren, Jie and Feng, Xidong and Liu, Bo and Pan, Xuehai and Fu, Yao and Mai, Luo and Yang, Yaodong},
-      journal = {arXiv preprint arXiv:2211.06934},
-      year    = {2022}
+    @article{JMLR:TorchOpt,
+    author  = {Jie Ren* and Xidong Feng* and Bo Liu* and Xuehai Pan* and Yao Fu and Luo Mai and Yaodong Yang},
+    title   = {TorchOpt: An Efficient Library for Differentiable Optimization},
+    journal = {Journal of Machine Learning Research},
+    year    = {2023},
+    volume  = {24},
+    number  = {367},
+    pages   = {1--14},
+    url     = {http://jmlr.org/papers/v24/23-0191.html}
     }
 
 
