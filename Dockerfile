@@ -48,7 +48,7 @@ FROM builder AS devel-builder
 
 # Install extra dependencies
 RUN sudo apt-get update && \
-    sudo apt-get install -y golang clang-format clang-tidy && \
+    sudo apt-get install -y golang && \
     sudo chown -R "$(whoami):$(whoami)" "$(realpath /usr/lib/go)" && \
     sudo rm -rf /var/lib/apt/lists/*
 
