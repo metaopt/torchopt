@@ -164,9 +164,11 @@ class ChainedGradientTransformation(GradientTransformation):
         """Create a new chained gradient transformation."""
         transformations = tuple(
             itertools.chain.from_iterable(
-                t.transformations
-                if isinstance(t, ChainedGradientTransformation)
-                else ((t,) if not isinstance(t, IdentityGradientTransformation) else ())
+                (
+                    t.transformations
+                    if isinstance(t, ChainedGradientTransformation)
+                    else ((t,) if not isinstance(t, IdentityGradientTransformation) else ())
+                )
                 for t in transformations
             ),
         )
