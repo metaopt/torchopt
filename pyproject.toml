@@ -176,7 +176,6 @@ test-command = """
 # Linter tools #################################################################
 
 [tool.black]
-safe = true
 line-length = 100
 skip-string-normalization = true
 # Sync with requires-python
@@ -194,7 +193,7 @@ multi_line_output = 3
 
 [tool.mypy]
 # Sync with requires-python
-python_version = 3.8
+python_version = "3.8"
 pretty = true
 show_error_codes = true
 show_error_context = true
@@ -226,9 +225,11 @@ ignore-words = "docs/source/spelling_wordlist.txt"
 # Sync with requires-python
 target-version = "py38"
 line-length = 100
-show-source = true
+output-format = "full"
 src = ["torchopt", "tests"]
 extend-exclude = ["examples"]
+
+[tool.ruff.lint]
 select = [
     "E", "W",  # pycodestyle
     "F",       # pyflakes
@@ -271,7 +272,7 @@ ignore = [
 ]
 typing-modules = ["torchopt.typing"]
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "__init__.py" = [
     "F401",  # unused-import
 ]
@@ -294,18 +295,18 @@ typing-modules = ["torchopt.typing"]
     "F811",  # redefined-while-unused
 ]
 
-[tool.ruff.flake8-annotations]
+[tool.ruff.lint.flake8-annotations]
 allow-star-arg-any = true
 
-[tool.ruff.flake8-quotes]
+[tool.ruff.lint.flake8-quotes]
 docstring-quotes = "double"
 multiline-quotes = "double"
 inline-quotes = "single"
 
-[tool.ruff.flake8-tidy-imports]
+[tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "all"
 
-[tool.ruff.pylint]
+[tool.ruff.lint.pylint]
 allow-magic-value-types = ["int", "str", "float"]
 
 [tool.pytest.ini_options]
