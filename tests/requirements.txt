@@ -5,7 +5,8 @@ torch >= 1.13
 
 jax[cpu] >= 0.3; platform_system != 'Windows'
 jaxopt; platform_system != 'Windows'
-optax; platform_system != 'Windows'
+optax < 0.1.8a0; platform_system != 'Windows' and python_version < '3.9'
+optax >= 0.1.8; platform_system != 'Windows' and python_version >= '3.9'
 
 pytest
 pytest-cov
