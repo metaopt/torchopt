@@ -1,4 +1,4 @@
-# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2024 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -145,7 +145,7 @@ def make_dot(
 
     def get_var_name(var: torch.Tensor, name: str | None = None) -> str:
         if not name:
-            name = param_map[var] if var in param_map else ''
+            name = param_map.get(var, '')
         return f'{name}\n{size_to_str(var.size())}'
 
     def get_var_name_with_flag(var: torch.Tensor) -> str | None:

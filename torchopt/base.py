@@ -1,4 +1,4 @@
-# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2024 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -164,9 +164,11 @@ class ChainedGradientTransformation(GradientTransformation):
         """Create a new chained gradient transformation."""
         transformations = tuple(
             itertools.chain.from_iterable(
-                t.transformations
-                if isinstance(t, ChainedGradientTransformation)
-                else ((t,) if not isinstance(t, IdentityGradientTransformation) else ())
+                (
+                    t.transformations
+                    if isinstance(t, ChainedGradientTransformation)
+                    else ((t,) if not isinstance(t, IdentityGradientTransformation) else ())
+                )
                 for t in transformations
             ),
         )

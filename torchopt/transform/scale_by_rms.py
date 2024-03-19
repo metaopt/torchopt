@@ -1,4 +1,4 @@
-# Copyright 2022-2023 MetaOPT Team. All Rights Reserved.
+# Copyright 2022-2024 MetaOPT Team. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -135,14 +135,14 @@ def _scale_by_rms(
         )
 
         if inplace:
-
+            # pylint: disable-next=invalid-name
             def f(n: torch.Tensor, g: torch.Tensor | None) -> torch.Tensor | None:
                 return g.div_(n.sqrt().add_(eps)) if g is not None else g
 
             tree_map_(f, nu, updates)
 
         else:
-
+            # pylint: disable-next=invalid-name
             def f(n: torch.Tensor, g: torch.Tensor | None) -> torch.Tensor | None:
                 return g.div(n.sqrt().add(eps)) if g is not None else g
 
