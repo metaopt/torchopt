@@ -21,6 +21,7 @@ import functorch
 import pytest
 import torch
 import torch.nn.functional as F
+from adan import Adan
 
 import helpers
 import torchopt
@@ -180,6 +181,79 @@ def test_adadelta(
         rho=rho,
         eps=eps,
         weight_decay=weight_decay,
+    )
+
+    for xs, ys in loader:
+        xs = xs.to(dtype=dtype)
+        pred = fmodel(params, buffers, xs)
+        pred_ref = model_ref(xs)
+        loss = F.cross_entropy(pred, ys)
+        loss_ref = F.cross_entropy(pred_ref, ys)
+
+        grads = torch.autograd.grad(loss, params, allow_unused=True)
+        updates, optim_state = optim.update(grads, optim_state, params=params, inplace=inplace)
+        params = torchopt.apply_updates(params, updates, inplace=inplace)
+
+        optim_ref.zero_grad()
+        loss_ref.backward()
+        optim_ref.step()
+
+    helpers.assert_model_all_close((params, buffers), model_ref, model_base, dtype=dtype)
+    _set_use_chain_flat(True)
+
+
+@helpers.parametrize(
+    dtype=[torch.float64],
+    lr=[1e-2, 1e-3, 1e-4],
+    betas=[(0.9, 0.999, 0.998), (0.95, 0.9995, 0.9985)],
+    eps=[1e-8],
+    inplace=[True, False],
+    weight_decay=[0.0, 1e-2],
+    max_grad_norm=[0.0, 1.0],
+    no_prox=[False, True],
+    maximize=[False, True],
+    use_accelerated_op=[False, True],
+    use_chain_flat=[True, False],
+)
+def test_adan(
+    dtype: torch.dtype,
+    lr: float,
+    betas: tuple[float, float, float],
+    eps: float,
+    inplace: bool,
+    weight_decay: float,
+    max_grad_norm: float,
+    no_prox: bool,
+    maximize: bool,
+    use_accelerated_op: bool,
+    use_chain_flat: bool,
+) -> None:
+    _set_use_chain_flat(use_chain_flat)
+
+    model, model_ref, model_base, loader = helpers.get_models(device='cpu', dtype=dtype)
+
+    fmodel, params, buffers = functorch.make_functional_with_buffers(model)
+    optim = torchopt.adan(
+        lr,
+        betas=betas,
+        eps=eps,
+        eps_root=0.0,
+        weight_decay=weight_decay,
+        max_grad_norm=max_grad_norm,
+        no_prox=no_prox,
+        maximize=maximize,
+        use_accelerated_op=use_accelerated_op,
+    )
+    optim_state = optim.init(params)
+    optim_ref = Adan(
+        model_ref.parameters(),
+        lr,
+        betas=betas,
+        eps=eps,
+        eps_root=0.0,
+        weight_decay=weight_decay,
+        max_grad_norm=max_grad_norm,
+        no_prox=no_prox,
     )
 
     for xs, ys in loader:
