@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
--
+- Drop PyTorch 1.x support by [@XuehaiPan](https://github.com/XuehaiPan) in [#215](https://github.com/metaopt/torchopt/pull/215).
 
 ------
 
