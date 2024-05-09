@@ -7,7 +7,7 @@
 #   $ docker build --target devel --tag torchopt-devel:latest .
 #
 
-ARG cuda_docker_tag="11.7.1-cudnn8-devel-ubuntu22.04"
+ARG cuda_docker_tag="12.1.0-cudnn8-devel-ubuntu22.04"
 FROM nvidia/cuda:"${cuda_docker_tag}" AS builder
 
 ENV DEBIAN_FRONTEND=noninteractive

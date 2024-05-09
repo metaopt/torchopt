@@ -2,7 +2,7 @@
 
 [build-system]
 # Sync with project.dependencies
-requires = ["setuptools", "torch >= 1.13", "numpy", "pybind11 >= 2.10.1"]
+requires = ["setuptools", "torch >= 2.0", "numpy", "pybind11 >= 2.11.1"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -51,11 +51,11 @@ classifiers = [
 ]
 dependencies = [
     # See also build-system.requires and project.requires-python
-    "torch >= 1.13",
+    "torch >= 2.0",
     "optree >= 0.4.1",
     "numpy",
     "graphviz",
-    "typing-extensions >= 4.0.0",
+    "typing-extensions",
 ]
 dynamic = ["version"]
 
@@ -68,9 +68,9 @@ Documentation = "https://torchopt.readthedocs.io"
 [project.optional-dependencies]
 lint = [
     "isort",
-    "black[jupyter] >= 22.6.0",
-    "pylint[spelling] >= 2.15.0",
-    "mypy >= 0.990",
+    "black[jupyter]",
+    "pylint[spelling]",
+    "mypy",
     "flake8",
     "flake8-bugbear",
     "flake8-comprehensions",
@@ -88,7 +88,7 @@ test = [
     "pytest",
     "pytest-cov",
     "pytest-xdist",
-    "jax[cpu] >= 0.3; platform_system != 'Windows'",
+    "jax[cpu] >= 0.4; platform_system != 'Windows'",
     "jaxopt; platform_system != 'Windows'",
     "optax; platform_system != 'Windows'",
 ]
@@ -113,8 +113,8 @@ build-verbosity = 3
 environment.USE_FP16 = "ON"
 environment.CUDACXX = "/usr/local/cuda/bin/nvcc"
 environment.TORCH_CUDA_ARCH_LIST = "Common"
-environment.DEFAULT_CUDA_VERSION = "11.7"
-environment.DEFAULT_TEST_TORCH_SPECS = "cpu cu116"
+environment.DEFAULT_CUDA_VERSION = "12.1"
+environment.DEFAULT_TEST_TORCH_SPECS = "cpu cu118"
 environment-pass = ["CUDA_VERSION", "TEST_TORCH_SPECS"]
 container-engine = "docker"
 test-extras = ["test"]

@@ -17,7 +17,7 @@ cmake_minimum_required(VERSION 3.11)  # for FetchContent
 project(torchopt LANGUAGES CXX)
 
 include(FetchContent)
-set(PYBIND11_VERSION v2.11.1)
+set(PYBIND11_VERSION v2.12.0)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
