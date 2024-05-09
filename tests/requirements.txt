@@ -3,6 +3,8 @@ torch >= 1.13
 
 --requirement ../requirements.txt
 
+git+https://github.com/benjamin-eecs/Adan.git
+
 jax[cpu] >= 0.3; platform_system != 'Windows'
 jaxopt; platform_system != 'Windows'
 optax < 0.1.8a0; platform_system != 'Windows' and python_version < '3.9'
