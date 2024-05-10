@@ -65,7 +65,7 @@ def parametrize(**argvalues) -> pytest.mark.parametrize:
         argvalues = list(itertools.product(*tuple(map(argvalues.get, arguments))))
 
     ids = tuple(
-        '-'.join(f'{arg}({val})' for arg, val in zip(arguments, values)) for values in argvalues
+        '-'.join(f'{arg}({val!r})' for arg, val in zip(arguments, values)) for values in argvalues
     )
 
     return pytest.mark.parametrize(arguments, argvalues, ids=ids)

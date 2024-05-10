@@ -316,4 +316,5 @@ filterwarnings = [
     'ignore:jax\.numpy\.DeviceArray is deprecated\. Use jax\.Array\.:DeprecationWarning',
     'ignore:.*functorch.*deprecate.*:UserWarning',
     'ignore:.*Apple Paravirtual device.*:UserWarning',
+    'ignore:.*NVML.*:UserWarning',
 ]
