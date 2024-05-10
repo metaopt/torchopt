@@ -236,7 +236,11 @@ docker-devel:
 docker: docker-base docker-devel
 
 docker-run-base: docker-base
-	docker run --network=host --gpus=all -v /:/host -h ubuntu -it $(PROJECT_NAME):$(COMMIT_HASH)
+	docker run -it --network=host --gpus=all --shm-size=4gb -v /:/host -v "${PWD}:/workspace" \
+		-h ubuntu -w /workspace $(PROJECT_NAME):$(COMMIT_HASH)
 
 docker-run-devel: docker-devel
-	docker run --network=host --gpus=all -v /:/host -h ubuntu -it $(PROJECT_NAME)-devel:$(COMMIT_HASH)
+	docker run -it --network=host --gpus=all --shm-size=4gb -v /:/host -v "${PWD}:/workspace" \
+		-h ubuntu -w /workspace $(PROJECT_NAME)-devel:$(COMMIT_HASH)
+
+docker-run: docker-run-base

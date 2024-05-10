@@ -17,7 +17,7 @@ Before contributing to TorchOpt, please follow the instructions below to setup.
 .. code-block:: bash
 
     # You may need `CONDA_OVERRIDE_CUDA` if conda fails to detect the NVIDIA driver (e.g. in docker or WSL2)
-    CONDA_OVERRIDE_CUDA=11.7 conda env create --file conda-recipe.yaml
+    CONDA_OVERRIDE_CUDA=12.1 conda env create --file conda-recipe.yaml
 
     conda activate torchopt
 
@@ -91,14 +91,14 @@ To build compatible **manylinux2014** (:pep:`599`) wheels for distribution, you 
 
     pip3 install --upgrade cibuildwheel
 
-    export TEST_TORCH_SPECS="cpu cu116"  # `torch` builds for testing
-    export CUDA_VERSION="11.7"           # version of `nvcc` for compilation
+    export TEST_TORCH_SPECS="cpu cu118"  # `torch` builds for testing
+    export CUDA_VERSION="12.1"           # version of `nvcc` for compilation
     python3 -m cibuildwheel --platform=linux --output-dir=wheelhouse --config-file=pyproject.toml
 
 It will install the CUDA compiler with ``CUDA_VERSION`` in the build container. Then build wheel binaries for all supported CPython versions. The outputs will be placed in the ``wheelhouse`` directory.
 
 To build a wheel for a specific CPython version, you can use the |CIBW_BUILD|_ environment variable.
-For example, the following command will build a wheel for Python 3.7:
+For example, the following command will build a wheel for Python 3.8:
 
 .. code-block:: bash
 

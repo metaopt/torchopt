@@ -1,9 +1,9 @@
---extra-index-url https://download.pytorch.org/whl/cu117
-torch >= 1.13
+--extra-index-url https://download.pytorch.org/whl/cu121
+torch >= 2.0
 
 --requirement ../requirements.txt
 
-jax[cpu] >= 0.3; platform_system != 'Windows'
+jax[cpu] >= 0.4; platform_system != 'Windows'
 jaxopt; platform_system != 'Windows'
 optax < 0.1.8a0; platform_system != 'Windows' and python_version < '3.9'
 optax >= 0.1.8; platform_system != 'Windows' and python_version >= '3.9'
@@ -11,10 +11,10 @@ optax >= 0.1.8; platform_system != 'Windows' and python_version >= '3.9'
 pytest
 pytest-cov
 pytest-xdist
-isort >= 5.11.0
-black[jupyter] >= 22.6.0
-pylint[spelling] >= 2.15.0
-mypy >= 0.990
+isort
+black[jupyter]
+pylint[spelling]
+mypy
 flake8
 flake8-bugbear
 flake8-comprehensions

@@ -27,7 +27,7 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
-  CUDA_VERSION: "11.7"
+  CUDA_VERSION: "12.1"
 
 jobs:
   test:

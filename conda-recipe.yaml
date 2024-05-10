@@ -15,49 +15,49 @@
 #
 # Create virtual environment with command:
 #
-#   $ CONDA_OVERRIDE_CUDA=11.7 conda env create --file conda-recipe.yaml
+#   $ CONDA_OVERRIDE_CUDA=12.1 conda env create --file conda-recipe.yaml
 #
 
 name: torchopt
 
 channels:
   - pytorch
-  - nvidia/label/cuda-11.7.1
+  - nvidia/label/cuda-12.1.0
   - defaults
   - conda-forge
 
 dependencies:
-  - python = 3.10
+  - python = 3.11
   - pip
 
   # Learning
-  - pytorch::pytorch >= 1.13  # sync with project.dependencies
+  - pytorch::pytorch >= 2.0  # sync with project.dependencies
   - pytorch::torchvision
   - pytorch::pytorch-mutex = *=*cuda*
   - pip:
       - torchviz
       - sphinxcontrib-katex  # for documentation
-  - jax                      # for tutorials
-  - jaxlib                   # for tutorials
-  - optax                    # for tutorials
-  - jaxopt                   # for tests
+  - conda-forge::jax         # for tutorials
+  - conda-forge::jaxlib      # for tutorials
+  - conda-forge::optax       # for tutorials
+  - conda-forge::jaxopt      # for tests
   - tensorboard              # for examples
 
   # Device select
-  - nvidia/label/cuda-11.7.1::cuda-toolkit = 11.7
+  - nvidia/label/cuda-12.1.0::cuda-toolkit = 12.1
 
   # Build toolchain
   - cmake >= 3.11
   - make
   - cxx-compiler
-  - nvidia/label/cuda-11.7.1::cuda-nvcc
-  - nvidia/label/cuda-11.7.1::cuda-cudart-dev
+  - nvidia/label/cuda-12.1.0::cuda-nvcc
+  - nvidia/label/cuda-12.1.0::cuda-cudart-dev
   - patchelf >= 0.14
-  - pybind11 >= 2.10.1
+  - pybind11 >= 2.11.1
 
   # Misc
   - optree >= 0.4.1
-  - typing-extensions >= 4.0.0
+  - typing-extensions
   - numpy
   - matplotlib-base
   - seaborn
@@ -83,10 +83,10 @@ dependencies:
   - pytest
   - pytest-cov
   - pytest-xdist
-  - isort >= 5.11.0
-  - conda-forge::black-jupyter >= 22.6.0
-  - pylint >= 2.15.0
-  - mypy >= 0.990
+  - isort
+  - conda-forge::black-jupyter
+  - pylint
+  - mypy
   - flake8
   - flake8-bugbear
   - flake8-comprehensions
@@ -96,8 +96,8 @@ dependencies:
   - ruff
   - doc8
   - pydocstyle
-  - clang-format >= 14
-  - clang-tools >= 14  # clang-tidy
-  - cpplint
+  - conda-forge::clang-format >= 14
+  - conda-forge::clang-tools >= 14  # clang-tidy
+  - conda-forge::cpplint
   - conda-forge::pre-commit
   - conda-forge::identify

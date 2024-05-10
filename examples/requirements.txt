@@ -1,5 +1,5 @@
---extra-index-url https://download.pytorch.org/whl/cu117
-torch >= 1.13
+--extra-index-url https://download.pytorch.org/whl/cu121
+torch >= 2.0
 torchvision
 
 --requirement ../requirements.txt

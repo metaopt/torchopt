@@ -425,11 +425,11 @@ Then run the following command to install TorchOpt from PyPI ([![PyPI](https://i
 pip3 install torchopt
 ```
 
-If the minimum version of PyTorch is not satisfied, `pip` will install/upgrade it for you. Please be careful about the `torch` build for CPU / CUDA support (e.g. `cpu`, `cu116`, `cu117`).
+If the minimum version of PyTorch is not satisfied, `pip` will install/upgrade it for you. Please be careful about the `torch` build for CPU / CUDA support (e.g. `cpu`, `cu118`, `cu121`).
 You may need to specify the extra index URL for the `torch` package:
 
 ```bash
-pip3 install torchopt --extra-index-url https://download.pytorch.org/whl/cu117
+pip3 install torchopt --extra-index-url https://download.pytorch.org/whl/cu121
 ```
 
 See <https://pytorch.org> for more information about installing PyTorch.
@@ -450,7 +450,7 @@ git clone https://github.com/metaopt/torchopt.git
 cd torchopt
 
 # You may need `CONDA_OVERRIDE_CUDA` if conda fails to detect the NVIDIA driver (e.g. in docker or WSL2)
-CONDA_OVERRIDE_CUDA=11.7 conda env create --file conda-recipe-minimal.yaml
+CONDA_OVERRIDE_CUDA=12.1 conda env create --file conda-recipe-minimal.yaml
 
 conda activate torchopt
 make install-editable  # or run `pip3 install --no-build-isolation --editable .`
