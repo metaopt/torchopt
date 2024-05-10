@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
--
+- Enable CI workflow to build CXX/CUDA extension for Python 3.12 by [@XuehaiPan](https://github.com/XuehaiPan) in [#216](https://github.com/metaopt/torchopt/pull/216).
 
 ### Changed
 

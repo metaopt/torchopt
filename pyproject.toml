@@ -22,7 +22,7 @@ authors = [
 license = { text = "Apache License, Version 2.0" }
 keywords = [
     "PyTorch",
-    "functorch",
+    "FuncTorch",
     "JAX",
     "Meta-Learning",
     "Optimizer",
@@ -38,6 +38,8 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: Implementation :: CPython",
     "Operating System :: Microsoft :: Windows",
     "Operating System :: POSIX :: Linux",
     "Operating System :: MacOS",
@@ -179,7 +181,7 @@ test-command = """
 line-length = 100
 skip-string-normalization = true
 # Sync with requires-python
-target-version = ["py38", "py39", "py310", "py311"]
+target-version = ["py38"]
 
 [tool.isort]
 atomic = true
