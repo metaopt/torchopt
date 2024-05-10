@@ -316,6 +316,7 @@ filterwarnings = [
     "error",
     'ignore:Explicitly requested dtype float64 requested in .* is not available, and will be truncated to dtype float32\.:UserWarning',
     'ignore:jax\.numpy\.DeviceArray is deprecated\. Use jax\.Array\.:DeprecationWarning',
+    'ignore:(ast\.Str|ast\.NameConstant|Attribute s) is deprecated and will be removed in Python 3\.14:DeprecationWarning',
     'ignore:.*functorch.*deprecate.*:UserWarning',
     'ignore:.*Apple Paravirtual device.*:UserWarning',
     'ignore:.*NVML.*:UserWarning',
