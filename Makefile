@@ -22,7 +22,8 @@ install:
 install-editable:
 	$(PYTHON) -m pip install --upgrade pip
 	$(PYTHON) -m pip install --upgrade setuptools wheel
-	$(PYTHON) -m pip install torch numpy pybind11 cmake
+	$(PYTHON) -m pip install --upgrade pybind11 cmake
+	$(PYTHON) -m pip install torch numpy
 	USE_FP16=ON TORCH_CUDA_ARCH_LIST=Auto $(PYTHON) -m pip install -vvv --no-build-isolation --editable .
 
 install-e: install-editable  # alias
@@ -114,7 +115,7 @@ addlicense-install: go-install
 pytest: test-install
 	$(PYTHON) -m pytest --version
 	cd tests && $(PYTHON) -c 'import $(PROJECT_PATH)' && \
-	$(PYTHON) -m pytest --verbose --color=yes --durations=0 \
+	$(PYTHON) -m pytest --verbose --color=yes \
 		--cov="$(PROJECT_PATH)" --cov-config=.coveragerc --cov-report=xml --cov-report=term-missing \
 		$(PYTESTOPTS) .
 
