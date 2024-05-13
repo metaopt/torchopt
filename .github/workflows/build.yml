@@ -136,7 +136,7 @@ jobs:
         run: python .github/workflows/set_cibw_build.py
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.17
+        uses: pypa/cibuildwheel@v2.18
         env:
           CIBW_BUILD: ${{ env.CIBW_BUILD }}
         with:
@@ -190,7 +190,7 @@ jobs:
         run: python .github/workflows/set_cibw_build.py
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.17
+        uses: pypa/cibuildwheel@v2.18
         env:
           CIBW_BUILD: ${{ env.CIBW_BUILD }}
         with:
