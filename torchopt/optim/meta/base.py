@@ -78,10 +78,14 @@ class MetaOptimizer:
             with torch.enable_grad():
                 # Step parameters only
                 grads = torch.autograd.grad(loss, flat_params, create_graph=True, allow_unused=True)
+                updates, new_state = self.impl.update(
+                    grads,
+                    state,
+                    params=flat_params,
+                    inplace=False,
+                )
+                flat_new_params = apply_updates(flat_params, updates, inplace=False)
 
-            updates, new_state = self.impl.update(grads, state, params=flat_params, inplace=False)
-
-            flat_new_params = apply_updates(flat_params, updates, inplace=False)
             new_params: ModuleTensorContainers = pytree.tree_unflatten(  # type: ignore[assignment]
                 container_treespec,
                 flat_new_params,
