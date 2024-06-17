@@ -235,6 +235,7 @@ extend-exclude = ["examples"]
 select = [
     "E", "W",  # pycodestyle
     "F",       # pyflakes
+    "C90",     # mccabe
     "UP",      # pyupgrade
     "ANN",     # flake8-annotations
     "S",       # flake8-bandit
@@ -243,7 +244,10 @@ select = [
     "COM",     # flake8-commas
     "C4",      # flake8-comprehensions
     "EXE",     # flake8-executable
+    "FA",      # flake8-future-annotations
+    "LOG",     # flake8-logging
     "ISC",     # flake8-implicit-str-concat
+    "INP",     # flake8-no-pep420
     "PIE",     # flake8-pie
     "PYI",     # flake8-pyi
     "Q",       # flake8-quotes
@@ -251,6 +255,10 @@ select = [
     "RET",     # flake8-return
     "SIM",     # flake8-simplify
     "TID",     # flake8-tidy-imports
+    "TCH",     # flake8-type-checking
+    "PERF",    # perflint
+    "FURB",    # refurb
+    "TRY",     # tryceratops
     "RUF",     # ruff
 ]
 ignore = [
@@ -268,9 +276,9 @@ ignore = [
     # S101: use of `assert` detected
     # internal use and may never raise at runtime
     "S101",
-    # PLR0402: use from {module} import {name} in lieu of alias
-    # use alias for import convention (e.g., `import torch.nn as nn`)
-    "PLR0402",
+    # TRY003: avoid specifying long messages outside the exception class
+    # long messages are necessary for clarity
+    "TRY003",
 ]
 typing-modules = ["torchopt.typing"]
 
@@ -295,6 +303,9 @@ typing-modules = ["torchopt.typing"]
     "B018",  # useless-expression
     "F401",  # unused-import
     "F811",  # redefined-while-unused
+]
+"docs/source/conf.py" = [
+    "INP001",  # flake8-no-pep420
 ]
 
 [tool.ruff.lint.flake8-annotations]

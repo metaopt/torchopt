@@ -16,11 +16,16 @@
 
 from __future__ import annotations
 
-import torch.nn as nn
+from typing import TYPE_CHECKING
 
 from torchopt import alias
 from torchopt.optim.meta.base import MetaOptimizer
-from torchopt.typing import ScalarOrSchedule
+
+
+if TYPE_CHECKING:
+    import torch.nn as nn
+
+    from torchopt.typing import ScalarOrSchedule
 
 
 __all__ = ['MetaRAdam']

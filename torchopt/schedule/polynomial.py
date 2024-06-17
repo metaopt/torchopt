@@ -31,15 +31,20 @@
 # ==============================================================================
 """Polynomial learning rate schedules."""
 
+from __future__ import annotations
+
 import logging
+from typing import TYPE_CHECKING
 
 import numpy as np
 import torch
 
-from torchopt.typing import Numeric, Scalar, Schedule
+
+if TYPE_CHECKING:
+    from torchopt.typing import Numeric, Scalar, Schedule
 
 
-__all__ = ['polynomial_schedule', 'linear_schedule']
+__all__ = ['linear_schedule', 'polynomial_schedule']
 
 
 def polynomial_schedule(

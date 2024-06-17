@@ -20,14 +20,17 @@
 from __future__ import annotations
 
 import math
-from typing import NamedTuple
+from typing import TYPE_CHECKING, NamedTuple
 
 import torch
 
 from torchopt import pytree
 from torchopt.base import GradientTransformation
 from torchopt.transform.utils import tree_map_flat, update_moment
-from torchopt.typing import OptState, Params, Updates
+
+
+if TYPE_CHECKING:
+    from torchopt.typing import OptState, Params, Updates
 
 
 __all__ = ['scale_by_radam']
@@ -89,7 +92,7 @@ def _scale_by_radam_flat(
     )
 
 
-def _scale_by_radam(
+def _scale_by_radam(  # noqa: C901
     b1: float = 0.9,
     b2: float = 0.999,
     eps: float = 1e-6,

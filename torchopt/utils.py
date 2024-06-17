@@ -34,11 +34,11 @@ if TYPE_CHECKING:
 
 __all__ = [
     'ModuleState',
-    'stop_gradient',
     'extract_state_dict',
-    'recover_state_dict',
     'module_clone',
     'module_detach_',
+    'recover_state_dict',
+    'stop_gradient',
 ]
 
 
@@ -115,7 +115,7 @@ def extract_state_dict(
 
 
 # pylint: disable-next=too-many-arguments,too-many-branches,too-many-locals
-def extract_state_dict(
+def extract_state_dict(  # noqa: C901
     target: nn.Module | MetaOptimizer,
     *,
     by: CopyMode = 'reference',
@@ -272,7 +272,7 @@ def extract_state_dict(
 
         return pytree.tree_map(get_variable, state)  # type: ignore[arg-type,return-value]
 
-    raise RuntimeError(f'Unexpected class of {target}')
+    raise TypeError(f'Unexpected class of {target}')
 
 
 def extract_module_containers(
@@ -346,7 +346,7 @@ def recover_state_dict(
         state = cast(Sequence[OptState], state)
         target.load_state_dict(state)
     else:
-        raise RuntimeError(f'Unexpected class of {target}')
+        raise TypeError(f'Unexpected class of {target}')
 
 
 @overload
@@ -383,7 +383,7 @@ def module_clone(
 
 
 # pylint: disable-next=too-many-locals
-def module_clone(
+def module_clone(  # noqa: C901
     target: nn.Module | MetaOptimizer | TensorTree,
     *,
     by: CopyMode = 'reference',

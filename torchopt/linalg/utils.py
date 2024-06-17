@@ -17,12 +17,15 @@
 from __future__ import annotations
 
 import itertools
-from typing import Callable
+from typing import TYPE_CHECKING, Callable
 
 import torch
 
 from torchopt import pytree
-from torchopt.typing import TensorTree
+
+
+if TYPE_CHECKING:
+    from torchopt.typing import TensorTree
 
 
 def cat_shapes(tree: TensorTree) -> tuple[int, ...]:

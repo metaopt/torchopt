@@ -31,11 +31,15 @@
 # ==============================================================================
 """Exponential learning rate decay."""
 
+from __future__ import annotations
+
 import logging
 import math
-from typing import Optional
+from typing import TYPE_CHECKING
 
-from torchopt.typing import Numeric, Scalar, Schedule
+
+if TYPE_CHECKING:
+    from torchopt.typing import Numeric, Scalar, Schedule
 
 
 __all__ = ['exponential_decay']
@@ -48,7 +52,7 @@ def exponential_decay(
     transition_begin: int = 0,
     transition_steps: int = 1,
     staircase: bool = False,
-    end_value: Optional[float] = None,
+    end_value: float | None = None,
 ) -> Schedule:
     """Construct a schedule with either continuous or discrete exponential decay.
 

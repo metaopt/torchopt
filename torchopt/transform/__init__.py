@@ -46,18 +46,18 @@ from torchopt.transform.trace import trace
 
 
 __all__ = [
-    'trace',
-    'scale',
-    'scale_by_schedule',
     'add_decayed_weights',
     'masked',
+    'nan_to_num',
+    'scale',
+    'scale_by_accelerated_adam',
+    'scale_by_adadelta',
     'scale_by_adam',
     'scale_by_adamax',
-    'scale_by_adadelta',
     'scale_by_radam',
-    'scale_by_accelerated_adam',
-    'scale_by_rss',
     'scale_by_rms',
+    'scale_by_rss',
+    'scale_by_schedule',
     'scale_by_stddev',
-    'nan_to_num',
+    'trace',
 ]

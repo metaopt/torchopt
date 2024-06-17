@@ -20,7 +20,7 @@ import copy
 import itertools
 import os
 import random
-from typing import Iterable
+from typing import TYPE_CHECKING, Iterable
 
 import numpy as np
 import pytest
@@ -30,7 +30,10 @@ import torch.types
 from torch.utils import data
 
 from torchopt import pytree
-from torchopt.typing import TensorTree
+
+
+if TYPE_CHECKING:
+    from torchopt.typing import TensorTree
 
 
 BATCH_SIZE = 64

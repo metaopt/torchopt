@@ -16,13 +16,16 @@
 
 from __future__ import annotations
 
-from typing import Callable
-
-import torch.nn as nn
+from typing import TYPE_CHECKING, Callable
 
 from torchopt import alias
 from torchopt.optim.meta.base import MetaOptimizer
-from torchopt.typing import OptState, Params, ScalarOrSchedule
+
+
+if TYPE_CHECKING:
+    import torch.nn as nn
+
+    from torchopt.typing import OptState, Params, ScalarOrSchedule
 
 
 __all__ = ['MetaAdamW']

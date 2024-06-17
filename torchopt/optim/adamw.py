@@ -16,13 +16,16 @@
 
 from __future__ import annotations
 
-from typing import Callable, Iterable
-
-import torch
+from typing import TYPE_CHECKING, Callable, Iterable
 
 from torchopt import alias
 from torchopt.optim.base import Optimizer
-from torchopt.typing import OptState, Params, ScalarOrSchedule
+
+
+if TYPE_CHECKING:
+    import torch
+
+    from torchopt.typing import OptState, Params, ScalarOrSchedule
 
 
 __all__ = ['AdamW']

@@ -19,14 +19,17 @@
 
 from __future__ import annotations
 
-from typing import Any, Generator, Iterable, Mapping, cast
+from typing import TYPE_CHECKING, Any, Generator, Iterable, Mapping, cast
 
 import torch
 from graphviz import Digraph
 
 from torchopt import pytree
-from torchopt.typing import TensorTree
 from torchopt.utils import ModuleState
+
+
+if TYPE_CHECKING:
+    from torchopt.typing import TensorTree
 
 
 __all__ = ['make_dot', 'resize_graph']
@@ -69,7 +72,7 @@ def get_fn_name(fn: Any, show_attrs: bool, max_attr_chars: int) -> str:
 
 
 # pylint: disable-next=too-many-branches,too-many-statements,too-many-locals
-def make_dot(
+def make_dot(  # noqa: C901
     var: TensorTree,
     params: (
         Mapping[str, torch.Tensor]
@@ -153,7 +156,7 @@ def make_dot(
             return f'{param_map[var][0]}\n{size_to_str(param_map[var][1].size())}'
         return None
 
-    def add_nodes(fn: Any) -> None:  # pylint: disable=too-many-branches
+    def add_nodes(fn: Any) -> None:  # noqa: C901 # pylint: disable=too-many-branches
         assert not isinstance(fn, torch.Tensor)
         if fn in seen:
             return

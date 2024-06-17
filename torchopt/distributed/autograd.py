@@ -17,15 +17,18 @@
 from __future__ import annotations
 
 from threading import Lock
+from typing import TYPE_CHECKING
 
 import torch
 import torch.distributed.autograd as autograd
 from torch.distributed.autograd import context
 
-from torchopt.typing import TensorOrTensors, TupleOfOptionalTensors
+
+if TYPE_CHECKING:
+    from torchopt.typing import TensorOrTensors, TupleOfOptionalTensors
 
 
-__all__ = ['is_available', 'context']
+__all__ = ['context', 'is_available']
 
 
 LOCK = Lock()
@@ -121,7 +124,7 @@ if is_available():
         for p in inputs:
             try:
                 grads.append(all_local_grads[p])
-            except KeyError as ex:
+            except KeyError as ex:  # noqa: PERF203
                 if not allow_unused:
                     raise RuntimeError(
                         'One of the differentiated Tensors appears to not have been used in the '
@@ -131,4 +134,4 @@ if is_available():
 
         return tuple(grads)
 
-    __all__ += ['DistAutogradContext', 'get_gradients', 'backward', 'grad']
+    __all__ += ['DistAutogradContext', 'backward', 'get_gradients', 'grad']

@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 import functools
+import itertools
 from typing import Any, Callable, Literal, Sequence
 from typing_extensions import TypeAlias  # Python 3.10+
 
@@ -43,7 +44,7 @@ class WrappedSamplable(Samplable):  # pylint: disable=too-few-public-methods
         return self.sample_fn(sample_shape)
 
 
-def _zero_order_naive(  # pylint: disable=too-many-statements
+def _zero_order_naive(  # noqa: C901 # pylint: disable=too-many-statements
     fn: Callable[..., torch.Tensor],
     distribution: Samplable,
     argnums: tuple[int, ...],
@@ -51,7 +52,7 @@ def _zero_order_naive(  # pylint: disable=too-many-statements
     sigma: float,
 ) -> Callable[..., torch.Tensor]:
     @functools.wraps(fn)
-    def apply(*args: Any) -> torch.Tensor:  # pylint: disable=too-many-statements
+    def apply(*args: Any) -> torch.Tensor:  # noqa: C901 # pylint: disable=too-many-statements
         diff_params = [args[argnum] for argnum in argnums]
         flat_diff_params: list[Any]
         flat_diff_params, diff_params_treespec = pytree.tree_flatten(diff_params)  # type: ignore[arg-type]
@@ -81,7 +82,7 @@ def _zero_order_naive(  # pylint: disable=too-many-statements
 
                 output = fn(*origin_args)
                 if not isinstance(output, torch.Tensor):
-                    raise RuntimeError('`output` must be a tensor.')
+                    raise TypeError('`output` must be a tensor.')
                 if output.ndim != 0:
                     raise RuntimeError('`output` must be a scalar tensor.')
                 ctx.save_for_backward(*flat_diff_params, *tensors)
@@ -122,9 +123,9 @@ def _zero_order_naive(  # pylint: disable=too-many-statements
 
                 for _ in range(num_samples):
                     noises = [distribution.sample(sample_shape=p.shape) for p in flat_diff_params]
-                    flat_noisy_params = [
-                        add_perturbation(t, n) for t, n in zip(flat_diff_params, noises)  # type: ignore[arg-type]
-                    ]
+                    flat_noisy_params = list(
+                        itertools.starmap(add_perturbation, zip(flat_diff_params, noises)),
+                    )
                     noisy_params: list[Any] = pytree.tree_unflatten(  # type: ignore[assignment]
                         diff_params_treespec,
                         flat_noisy_params,
@@ -149,7 +150,7 @@ def _zero_order_naive(  # pylint: disable=too-many-statements
     return apply
 
 
-def _zero_order_forward(  # pylint: disable=too-many-statements
+def _zero_order_forward(  # noqa: C901 # pylint: disable=too-many-statements
     fn: Callable[..., torch.Tensor],
     distribution: Samplable,
     argnums: tuple[int, ...],
@@ -157,7 +158,7 @@ def _zero_order_forward(  # pylint: disable=too-many-statements
     sigma: float,
 ) -> Callable[..., torch.Tensor]:
     @functools.wraps(fn)
-    def apply(*args: Any) -> torch.Tensor:  # pylint: disable=too-many-statements
+    def apply(*args: Any) -> torch.Tensor:  # noqa: C901 # pylint: disable=too-many-statements
         diff_params = [args[argnum] for argnum in argnums]
         flat_diff_params: list[Any]
         flat_diff_params, diff_params_treespec = pytree.tree_flatten(diff_params)  # type: ignore[arg-type]
@@ -187,7 +188,7 @@ def _zero_order_forward(  # pylint: disable=too-many-statements
 
                 output = fn(*origin_args)
                 if not isinstance(output, torch.Tensor):
-                    raise RuntimeError('`output` must be a tensor.')
+                    raise TypeError('`output` must be a tensor.')
                 if output.ndim != 0:
                     raise RuntimeError('`output` must be a scalar tensor.')
                 ctx.save_for_backward(*flat_diff_params, *tensors, output)
@@ -226,9 +227,9 @@ def _zero_order_forward(  # pylint: disable=too-many-statements
 
                 for _ in range(num_samples):
                     noises = [distribution.sample(sample_shape=p.shape) for p in flat_diff_params]
-                    flat_noisy_params = [
-                        add_perturbation(t, n) for t, n in zip(flat_diff_params, noises)  # type: ignore[arg-type]
-                    ]
+                    flat_noisy_params = list(
+                        itertools.starmap(add_perturbation, zip(flat_diff_params, noises)),
+                    )
                     noisy_params: list[Any] = pytree.tree_unflatten(  # type: ignore[assignment]
                         diff_params_treespec,
                         flat_noisy_params,
@@ -254,7 +255,7 @@ def _zero_order_forward(  # pylint: disable=too-many-statements
     return apply
 
 
-def _zero_order_antithetic(  # pylint: disable=too-many-statements
+def _zero_order_antithetic(  # noqa: C901 # pylint: disable=too-many-statements
     fn: Callable[..., torch.Tensor],
     distribution: Samplable,
     argnums: tuple[int, ...],
@@ -262,7 +263,7 @@ def _zero_order_antithetic(  # pylint: disable=too-many-statements
     sigma: float,
 ) -> Callable[..., torch.Tensor]:
     @functools.wraps(fn)
-    def apply(*args: Any) -> torch.Tensor:  # pylint: disable=too-many-statements
+    def apply(*args: Any) -> torch.Tensor:  # noqa: C901 # pylint: disable=too-many-statements
         diff_params = [args[argnum] for argnum in argnums]
         flat_diff_params: list[Any]
         flat_diff_params, diff_params_treespec = pytree.tree_flatten(diff_params)  # type: ignore[arg-type]
@@ -292,7 +293,7 @@ def _zero_order_antithetic(  # pylint: disable=too-many-statements
 
                 output = fn(*origin_args)
                 if not isinstance(output, torch.Tensor):
-                    raise RuntimeError('`output` must be a tensor.')
+                    raise TypeError('`output` must be a tensor.')
                 if output.ndim != 0:
                     raise RuntimeError('`output` must be a scalar tensor.')
                 ctx.save_for_backward(*flat_diff_params, *tensors)

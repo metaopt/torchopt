@@ -22,15 +22,19 @@ import abc
 import functools
 import inspect
 import itertools
-from typing import Any, Iterable
+from typing import TYPE_CHECKING, Any, Iterable
 
 import functorch
-import torch
 
 from torchopt.diff.implicit.decorator import custom_root
 from torchopt.nn.module import MetaGradientModule
 from torchopt.nn.stateless import reparametrize, swap_state
-from torchopt.typing import LinearSolver, TupleOfTensors
+
+
+if TYPE_CHECKING:
+    import torch
+
+    from torchopt.typing import LinearSolver, TupleOfTensors
 
 
 __all__ = ['ImplicitMetaGradientModule']

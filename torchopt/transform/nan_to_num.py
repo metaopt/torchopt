@@ -16,11 +16,16 @@
 
 from __future__ import annotations
 
-import torch
+from typing import TYPE_CHECKING
 
 from torchopt import pytree
 from torchopt.base import EmptyState, GradientTransformation
-from torchopt.typing import OptState, Params, Updates
+
+
+if TYPE_CHECKING:
+    import torch
+
+    from torchopt.typing import OptState, Params, Updates
 
 
 def nan_to_num(

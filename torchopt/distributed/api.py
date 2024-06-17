@@ -42,15 +42,15 @@ from torchopt.typing import Future
 
 __all__ = [
     'TensorDimensionPartitioner',
-    'dim_partitioner',
     'batch_partitioner',
+    'dim_partitioner',
     'mean_reducer',
-    'sum_reducer',
-    'remote_async_call',
-    'remote_sync_call',
     'parallelize',
     'parallelize_async',
     'parallelize_sync',
+    'remote_async_call',
+    'remote_sync_call',
+    'sum_reducer',
 ]
 
 
@@ -107,7 +107,7 @@ class TensorDimensionPartitioner:
         self.workers = workers
 
     # pylint: disable-next=too-many-branches,too-many-locals
-    def __call__(
+    def __call__(  # noqa: C901
         self,
         *args: Any,
         **kwargs: Any,
@@ -310,7 +310,7 @@ def remote_async_call(
     elif callable(partitioner):
         partitions = partitioner(*args, **kwargs)  # type: ignore[assignment]
     else:
-        raise ValueError(f'Invalid partitioner: {partitioner!r}.')
+        raise TypeError(f'Invalid partitioner: {partitioner!r}.')
 
     futures = []
     for rank, worker_args, worker_kwargs in partitions:

@@ -17,14 +17,17 @@
 from __future__ import annotations
 
 from collections import OrderedDict
-from typing import Any, Iterator, NamedTuple
+from typing import TYPE_CHECKING, Any, Iterator, NamedTuple
 from typing_extensions import Self  # Python 3.11+
 
 import torch
 import torch.nn as nn
 
 from torchopt import pytree
-from torchopt.typing import TensorContainer
+
+
+if TYPE_CHECKING:
+    from torchopt.typing import TensorContainer
 
 
 class MetaInputsContainer(NamedTuple):
@@ -61,7 +64,7 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
         """Initialize a new module instance."""
         super().__init__()
 
-    def __getattr__(self, name: str) -> torch.Tensor | nn.Module:
+    def __getattr__(self, name: str) -> torch.Tensor | nn.Module:  # noqa: C901
         """Get an attribute of the module."""
         if '_parameters' in self.__dict__:
             _parameters = self.__dict__['_parameters']
@@ -86,7 +89,7 @@ class MetaGradientModule(nn.Module):  # pylint: disable=abstract-method
         raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
 
     # pylint: disable-next=too-many-branches,too-many-statements
-    def __setattr__(self, name: str, value: torch.Tensor | nn.Module) -> None:
+    def __setattr__(self, name: str, value: torch.Tensor | nn.Module) -> None:  # noqa: C901
         """Set an attribute of the module."""
 
         def remove_from(*dicts_or_sets: dict[str, Any] | set[str]) -> None:

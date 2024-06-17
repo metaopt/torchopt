@@ -35,7 +35,7 @@
 
 from __future__ import annotations
 
-from typing import NamedTuple
+from typing import TYPE_CHECKING, NamedTuple
 
 import torch
 
@@ -43,10 +43,13 @@ from torchopt import pytree
 from torchopt.accelerated_op import AdamOp
 from torchopt.base import GradientTransformation
 from torchopt.transform.utils import inc_count, tree_map_flat, update_moment
-from torchopt.typing import OptState, Params, Updates
 
 
-__all__ = ['scale_by_adam', 'scale_by_accelerated_adam']
+if TYPE_CHECKING:
+    from torchopt.typing import OptState, Params, Updates
+
+
+__all__ = ['scale_by_accelerated_adam', 'scale_by_adam']
 
 
 TRIPLE_PYTREE_SPEC = pytree.tree_structure((0, 1, 2), none_is_leaf=True)  # type: ignore[arg-type]
@@ -277,7 +280,7 @@ def _scale_by_accelerated_adam_flat(
 
 
 # pylint: disable-next=too-many-arguments
-def _scale_by_accelerated_adam(
+def _scale_by_accelerated_adam(  # noqa: C901
     b1: float = 0.9,
     b2: float = 0.999,
     eps: float = 1e-8,

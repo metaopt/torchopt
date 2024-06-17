@@ -19,13 +19,16 @@
 from __future__ import annotations
 
 import functools
-from typing import Callable
+from typing import TYPE_CHECKING, Callable
 
 import torch
 
 from torchopt import pytree
 from torchopt.linalg.utils import normalize_matvec
-from torchopt.typing import TensorTree
+
+
+if TYPE_CHECKING:
+    from torchopt.typing import TensorTree
 
 
 __all__ = ['ns', 'ns_inv']

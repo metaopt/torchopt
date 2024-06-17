@@ -41,4 +41,13 @@ from torchopt.alias.rmsprop import rmsprop
 from torchopt.alias.sgd import sgd
 
 
-__all__ = ['adagrad', 'radam', 'adam', 'adamax', 'adadelta', 'adamw', 'rmsprop', 'sgd']
+__all__ = [
+    'adadelta',
+    'adagrad',
+    'adam',
+    'adamax',
+    'adamw',
+    'radam',
+    'rmsprop',
+    'sgd',
+]

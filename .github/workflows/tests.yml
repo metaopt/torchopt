@@ -80,15 +80,15 @@ jobs:
           USE_FP16: "ON"
           TORCH_CUDA_ARCH_LIST: "Common"
         run: |
-          python -m pip install -vvv -e .
+          python -m pip install -vvv --editable .
 
       - name: Test with pytest
         run: |
           make pytest
 
       - name: Upload coverage to Codecov
-        if: runner.os == 'Linux'
         uses: codecov/codecov-action@v4
+        if: ${{ matrix.os == 'ubuntu-latest' }}
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ./tests/coverage.xml
@@ -127,7 +127,7 @@ jobs:
 
       - name: Install TorchOpt
         run: |
-          python -m pip install -vvv -e .
+          python -m pip install -vvv --editable .
         env:
           TORCHOPT_NO_EXTENSIONS: "true"
 
@@ -136,8 +136,8 @@ jobs:
           make pytest
 
       - name: Upload coverage to Codecov
-        if: runner.os == 'Linux'
         uses: codecov/codecov-action@v4
+        if: ${{ matrix.os == 'ubuntu-latest' }}
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ./tests/coverage.xml

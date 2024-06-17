@@ -36,11 +36,14 @@
 from __future__ import annotations
 
 import functools
-from typing import Any, Callable
+from typing import TYPE_CHECKING, Any, Callable
 
 from torchopt import linalg
 from torchopt.linear_solve.utils import make_ridge_matvec
-from torchopt.typing import LinearSolver, TensorTree
+
+
+if TYPE_CHECKING:
+    from torchopt.typing import LinearSolver, TensorTree
 
 
 __all__ = ['solve_cg']

@@ -14,6 +14,8 @@
 # ==============================================================================
 """Typing utilities."""
 
+from __future__ import annotations
+
 import abc
 from typing import (
     Callable,
@@ -45,39 +47,39 @@ from torchopt.base import (
 
 
 __all__ = [
-    'GradientTransformation',
     'ChainedGradientTransformation',
+    'Device',
+    'Distribution',
     'EmptyState',
-    'UninitializedState',
-    'Params',
-    'Updates',
-    'OptState',
-    'Scalar',
-    'Numeric',
-    'Schedule',
-    'ScalarOrSchedule',
-    'PyTree',
-    'Tensor',
-    'OptionalTensor',
-    'ListOfTensors',
-    'TupleOfTensors',
-    'SequenceOfTensors',
-    'TensorOrTensors',
-    'TensorTree',
+    'Future',
+    'GradientTransformation',
+    'LinearSolver',
     'ListOfOptionalTensors',
-    'TupleOfOptionalTensors',
-    'SequenceOfOptionalTensors',
+    'ListOfTensors',
+    'ModuleTensorContainers',
+    'Numeric',
+    'OptState',
+    'OptionalTensor',
     'OptionalTensorOrOptionalTensors',
     'OptionalTensorTree',
-    'TensorContainer',
-    'ModuleTensorContainers',
-    'Future',
-    'LinearSolver',
-    'Device',
-    'Size',
-    'Distribution',
-    'SampleFunc',
+    'Params',
+    'PyTree',
     'Samplable',
+    'SampleFunc',
+    'Scalar',
+    'ScalarOrSchedule',
+    'Schedule',
+    'SequenceOfOptionalTensors',
+    'SequenceOfTensors',
+    'Size',
+    'Tensor',
+    'TensorContainer',
+    'TensorOrTensors',
+    'TensorTree',
+    'TupleOfOptionalTensors',
+    'TupleOfTensors',
+    'UninitializedState',
+    'Updates',
 ]
 
 T = TypeVar('T')
@@ -138,7 +140,7 @@ class Samplable(Protocol):  # pylint: disable=too-few-public-methods
     def sample(
         self,
         sample_shape: Size = Size(),  # noqa: B008 # pylint: disable=unused-argument
-    ) -> Union[Tensor, Sequence[Numeric]]:
+    ) -> Tensor | Sequence[Numeric]:
         # pylint: disable-next=line-too-long
         """Generate a sample_shape shaped sample or sample_shape shaped batch of samples if the distribution parameters are batched."""
         raise NotImplementedError
