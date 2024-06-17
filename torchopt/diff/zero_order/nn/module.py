@@ -20,14 +20,17 @@ from __future__ import annotations
 
 import abc
 import functools
-from typing import Any, Sequence
+from typing import TYPE_CHECKING, Any, Sequence
 
 import torch
 import torch.nn as nn
 
 from torchopt.diff.zero_order.decorator import Method, Samplable, zero_order
 from torchopt.nn.stateless import reparametrize
-from torchopt.typing import Numeric, TupleOfTensors
+
+
+if TYPE_CHECKING:
+    from torchopt.typing import Numeric, TupleOfTensors
 
 
 __all__ = ['ZeroOrderGradientModule']

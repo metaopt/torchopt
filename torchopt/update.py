@@ -33,10 +33,15 @@
 
 from __future__ import annotations
 
-import torch
+from typing import TYPE_CHECKING
 
 from torchopt import pytree
-from torchopt.typing import Params, Updates
+
+
+if TYPE_CHECKING:
+    import torch
+
+    from torchopt.typing import Params, Updates
 
 
 __all__ = ['apply_updates']

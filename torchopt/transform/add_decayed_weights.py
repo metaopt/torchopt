@@ -34,17 +34,20 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, NamedTuple
-
-import torch
+from typing import TYPE_CHECKING, Any, Callable, NamedTuple
 
 from torchopt import pytree
 from torchopt.base import EmptyState, GradientTransformation, identity
 from torchopt.transform.utils import tree_map_flat, tree_map_flat_
-from torchopt.typing import OptState, Params, Updates
 
 
-__all__ = ['masked', 'add_decayed_weights']
+if TYPE_CHECKING:
+    import torch
+
+    from torchopt.typing import OptState, Params, Updates
+
+
+__all__ = ['add_decayed_weights', 'masked']
 
 
 class MaskedState(NamedTuple):
@@ -189,7 +192,7 @@ def _add_decayed_weights_flat(
     )
 
 
-def _add_decayed_weights(
+def _add_decayed_weights(  # noqa: C901
     weight_decay: float = 0.0,
     mask: OptState | Callable[[Params], OptState] | None = None,
     *,

@@ -16,14 +16,18 @@ r"""Utilities for the aliases of preset :class:`GradientTransformation`\s for op
 from __future__ import annotations
 
 import threading
-
-import torch
+from typing import TYPE_CHECKING
 
 from torchopt import pytree
 from torchopt.base import EmptyState, GradientTransformation, identity
 from torchopt.transform import scale, scale_by_schedule
 from torchopt.transform.utils import tree_map_flat, tree_map_flat_
-from torchopt.typing import Numeric, OptState, Params, ScalarOrSchedule, Updates
+
+
+if TYPE_CHECKING:
+    import torch
+
+    from torchopt.typing import Numeric, OptState, Params, ScalarOrSchedule, Updates
 
 
 __all__ = ['flip_sign_and_add_weight_decay', 'scale_by_neg_lr']
@@ -68,7 +72,7 @@ def _flip_sign_and_add_weight_decay_flat(
     )
 
 
-def _flip_sign_and_add_weight_decay(
+def _flip_sign_and_add_weight_decay(  # noqa: C901
     weight_decay: float = 0.0,
     maximize: bool = False,
     *,

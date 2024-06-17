@@ -33,12 +33,15 @@
 
 from __future__ import annotations
 
-from typing import Callable
+from typing import TYPE_CHECKING, Callable
 
 import functorch
 
 from torchopt import pytree
-from torchopt.typing import TensorTree
+
+
+if TYPE_CHECKING:
+    from torchopt.typing import TensorTree
 
 
 def make_rmatvec(

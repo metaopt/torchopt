@@ -15,7 +15,7 @@
 
 from __future__ import annotations
 
-from typing import Callable
+from typing import TYPE_CHECKING, Callable
 
 import functorch
 import pytest
@@ -26,7 +26,10 @@ import helpers
 import torchopt
 from torchopt import pytree
 from torchopt.alias.utils import _set_use_chain_flat
-from torchopt.typing import TensorTree
+
+
+if TYPE_CHECKING:
+    from torchopt.typing import TensorTree
 
 
 @helpers.parametrize(

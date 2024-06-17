@@ -19,14 +19,17 @@
 
 from __future__ import annotations
 
-from typing import NamedTuple
+from typing import TYPE_CHECKING, NamedTuple
 
 import torch
 
 from torchopt import pytree
 from torchopt.base import GradientTransformation
 from torchopt.transform.utils import tree_map_flat, update_moment
-from torchopt.typing import OptState, Params, Updates
+
+
+if TYPE_CHECKING:
+    from torchopt.typing import OptState, Params, Updates
 
 
 __all__ = ['scale_by_adadelta']

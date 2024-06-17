@@ -25,7 +25,7 @@ from torchopt.diff.zero_order.decorator import zero_order
 from torchopt.diff.zero_order.nn import ZeroOrderGradientModule
 
 
-__all__ = ['zero_order', 'ZeroOrderGradientModule']
+__all__ = ['ZeroOrderGradientModule', 'zero_order']
 
 
 class _CallableModule(_ModuleType):  # pylint: disable=too-few-public-methods

@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import functools
 import operator
-from typing import Callable
+from typing import TYPE_CHECKING, Callable
 
 import optree
 import optree.typing as typing  # pylint: disable=unused-import
@@ -26,7 +26,9 @@ import torch
 import torch.distributed.rpc as rpc
 from optree import *  # pylint: disable=wildcard-import,unused-wildcard-import
 
-from torchopt.typing import Future, RRef, Scalar, T, TensorTree
+
+if TYPE_CHECKING:
+    from torchopt.typing import Future, RRef, Scalar, T, TensorTree
 
 
 __all__ = [

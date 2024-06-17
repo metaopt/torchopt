@@ -37,20 +37,23 @@ from __future__ import annotations
 
 import functools
 import inspect
-from typing import Any, Callable, Dict, Sequence, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Dict, Sequence, Tuple
 
 import functorch
 import torch
 from torch.autograd import Function
 
 from torchopt import linear_solve, pytree
-from torchopt.typing import (
-    ListOfOptionalTensors,
-    ListOfTensors,
-    TensorOrTensors,
-    TupleOfOptionalTensors,
-    TupleOfTensors,
-)
+
+
+if TYPE_CHECKING:
+    from torchopt.typing import (
+        ListOfOptionalTensors,
+        ListOfTensors,
+        TensorOrTensors,
+        TupleOfOptionalTensors,
+        TupleOfTensors,
+    )
 
 
 __all__ = ['custom_root']
@@ -253,7 +256,7 @@ def _merge_tensor_and_others(
 
 
 # pylint: disable-next=too-many-arguments,too-many-statements
-def _custom_root(
+def _custom_root(  # noqa: C901
     solver_fn: Callable[..., TensorOrTensors | tuple[TensorOrTensors, Any]],
     optimality_fn: Callable[..., TensorOrTensors],
     solve: Callable[..., TensorOrTensors],
@@ -271,7 +274,7 @@ def _custom_root(
         fn = getattr(reference_signature, 'subfn', reference_signature)
         reference_signature = inspect.signature(fn)
 
-    def make_custom_vjp_solver_fn(
+    def make_custom_vjp_solver_fn(  # noqa: C901
         solver_fn: Callable[..., TensorOrTensors | tuple[TensorOrTensors, Any]],
         kwarg_keys: Sequence[str],
         args_signs: tuple[tuple[int, int, type[tuple | list] | None], ...],

@@ -34,15 +34,18 @@
 from __future__ import annotations
 
 from collections import deque
-from typing import Any, Callable, Sequence
+from typing import TYPE_CHECKING, Any, Callable, Sequence
 
 import torch
 
 from torchopt import pytree
-from torchopt.typing import TensorTree, Updates
 
 
-__all__ = ['tree_map_flat', 'tree_map_flat_', 'inc_count', 'update_moment']
+if TYPE_CHECKING:
+    from torchopt.typing import TensorTree, Updates
+
+
+__all__ = ['inc_count', 'tree_map_flat', 'tree_map_flat_', 'update_moment']
 
 
 INT64_MAX = torch.iinfo(torch.int64).max
@@ -161,7 +164,7 @@ def _update_moment_flat(
 
 
 # pylint: disable-next=too-many-arguments
-def _update_moment(
+def _update_moment(  # noqa: C901
     updates: Updates,
     moments: TensorTree,
     decay: float,

@@ -35,14 +35,17 @@
 
 from __future__ import annotations
 
-from typing import NamedTuple
+from typing import TYPE_CHECKING, NamedTuple
 
 import torch
 
 from torchopt import pytree
 from torchopt.base import GradientTransformation, identity
 from torchopt.transform.utils import tree_map_flat, tree_map_flat_
-from torchopt.typing import OptState, Params, Updates
+
+
+if TYPE_CHECKING:
+    from torchopt.typing import OptState, Params, Updates
 
 
 __all__ = ['trace']
@@ -101,7 +104,7 @@ def _trace_flat(
     )
 
 
-def _trace(
+def _trace(  # noqa: C901
     momentum: float = 0.9,
     dampening: float = 0.0,
     nesterov: bool = False,
@@ -136,7 +139,7 @@ def _trace(
 
     first_call = True
 
-    def update_fn(
+    def update_fn(  # noqa: C901
         updates: Updates,
         state: OptState,
         *,

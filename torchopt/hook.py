@@ -16,16 +16,19 @@
 
 from __future__ import annotations
 
-from typing import Callable
-
-import torch
+from typing import TYPE_CHECKING, Callable
 
 from torchopt import pytree
 from torchopt.base import EmptyState, GradientTransformation
-from torchopt.typing import OptState, Params, Updates
 
 
-__all__ = ['zero_nan_hook', 'nan_to_num_hook', 'register_hook']
+if TYPE_CHECKING:
+    import torch
+
+    from torchopt.typing import OptState, Params, Updates
+
+
+__all__ = ['nan_to_num_hook', 'register_hook', 'zero_nan_hook']
 
 
 def zero_nan_hook(g: torch.Tensor) -> torch.Tensor:

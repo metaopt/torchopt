@@ -26,19 +26,19 @@ from torch.distributed.elastic.multiprocessing.errors import record
 
 
 __all__ = [
-    'get_world_info',
-    'get_world_rank',
-    'get_rank',
-    'get_world_size',
+    'auto_init_rpc',
+    'barrier',
     'get_local_rank',
     'get_local_world_size',
+    'get_rank',
     'get_worker_id',
-    'barrier',
-    'auto_init_rpc',
-    'on_rank',
+    'get_world_info',
+    'get_world_rank',
+    'get_world_size',
     'not_on_rank',
-    'rank_zero_only',
+    'on_rank',
     'rank_non_zero_only',
+    'rank_zero_only',
 ]
 
 

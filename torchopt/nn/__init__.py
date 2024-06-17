@@ -21,10 +21,10 @@ from torchopt.nn.stateless import reparameterize, reparametrize, swap_state
 
 
 __all__ = [
-    'MetaGradientModule',
     'ImplicitMetaGradientModule',
+    'MetaGradientModule',
     'ZeroOrderGradientModule',
-    'reparametrize',
     'reparameterize',
+    'reparametrize',
     'swap_state',
 ]

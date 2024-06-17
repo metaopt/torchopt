@@ -17,13 +17,15 @@
 from __future__ import annotations
 
 import contextlib
-from typing import Generator, Iterable
-
-import torch
-import torch.nn as nn
+from typing import TYPE_CHECKING, Generator, Iterable
 
 
-__all__ = ['swap_state', 'reparametrize', 'reparameterize']
+if TYPE_CHECKING:
+    import torch
+    import torch.nn as nn
+
+
+__all__ = ['reparameterize', 'reparametrize', 'swap_state']
 
 
 MISSING: torch.Tensor = object()  # type: ignore[assignment]

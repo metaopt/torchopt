@@ -18,7 +18,7 @@ from __future__ import annotations
 import copy
 import re
 from collections import OrderedDict
-from types import FunctionType
+from typing import TYPE_CHECKING
 
 import functorch
 import numpy as np
@@ -45,6 +45,10 @@ try:
 except ImportError:
     jax = jnp = jaxopt = optax = None
     HAS_JAX = False
+
+
+if TYPE_CHECKING:
+    from types import FunctionType
 
 
 BATCH_SIZE = 8
@@ -123,7 +127,7 @@ def get_rr_dataset_torch() -> data.DataLoader:
     inner_lr=[2e-2, 2e-3],
     inner_update=[20, 50, 100],
 )
-def test_imaml_solve_normal_cg(
+def test_imaml_solve_normal_cg(  # noqa: C901
     dtype: torch.dtype,
     lr: float,
     inner_lr: float,
@@ -251,7 +255,7 @@ def test_imaml_solve_normal_cg(
     inner_update=[20, 50, 100],
     ns=[False, True],
 )
-def test_imaml_solve_inv(
+def test_imaml_solve_inv(  # noqa: C901
     dtype: torch.dtype,
     lr: float,
     inner_lr: float,
@@ -375,7 +379,12 @@ def test_imaml_solve_inv(
     inner_lr=[2e-2, 2e-3],
     inner_update=[20, 50, 100],
 )
-def test_imaml_module(dtype: torch.dtype, lr: float, inner_lr: float, inner_update: int) -> None:
+def test_imaml_module(  # noqa: C901
+    dtype: torch.dtype,
+    lr: float,
+    inner_lr: float,
+    inner_update: int,
+) -> None:
     np_dtype = helpers.dtype_torch2numpy(dtype)
 
     jax_model, jax_params = get_model_jax(dtype=np_dtype)
@@ -763,7 +772,7 @@ def test_module_enable_implicit_gradients_twice() -> None:
         make_optimality_from_objective(MyModule2)
 
 
-def test_module_abstract_methods() -> None:
+def test_module_abstract_methods() -> None:  # noqa: C901
     class MyModule1(torchopt.nn.ImplicitMetaGradientModule):
         def objective(self):
             return torch.tensor(0.0)
@@ -809,7 +818,7 @@ def test_module_abstract_methods() -> None:
 
         class MyModule5(torchopt.nn.ImplicitMetaGradientModule):
             @classmethod
-            def optimality(self):
+            def optimality(cls):
                 return ()
 
             def solve(self):
@@ -846,7 +855,7 @@ def test_module_abstract_methods() -> None:
 
         class MyModule8(torchopt.nn.ImplicitMetaGradientModule):
             @classmethod
-            def objective(self):
+            def objective(cls):
                 return ()
 
             def solve(self):

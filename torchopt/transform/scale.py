@@ -33,12 +33,17 @@
 
 from __future__ import annotations
 
-import torch
+from typing import TYPE_CHECKING
 
 from torchopt import pytree
 from torchopt.base import EmptyState, GradientTransformation
 from torchopt.transform.utils import tree_map_flat, tree_map_flat_
-from torchopt.typing import OptState, Params, Updates
+
+
+if TYPE_CHECKING:
+    import torch
+
+    from torchopt.typing import OptState, Params, Updates
 
 
 __all__ = ['scale']

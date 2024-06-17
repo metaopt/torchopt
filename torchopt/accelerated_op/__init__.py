@@ -16,12 +16,15 @@
 
 from __future__ import annotations
 
-from typing import Iterable
+from typing import TYPE_CHECKING, Iterable
 
 import torch
 
 from torchopt.accelerated_op.adam_op import AdamOp
-from torchopt.typing import Device
+
+
+if TYPE_CHECKING:
+    from torchopt.typing import Device
 
 
 def is_available(devices: Device | Iterable[Device] | None = None) -> bool:
@@ -42,6 +45,6 @@ def is_available(devices: Device | Iterable[Device] | None = None) -> bool:
                 return False
             updates = torch.tensor(1.0, device=device)
             op(updates, updates, updates, 1)
-        return True
     except Exception:  # noqa: BLE001 # pylint: disable=broad-except
         return False
+    return True

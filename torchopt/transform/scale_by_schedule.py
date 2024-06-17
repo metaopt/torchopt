@@ -33,14 +33,17 @@
 
 from __future__ import annotations
 
-from typing import NamedTuple
+from typing import TYPE_CHECKING, NamedTuple
 
 import torch
 
 from torchopt import pytree
 from torchopt.base import GradientTransformation
 from torchopt.transform.utils import inc_count, tree_map_flat, tree_map_flat_
-from torchopt.typing import Numeric, OptState, Params, Schedule, SequenceOfTensors, Updates
+
+
+if TYPE_CHECKING:
+    from torchopt.typing import Numeric, OptState, Params, Schedule, SequenceOfTensors, Updates
 
 
 __all__ = ['scale_by_schedule']

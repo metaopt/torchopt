@@ -36,14 +36,17 @@
 from __future__ import annotations
 
 from functools import partial
-from typing import Callable
+from typing import TYPE_CHECKING, Callable
 
 import torch
 
 from torchopt import pytree
 from torchopt.linalg.utils import cat_shapes, normalize_matvec
 from torchopt.pytree import tree_vdot_real
-from torchopt.typing import TensorTree
+
+
+if TYPE_CHECKING:
+    from torchopt.typing import TensorTree
 
 
 __all__ = ['cg']

@@ -19,11 +19,16 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import torch
 
 from torchopt import pytree
 from torchopt.base import EmptyState, GradientTransformation
-from torchopt.typing import OptState, Params, Updates
+
+
+if TYPE_CHECKING:
+    from torchopt.typing import OptState, Params, Updates
 
 
 __all__ = ['clip_grad_norm']

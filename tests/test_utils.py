@@ -13,6 +13,8 @@
 # limitations under the License.
 # ==============================================================================
 
+import operator
+
 import torch
 
 import torchopt
@@ -80,7 +82,7 @@ def test_module_clone() -> None:
         assert y.is_cuda
 
 
-def test_extract_state_dict():
+def test_extract_state_dict():  # noqa: C901
     fc = torch.nn.Linear(1, 1)
     state_dict = torchopt.extract_state_dict(fc, by='reference', device=torch.device('meta'))
     for param_dict in state_dict.params:
@@ -121,7 +123,7 @@ def test_extract_state_dict():
     loss = fc(torch.ones(1, 1)).sum()
     optim.step(loss)
     state_dict = torchopt.extract_state_dict(optim)
-    same = pytree.tree_map(lambda x, y: x is y, state_dict, tuple(optim.state_groups))
+    same = pytree.tree_map(operator.is_, state_dict, tuple(optim.state_groups))
     assert all(pytree.tree_flatten(same)[0])
 
 

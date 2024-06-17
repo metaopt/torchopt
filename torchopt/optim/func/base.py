@@ -16,11 +16,16 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import torch
 
 from torchopt.base import GradientTransformation, UninitializedState
-from torchopt.typing import OptState, Params
 from torchopt.update import apply_updates
+
+
+if TYPE_CHECKING:
+    from torchopt.typing import OptState, Params
 
 
 __all__ = ['FuncOptimizer']

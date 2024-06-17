@@ -16,13 +16,16 @@
 
 from __future__ import annotations
 
-from typing import Iterable
-
-import torch
+from typing import TYPE_CHECKING, Iterable
 
 from torchopt import alias
 from torchopt.optim.base import Optimizer
-from torchopt.typing import ScalarOrSchedule
+
+
+if TYPE_CHECKING:
+    import torch
+
+    from torchopt.typing import ScalarOrSchedule
 
 
 __all__ = ['AdaGrad', 'Adagrad']

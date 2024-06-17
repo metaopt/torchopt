@@ -33,9 +33,14 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from torchopt import pytree
 from torchopt.base import ChainedGradientTransformation, GradientTransformation, identity
-from torchopt.typing import OptState, Params, Updates
+
+
+if TYPE_CHECKING:
+    from torchopt.typing import OptState, Params, Updates
 
 
 __all__ = ['chain', 'chain_flat']

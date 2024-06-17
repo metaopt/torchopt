@@ -33,6 +33,8 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from torchopt.alias.utils import (
     _get_use_chain_flat,
     flip_sign_and_add_weight_decay,
@@ -40,7 +42,10 @@ from torchopt.alias.utils import (
 )
 from torchopt.combine import chain
 from torchopt.transform import scale_by_accelerated_adam, scale_by_adam
-from torchopt.typing import GradientTransformation, ScalarOrSchedule
+
+
+if TYPE_CHECKING:
+    from torchopt.typing import GradientTransformation, ScalarOrSchedule
 
 
 __all__ = ['adam']
