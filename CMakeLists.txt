@@ -17,7 +17,14 @@ cmake_minimum_required(VERSION 3.11)  # for FetchContent
 project(torchopt LANGUAGES CXX)
 
 include(FetchContent)
-set(PYBIND11_VERSION v2.12.0)
+
+set(THIRD_PARTY_DIR "${CMAKE_SOURCE_DIR}/third-party")
+if(NOT DEFINED PYBIND11_VERSION AND NOT "$ENV{PYBIND11_VERSION}" STREQUAL "")
+    set(PYBIND11_VERSION "$ENV{PYBIND11_VERSION}")
+endif()
+if(NOT PYBIND11_VERSION)
+    set(PYBIND11_VERSION stable)
+endif()
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
@@ -172,7 +179,7 @@ endif()
 
 system(
     STRIP OUTPUT_VARIABLE PYTHON_VERSION
-    COMMAND "${PYTHON_EXECUTABLE}" -c "print(__import__('platform').python_version())"
+    COMMAND "${PYTHON_EXECUTABLE}" -c "print('.'.join(map(str, __import__('sys').version_info[:3])))"
 )
 
 message(STATUS "Use Python version: ${PYTHON_VERSION}")
@@ -216,11 +223,12 @@ if("${PYBIND11_CMAKE_DIR}" STREQUAL "")
         GIT_REPOSITORY https://github.com/pybind/pybind11.git
         GIT_TAG "${PYBIND11_VERSION}"
         GIT_SHALLOW TRUE
-        SOURCE_DIR "${CMAKE_SOURCE_DIR}/third-party/pybind11"
-        BINARY_DIR "${CMAKE_SOURCE_DIR}/third-party/.cmake/pybind11/build"
-        STAMP_DIR "${CMAKE_SOURCE_DIR}/third-party/.cmake/pybind11/stamp"
+        SOURCE_DIR "${THIRD_PARTY_DIR}/pybind11"
+        BINARY_DIR "${THIRD_PARTY_DIR}/.cmake/pybind11/build"
+        STAMP_DIR "${THIRD_PARTY_DIR}/.cmake/pybind11/stamp"
     )
     FetchContent_GetProperties(pybind11)
+
     if(NOT pybind11_POPULATED)
         message(STATUS "Populating Git repository pybind11@${PYBIND11_VERSION} to third-party/pybind11...")
         FetchContent_MakeAvailable(pybind11)
