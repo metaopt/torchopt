@@ -92,15 +92,16 @@ class FuncOptimizer:  # pylint: disable=too-few-public-methods
         if inplace is None:
             inplace = self.inplace
 
-        # Step parameter only
-        grads = torch.autograd.grad(loss, params, create_graph=True, allow_unused=True)
-        updates, self.optim_state = self.impl.update(
-            grads,
-            self.optim_state,
-            params=params,
-            inplace=inplace,
-        )
-        return apply_updates(params, updates, inplace=inplace)
+        with torch.enable_grad():
+            # Step parameters only
+            grads = torch.autograd.grad(loss, params, create_graph=True, allow_unused=True)
+            updates, self.optim_state = self.impl.update(
+                grads,
+                self.optim_state,
+                params=params,
+                inplace=inplace,
+            )
+            return apply_updates(params, updates, inplace=inplace)
 
     def state_dict(self) -> OptState:
         """Extract the references of the optimizer states.
