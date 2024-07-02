@@ -26,4 +26,6 @@ doc8
 pydocstyle[toml]
 pyenchant
 cpplint
+clang-format
+clang-tidy
 pre-commit
