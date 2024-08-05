@@ -84,7 +84,7 @@ def reparametrize(
     module: nn.Module,
     named_tensors: dict[str, torch.Tensor] | Iterable[tuple[str, torch.Tensor]],
     allow_missing: bool = False,
-) -> Generator[nn.Module, None, None]:
+) -> Generator[nn.Module]:
     """Reparameterize the module parameters and/or buffers."""
     if not isinstance(named_tensors, dict):
         named_tensors = dict(named_tensors)
