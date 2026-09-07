@@ -45,7 +45,6 @@ from torch.autograd import Function
 
 from torchopt import linear_solve, pytree
 
-
 if TYPE_CHECKING:
     from torchopt.typing import (
         ListOfOptionalTensors,

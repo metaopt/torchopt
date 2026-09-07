@@ -41,7 +41,6 @@ from typing import TYPE_CHECKING, Any, Callable
 from torchopt import linalg
 from torchopt.linear_solve.utils import make_normal_matvec, make_ridge_matvec, make_rmatvec
 
-
 if TYPE_CHECKING:
     from torchopt.typing import LinearSolver, TensorTree
 

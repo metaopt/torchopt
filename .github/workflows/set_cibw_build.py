@@ -5,7 +5,6 @@
 import os
 import sys
 
-
 # pylint: disable-next=consider-using-f-string
 CIBW_BUILD = 'CIBW_BUILD=*cp%d%d-*manylinux*' % sys.version_info[:2]
 

@@ -35,5 +35,4 @@ from torchopt.linear_solve.cg import solve_cg
 from torchopt.linear_solve.inv import solve_inv
 from torchopt.linear_solve.normal_cg import solve_normal_cg
 
-
 __all__ = ['solve_cg', 'solve_inv', 'solve_normal_cg']

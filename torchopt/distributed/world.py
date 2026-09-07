@@ -24,7 +24,6 @@ from typing import Any, Callable, Iterable, NamedTuple, TypeVar
 import torch.distributed.rpc as rpc
 from torch.distributed.elastic.multiprocessing.errors import record
 
-
 __all__ = [
     'auto_init_rpc',
     'barrier',

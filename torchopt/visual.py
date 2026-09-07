@@ -27,7 +27,6 @@ from graphviz import Digraph
 from torchopt import pytree
 from torchopt.utils import ModuleState
 
-
 if TYPE_CHECKING:
     from torchopt.typing import TensorTree
 
@@ -129,7 +128,7 @@ def make_dot(  # noqa: C901
                 elif isinstance(param, Generator):
                     param_map.update({v: k for k, v in param})
                 else:
-                    param_map.update({v: k for k, v in cast(Mapping, param).items()})
+                    param_map.update({v: k for k, v in cast('Mapping', param).items()})
 
     node_attr = {
         'style': 'filled',

@@ -34,7 +34,6 @@ import torchopt
 from torchopt import pytree
 from torchopt.diff.implicit import ImplicitMetaGradientModule
 
-
 try:
     import jax
     import jax.numpy as jnp

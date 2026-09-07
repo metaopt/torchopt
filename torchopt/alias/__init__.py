@@ -40,7 +40,6 @@ from torchopt.alias.radam import radam
 from torchopt.alias.rmsprop import rmsprop
 from torchopt.alias.sgd import sgd
 
-
 __all__ = [
     'adadelta',
     'adagrad',

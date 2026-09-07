@@ -35,9 +35,9 @@ __global__ void adamForwardInplaceCUDAKernel(const other_t b1,
                                              const other_t eps,
                                              const other_t eps_root,
                                              const size_t n,
-                                             scalar_t *__restrict__ updates_ptr,
-                                             scalar_t *__restrict__ mu_ptr,
-                                             scalar_t *__restrict__ nu_ptr) {
+                                             scalar_t* __restrict__ updates_ptr,
+                                             scalar_t* __restrict__ mu_ptr,
+                                             scalar_t* __restrict__ nu_ptr) {
   const size_t toffset = (threadIdx.x + blockIdx.x * blockDim.x) * unroll_size;
 #pragma unroll
   for (int i = 0; i < unroll_size; ++i) {
@@ -62,9 +62,9 @@ __global__ void adamForwardInplaceCUDAKernel(const other_t b1,
   }
 }
 
-TensorArray<3> adamForwardInplaceCUDA(const torch::Tensor &updates,
-                                      const torch::Tensor &mu,
-                                      const torch::Tensor &nu,
+TensorArray<3> adamForwardInplaceCUDA(const torch::Tensor& updates,
+                                      const torch::Tensor& mu,
+                                      const torch::Tensor& nu,
                                       const pyfloat_t b1,
                                       const pyfloat_t b2,
                                       const pyfloat_t eps,
@@ -112,11 +112,11 @@ TensorArray<3> adamForwardInplaceCUDA(const torch::Tensor &updates,
 }
 
 template <typename scalar_t, typename other_t, int unroll_size>
-__global__ void adamForwardMuCUDAKernel(const scalar_t *__restrict__ updates_ptr,
-                                        const scalar_t *__restrict__ mu_ptr,
+__global__ void adamForwardMuCUDAKernel(const scalar_t* __restrict__ updates_ptr,
+                                        const scalar_t* __restrict__ mu_ptr,
                                         const other_t b1,
                                         const size_t n,
-                                        scalar_t *__restrict__ mu_out_ptr) {
+                                        scalar_t* __restrict__ mu_out_ptr) {
   const size_t toffset = (threadIdx.x + blockIdx.x * blockDim.x) * unroll_size;
 #pragma unroll
   for (int i = 0; i < unroll_size; ++i) {
@@ -132,8 +132,8 @@ __global__ void adamForwardMuCUDAKernel(const scalar_t *__restrict__ updates_ptr
   }
 }
 
-torch::Tensor adamForwardMuCUDA(const torch::Tensor &updates,
-                                const torch::Tensor &mu,
+torch::Tensor adamForwardMuCUDA(const torch::Tensor& updates,
+                                const torch::Tensor& mu,
                                 const pyfloat_t b1) {
   auto mu_out = torch::empty_like(mu);
 
@@ -165,11 +165,11 @@ torch::Tensor adamForwardMuCUDA(const torch::Tensor &updates,
 }
 
 template <typename scalar_t, typename other_t, int unroll_size>
-__global__ void adamForwardNuCUDAKernel(const scalar_t *__restrict__ updates_ptr,
-                                        const scalar_t *__restrict__ nu_ptr,
+__global__ void adamForwardNuCUDAKernel(const scalar_t* __restrict__ updates_ptr,
+                                        const scalar_t* __restrict__ nu_ptr,
                                         const other_t b2,
                                         const size_t n,
-                                        scalar_t *__restrict__ nu_out_ptr) {
+                                        scalar_t* __restrict__ nu_out_ptr) {
   const size_t toffset = (threadIdx.x + blockIdx.x * blockDim.x) * unroll_size;
 #pragma unroll
   for (int i = 0; i < unroll_size; ++i) {
@@ -186,8 +186,8 @@ __global__ void adamForwardNuCUDAKernel(const scalar_t *__restrict__ updates_ptr
   }
 }
 
-torch::Tensor adamForwardNuCUDA(const torch::Tensor &updates,
-                                const torch::Tensor &nu,
+torch::Tensor adamForwardNuCUDA(const torch::Tensor& updates,
+                                const torch::Tensor& nu,
                                 const pyfloat_t b2) {
   auto nu_out = torch::empty_like(nu);
 
@@ -219,14 +219,14 @@ torch::Tensor adamForwardNuCUDA(const torch::Tensor &updates,
 }
 
 template <typename scalar_t, typename other_t, int unroll_size>
-__global__ void adamForwardUpdatesCUDAKernel(const scalar_t *__restrict__ new_mu_ptr,
-                                             const scalar_t *__restrict__ new_nu_ptr,
+__global__ void adamForwardUpdatesCUDAKernel(const scalar_t* __restrict__ new_mu_ptr,
+                                             const scalar_t* __restrict__ new_nu_ptr,
                                              const other_t inv_one_minus_pow_b1,
                                              const other_t inv_one_minus_pow_b2,
                                              const other_t eps,
                                              const other_t eps_root,
                                              const size_t n,
-                                             scalar_t *__restrict__ updates_out_ptr) {
+                                             scalar_t* __restrict__ updates_out_ptr) {
   const size_t toffset = (threadIdx.x + blockIdx.x * blockDim.x) * unroll_size;
 #pragma unroll
   for (int i = 0; i < unroll_size; ++i) {
@@ -243,8 +243,8 @@ __global__ void adamForwardUpdatesCUDAKernel(const scalar_t *__restrict__ new_mu
   }
 }
 
-torch::Tensor adamForwardUpdatesCUDA(const torch::Tensor &new_mu,
-                                     const torch::Tensor &new_nu,
+torch::Tensor adamForwardUpdatesCUDA(const torch::Tensor& new_mu,
+                                     const torch::Tensor& new_nu,
                                      const pyfloat_t b1,
                                      const pyfloat_t b2,
                                      const pyfloat_t eps,
@@ -291,11 +291,11 @@ torch::Tensor adamForwardUpdatesCUDA(const torch::Tensor &new_mu,
 }
 
 template <typename scalar_t, typename other_t, int unroll_size>
-__global__ void adamBackwardMuCUDAKernel(const scalar_t *__restrict__ dmu_ptr,
+__global__ void adamBackwardMuCUDAKernel(const scalar_t* __restrict__ dmu_ptr,
                                          const other_t b1,
                                          const size_t n,
-                                         scalar_t *__restrict__ dupdates_out_ptr,
-                                         scalar_t *__restrict__ dmu_out_ptr) {
+                                         scalar_t* __restrict__ dupdates_out_ptr,
+                                         scalar_t* __restrict__ dmu_out_ptr) {
   const size_t toffset = (threadIdx.x + blockIdx.x * blockDim.x) * unroll_size;
 #pragma unroll
   for (int i = 0; i < unroll_size; ++i) {
@@ -311,9 +311,9 @@ __global__ void adamBackwardMuCUDAKernel(const scalar_t *__restrict__ dmu_ptr,
   }
 }
 
-TensorArray<2> adamBackwardMuCUDA(const torch::Tensor &dmu,
-                                  const torch::Tensor &updates,
-                                  const torch::Tensor &mu,
+TensorArray<2> adamBackwardMuCUDA(const torch::Tensor& dmu,
+                                  const torch::Tensor& updates,
+                                  const torch::Tensor& mu,
                                   const pyfloat_t b1) {
   auto dupdates_out = torch::empty_like(updates);
   auto dmu_out = torch::empty_like(mu);
@@ -346,12 +346,12 @@ TensorArray<2> adamBackwardMuCUDA(const torch::Tensor &dmu,
 }
 
 template <typename scalar_t, typename other_t, int unroll_size>
-__global__ void adamBackwardNuCUDAKernel(const scalar_t *__restrict__ dnu_ptr,
-                                         const scalar_t *__restrict__ updates_ptr,
+__global__ void adamBackwardNuCUDAKernel(const scalar_t* __restrict__ dnu_ptr,
+                                         const scalar_t* __restrict__ updates_ptr,
                                          const other_t b2,
                                          const size_t n,
-                                         scalar_t *__restrict__ dupdates_out_ptr,
-                                         scalar_t *__restrict__ dnu_out_ptr) {
+                                         scalar_t* __restrict__ dupdates_out_ptr,
+                                         scalar_t* __restrict__ dnu_out_ptr) {
   const size_t toffset = (threadIdx.x + blockIdx.x * blockDim.x) * unroll_size;
 #pragma unroll
   for (int i = 0; i < unroll_size; ++i) {
@@ -368,9 +368,9 @@ __global__ void adamBackwardNuCUDAKernel(const scalar_t *__restrict__ dnu_ptr,
   }
 }
 
-TensorArray<2> adamBackwardNuCUDA(const torch::Tensor &dnu,
-                                  const torch::Tensor &updates,
-                                  const torch::Tensor &nu,
+TensorArray<2> adamBackwardNuCUDA(const torch::Tensor& dnu,
+                                  const torch::Tensor& updates,
+                                  const torch::Tensor& nu,
                                   const pyfloat_t b2) {
   auto dupdates_out = torch::empty_like(updates);
   auto dnu_out = torch::empty_like(nu);
@@ -405,14 +405,14 @@ TensorArray<2> adamBackwardNuCUDA(const torch::Tensor &dnu,
 }
 
 template <typename scalar_t, typename other_t, int unroll_size>
-__global__ void adamBackwardUpdatesCUDAKernel(const scalar_t *__restrict__ dupdates_ptr,
-                                              const scalar_t *__restrict__ updates_ptr,
-                                              const scalar_t *__restrict__ new_mu_ptr,
+__global__ void adamBackwardUpdatesCUDAKernel(const scalar_t* __restrict__ dupdates_ptr,
+                                              const scalar_t* __restrict__ updates_ptr,
+                                              const scalar_t* __restrict__ new_mu_ptr,
                                               const other_t one_minus_pow_b1,
                                               const other_t inv_one_minus_pow_b2,
                                               const size_t n,
-                                              scalar_t *__restrict__ dnew_mu_out_ptr,
-                                              scalar_t *__restrict__ dnew_nu_out_ptr) {
+                                              scalar_t* __restrict__ dnew_mu_out_ptr,
+                                              scalar_t* __restrict__ dnew_nu_out_ptr) {
   const size_t toffset = (threadIdx.x + blockIdx.x * blockDim.x) * unroll_size;
 #pragma unroll
   for (int i = 0; i < unroll_size; ++i) {
@@ -441,10 +441,10 @@ __global__ void adamBackwardUpdatesCUDAKernel(const scalar_t *__restrict__ dupda
   }
 }
 
-TensorArray<2> adamBackwardUpdatesCUDA(const torch::Tensor &dupdates,
-                                       const torch::Tensor &updates,
-                                       const torch::Tensor &new_mu,
-                                       const torch::Tensor &new_nu,
+TensorArray<2> adamBackwardUpdatesCUDA(const torch::Tensor& dupdates,
+                                       const torch::Tensor& updates,
+                                       const torch::Tensor& new_mu,
+                                       const torch::Tensor& new_nu,
                                        const pyfloat_t b1,
                                        const pyfloat_t b2,
                                        const pyfloat_t eps_root,

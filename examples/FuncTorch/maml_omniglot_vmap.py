@@ -57,12 +57,10 @@ from torch import nn
 
 import torchopt
 
-
 CWD = pathlib(__file__).absolute().parent
 sys.path.append(str(CWD.parent / 'few-shot'))
 
 from helpers.omniglot_loaders import OmniglotNShot
-
 
 mpl.use('Agg')
 plt.style.use('bmh')

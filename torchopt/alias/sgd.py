@@ -40,7 +40,6 @@ from torchopt.combine import chain
 from torchopt.transform import trace
 from torchopt.typing import GradientTransformation, ScalarOrSchedule
 
-
 __all__ = ['sgd']
 
 

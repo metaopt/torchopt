@@ -42,7 +42,6 @@ from torchopt.combine import chain
 from torchopt.transform import scale_by_rss, scale_by_schedule
 from torchopt.typing import GradientTransformation, Numeric, Scalar, ScalarOrSchedule, Schedule
 
-
 __all__ = ['adagrad']
 
 
