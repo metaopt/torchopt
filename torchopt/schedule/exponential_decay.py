@@ -37,7 +37,6 @@ import logging
 import math
 from typing import TYPE_CHECKING
 
-
 if TYPE_CHECKING:
     from torchopt.typing import Numeric, Scalar, Schedule
 

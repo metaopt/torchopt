@@ -43,7 +43,6 @@ import torch
 from torchopt import linalg, pytree
 from torchopt.linear_solve.utils import make_ridge_matvec, materialize_matvec
 
-
 if TYPE_CHECKING:
     from torchopt.typing import LinearSolver, TensorTree
 

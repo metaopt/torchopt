@@ -44,7 +44,6 @@ from torchopt import pytree
 from torchopt.linalg.utils import cat_shapes, normalize_matvec
 from torchopt.pytree import tree_vdot_real
 
-
 if TYPE_CHECKING:
     from torchopt.typing import TensorTree
 

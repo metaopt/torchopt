@@ -23,7 +23,6 @@ import torch
 from torchopt.base import GradientTransformation, UninitializedState
 from torchopt.update import apply_updates
 
-
 if TYPE_CHECKING:
     from torchopt.typing import OptState, Params
 

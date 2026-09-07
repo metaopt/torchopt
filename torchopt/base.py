@@ -38,7 +38,6 @@ from abc import abstractmethod
 from typing import TYPE_CHECKING, Callable, NamedTuple, Protocol
 from typing_extensions import Self  # Python 3.11+
 
-
 if TYPE_CHECKING:
     from torchopt.typing import OptState, Params, Updates
 

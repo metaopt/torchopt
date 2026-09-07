@@ -19,7 +19,6 @@ from torchopt.diff.zero_order.nn.module import ZeroOrderGradientModule  # circul
 from torchopt.nn.module import MetaGradientModule
 from torchopt.nn.stateless import reparameterize, reparametrize, swap_state
 
-
 __all__ = [
     'ImplicitMetaGradientModule',
     'MetaGradientModule',

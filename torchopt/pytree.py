@@ -26,7 +26,6 @@ import torch
 import torch.distributed.rpc as rpc
 from optree import *  # pylint: disable=wildcard-import,unused-wildcard-import
 
-
 if TYPE_CHECKING:
     from torchopt.typing import Future, RRef, Scalar, T, TensorTree
 
