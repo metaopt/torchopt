@@ -25,7 +25,6 @@ from torchopt.base import UninitializedState
 from torchopt.typing import GradientTransformation, OptState, Params, TupleOfTensors
 from torchopt.update import apply_updates
 
-
 __all__ = ['Optimizer']
 
 

@@ -40,7 +40,6 @@ from torchopt.combine import chain
 from torchopt.transform import scale_by_rms, scale_by_stddev, trace
 from torchopt.typing import GradientTransformation, ScalarOrSchedule
 
-
 __all__ = ['rmsprop']
 
 

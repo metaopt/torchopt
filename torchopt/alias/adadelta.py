@@ -26,7 +26,6 @@ from torchopt.alias.utils import (
 from torchopt.combine import chain
 from torchopt.transform import scale_by_adadelta
 
-
 if TYPE_CHECKING:
     from torchopt.typing import GradientTransformation, ScalarOrSchedule
 

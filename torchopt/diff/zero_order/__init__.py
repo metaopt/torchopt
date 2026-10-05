@@ -24,7 +24,6 @@ from torchopt.diff.zero_order import nn
 from torchopt.diff.zero_order.decorator import zero_order
 from torchopt.diff.zero_order.nn import ZeroOrderGradientModule
 
-
 __all__ = ['ZeroOrderGradientModule', 'zero_order']
 
 

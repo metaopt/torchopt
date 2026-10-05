@@ -19,7 +19,6 @@ from __future__ import annotations
 import contextlib
 from typing import TYPE_CHECKING, Generator, Iterable
 
-
 if TYPE_CHECKING:
     import torch
     import torch.nn as nn
@@ -84,7 +83,7 @@ def reparametrize(
     module: nn.Module,
     named_tensors: dict[str, torch.Tensor] | Iterable[tuple[str, torch.Tensor]],
     allow_missing: bool = False,
-) -> Generator[nn.Module, None, None]:
+) -> Generator[nn.Module]:
     """Reparameterize the module parameters and/or buffers."""
     if not isinstance(named_tensors, dict):
         named_tensors = dict(named_tensors)

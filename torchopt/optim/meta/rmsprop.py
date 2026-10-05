@@ -20,7 +20,6 @@ from torchopt import alias
 from torchopt.optim.meta.base import MetaOptimizer
 from torchopt.typing import ScalarOrSchedule
 
-
 __all__ = ['MetaRMSProp', 'MetaRMSprop']
 
 

@@ -38,7 +38,6 @@ from typing import TYPE_CHECKING
 from torchopt import pytree
 from torchopt.base import ChainedGradientTransformation, GradientTransformation, identity
 
-
 if TYPE_CHECKING:
     from torchopt.typing import OptState, Params, Updates
 

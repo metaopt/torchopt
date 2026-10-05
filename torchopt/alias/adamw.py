@@ -43,7 +43,6 @@ from torchopt.alias.utils import (
 from torchopt.combine import chain
 from torchopt.transform import add_decayed_weights, scale_by_accelerated_adam, scale_by_adam
 
-
 if TYPE_CHECKING:
     from torchopt.typing import GradientTransformation, OptState, Params, ScalarOrSchedule
 

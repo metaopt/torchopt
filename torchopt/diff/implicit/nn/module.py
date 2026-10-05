@@ -30,7 +30,6 @@ from torchopt.diff.implicit.decorator import custom_root
 from torchopt.nn.module import MetaGradientModule
 from torchopt.nn.stateless import reparametrize, swap_state
 
-
 if TYPE_CHECKING:
     import torch
 

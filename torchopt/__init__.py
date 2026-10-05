@@ -79,7 +79,6 @@ from torchopt.utils import (
 )
 from torchopt.version import __version__
 
-
 __all__ = [
     'SGD',
     'AdaDelta',

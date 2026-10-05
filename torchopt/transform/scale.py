@@ -39,7 +39,6 @@ from torchopt import pytree
 from torchopt.base import EmptyState, GradientTransformation
 from torchopt.transform.utils import tree_map_flat, tree_map_flat_
 
-
 if TYPE_CHECKING:
     import torch
 

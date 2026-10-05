@@ -37,9 +37,9 @@ void adamForwardInplaceCPUKernel(const other_t b1,
                                  const other_t eps,
                                  const other_t eps_root,
                                  const size_t n,
-                                 scalar_t *__restrict__ updates_ptr,
-                                 scalar_t *__restrict__ mu_ptr,
-                                 scalar_t *__restrict__ nu_ptr) {
+                                 scalar_t* __restrict__ updates_ptr,
+                                 scalar_t* __restrict__ mu_ptr,
+                                 scalar_t* __restrict__ nu_ptr) {
 #pragma omp parallel for num_threads(   \
         std::min(n / MIN_NUMEL_USE_OMP, \
                      static_cast<size_t>(omp_get_num_procs()))) if (n > MIN_NUMEL_USE_OMP)
@@ -61,9 +61,9 @@ void adamForwardInplaceCPUKernel(const other_t b1,
   }
 }
 
-TensorArray<3> adamForwardInplaceCPU(const torch::Tensor &updates,
-                                     const torch::Tensor &mu,
-                                     const torch::Tensor &nu,
+TensorArray<3> adamForwardInplaceCPU(const torch::Tensor& updates,
+                                     const torch::Tensor& mu,
+                                     const torch::Tensor& nu,
                                      const pyfloat_t b1,
                                      const pyfloat_t b2,
                                      const pyfloat_t eps,
@@ -91,11 +91,11 @@ TensorArray<3> adamForwardInplaceCPU(const torch::Tensor &updates,
 }
 
 template <typename scalar_t, typename other_t>
-void adamForwardMuCPUKernel(const scalar_t *__restrict__ updates_ptr,
-                            const scalar_t *__restrict__ mu_ptr,
+void adamForwardMuCPUKernel(const scalar_t* __restrict__ updates_ptr,
+                            const scalar_t* __restrict__ mu_ptr,
                             const other_t b1,
                             const size_t n,
-                            scalar_t *__restrict__ mu_out_ptr) {
+                            scalar_t* __restrict__ mu_out_ptr) {
 #pragma omp parallel for num_threads(   \
         std::min(n / MIN_NUMEL_USE_OMP, \
                      static_cast<size_t>(omp_get_num_procs()))) if (n > MIN_NUMEL_USE_OMP)
@@ -107,8 +107,8 @@ void adamForwardMuCPUKernel(const scalar_t *__restrict__ updates_ptr,
   }
 }
 
-torch::Tensor adamForwardMuCPU(const torch::Tensor &updates,
-                               const torch::Tensor &mu,
+torch::Tensor adamForwardMuCPU(const torch::Tensor& updates,
+                               const torch::Tensor& mu,
                                const pyfloat_t b1) {
   auto mu_out = torch::empty_like(mu);
 
@@ -125,11 +125,11 @@ torch::Tensor adamForwardMuCPU(const torch::Tensor &updates,
 }
 
 template <typename scalar_t, typename other_t>
-void adamForwardNuCPUKernel(const scalar_t *__restrict__ updates_ptr,
-                            const scalar_t *__restrict__ nu_ptr,
+void adamForwardNuCPUKernel(const scalar_t* __restrict__ updates_ptr,
+                            const scalar_t* __restrict__ nu_ptr,
                             const other_t b2,
                             const size_t n,
-                            scalar_t *__restrict__ nu_out_ptr) {
+                            scalar_t* __restrict__ nu_out_ptr) {
 #pragma omp parallel for num_threads(   \
         std::min(n / MIN_NUMEL_USE_OMP, \
                      static_cast<size_t>(omp_get_num_procs()))) if (n > MIN_NUMEL_USE_OMP)
@@ -142,8 +142,8 @@ void adamForwardNuCPUKernel(const scalar_t *__restrict__ updates_ptr,
   }
 }
 
-torch::Tensor adamForwardNuCPU(const torch::Tensor &updates,
-                               const torch::Tensor &nu,
+torch::Tensor adamForwardNuCPU(const torch::Tensor& updates,
+                               const torch::Tensor& nu,
                                const pyfloat_t b2) {
   auto nu_out = torch::empty_like(nu);
 
@@ -160,14 +160,14 @@ torch::Tensor adamForwardNuCPU(const torch::Tensor &updates,
 }
 
 template <typename scalar_t, typename other_t>
-void adamForwardUpdatesCPUKernel(const scalar_t *__restrict__ new_mu_ptr,
-                                 const scalar_t *__restrict__ new_nu_ptr,
+void adamForwardUpdatesCPUKernel(const scalar_t* __restrict__ new_mu_ptr,
+                                 const scalar_t* __restrict__ new_nu_ptr,
                                  const other_t inv_one_minus_pow_b1,
                                  const other_t inv_one_minus_pow_b2,
                                  const other_t eps,
                                  const other_t eps_root,
                                  const size_t n,
-                                 scalar_t *__restrict__ updates_out_ptr) {
+                                 scalar_t* __restrict__ updates_out_ptr) {
 #pragma omp parallel for num_threads(   \
         std::min(n / MIN_NUMEL_USE_OMP, \
                      static_cast<size_t>(omp_get_num_procs()))) if (n > MIN_NUMEL_USE_OMP)
@@ -180,8 +180,8 @@ void adamForwardUpdatesCPUKernel(const scalar_t *__restrict__ new_mu_ptr,
   }
 }
 
-torch::Tensor adamForwardUpdatesCPU(const torch::Tensor &new_mu,
-                                    const torch::Tensor &new_nu,
+torch::Tensor adamForwardUpdatesCPU(const torch::Tensor& new_mu,
+                                    const torch::Tensor& new_nu,
                                     const pyfloat_t b1,
                                     const pyfloat_t b2,
                                     const pyfloat_t eps,
@@ -209,11 +209,11 @@ torch::Tensor adamForwardUpdatesCPU(const torch::Tensor &new_mu,
 }
 
 template <typename scalar_t, typename other_t>
-void adamBackwardMuCPUKernel(const scalar_t *__restrict__ dmu_ptr,
+void adamBackwardMuCPUKernel(const scalar_t* __restrict__ dmu_ptr,
                              const other_t b1,
                              const size_t n,
-                             scalar_t *__restrict__ dupdates_out_ptr,
-                             scalar_t *__restrict__ dmu_out_ptr) {
+                             scalar_t* __restrict__ dupdates_out_ptr,
+                             scalar_t* __restrict__ dmu_out_ptr) {
 #pragma omp parallel for num_threads(   \
         std::min(n / MIN_NUMEL_USE_OMP, \
                      static_cast<size_t>(omp_get_num_procs()))) if (n > MIN_NUMEL_USE_OMP)
@@ -225,9 +225,9 @@ void adamBackwardMuCPUKernel(const scalar_t *__restrict__ dmu_ptr,
   }
 }
 
-TensorArray<2> adamBackwardMuCPU(const torch::Tensor &dmu,
-                                 const torch::Tensor &updates,
-                                 const torch::Tensor &mu,
+TensorArray<2> adamBackwardMuCPU(const torch::Tensor& dmu,
+                                 const torch::Tensor& updates,
+                                 const torch::Tensor& mu,
                                  const pyfloat_t b1) {
   auto dupdates_out = torch::empty_like(updates);
   auto dmu_out = torch::empty_like(mu);
@@ -245,12 +245,12 @@ TensorArray<2> adamBackwardMuCPU(const torch::Tensor &dmu,
 }
 
 template <typename scalar_t, typename other_t>
-void adamBackwardNuCPUKernel(const scalar_t *__restrict__ dnu_ptr,
-                             const scalar_t *__restrict__ updates_ptr,
+void adamBackwardNuCPUKernel(const scalar_t* __restrict__ dnu_ptr,
+                             const scalar_t* __restrict__ updates_ptr,
                              const other_t b2,
                              const size_t n,
-                             scalar_t *__restrict__ dupdates_out_ptr,
-                             scalar_t *__restrict__ dnu_out_ptr) {
+                             scalar_t* __restrict__ dupdates_out_ptr,
+                             scalar_t* __restrict__ dnu_out_ptr) {
 #pragma omp parallel for num_threads(   \
         std::min(n / MIN_NUMEL_USE_OMP, \
                      static_cast<size_t>(omp_get_num_procs()))) if (n > MIN_NUMEL_USE_OMP)
@@ -263,9 +263,9 @@ void adamBackwardNuCPUKernel(const scalar_t *__restrict__ dnu_ptr,
   }
 }
 
-TensorArray<2> adamBackwardNuCPU(const torch::Tensor &dnu,
-                                 const torch::Tensor &updates,
-                                 const torch::Tensor &nu,
+TensorArray<2> adamBackwardNuCPU(const torch::Tensor& dnu,
+                                 const torch::Tensor& updates,
+                                 const torch::Tensor& nu,
                                  const pyfloat_t b2) {
   auto dupdates_out = torch::empty_like(updates);
   auto dnu_out = torch::empty_like(nu);
@@ -284,14 +284,14 @@ TensorArray<2> adamBackwardNuCPU(const torch::Tensor &dnu,
 }
 
 template <typename scalar_t, typename other_t>
-void adamBackwardUpdatesCPUKernel(const scalar_t *__restrict__ dupdates_ptr,
-                                  const scalar_t *__restrict__ updates_ptr,
-                                  const scalar_t *__restrict__ new_mu_ptr,
+void adamBackwardUpdatesCPUKernel(const scalar_t* __restrict__ dupdates_ptr,
+                                  const scalar_t* __restrict__ updates_ptr,
+                                  const scalar_t* __restrict__ new_mu_ptr,
                                   const other_t one_minus_pow_b1,
                                   const other_t inv_one_minus_pow_b2,
                                   const size_t n,
-                                  scalar_t *__restrict__ dnew_mu_out_ptr,
-                                  scalar_t *__restrict__ dnew_nu_out_ptr) {
+                                  scalar_t* __restrict__ dnew_mu_out_ptr,
+                                  scalar_t* __restrict__ dnew_nu_out_ptr) {
 #pragma omp parallel for num_threads(   \
         std::min(n / MIN_NUMEL_USE_OMP, \
                      static_cast<size_t>(omp_get_num_procs()))) if (n > MIN_NUMEL_USE_OMP)
@@ -316,10 +316,10 @@ void adamBackwardUpdatesCPUKernel(const scalar_t *__restrict__ dupdates_ptr,
   }
 }
 
-TensorArray<2> adamBackwardUpdatesCPU(const torch::Tensor &dupdates,
-                                      const torch::Tensor &updates,
-                                      const torch::Tensor &new_mu,
-                                      const torch::Tensor &new_nu,
+TensorArray<2> adamBackwardUpdatesCPU(const torch::Tensor& dupdates,
+                                      const torch::Tensor& updates,
+                                      const torch::Tensor& new_mu,
+                                      const torch::Tensor& new_nu,
                                       const pyfloat_t b1,
                                       const pyfloat_t b2,
                                       const pyfloat_t eps_root,

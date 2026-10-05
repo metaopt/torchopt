@@ -18,5 +18,4 @@ from torchopt.diff.implicit import nn
 from torchopt.diff.implicit.decorator import custom_root
 from torchopt.diff.implicit.nn import ImplicitMetaGradientModule
 
-
 __all__ = ['ImplicitMetaGradientModule', 'custom_root']

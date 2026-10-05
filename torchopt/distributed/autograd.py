@@ -23,7 +23,6 @@ import torch
 import torch.distributed.autograd as autograd
 from torch.distributed.autograd import context
 
-
 if TYPE_CHECKING:
     from torchopt.typing import TensorOrTensors, TupleOfOptionalTensors
 
