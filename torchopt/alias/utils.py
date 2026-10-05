@@ -23,7 +23,6 @@ from torchopt.base import EmptyState, GradientTransformation, identity
 from torchopt.transform import scale, scale_by_schedule
 from torchopt.transform.utils import tree_map_flat, tree_map_flat_
 
-
 if TYPE_CHECKING:
     import torch
 

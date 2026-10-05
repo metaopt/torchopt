@@ -34,5 +34,4 @@
 from torchopt.schedule.exponential_decay import exponential_decay
 from torchopt.schedule.polynomial import linear_schedule, polynomial_schedule
 
-
 __all__ = ['exponential_decay', 'linear_schedule', 'polynomial_schedule']

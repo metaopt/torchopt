@@ -39,7 +39,6 @@ from typing import TYPE_CHECKING
 import numpy as np
 import torch
 
-
 if TYPE_CHECKING:
     from torchopt.typing import Numeric, Scalar, Schedule
 

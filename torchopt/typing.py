@@ -45,7 +45,6 @@ from torchopt.base import (
     UninitializedState,
 )
 
-
 __all__ = [
     'ChainedGradientTransformation',
     'Device',

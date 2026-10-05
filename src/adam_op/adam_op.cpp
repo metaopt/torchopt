@@ -29,9 +29,9 @@ namespace py = pybind11;
 
 namespace adam_op {
 
-TensorArray<3> adamForwardInplace(const torch::Tensor &updates,
-                                  const torch::Tensor &mu,
-                                  const torch::Tensor &nu,
+TensorArray<3> adamForwardInplace(const torch::Tensor& updates,
+                                  const torch::Tensor& mu,
+                                  const torch::Tensor& nu,
                                   const pyfloat_t b1,
                                   const pyfloat_t b2,
                                   const pyfloat_t eps,
@@ -49,8 +49,8 @@ TensorArray<3> adamForwardInplace(const torch::Tensor &updates,
   }
 }
 
-torch::Tensor adamForwardMu(const torch::Tensor &updates,
-                            const torch::Tensor &mu,
+torch::Tensor adamForwardMu(const torch::Tensor& updates,
+                            const torch::Tensor& mu,
                             const pyfloat_t b1) {
 #if defined(__USE_CUDA__)
   if (updates.device().is_cuda()) {
@@ -64,8 +64,8 @@ torch::Tensor adamForwardMu(const torch::Tensor &updates,
   }
 }
 
-torch::Tensor adamForwardNu(const torch::Tensor &updates,
-                            const torch::Tensor &nu,
+torch::Tensor adamForwardNu(const torch::Tensor& updates,
+                            const torch::Tensor& nu,
                             const pyfloat_t b2) {
 #if defined(__USE_CUDA__)
   if (updates.device().is_cuda()) {
@@ -79,8 +79,8 @@ torch::Tensor adamForwardNu(const torch::Tensor &updates,
   }
 }
 
-torch::Tensor adamForwardUpdates(const torch::Tensor &new_mu,
-                                 const torch::Tensor &new_nu,
+torch::Tensor adamForwardUpdates(const torch::Tensor& new_mu,
+                                 const torch::Tensor& new_nu,
                                  const pyfloat_t b1,
                                  const pyfloat_t b2,
                                  const pyfloat_t eps,
@@ -98,9 +98,9 @@ torch::Tensor adamForwardUpdates(const torch::Tensor &new_mu,
   }
 }
 
-TensorArray<2> adamBackwardMu(const torch::Tensor &dmu,
-                              const torch::Tensor &updates,
-                              const torch::Tensor &mu,
+TensorArray<2> adamBackwardMu(const torch::Tensor& dmu,
+                              const torch::Tensor& updates,
+                              const torch::Tensor& mu,
                               const pyfloat_t b1) {
 #if defined(__USE_CUDA__)
   if (dmu.device().is_cuda()) {
@@ -114,9 +114,9 @@ TensorArray<2> adamBackwardMu(const torch::Tensor &dmu,
   }
 }
 
-TensorArray<2> adamBackwardNu(const torch::Tensor &dnu,
-                              const torch::Tensor &updates,
-                              const torch::Tensor &nu,
+TensorArray<2> adamBackwardNu(const torch::Tensor& dnu,
+                              const torch::Tensor& updates,
+                              const torch::Tensor& nu,
                               const pyfloat_t b2) {
 #if defined(__USE_CUDA__)
   if (dnu.device().is_cuda()) {
@@ -130,10 +130,10 @@ TensorArray<2> adamBackwardNu(const torch::Tensor &dnu,
   }
 }
 
-TensorArray<2> adamBackwardUpdates(const torch::Tensor &dupdates,
-                                   const torch::Tensor &updates,
-                                   const torch::Tensor &new_mu,
-                                   const torch::Tensor &new_nu,
+TensorArray<2> adamBackwardUpdates(const torch::Tensor& dupdates,
+                                   const torch::Tensor& updates,
+                                   const torch::Tensor& new_mu,
+                                   const torch::Tensor& new_nu,
                                    const pyfloat_t b1,
                                    const pyfloat_t b2,
                                    const pyfloat_t eps_root,
@@ -152,7 +152,7 @@ TensorArray<2> adamBackwardUpdates(const torch::Tensor &dupdates,
   }
 }
 
-void buildSubmodule(py::module &mod) {  // NOLINT[runtime/references]
+void buildSubmodule(py::module& mod) {  // NOLINT[runtime/references]
   py::module m = mod.def_submodule("adam_op", "Adam Ops");
   m.def("forward_",
         &adamForwardInplace,

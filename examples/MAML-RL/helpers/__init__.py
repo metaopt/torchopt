@@ -18,7 +18,6 @@
 
 from gym.envs.registration import register
 
-
 register(
     'TabularMDP-v0',
     entry_point='helpers.tabular_mdp:TabularMDPEnv',

@@ -39,7 +39,6 @@ import functorch
 
 from torchopt import pytree
 
-
 if TYPE_CHECKING:
     from torchopt.typing import TensorTree
 

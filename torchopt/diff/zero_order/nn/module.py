@@ -28,7 +28,6 @@ import torch.nn as nn
 from torchopt.diff.zero_order.decorator import Method, Samplable, zero_order
 from torchopt.nn.stateless import reparametrize
 
-
 if TYPE_CHECKING:
     from torchopt.typing import Numeric, TupleOfTensors
 

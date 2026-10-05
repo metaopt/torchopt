@@ -15,6 +15,5 @@
 
 import os
 
-
 os.environ['PYTHONHASHSEED'] = '0'
 os.environ['CUBLAS_WORKSPACE_CONFIG'] = ':16:8'

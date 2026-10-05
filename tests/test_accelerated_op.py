@@ -20,7 +20,6 @@ import torch.nn.functional as F
 import helpers
 import torchopt
 
-
 try:
     import torchopt._C.adam_op
 except ImportError:

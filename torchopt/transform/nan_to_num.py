@@ -21,7 +21,6 @@ from typing import TYPE_CHECKING
 from torchopt import pytree
 from torchopt.base import EmptyState, GradientTransformation
 
-
 if TYPE_CHECKING:
     import torch
 

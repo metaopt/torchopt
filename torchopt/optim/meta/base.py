@@ -27,7 +27,6 @@ from torchopt.typing import GradientTransformation, ModuleTensorContainers, OptS
 from torchopt.update import apply_updates
 from torchopt.utils import extract_module_containers
 
-
 __all__ = ['MetaOptimizer']
 
 

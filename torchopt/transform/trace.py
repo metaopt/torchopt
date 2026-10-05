@@ -43,7 +43,6 @@ from torchopt import pytree
 from torchopt.base import GradientTransformation, identity
 from torchopt.transform.utils import tree_map_flat, tree_map_flat_
 
-
 if TYPE_CHECKING:
     from torchopt.typing import OptState, Params, Updates
 
