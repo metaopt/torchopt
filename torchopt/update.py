@@ -37,7 +37,6 @@ from typing import TYPE_CHECKING
 
 from torchopt import pytree
 
-
 if TYPE_CHECKING:
     import torch
 

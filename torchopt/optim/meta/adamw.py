@@ -21,7 +21,6 @@ from typing import TYPE_CHECKING, Callable
 from torchopt import alias
 from torchopt.optim.meta.base import MetaOptimizer
 
-
 if TYPE_CHECKING:
     import torch.nn as nn
 

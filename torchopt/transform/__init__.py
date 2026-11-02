@@ -44,7 +44,6 @@ from torchopt.transform.scale_by_schedule import scale_by_schedule
 from torchopt.transform.scale_by_stddev import scale_by_stddev
 from torchopt.transform.trace import trace
 
-
 __all__ = [
     'add_decayed_weights',
     'masked',

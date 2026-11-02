@@ -23,7 +23,6 @@ import torch.types
 import helpers
 import torchopt
 
-
 BATCH_SIZE = 8
 NUM_UPDATES = 5
 

@@ -26,7 +26,6 @@ import torch
 from torchopt import pytree
 from torchopt.base import EmptyState, GradientTransformation
 
-
 if TYPE_CHECKING:
     from torchopt.typing import OptState, Params, Updates
 

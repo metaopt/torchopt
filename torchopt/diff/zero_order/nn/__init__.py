@@ -17,7 +17,6 @@
 import torchopt.nn.module  # preload to resolve circular references
 from torchopt.diff.zero_order.nn.module import ZeroOrderGradientModule
 
-
 __all__ = ['ZeroOrderGradientModule']
 
 del torchopt

@@ -22,7 +22,6 @@ from torchopt import alias
 from torchopt.optim.base import Optimizer
 from torchopt.typing import ScalarOrSchedule
 
-
 __all__ = ['SGD']
 
 

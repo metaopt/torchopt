@@ -17,7 +17,6 @@
 from __future__ import annotations
 
 import functools
-import itertools
 from typing import Any, Callable, Literal, Sequence
 from typing_extensions import TypeAlias  # Python 3.10+
 
@@ -124,7 +123,7 @@ def _zero_order_naive(  # noqa: C901 # pylint: disable=too-many-statements
                 for _ in range(num_samples):
                     noises = [distribution.sample(sample_shape=p.shape) for p in flat_diff_params]
                     flat_noisy_params = list(
-                        itertools.starmap(add_perturbation, zip(flat_diff_params, noises)),
+                        map(add_perturbation, flat_diff_params, noises),
                     )
                     noisy_params: list[Any] = pytree.tree_unflatten(  # type: ignore[assignment]
                         diff_params_treespec,
@@ -228,7 +227,7 @@ def _zero_order_forward(  # noqa: C901 # pylint: disable=too-many-statements
                 for _ in range(num_samples):
                     noises = [distribution.sample(sample_shape=p.shape) for p in flat_diff_params]
                     flat_noisy_params = list(
-                        itertools.starmap(add_perturbation, zip(flat_diff_params, noises)),
+                        map(add_perturbation, flat_diff_params, noises),
                     )
                     noisy_params: list[Any] = pytree.tree_unflatten(  # type: ignore[assignment]
                         diff_params_treespec,

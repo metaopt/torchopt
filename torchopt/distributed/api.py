@@ -39,7 +39,6 @@ from torchopt import pytree
 from torchopt.distributed.world import get_worker_id, get_world_rank, get_world_size
 from torchopt.typing import Future
 
-
 __all__ = [
     'TensorDimensionPartitioner',
     'batch_partitioner',
@@ -318,12 +317,12 @@ def remote_async_call(
         futures.append(fut)
 
     future = cast(
-        Future[List[T]],
+        'Future[List[T]]',
         torch.futures.collect_all(futures).then(lambda fut: [f.wait() for f in fut.wait()]),
     )
     if reducer is not None:
         return cast(
-            Future[U],
+            'Future[U]',
             future.then(lambda fut: reducer(fut.wait())),
         )
     return future

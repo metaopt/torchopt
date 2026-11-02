@@ -21,7 +21,6 @@ from torchopt.distributed import api, autograd, world
 from torchopt.distributed.api import *  # noqa: F403
 from torchopt.distributed.world import *  # noqa: F403
 
-
 __all__ = ['is_available', *api.__all__, *world.__all__]
 
 

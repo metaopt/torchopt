@@ -22,7 +22,6 @@ import torch
 
 from torchopt.accelerated_op.adam_op import AdamOp
 
-
 if TYPE_CHECKING:
     from torchopt.typing import Device
 

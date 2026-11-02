@@ -27,7 +27,6 @@ import torch.nn as nn
 from torchopt import pytree
 from torchopt.typing import Device, ModuleTensorContainers, OptState, TensorContainer, TensorTree
 
-
 if TYPE_CHECKING:
     from torchopt.optim.meta.base import MetaOptimizer
 
@@ -79,13 +78,13 @@ def stop_gradient(target: ModuleState | nn.Module | MetaOptimizer | TensorTree) 
             obj.detach_().requires_grad_(requires_grad)
 
     if isinstance(target, ModuleState):
-        true_target = cast(TensorTree, (target.params, target.buffers))
+        true_target = cast('TensorTree', (target.params, target.buffers))
     elif isinstance(target, nn.Module):
-        true_target = cast(TensorTree, tuple(target.parameters()))
+        true_target = cast('TensorTree', tuple(target.parameters()))
     elif isinstance(target, MetaOptimizer):
-        true_target = cast(TensorTree, target.state_dict())
+        true_target = cast('TensorTree', target.state_dict())
     else:
-        true_target = cast(TensorTree, target)  # tree of tensors
+        true_target = cast('TensorTree', target)  # tree of tensors
 
     pytree.tree_map_(fn_, true_target)
 
@@ -325,7 +324,7 @@ def recover_state_dict(
     from torchopt.optim.meta.base import MetaOptimizer
 
     if isinstance(target, nn.Module):
-        params, buffers, *_ = state = cast(ModuleState, state)
+        params, buffers, *_ = state = cast('ModuleState', state)
         params_containers, buffers_containers = extract_module_containers(target, with_buffers=True)
 
         if state.detach_buffers:
@@ -343,7 +342,7 @@ def recover_state_dict(
         ):
             tgt.update(src)
     elif isinstance(target, MetaOptimizer):
-        state = cast(Sequence[OptState], state)
+        state = cast('Sequence[OptState]', state)
         target.load_state_dict(state)
     else:
         raise TypeError(f'Unexpected class of {target}')
@@ -422,9 +421,9 @@ def module_clone(  # noqa: C901
 
     if isinstance(target, (nn.Module, MetaOptimizer)):
         if isinstance(target, nn.Module):
-            containers = cast(TensorTree, extract_module_containers(target, with_buffers=True))
+            containers = cast('TensorTree', extract_module_containers(target, with_buffers=True))
         else:
-            containers = cast(TensorTree, target.state_dict())
+            containers = cast('TensorTree', target.state_dict())
         tensors = pytree.tree_leaves(containers)
         memo = {id(t): t for t in tensors}
         cloned = copy.deepcopy(target, memo=memo)
@@ -476,7 +475,7 @@ def module_clone(  # noqa: C901
     else:
         replicate = clone_detach_
 
-    return pytree.tree_map(replicate, cast(TensorTree, target))
+    return pytree.tree_map(replicate, cast('TensorTree', target))
 
 
 @overload

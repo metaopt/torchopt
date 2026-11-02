@@ -25,7 +25,6 @@ import torch.nn as nn
 
 from torchopt import pytree
 
-
 if TYPE_CHECKING:
     from torchopt.typing import TensorContainer
 
