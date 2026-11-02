@@ -27,7 +27,6 @@ import torchopt
 from torchopt import pytree
 from torchopt.alias.utils import _set_use_chain_flat
 
-
 if TYPE_CHECKING:
     from torchopt.typing import TensorTree
 

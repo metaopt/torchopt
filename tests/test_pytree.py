@@ -18,7 +18,6 @@ import torch
 import helpers
 from torchopt import pytree
 
-
 tree_a = (torch.randn(20, 10), torch.randn(20))
 tree_b = (torch.randn(20, 10), torch.randn(20))
 

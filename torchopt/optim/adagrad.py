@@ -21,7 +21,6 @@ from typing import TYPE_CHECKING, Iterable
 from torchopt import alias
 from torchopt.optim.base import Optimizer
 
-
 if TYPE_CHECKING:
     import torch
 
