@@ -130,7 +130,8 @@ def adamw(
     add_decayed_weights_fn = add_decayed_weights
     scale_by_neg_lr_fn = scale_by_neg_lr
 
-    if _get_use_chain_flat():  # default behavior
+    # Masks and mask functions refer to the original parameter tree.
+    if _get_use_chain_flat() and mask is None:
         chain_fn = chain_fn.flat  # type: ignore[attr-defined]
         flip_sign_and_add_weight_decay_fn = flip_sign_and_add_weight_decay_fn.flat  # type: ignore[attr-defined]
         adam_scaler_fn = adam_scaler_fn.flat  # type: ignore[attr-defined]

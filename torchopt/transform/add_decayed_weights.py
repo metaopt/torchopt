@@ -114,7 +114,15 @@ def _masked(
         tree_map = pytree.tree_map  # type: ignore[assignment]
 
     def tree_mask(params: Params, mask_tree: OptState) -> Params:
-        return tree_map(lambda p, m: p if m else MaskedNode(), params, mask_tree)
+        # Pytree transforms skip the empty MaskedNode; flat transforms skip None.
+        masked_node = None if already_flattened else MaskedNode()
+        # A callable mask can leave None at positions with missing updates.
+        return tree_map(
+            lambda m, p: p if m else masked_node,
+            mask_tree,
+            params,
+            none_is_leaf=True,
+        )
 
     def init_fn(params: Params) -> OptState:
         mask_tree = mask(params) if callable(mask) else mask
@@ -140,10 +148,11 @@ def _masked(
         )
 
         new_updates = tree_map(
-            lambda old_u, new_u, m: new_u if m else old_u,
-            updates,
-            new_masked_updates,
+            lambda m, new_u, old_u: new_u if m else old_u,
             mask_tree,
+            new_masked_updates,
+            updates,
+            none_is_leaf=True,
         )
         return new_updates, MaskedState(inner_state=new_inner_state)
 
