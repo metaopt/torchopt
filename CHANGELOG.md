@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
--
+- Preserve parameter-tree masks in AdamW and skip masked parameters in flat transformations ([#232](https://github.com/metaopt/torchopt/issues/232)).
 
 ### Removed
 

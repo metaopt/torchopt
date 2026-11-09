@@ -130,22 +130,32 @@ def adamw(
     add_decayed_weights_fn = add_decayed_weights
     scale_by_neg_lr_fn = scale_by_neg_lr
 
-    if _get_use_chain_flat():  # default behavior
+    use_chain_flat = _get_use_chain_flat()
+    if use_chain_flat:
+        adam_scaler_fn = adam_scaler_fn.flat  # type: ignore[attr-defined]
+        scale_by_neg_lr_fn = scale_by_neg_lr_fn.flat  # type: ignore[attr-defined]
+
+    if use_chain_flat and mask is None:
         chain_fn = chain_fn.flat  # type: ignore[attr-defined]
         flip_sign_and_add_weight_decay_fn = flip_sign_and_add_weight_decay_fn.flat  # type: ignore[attr-defined]
-        adam_scaler_fn = adam_scaler_fn.flat  # type: ignore[attr-defined]
         add_decayed_weights_fn = add_decayed_weights_fn.flat  # type: ignore[attr-defined]
-        scale_by_neg_lr_fn = scale_by_neg_lr_fn.flat  # type: ignore[attr-defined]
+
+    adam_scaler = adam_scaler_fn(
+        b1=b1,
+        b2=b2,
+        eps=eps,
+        eps_root=eps_root,
+        moment_requires_grad=moment_requires_grad,
+    )
+    lr_scaler = scale_by_neg_lr_fn(lr)
+    if use_chain_flat and mask is not None:
+        # Preserve flat state while masks see the original parameter tree.
+        adam_scaler = chain.flat(adam_scaler)  # type: ignore[attr-defined]
+        lr_scaler = chain.flat(lr_scaler)  # type: ignore[attr-defined]
 
     return chain_fn(
         flip_sign_and_add_weight_decay_fn(weight_decay=0.0, maximize=maximize),
-        adam_scaler_fn(
-            b1=b1,
-            b2=b2,
-            eps=eps,
-            eps_root=eps_root,
-            moment_requires_grad=moment_requires_grad,
-        ),
+        adam_scaler,
         add_decayed_weights_fn(weight_decay=weight_decay, mask=mask),
-        scale_by_neg_lr_fn(lr),
+        lr_scaler,
     )
