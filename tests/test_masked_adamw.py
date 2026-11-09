@@ -22,7 +22,12 @@ import torch
 
 import torchopt
 from torchopt import pytree
-from torchopt.alias.utils import _get_use_chain_flat, _set_use_chain_flat
+from torchopt.alias.utils import (
+    _get_use_chain_flat,
+    _set_use_chain_flat,
+    flip_sign_and_add_weight_decay,
+    scale_by_neg_lr,
+)
 
 
 if TYPE_CHECKING:
@@ -315,3 +320,55 @@ def test_masked_adam_state_with_missing_updates(use_chain_flat: bool, inplace: b
     )
     torch.testing.assert_close(updates[2], torch.tensor([4.0 / (4.0 + 1e-8)]))
     assert state.inner_state.count[2].item() == 1
+
+
+@pytest.mark.parametrize('use_chain_flat', [True], indirect=True)
+@pytest.mark.parametrize('use_accelerated_op', [True, False])
+@pytest.mark.parametrize('maximize', [True, False])
+@pytest.mark.parametrize('scheduled_lr', [True, False])
+def test_masked_adamw_resumes_flat_state(
+    use_chain_flat: bool,
+    use_accelerated_op: bool,
+    maximize: bool,
+    scheduled_lr: bool,
+) -> None:
+    params = {'layer': [torch.tensor([[2.0, 3.0]])], 'bias': torch.tensor([4.0, 5.0])}
+    lr = (lambda count: 0.2 / (count + 1)) if scheduled_lr else 0.2
+
+    def mask_fn(tree):
+        return pytree.tree_map(lambda _: True, tree)
+
+    adam_scaler = (
+        torchopt.transform.scale_by_accelerated_adam
+        if use_accelerated_op
+        else torchopt.transform.scale_by_adam
+    )
+    # Before the fix, AdamW used one flat chain for every transform.
+    legacy = torchopt.chain.flat(
+        flip_sign_and_add_weight_decay.flat(maximize=maximize),
+        adam_scaler.flat(),
+        torchopt.transform.add_decayed_weights.flat(weight_decay=0.1, mask=mask_fn),
+        scale_by_neg_lr.flat(lr),
+    )
+    state = legacy.init(params)
+    for _ in range(2):
+        grads = pytree.tree_map(lambda p: p.square(), params)
+        updates, state = legacy.update(grads, state, params=params, inplace=False)
+        params = torchopt.apply_updates(params, updates, inplace=False)
+
+    optimizer = torchopt.adamw(
+        lr=lr,
+        weight_decay=0.1,
+        mask=mask_fn,
+        maximize=maximize,
+        use_accelerated_op=use_accelerated_op,
+    )
+    assert pytree.tree_structure(optimizer.init(params)) == pytree.tree_structure(state)
+    grads = pytree.tree_map(lambda p: p.square(), params)
+    updates, new_state = optimizer.update(grads, state, params=params, inplace=False)
+    expected_updates, expected_state = legacy.update(grads, state, params=params, inplace=False)
+    for actual, expected in zip(
+        pytree.tree_leaves((updates, new_state)),
+        pytree.tree_leaves((expected_updates, expected_state)),
+    ):
+        torch.testing.assert_close(actual, expected, rtol=1e-12, atol=1e-12)
