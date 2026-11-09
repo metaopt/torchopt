@@ -136,17 +136,18 @@ TensorArray<2> adamBackwardUpdates(const torch::Tensor &dupdates,
                                    const torch::Tensor &new_nu,
                                    const pyfloat_t b1,
                                    const pyfloat_t b2,
+                                   const pyfloat_t eps,
                                    const pyfloat_t eps_root,
                                    const pyuint_t count) {
 #if defined(__USE_CUDA__)
   if (dupdates.device().is_cuda()) {
     return adamBackwardUpdatesCUDA(
-        dupdates.contiguous(), updates, new_mu, new_nu, b1, b2, eps_root, count);
+        dupdates.contiguous(), updates, new_mu, new_nu, b1, b2, eps, eps_root, count);
   }
 #endif
   if (dupdates.device().is_cpu()) {
     return adamBackwardUpdatesCPU(
-        dupdates.contiguous(), updates, new_mu, new_nu, b1, b2, eps_root, count);
+        dupdates.contiguous(), updates, new_mu, new_nu, b1, b2, eps, eps_root, count);
   } else {
     throw std::runtime_error("Not implemented");
   }
@@ -210,6 +211,7 @@ void buildSubmodule(py::module &mod) {  // NOLINT[runtime/references]
         py::arg("new_nu"),
         py::arg("b1"),
         py::arg("b2"),
+        py::arg("eps"),
         py::arg("eps_root"),
         py::arg("count"));
 }

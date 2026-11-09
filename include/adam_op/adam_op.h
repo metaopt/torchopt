@@ -68,6 +68,7 @@ TensorArray<2> adamBackwardUpdates(const torch::Tensor &dupdates,
                                    const torch::Tensor &new_nu,
                                    const pyfloat_t b1,
                                    const pyfloat_t b2,
+                                   const pyfloat_t eps,
                                    const pyfloat_t eps_root,
                                    const pyuint_t count);
 

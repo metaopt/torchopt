@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
--
+- Correct accelerated Adam meta-gradients for zero first moments and denominator regularization.
 
 ### Removed
 

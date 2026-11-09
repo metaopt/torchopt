@@ -110,21 +110,20 @@ def backward_updates(
     new_nu: torch.Tensor,
     b1: float,
     b2: float,
+    eps: float,
     eps_root: float,
     count: int,
 ) -> tuple[torch.Tensor, torch.Tensor]:
     """Adam backward updates."""
     one_minus_pow_b1 = 1.0 - pow(b1, count)
-    inv_one_minus_pow_b2 = 1.0 / (1.0 - pow(b2, count) + eps_root)
+    one_minus_pow_b2 = 1.0 - pow(b2, count)
+    root = new_nu.div(one_minus_pow_b2).add_(eps_root).sqrt_()
+    denominator = root.add(eps)
+    dnew_mu_out = dupdates.div(denominator).div_(one_minus_pow_b1)
+    dnew_nu_out = dnew_mu_out.mul(new_mu).div_(denominator).div_(root).mul_(-0.5 / one_minus_pow_b2)
 
-    updates_div_new_mu = updates.div(new_mu)
-    dnew_mu_out = dupdates.mul(updates_div_new_mu)
-    denominator = updates_div_new_mu.mul_(one_minus_pow_b1)
-    dnew_nu_out = (
-        denominator.square_().mul_(dupdates).mul_(updates).mul_(-0.5 * inv_one_minus_pow_b2)
-    )
-
-    mask = new_mu == 0
-    dnew_mu_out[mask] = 0
+    # At a zero numerator and variance, the variance adjoint is zero. Keep the
+    # finite first-moment adjoint when eps > 0, without propagating 0 / 0.
+    mask = (new_mu == 0) & (root == 0)
     dnew_nu_out[mask] = 0
     return dnew_mu_out, dnew_nu_out
