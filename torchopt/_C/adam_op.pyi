@@ -57,6 +57,7 @@ def backward_updates(
     new_nu: torch.Tensor,
     b1: float,
     b2: float,
+    eps: float,
     eps_root: float,
     count: int,
 ) -> tuple[torch.Tensor, torch.Tensor]: ...

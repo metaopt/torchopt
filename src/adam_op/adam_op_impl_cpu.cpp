@@ -285,10 +285,12 @@ TensorArray<2> adamBackwardNuCPU(const torch::Tensor &dnu,
 
 template <typename scalar_t, typename other_t>
 void adamBackwardUpdatesCPUKernel(const scalar_t *__restrict__ dupdates_ptr,
-                                  const scalar_t *__restrict__ updates_ptr,
+                                  const scalar_t *__restrict__ new_nu_ptr,
                                   const scalar_t *__restrict__ new_mu_ptr,
                                   const other_t one_minus_pow_b1,
                                   const other_t inv_one_minus_pow_b2,
+                                  const other_t eps,
+                                  const other_t eps_root,
                                   const size_t n,
                                   scalar_t *__restrict__ dnew_mu_out_ptr,
                                   scalar_t *__restrict__ dnew_nu_out_ptr) {
@@ -297,22 +299,18 @@ void adamBackwardUpdatesCPUKernel(const scalar_t *__restrict__ dupdates_ptr,
                      static_cast<size_t>(omp_get_num_procs()))) if (n > MIN_NUMEL_USE_OMP)
   for (size_t tid = 0; tid < n; ++tid) {
     const scalar_t dupdates = dupdates_ptr[tid];
-    const scalar_t updates = updates_ptr[tid];
     const scalar_t new_mu = new_mu_ptr[tid];
 
-    if (new_mu == 0) {
-      dnew_mu_out_ptr[tid] = 0;
+    const scalar_t root = sqrt(new_nu_ptr[tid] * inv_one_minus_pow_b2 + eps_root);
+    const scalar_t denominator = root + eps;
+    const scalar_t dnew_mu = dupdates / (one_minus_pow_b1 * denominator);
+    dnew_mu_out_ptr[tid] = dnew_mu;
+    // The zero numerator has zero variance adjoint even at an unsmoothed zero variance.
+    if (new_mu == 0 && root == 0) {
       dnew_nu_out_ptr[tid] = 0;
       continue;
     }
-
-    const scalar_t updates_div_new_mu = updates / new_mu;
-
-    const scalar_t denominator = updates_div_new_mu * one_minus_pow_b1;
-
-    dnew_mu_out_ptr[tid] = dupdates * updates_div_new_mu;
-    dnew_nu_out_ptr[tid] =
-        -dupdates * updates * denominator * 0.5 * inv_one_minus_pow_b2 * denominator;
+    dnew_nu_out_ptr[tid] = -0.5 * dnew_mu * new_mu / denominator / root * inv_one_minus_pow_b2;
   }
 }
 
@@ -322,11 +320,12 @@ TensorArray<2> adamBackwardUpdatesCPU(const torch::Tensor &dupdates,
                                       const torch::Tensor &new_nu,
                                       const pyfloat_t b1,
                                       const pyfloat_t b2,
+                                      const pyfloat_t eps,
                                       const pyfloat_t eps_root,
                                       const pyuint_t count) {
   using other_t = pyfloat_t;
   const other_t one_minus_pow_b1 = 1 - std::pow(b1, count);
-  const other_t inv_one_minus_pow_b2 = 1 / (1 - std::pow(b2, count) + eps_root);
+  const other_t inv_one_minus_pow_b2 = 1 / (1 - std::pow(b2, count));
 
   auto dmu_out = torch::empty_like(new_mu);
   auto dnu_out = torch::empty_like(new_nu);
@@ -335,10 +334,12 @@ TensorArray<2> adamBackwardUpdatesCPU(const torch::Tensor &dupdates,
   AT_DISPATCH_SCALAR_TYPES(dupdates.scalar_type(), "adamBackwardUpdatesCPU", ([&] {
                              adamBackwardUpdatesCPUKernel<scalar_t, scalar_t>(
                                  dupdates.data_ptr<scalar_t>(),
-                                 updates.data_ptr<scalar_t>(),
+                                 new_nu.data_ptr<scalar_t>(),
                                  new_mu.data_ptr<scalar_t>(),
                                  scalar_t(one_minus_pow_b1),
                                  scalar_t(inv_one_minus_pow_b2),
+                                 scalar_t(eps),
+                                 scalar_t(eps_root),
                                  n,
                                  dmu_out.data_ptr<scalar_t>(),
                                  dnu_out.data_ptr<scalar_t>());

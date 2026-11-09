@@ -107,7 +107,7 @@ class AdamOp:  # pylint: disable=too-few-public-methods
             """Define a formula for differentiating the operation with backward mode automatic differentiation (alias to the :meth:`vjp` function)."""
             dupdates = args[0]
             updates, new_mu, new_nu = ctx.saved_tensors
-            b1, b2, _, eps_root, count = ctx.others
+            b1, b2, eps, eps_root, count = ctx.others
             result = adam_op.backward_updates(
                 dupdates,
                 updates,
@@ -115,6 +115,7 @@ class AdamOp:  # pylint: disable=too-few-public-methods
                 new_nu,
                 b1,
                 b2,
+                eps,
                 eps_root,
                 count,
             )
