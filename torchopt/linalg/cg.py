@@ -121,7 +121,7 @@ def _isolve(
         x0 = pytree.tree_map(torch.zeros_like, b)
 
     if maxiter is None:
-        size = sum(cat_shapes(b))
+        size = sum(leaf.numel() for leaf in pytree.tree_leaves(b))
         maxiter = 10 * size  # copied from SciPy
 
     if M is None:
@@ -177,8 +177,8 @@ def cg(
             SciPy unless you explicitly pass ``atol`` to SciPy's ``cg``. (default: :const:`0.0`)
         maxiter (int or None, optional): Maximum number of iterations. Iteration will stop after
             maxiter steps even if the specified tolerance has not been achieved. If :data:`None`,
-            ``10 * size`` will be used, where ``size`` is the size of the flattened input tensor(s).
-            (default: :data:`None`)
+            ``10 * size`` will be used, where ``size`` is the total number of elements across the
+            input tensor(s). (default: :data:`None`)
         M (Tensor, tree of Tensor, function, or None, optional): Pre-conditioner for ``A``. The
             pre-conditioner should approximate the inverse of ``A``. Effective preconditioning
             dramatically improves the rate of convergence, which implies that fewer iterations are

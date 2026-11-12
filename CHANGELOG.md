@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
--
+- Fix default `maxiter` iteration budget in `torchopt.linalg.cg` for scalar tensors and pytrees with scalar leaves.
 
 ### Removed
 
